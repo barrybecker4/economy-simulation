@@ -12,8 +12,9 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -b && pnpm --filter @economy-simulation/app run typecheck",
     "test": "vitest run",
-    "check": "pnpm run lint && pnpm run format:check && pnpm run typecheck && pnpm run test",
-    "sim": "node --experimental-strip-types packages/cli/src/main.ts"
+    "assumptions:check": "vitest run packages/core/src/config/assumptions.test.ts",
+    "check": "pnpm run lint && pnpm run format:check && pnpm run typecheck && pnpm run test && pnpm run assumptions:check",
+    "sim": "tsc -b --pretty false && node packages/cli/dist/main.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

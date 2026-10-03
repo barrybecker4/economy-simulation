@@ -2,7 +2,7 @@
 
 An agent-based simulation of an economy under different monetary regimes. People change assumptions, switch regimes, and compare results across random seeds. The model shows which assumptions a conclusion depends on.
 
-Phase 0 is scaffolding. There is no simulation yet. The specification is [docs/PLAN.md](docs/PLAN.md). Working agreements are in [AGENTS.md](AGENTS.md).
+Phase 1 runs the deterministic engine. It does not yet contain households, firms, or markets. The specification is [docs/PLAN.md](docs/PLAN.md). Working agreements are in [AGENTS.md](AGENTS.md).
 
 ## Requirements
 
@@ -21,10 +21,17 @@ pnpm run check
 
 `pnpm run check` runs lint, format check, typecheck, and tests.
 
-The command-line runner is a placeholder until Phase 1:
+Run a scenario. The phases are empty, so the output records the resolved configuration and an audit of an empty ledger:
 
 ```sh
-pnpm sim
+pnpm sim run --scenario scenarios/baseline.json --seed 1 --out run.json
+```
+
+Regenerate the assumption list after a slider change, then check it in:
+
+```sh
+pnpm sim assumptions --out docs/assumptions.md
+pnpm run assumptions:check
 ```
 
 The web placeholder:
@@ -32,6 +39,11 @@ The web placeholder:
 ```sh
 pnpm --filter @economy-simulation/app dev
 ```
+
+## Dependencies added for the engine
+
+- `zod` validates scenario files.
+- `fast-check` generates the ledger property tests.
 
 ## Layout
 
