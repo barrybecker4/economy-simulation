@@ -1,0 +1,21 @@
+---
+description: Determinism and money rules for the simulation core
+globs: packages/core/**/*.ts
+alwaysApply: false
+---
+
+# Core determinism
+
+- Do not call Math.random or Date.now. Pass the seeded RNG explicitly.
+- Iterate agents in a fixed order by numeric id.
+- Fiat money is integer cents. Bitcoin money is a floating-point number of satoshis and may be fractional.
+- Every movement of money or debt goes through the double-entry ledger.
+- Ratios, rates, and productivity may be floating point.
+
+```ts
+// Bad
+const draw = Math.random();
+
+// Good
+const draw = rng.uniform();
+```

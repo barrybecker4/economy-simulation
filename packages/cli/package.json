@@ -1,0 +1,17 @@
+{
+  "name": "@economy-simulation/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "node --experimental-strip-types src/main.ts"
+  },
+  "dependencies": {
+    "@economy-simulation/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}

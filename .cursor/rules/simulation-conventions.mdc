@@ -1,0 +1,15 @@
+---
+description: Phase discipline and simulation working agreements
+alwaysApply: true
+---
+
+# Economy simulation
+
+- Read docs/PLAN.md and docs/model.md before changing simulation behavior.
+- Implement only the phase named in the task. Do not start a later phase.
+- When a design decision changes, update docs/PLAN.md and docs/model.md in the same change.
+- Write tests first for ledger, accounting, and regime logic.
+- Keep functions small. Agents decide in decide() and act through the ledger and markets. They do not modify other agents directly.
+- Keep every tunable number in the slider registry. No unexplained constants in agent code.
+- Do not add a dependency without noting why.
+- Fiat money is integer cents. Bitcoin money is floating-point satoshis, including fractions of a satoshi.
