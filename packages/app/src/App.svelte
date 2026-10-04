@@ -1,9 +1,11 @@
 <script lang="ts">
   import { listSliders, type Slider } from '../../core/src/config/registry.js';
   import Chart from './Chart.svelte';
+  import NameTip from './NameTip.svelte';
   import type { RunRequest, RunResponse } from './worker.ts';
 
   const sliders = listSliders();
+  const regimeSlider = sliders.find((slider) => slider.id === 'regime.type');
   const weights = [
     'welfare.weightInequality',
     'welfare.weightMedianWealth',
@@ -190,8 +192,10 @@
     <label>Seed <input type="number" min="0" bind:value={seed} /></label>
     <label>Months <input type="number" min="12" max="1200" bind:value={ticks} /></label>
     <label>
-      Regime
-      <select bind:value={regime}>
+      {#if regimeSlider}
+        <NameTip slider={regimeSlider} label="Regime" described={false} />
+      {/if}
+      <select bind:value={regime} aria-describedby="help-regime.type">
         <option value="fiat">Fiat</option>
         <option value="bitcoin">Bitcoin</option>
         <option value="hybrid">Hybrid</option>
@@ -286,9 +290,10 @@
 
   <section class="sliders">
     <h2>Sliders</h2>
+    <p class="hint">Hover a name to read what that slider changes. The note also shows its unit, default, and whether the value is sourced, calibrated, or a guess.</p>
     {#each sliders as slider (slider.id)}
-      <label title="{slider.description} Status: {slider.status}. {slider.source}">
-        <span>{slider.label}</span>
+      <label>
+        <NameTip {slider} wide />
         {#if slider.kind === 'number'}
           <input
             type="range"
@@ -296,12 +301,16 @@
             max={slider.max}
             step={(slider.max - slider.min) / 100}
             value={Number(valueOf(slider))}
+            aria-labelledby="label-{slider.id}"
+            aria-describedby="help-{slider.id}"
             oninput={(event) => onSlider(slider, (event.target as HTMLInputElement).value)}
           />
           <output>{valueOf(slider)}</output>
         {:else}
           <select
             value={String(valueOf(slider))}
+            aria-labelledby="label-{slider.id}"
+            aria-describedby="help-{slider.id}"
             onchange={(event) => onSlider(slider, (event.target as HTMLSelectElement).value)}
           >
             {#each slider.options as option (option)}
@@ -326,6 +335,10 @@
     max-width: 960px;
     padding: 1rem;
   }
+  .controls label,
+  .sliders label {
+    position: relative;
+  }
   .controls,
   .sliders label {
     display: flex;
@@ -337,8 +350,14 @@
     border-bottom: 1px solid #ddd;
     padding: 0.4rem 0;
   }
-  .sliders span {
-    min-width: 16rem;
+  .hint {
+    color: #57534e;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin: 0 0 0.4rem;
+  }
+  .sliders input[type='range'] {
+    flex: 1 1 12rem;
   }
   button {
     font: inherit;
