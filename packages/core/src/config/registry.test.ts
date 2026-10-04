@@ -41,6 +41,12 @@ const EXPECTED_IDS = [
   'ai.agentAutonomyShareEnd',
   'ai.paymentFrictionFiat',
   'ai.paymentFrictionBitcoin',
+  'scale.households',
+  'scale.firms',
+  'scale.banks',
+  'labor.maxApplications',
+  'production.alpha',
+  'goods.sampleSize',
 ];
 
 describe('slider registry', () => {
@@ -52,7 +58,8 @@ describe('slider registry', () => {
 
   it('keeps each default inside its range', () => {
     for (const slider of listSliders()) {
-      expect(slider.status).toBe('guess');
+      expect(['sourced', 'calibrated', 'guess']).toContain(slider.status);
+      expect(slider.source.length).toBeGreaterThan(0);
       if (slider.kind === 'number') {
         expect(slider.default).toBeGreaterThanOrEqual(slider.min);
         expect(slider.default).toBeLessThanOrEqual(slider.max);

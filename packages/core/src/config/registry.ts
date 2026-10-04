@@ -1,7 +1,15 @@
 import { PLACEHOLDER_SOURCE } from './limits.js';
 
 export type SliderGroup =
-  'behavior' | 'environment' | 'policy' | 'regime' | 'goods' | 'contracts' | 'welfare' | 'ai';
+  | 'behavior'
+  | 'environment'
+  | 'policy'
+  | 'regime'
+  | 'goods'
+  | 'contracts'
+  | 'welfare'
+  | 'ai'
+  | 'scale';
 
 export type SliderStatus = 'sourced' | 'calibrated' | 'guess';
 
@@ -78,7 +86,7 @@ function enumSlider(
   };
 }
 
-export const SLIDERS: readonly Slider[] = [
+const RAW_SLIDERS: readonly Slider[] = [
   numberSlider(
     'household.timePreferenceMean',
     'Mean time preference',
@@ -457,7 +465,98 @@ export const SLIDERS: readonly Slider[] = [
     0.1,
     'Fee on an AI-agent payment in the bitcoin regime.',
   ),
+  numberSlider(
+    'scale.households',
+    'Households',
+    'scale',
+    'agents',
+    1000,
+    20,
+    10000,
+    'Number of household agents in the run.',
+  ),
+  numberSlider(
+    'scale.firms',
+    'Firms',
+    'scale',
+    'agents',
+    100,
+    4,
+    500,
+    'Number of firm agents in the run.',
+  ),
+  numberSlider(
+    'scale.banks',
+    'Banks',
+    'scale',
+    'agents',
+    3,
+    1,
+    10,
+    'Number of commercial banks in the run.',
+  ),
+  numberSlider(
+    'labor.maxApplications',
+    'Job applications',
+    'behavior',
+    'applications per tick',
+    3,
+    1,
+    8,
+    'How many firms an unemployed household can approach in one month.',
+  ),
+  numberSlider(
+    'production.alpha',
+    'Capital elasticity',
+    'behavior',
+    'share',
+    0.33,
+    0.2,
+    0.5,
+    'Exponent on capital in the production function.',
+  ),
+  numberSlider(
+    'goods.sampleSize',
+    'Shops sampled',
+    'behavior',
+    'firms',
+    4,
+    1,
+    12,
+    'How many firms a household compares when buying goods.',
+  ),
 ];
+
+const ANNOTATIONS: Record<string, Pick<Slider, 'status' | 'source'>> = {
+  'centralBank.inflationTarget': {
+    status: 'sourced',
+    source:
+      'A 2 percent annual target is the stated goal of many inflation-targeting central banks.',
+  },
+  'bank.capitalRatio': {
+    status: 'sourced',
+    source:
+      'The default is near the Basel III common-equity floor, applied here to all loans rather than risk-weighted assets.',
+  },
+  'production.alpha': {
+    status: 'sourced',
+    source: 'A capital elasticity near one third matches the usual Cobb–Douglas capital share.',
+  },
+  'government.spendingShareOfGDP': {
+    status: 'calibrated',
+    source:
+      'Set so public purchases are a fifth of the income base and the goods market clears. Not a country estimate.',
+  },
+  'tax.incomeRate': {
+    status: 'calibrated',
+    source: 'Set equal to the spending share so the treasury starts near balance.',
+  },
+};
+
+export const SLIDERS: readonly Slider[] = RAW_SLIDERS.map((slider) => {
+  const note = ANNOTATIONS[slider.id];
+  return note ? { ...slider, ...note } : slider;
+});
 
 const SLIDER_BY_ID = new Map<string, Slider>(SLIDERS.map((slider) => [slider.id, slider]));
 

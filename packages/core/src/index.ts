@@ -27,5 +27,13 @@ export type { AccountKind, AuditReport, EntrySide, PostingLine } from './ledger/
 export { METRIC_IDS, MetricsRecorder, metricsToCsv } from './metrics/metrics.js';
 export type { MetricId, MetricsTable } from './metrics/metrics.js';
 export { canonicalJson, simulationToJson, toResultRecord } from './output/canonical.js';
+export { runSweep, gitCommit, SWEEP_METRICS } from './experiments/sweep.js';
+export type { SweepJob, SweepRow } from './experiments/sweep.js';
+export { summarize, pairedDifference } from './experiments/summary.js';
+export { morrisScreen } from './experiments/morris.js';
+export { runHypotheses } from './experiments/hypotheses.js';
+export type { HypothesisResult } from './experiments/hypotheses.js';
+export { simulate } from './sim/simulate.js';
+export type { ForcedShock } from './sim/simulate.js';
 export { Rng } from './rng/rng.js';
 export type { MoneyUnit } from './money/amount.js';

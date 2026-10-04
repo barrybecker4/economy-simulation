@@ -1,0 +1,12 @@
+{
+  "name": "keynesian-leaning",
+  "ticks": 600,
+  "sliders": {
+    "regime.type": "fiat",
+    "government.spendingShareOfGDP": 0.35,
+    "centralBank.inflationWeight": 2.5,
+    "centralBank.outputWeight": 1.2,
+    "bank.capitalRatio": 0.06,
+    "shock.frequency": 0.2
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "no-ai",
+  "ticks": 600,
+  "sliders": {
+    "ai.automatableShareStart": 0.3,
+    "ai.automatableShareEnd": 0.3
+  }
+}

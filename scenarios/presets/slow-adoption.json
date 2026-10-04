@@ -1,0 +1,9 @@
+{
+  "name": "slow-adoption",
+  "ticks": 600,
+  "sliders": {
+    "ai.adoptionMidpointYear": 30,
+    "ai.adoptionSteepness": 0.15,
+    "ai.physicalTaskShare": 0.3
+  }
+}

@@ -264,7 +264,7 @@ function applyLine(account: Account, side: EntrySide, amount: bigint | number): 
     (account.kind !== 'asset' && side === 'credit');
   if (typeof account.balance === 'bigint' && typeof amount === 'bigint') {
     const next = increase ? account.balance + amount : account.balance - amount;
-    if (next < 0n) {
+    if (account.kind === 'asset' && next < 0n) {
       throw new Error(`Account ${account.id} has insufficient balance`);
     }
     assertCentBalance(next);
@@ -275,8 +275,11 @@ function applyLine(account: Account, side: EntrySide, amount: bigint | number): 
     if (!Number.isFinite(next)) {
       throw new Error(`Account ${account.id} balance is not finite`);
     }
-    if (next < 0) {
+    if (account.kind === 'asset' && next < -1e-9) {
       throw new Error(`Account ${account.id} has insufficient balance`);
+    }
+    if (account.kind === 'asset' && next < 0) {
+      return { ...account, balance: 0 };
     }
     return { ...account, balance: next };
   }

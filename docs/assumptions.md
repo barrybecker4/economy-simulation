@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 1.
+Registry version: 2.
 
 ## ai.adoptionMidpointYear
 
@@ -14,7 +14,7 @@ Registry version: 1.
 - Default: 15
 - Range: 3 to 40
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Year at which AI adoption is halfway from the start share to the end share.
 
 ## ai.adoptionSteepness
@@ -25,7 +25,7 @@ Registry version: 1.
 - Default: 0.4
 - Range: 0.1 to 1.5
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How quickly the automatable share moves through its S-curve.
 
 ## ai.agentAutonomyShareEnd
@@ -36,7 +36,7 @@ Registry version: 1.
 - Default: 0.5
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of agents that eventually transact on their own account.
 
 ## ai.automatableShareEnd
@@ -47,7 +47,7 @@ Registry version: 1.
 - Default: 0.9
 - Range: 0.3 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of tasks software can do after the adoption curve finishes.
 
 ## ai.automatableShareStart
@@ -58,7 +58,7 @@ Registry version: 1.
 - Default: 0.1
 - Range: 0 to 0.5
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of tasks software can do at the start of a run.
 
 ## ai.computeCostDeclineRate
@@ -69,7 +69,7 @@ Registry version: 1.
 - Default: 0.3
 - Range: 0 to 0.6
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual rate at which the cost of AI compute falls.
 
 ## ai.ownershipConcentration
@@ -80,7 +80,7 @@ Registry version: 1.
 - Default: 0.8
 - Range: 0.1 to 0.99
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How concentrated ownership of AI capital is across humans.
 
 ## ai.paymentFrictionBitcoin
@@ -91,7 +91,7 @@ Registry version: 1.
 - Default: 0.005
 - Range: 0 to 0.1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Fee on an AI-agent payment in the bitcoin regime.
 
 ## ai.paymentFrictionFiat
@@ -102,7 +102,7 @@ Registry version: 1.
 - Default: 0.02
 - Range: 0 to 0.1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Fee on an AI-agent payment in the fiat regime.
 
 ## ai.physicalTaskShare
@@ -113,7 +113,7 @@ Registry version: 1.
 - Default: 0.3
 - Range: 0 to 0.7
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of tasks that software cannot automate.
 
 ## bank.capitalRatio
@@ -123,8 +123,8 @@ Registry version: 1.
 - Unit: share
 - Default: 0.08
 - Range: 0.04 to 0.2
-- Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Status: sourced
+- Source: The default is near the Basel III common-equity floor, applied here to all loans rather than risk-weighted assets.
 - Description: Minimum capital relative to assets.
 
 ## bank.reserveRequirement
@@ -135,7 +135,7 @@ Registry version: 1.
 - Default: 0.1
 - Range: 0 to 0.3
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of deposits a bank must hold as reserves.
 
 ## bitcoin.lendingModel
@@ -146,7 +146,7 @@ Registry version: 1.
 - Default: maturityMatched
 - Options: maturityMatched, fullReserve
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Whether bitcoin-regime loans are maturity-matched or full reserve.
 
 ## centralBank.inflationTarget
@@ -156,8 +156,8 @@ Registry version: 1.
 - Unit: 1/year
 - Default: 0.02
 - Range: 0 to 0.06
-- Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Status: sourced
+- Source: A 2 percent annual target is the stated goal of many inflation-targeting central banks.
 - Description: Annual inflation rate the fiat central bank aims for.
 
 ## centralBank.inflationWeight
@@ -168,7 +168,7 @@ Registry version: 1.
 - Default: 1.5
 - Range: 1 to 3
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Weight on the inflation gap in the fiat policy-rate rule.
 
 ## centralBank.outputWeight
@@ -179,7 +179,7 @@ Registry version: 1.
 - Default: 0.5
 - Range: 0 to 1.5
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Weight on the output gap in the fiat policy-rate rule.
 
 ## deflation.sensitivity
@@ -190,7 +190,7 @@ Registry version: 1.
 - Default: 1
 - Range: 0 to 5
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly expected deflation reduces lending, borrowing, and speculation.
 
 ## firm.markup
@@ -201,7 +201,7 @@ Registry version: 1.
 - Default: 0.2
 - Range: 0.05 to 0.6
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Price markup over unit cost before inventory adjustment.
 
 ## firm.priceAdjustSpeed
@@ -212,7 +212,7 @@ Registry version: 1.
 - Default: 0.3
 - Range: 0.05 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How fast a firm moves its price when inventories are high or low.
 
 ## goods.beachfrontSupplyGrowth
@@ -223,7 +223,7 @@ Registry version: 1.
 - Default: 0
 - Range: -0.01 to 0.02
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual change in the supply of scarce property.
 
 ## goods.electronicsProductivity
@@ -234,8 +234,19 @@ Registry version: 1.
 - Default: 0.08
 - Range: 0 to 0.3
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual productivity growth of electronics-like goods.
+
+## goods.sampleSize
+
+- Label: Shops sampled
+- Group: behavior
+- Unit: firms
+- Default: 4
+- Range: 1 to 12
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How many firms a household compares when buying goods.
 
 ## government.spendingShareOfGDP
 
@@ -244,8 +255,8 @@ Registry version: 1.
 - Unit: share of GDP
 - Default: 0.2
 - Range: 0 to 0.5
-- Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Status: calibrated
+- Source: Set so public purchases are a fifth of the income base and the goods market clears. Not a country estimate.
 - Description: Government spending as a share of GDP.
 
 ## household.skillSigma
@@ -256,7 +267,7 @@ Registry version: 1.
 - Default: 0.5
 - Range: 0.1 to 1.2
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Spread of the lognormal distribution of household skill.
 
 ## household.timePreferenceMean
@@ -267,7 +278,7 @@ Registry version: 1.
 - Default: 0.04
 - Range: 0.01 to 0.15
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Average annual rate at which households discount future consumption.
 
 ## household.timePreferenceStd
@@ -278,7 +289,7 @@ Registry version: 1.
 - Default: 0.02
 - Range: 0 to 0.08
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Standard deviation of household time preference.
 
 ## household.trustInBanks
@@ -289,8 +300,19 @@ Registry version: 1.
 - Default: 0.9
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of households willing to hold bank deposits.
+
+## labor.maxApplications
+
+- Label: Job applications
+- Group: behavior
+- Unit: applications per tick
+- Default: 3
+- Range: 1 to 8
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How many firms an unemployed household can approach in one month.
 
 ## population.growth
 
@@ -300,8 +322,19 @@ Registry version: 1.
 - Default: 0.005
 - Range: -0.01 to 0.02
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual change in the human population.
+
+## production.alpha
+
+- Label: Capital elasticity
+- Group: behavior
+- Unit: share
+- Default: 0.33
+- Range: 0.2 to 0.5
+- Status: sourced
+- Source: A capital elasticity near one third matches the usual Cobb–Douglas capital share.
+- Description: Exponent on capital in the production function.
 
 ## productivity.baseGrowth
 
@@ -311,7 +344,7 @@ Registry version: 1.
 - Default: 0.01
 - Range: 0 to 0.04
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual productivity growth before the AI channels.
 
 ## regime.type
@@ -322,8 +355,41 @@ Registry version: 1.
 - Default: fiat
 - Options: fiat, bitcoin, hybrid
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Rule set for base money, lending, and government finance.
+
+## scale.banks
+
+- Label: Banks
+- Group: scale
+- Unit: agents
+- Default: 3
+- Range: 1 to 10
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Number of commercial banks in the run.
+
+## scale.firms
+
+- Label: Firms
+- Group: scale
+- Unit: agents
+- Default: 100
+- Range: 4 to 500
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Number of firm agents in the run.
+
+## scale.households
+
+- Label: Households
+- Group: scale
+- Unit: agents
+- Default: 1000
+- Range: 20 to 10000
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Number of household agents in the run.
 
 ## shock.frequency
 
@@ -333,7 +399,7 @@ Registry version: 1.
 - Default: 0.1
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Expected number of macroeconomic shocks per year.
 
 ## shock.size
@@ -344,7 +410,7 @@ Registry version: 1.
 - Default: 0.05
 - Range: 0 to 0.3
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Typical size of a productivity, demand, or credit shock.
 
 ## tax.incomeRate
@@ -354,8 +420,8 @@ Registry version: 1.
 - Unit: share
 - Default: 0.2
 - Range: 0 to 0.5
-- Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Status: calibrated
+- Source: Set equal to the spending share so the treasury starts near balance.
 - Description: Share of income collected as tax.
 
 ## wage.nominalRigidity
@@ -366,7 +432,7 @@ Registry version: 1.
 - Default: 0.7
 - Range: 0 to 0.95
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How slowly wages move toward the target, especially downward.
 
 ## welfare.housingSecurityWeight
@@ -377,7 +443,7 @@ Registry version: 1.
 - Default: 0.5
 - Range: 0 to 2
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Weight of housing security in human well-being.
 
 ## welfare.weightInequality
@@ -388,7 +454,7 @@ Registry version: 1.
 - Default: 0
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Optional composite weight on equality. Zero leaves the composite off.
 
 ## welfare.weightMedianWealth
@@ -399,7 +465,7 @@ Registry version: 1.
 - Default: 0
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Optional composite weight on median wealth.
 
 ## welfare.weightStability
@@ -410,7 +476,7 @@ Registry version: 1.
 - Default: 0
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Optional composite weight on macroeconomic stability.
 
 ## welfare.weightWellbeing
@@ -421,5 +487,5 @@ Registry version: 1.
 - Default: 0
 - Range: 0 to 1
 - Status: guess
-- Source: Placeholder from docs/PLAN.md. Phase 9 assigns a source or keeps this guess.
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Optional composite weight on median well-being.

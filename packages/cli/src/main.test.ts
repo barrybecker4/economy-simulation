@@ -22,6 +22,49 @@ describe('cli', () => {
     expect(parsed.config.name).toBe('baseline');
   });
 
+  it('compares two regimes for one seed', () => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'economy-sim-'));
+    const scenario = path.join(directory, 'tiny.json');
+    const out = path.join(directory, 'compare.json');
+    writeFileSync(
+      scenario,
+      JSON.stringify({
+        name: 'tiny',
+        ticks: 24,
+        sliders: {
+          'scale.households': 40,
+          'scale.firms': 4,
+          'scale.banks': 1,
+          'shock.frequency': 0,
+        },
+      }),
+    );
+    expect(
+      execute([
+        'compare',
+        '--scenario',
+        scenario,
+        '--seed',
+        '3',
+        '--left',
+        'fiat',
+        '--right',
+        'bitcoin',
+        '--out',
+        out,
+      ]),
+    ).toBe(0);
+    const report = JSON.parse(readFileSync(out, 'utf8')) as {
+      left: { regime: string; unit: string; priceLevel: number };
+      right: { regime: string; unit: string; priceLevel: number };
+    };
+    expect(report.left.regime).toBe('fiat');
+    expect(report.right.regime).toBe('bitcoin');
+    expect(report.left.unit).toBe('cent');
+    expect(report.right.unit).toBe('satoshi');
+    expect(report.right.priceLevel).toBeLessThan(report.left.priceLevel);
+  });
+
   it('checks the assumptions document', () => {
     expect(execute(['assumptions', '--check', path.join(repoRoot, 'docs/assumptions.md')])).toBe(0);
   });

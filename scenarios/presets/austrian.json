@@ -1,0 +1,12 @@
+{
+  "name": "austrian-leaning",
+  "ticks": 600,
+  "sliders": {
+    "regime.type": "bitcoin",
+    "bank.capitalRatio": 0.16,
+    "government.spendingShareOfGDP": 0.1,
+    "tax.incomeRate": 0.1,
+    "deflation.sensitivity": 2,
+    "shock.frequency": 0.05
+  }
+}
