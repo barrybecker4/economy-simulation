@@ -4,6 +4,7 @@ export const USAGE = `economy-simulation
   compare --scenario <file> --seed <n> --left <regime> --right <regime> --out <file>
   sweep --seeds <n> --ticks <n> --regimes <a,b> --preset <name> --out <file>
   hypotheses --out <file>
+  transition --out <file>
   assumptions --check [docs/assumptions.md]
   assumptions --out <file>
 `;
@@ -21,6 +22,7 @@ export type Command =
     }
   | { kind: 'sweep'; seeds: number; ticks: number; regimes: string[]; preset: string; out: string }
   | { kind: 'hypotheses'; out: string }
+  | { kind: 'transition'; out: string }
   | { kind: 'assumptions-check'; path: string }
   | { kind: 'assumptions-write'; path: string };
 
@@ -43,6 +45,9 @@ export function parseArgs(argv: readonly string[]): Command {
   }
   if (command === 'hypotheses') {
     return parseHypotheses(rest);
+  }
+  if (command === 'transition') {
+    return parseTransition(rest);
   }
   if (command === 'assumptions') {
     return parseAssumptions(rest);
@@ -99,6 +104,11 @@ function parseSweep(argv: readonly string[]): Command {
 function parseHypotheses(argv: readonly string[]): Command {
   const flags = readFlags(argv);
   return { kind: 'hypotheses', out: required(flags, 'out') };
+}
+
+function parseTransition(argv: readonly string[]): Command {
+  const flags = readFlags(argv);
+  return { kind: 'transition', out: required(flags, 'out') };
 }
 
 function parseAssumptions(argv: readonly string[]): Command {

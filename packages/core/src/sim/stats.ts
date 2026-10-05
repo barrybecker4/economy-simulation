@@ -42,7 +42,9 @@ export function bottomShare(values: readonly number[], fraction: number): number
  * Five shares of total, poorest to richest. Negatives count as zero.
  * An empty or zero-total sample returns equal fifths.
  */
-export function quintileShares(values: readonly number[]): [number, number, number, number, number] {
+export function quintileShares(
+  values: readonly number[],
+): [number, number, number, number, number] {
   return quintileSharesOfSorted(sortedCopy(values));
 }
 

@@ -8,7 +8,7 @@ import {
   copyAccounts,
   type Account,
 } from './posting.js';
-import type { AccountKind, AuditReport, EntrySide, PostingLine } from './types.js';
+import type { AccountKind, AuditReport, PostingLine } from './types.js';
 
 export type { AccountKind, AuditReport, EntrySide, PostingLine } from './types.js';
 

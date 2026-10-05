@@ -1,5 +1,5 @@
 import type { Slider } from '../builders.js';
-import { numberSlider } from '../builders.js';
+import { enumSlider, numberSlider } from '../builders.js';
 
 export const BEHAVIOR_SLIDERS: readonly Slider[] = [
   numberSlider(
@@ -43,6 +43,16 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     'Intended share of households willing to keep money in bank deposits rather than cash. The economy does not read this slider. Moving it does not change deposits, lending, or prices. It is stored with the scenario so the assumption stays visible.',
   ),
   numberSlider(
+    'household.realReturnSensitivity',
+    'Real-return spending sensitivity',
+    'behavior',
+    'coefficient',
+    0,
+    0,
+    5,
+    'How strongly a positive real return on money cuts discretionary goods spending. The real return is the deposit rate minus year-over-year inflation. Deposits pay nothing until the deposit pass-through slider is raised, so under deflation the return equals the absolute inflation rate. The household budget from income and deposits is split into a food and housing floor, about 58 percent of the basket, and a discretionary remainder. Only the remainder shrinks: it is multiplied by max(0, 1 − this sensitivity × the real return). The floor is still bought. At 0 the whole budget is unchanged. Credit-financed discretionary spending is a later mechanism.',
+  ),
+  numberSlider(
     'firm.markup',
     'Firm markup',
     'behavior',
@@ -61,6 +71,35 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0.05,
     1,
     'How strongly the price is pulled toward the cost target each month. The pull is this speed times 1 percent of the gap between the target and the current price, and it is capped at 0.1 percent a month, so a speed of 1 still cannot reprice faster than that cap. Low inventory raises the target and high inventory lowers it. Raising the speed closes the gap to cost sooner. The inflation trend, set by the regime, is separate from this pull.',
+  ),
+  enumSlider(
+    'firm.investmentHurdle',
+    'Investment hurdle',
+    'behavior',
+    'mode',
+    'off',
+    ['off', 'on'],
+    'Whether firms install capital only when the expected return clears the real return on money plus a premium. Off keeps the scheduled capital rule and the profit-sharing formula tied to the deflation penalty. On: expected return is baseline productivity growth plus a quarter of the firm markup. The real return on money is the deposit rate minus inflation. If the project clears, capital is installed as before. If it fails, only a quarter of the gap is installed from retained claims and the rest is recorded as profit-sharing finance. Measured profit-sharing share is profit-sharing finance over that plus loan-path finance.',
+  ),
+  numberSlider(
+    'firm.hurdlePremium',
+    'Investment hurdle premium',
+    'behavior',
+    '1/year',
+    0.02,
+    0,
+    0.1,
+    'Extra real return a capital project must earn above the real return on money when the investment hurdle is on. At 0.02 the project must beat money by two percentage points a year. Unused when the hurdle is off.',
+  ),
+  numberSlider(
+    'prices.trendWeight',
+    'Price trend weight',
+    'behavior',
+    'share',
+    1,
+    0,
+    1,
+    'Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. At 1 the posted-price rule is unchanged and the fiat inflation target or bitcoin productivity trend still writes the path. At 0 prices move only with excess demand, so a shortfall can pull the CPI down even when the regime trend is positive.',
   ),
   numberSlider(
     'wage.nominalRigidity',

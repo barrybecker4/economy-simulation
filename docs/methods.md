@@ -49,3 +49,7 @@ Both are bitcoin economies. Sensitivity is 0 in one and 5 in the other. Support 
 Claim: electronics cheapen and housing rises inside both a rising and a falling CPI.
 
 The fiat run uses default category growth, so electronics should end below the rest of the basket and housing above the CPI. The bitcoin run should end with lower inflation than fiat. Support needs all three.
+
+## Transition comparison
+
+`pnpm sim transition --out transition.json` runs the Phase 15 comparison. Steady fiat, steady bitcoin, and a 12-month transition each use the same seeds for 120 months with tenure choice on. The report gives median real consumption, real wealth, unemployment, debt service, and tenure shares, with the 5th and 95th percentiles across seeds. It does not rank the paths with the composite welfare index.

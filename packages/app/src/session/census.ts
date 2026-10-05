@@ -118,8 +118,7 @@ export function ownerCount(
 }
 
 function valueAt(result: RunSuccess, id: MetricId, index: number): number {
-  const values =
-    result.kind === 'band' ? bandMid(result, id) : requireSeries(result.series, id);
+  const values = result.kind === 'band' ? bandMid(result, id) : requireSeries(result.series, id);
   const value = values[index];
   if (value === undefined || !Number.isFinite(value)) {
     throw new Error(`Missing ${id} at month ${index}`);

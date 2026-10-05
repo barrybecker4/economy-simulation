@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { plotData, plotOptions } from './options.js';
+import { formatAxisNumber, plotData, plotOptions } from './options.js';
 
 describe('plotOptions', () => {
   it('puts the month axis before each line, in the same order as the data', () => {
@@ -10,6 +10,25 @@ describe('plotOptions', () => {
     expect(options.width).toBe(640);
     expect(options.series.map((series) => series.label)).toEqual(['Month', 'CPI', 'Food']);
     expect(options.series[1]?.stroke).toBe('#246');
+  });
+
+  it('widens the y-axis for large money flows and formats ticks compactly', () => {
+    const options = plotOptions(640, [
+      { label: 'Wages', color: '#a16207', values: [0, 250_000, 1_200_000] },
+    ]);
+    const yAxis = options.axes[1];
+    expect(yAxis?.size).toBeGreaterThan(48);
+    expect(yAxis?.values?.(null as never, [0, 250_000, 1_200_000])).toEqual(['0', '250k', '1.2M']);
+  });
+});
+
+describe('formatAxisNumber', () => {
+  it('keeps small values plain and compresses large ones', () => {
+    expect(formatAxisNumber(0)).toBe('0');
+    expect(formatAxisNumber(42)).toBe('42');
+    expect(formatAxisNumber(12_500)).toBe('12.5k');
+    expect(formatAxisNumber(1_000_000)).toBe('1M');
+    expect(formatAxisNumber(-2_500_000)).toBe('-2.5M');
   });
 });
 

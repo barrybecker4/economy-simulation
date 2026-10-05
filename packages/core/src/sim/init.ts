@@ -69,6 +69,14 @@ export function createEconomy(
     govDeposits: 0,
     tick: 0,
     demandBase: 0,
+    desiredSpend: 0,
+    depositRate: 0,
+    tenureChanges: 0,
+    newConsumerBorrowing: 0,
+    loanFinance: 0,
+    profitSharingFinance: 0,
+    fiscalBoost: 0,
+    transitionDone: false,
   };
 
   const monthlyInflation = priceTrend(economy);
@@ -118,6 +126,10 @@ export function createEconomy(
       realConsumption: 0,
       smoothed: 0,
       search: root.fork('hh').fork(id),
+      tenure: 'none',
+      mortgage: 0,
+      mortgagePayment: 0,
+      consumerLoan: 0,
     });
   }
 

@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 2.
+Registry version: 3.
 
 ## ai.adoptionMidpointYear
 
@@ -127,6 +127,17 @@ Registry version: 2.
 - Source: The default is near the Basel III common-equity floor, applied here to all loans rather than risk-weighted assets.
 - Description: Minimum bank equity relative to loans. Lending room is equity divided by this ratio, minus loans already outstanding. A higher ratio leaves less room to lend from the same equity and a thicker cushion when loans are written off. A lower ratio does the opposite. Banks start with extra equity so they have room to lend. Equity at or below zero is recorded as a bank failure. The default is near the Basel III common-equity floor, applied here to every loan rather than to risk-weighted assets.
 
+## bank.depositPassThrough
+
+- Label: Deposit rate pass-through
+- Group: policy
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending, and banks pay that monthly interest from equity. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.
+
 ## bank.reserveRequirement
 
 - Label: Reserve requirement
@@ -148,6 +159,17 @@ Registry version: 2.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How much of household deposits can fund loans when the regime is bitcoin or hybrid. Maturity matched treats 25 percent of household deposits as lendable savings. Full reserve treats 10 percent as lendable savings. New credit in those regimes cannot exceed savings minus loans already outstanding, and the loan rate moves toward the gap between loans and that savings stock. In the fiat regime the central bank sets the policy rate and lending room follows bank capital, so this choice does not change the fiat interest-rate rule.
+
+## centralBank.bondPurchaseShare
+
+- Label: Central-bank bond purchase share
+- Group: policy
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of new government bonds bought by creating central-bank reserves in the fiat regime. The rest stay on commercial-bank balance sheets. Bitcoin and hybrid ignore this slider; their base money does not rise with bond finance. At 0 every shortfall is held by the first bank with no new reserves from this channel.
 
 ## centralBank.inflationTarget
 
@@ -191,7 +213,29 @@ Registry version: 2.
 - Range: 0 to 5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise. Those shares are accounting reports. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.
+- Description: How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise when tenure choice is off. When tenure choice is on, those housing shares are measured from household tenures instead. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.
+
+## firm.hurdlePremium
+
+- Label: Investment hurdle premium
+- Group: behavior
+- Unit: 1/year
+- Default: 0.02
+- Range: 0 to 0.1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Extra real return a capital project must earn above the real return on money when the investment hurdle is on. At 0.02 the project must beat money by two percentage points a year. Unused when the hurdle is off.
+
+## firm.investmentHurdle
+
+- Label: Investment hurdle
+- Group: behavior
+- Unit: mode
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Whether firms install capital only when the expected return clears the real return on money plus a premium. Off keeps the scheduled capital rule and the profit-sharing formula tied to the deflation penalty. On: expected return is baseline productivity growth plus a quarter of the firm markup. The real return on money is the deposit rate minus inflation. If the project clears, capital is installed as before. If it fails, only a quarter of the gap is installed from retained claims and the rest is recorded as profit-sharing finance. Measured profit-sharing share is profit-sharing finance over that plus loan-path finance.
 
 ## firm.markup
 
@@ -336,6 +380,17 @@ Registry version: 2.
 - Source: Set so public purchases are a fifth of the income base and the goods market clears. Not a country estimate.
 - Description: Share of household smoothed income that the government buys from firms. It shops first at the firms holding the most inventory. Households spend what remains: their spending share of income starts at one minus this value, then tilts with how impatient they are relative to the mean. Raising this share shifts purchases from households to the government. If tax revenue does not cover the bill, the treasury issues bonds. It is a closed-economy purchase share, set so the goods market can clear, not an estimate for a particular country.
 
+## government.stabilizer
+
+- Label: Fiscal stabilizer
+- Group: policy
+- Unit: coefficient
+- Default: 0
+- Range: 0 to 2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How much government goods spending responds to unemployment. Under fiat, the spending share rises by this coefficient times the gap of unemployment above the natural rate, capped at 0.8. Under bitcoin or hybrid, spending cannot exceed tax deposits plus bonds banks can hold from unused savings, so the stabilizer cannot expand base money. At 0 the spending share stays at the government spending slider.
+
 ## government.ubiShare
 
 - Label: UBI share of AI GDP
@@ -346,6 +401,17 @@ Registry version: 2.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Fraction of the AI slice of monthly nominal GDP paid equally to every household. The AI slice is the AI share of output times price times real GDP. The grant starts at zero when no AI capacity is adopted and rises with that share, so it phases in along the adoption curve rather than as a fixed stipend. At 0.25 with an AI share of 0.36, about 9 percent of that month’s nominal GDP is paid out. Tax, including tax on AI agents, is collected first. If the treasury cannot cover the grant, it issues bonds to the first bank. Households only receive the grant. Agents do not. At 0 the grant is off even while AI is adopted.
+
+## household.realReturnSensitivity
+
+- Label: Real-return spending sensitivity
+- Group: behavior
+- Unit: coefficient
+- Default: 0
+- Range: 0 to 5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly a positive real return on money cuts discretionary goods spending. The real return is the deposit rate minus year-over-year inflation. Deposits pay nothing until the deposit pass-through slider is raised, so under deflation the return equals the absolute inflation rate. The household budget from income and deposits is split into a food and housing floor, about 58 percent of the basket, and a discretionary remainder. Only the remainder shrinks: it is multiplied by max(0, 1 − this sensitivity × the real return). The floor is still bought. At 0 the whole budget is unchanged. Credit-financed discretionary spending is a later mechanism.
 
 ## household.skillSigma
 
@@ -391,6 +457,50 @@ Registry version: 2.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Intended share of households willing to keep money in bank deposits rather than cash. The economy does not read this slider. Moving it does not change deposits, lending, or prices. It is stored with the scenario so the assumption stays visible.
 
+## housing.consumerCreditLimit
+
+- Label: Consumer credit limit
+- Group: contracts
+- Unit: share of income
+- Default: 0.2
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Maximum consumer loan stock as a share of monthly income when tenure choice is on. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off.
+
+## housing.mortgageLtv
+
+- Label: Mortgage loan-to-value
+- Group: contracts
+- Unit: share
+- Default: 0.8
+- Range: 0.5 to 0.95
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Maximum loan as a share of the home price when tenure choice is on. The home price is 48 months of the household’s income. A higher ratio lets more of the purchase be debt. Unused when tenure choice is off.
+
+## housing.mortgageTermYears
+
+- Label: Mortgage term
+- Group: contracts
+- Unit: years
+- Default: 30
+- Range: 5 to 40
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Length of a new nominal mortgage when tenure choice is on. The monthly payment is the principal divided by the term in months. A longer term lowers the monthly payment and raises the expected real burden under deflation, because the debt is outstanding longer. Unused when tenure choice is off.
+
+## housing.tenureChoice
+
+- Label: Housing tenure choice
+- Group: contracts
+- Unit: mode
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Whether households choose rent, a nominal mortgage, or cash ownership. Off keeps the penalty formulas for non-mortgage housing and property turnover, and households hold no mortgages or consumer loans. On: each household picks the tenure with the lowest expected real burden. Expected deflation raises the mortgage burden, so fewer new mortgages are taken. Shelter stays inside the food and housing spending floor. Consumer loans fund only discretionary spending above that floor and fall as the deflation penalty rises, down to zero. Household loans count in total credit and the bank capital rule.
+
 ## labor.maxApplications
 
 - Label: Job applications
@@ -402,6 +512,17 @@ Registry version: 2.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How many firms an unemployed household can ask for work in one month. The run rounds this to a whole number. Hiring fills openings until employment is near 94 percent of households times the human share of output, with a small tilt when a demand shock is on. That target rises the natural unemployment rate as AI capacity grows. A searcher walks a short list of firms and takes the first one that still has room. A household displaced by automation is limited to one application even when this slider is higher. More applications make it easier to find a firm that is still hiring. This slider only limits how wide the search is.
 
+## labor.wageElasticity
+
+- Label: Wage elasticity of hiring
+- Group: behavior
+- Unit: coefficient
+- Default: 0
+- Range: 0 to 3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.
+
 ## population.growth
 
 - Label: Population growth
@@ -412,6 +533,17 @@ Registry version: 2.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Intended annual change in the number of people. The economy does not apply it. The household count stays at the Households slider for the whole run, and unemployment is measured against that fixed population. The value is stored with the scenario so the assumption stays visible.
+
+## prices.trendWeight
+
+- Label: Price trend weight
+- Group: behavior
+- Unit: share
+- Default: 1
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. At 1 the posted-price rule is unchanged and the fiat inflation target or bitcoin productivity trend still writes the path. At 0 prices move only with excess demand, so a shortfall can pull the CPI down even when the regime trend is positive.
 
 ## production.alpha
 
@@ -511,6 +643,39 @@ Registry version: 2.
 - Status: calibrated
 - Source: Set equal to the spending share so the treasury starts near balance.
 - Description: Share of household and AI-agent income paid to the treasury each month. Each payer pays from its deposit, up to the balance it has. Revenue lands in the government deposit and is the first source of funds for the household UBI grant and for government purchases. The default matches the spending share so the treasury starts near balance when the grant is off. If taxes do not cover the grant or purchases, the treasury issues bonds and the first bank holds them. Changing the tax rate does not by itself change how much the government buys.
+
+## transition.debtHaircut
+
+- Label: Transition debt haircut
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 0.5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of nominal firm loans, mortgages, and consumer loans written off at the conversion month of a transition. At 0 debts convert one-for-one with deposits. Unused when the transition length is 0.
+
+## transition.holderConcentration
+
+- Label: Transition holder concentration
+- Group: regime
+- Unit: share
+- Default: 0.5
+- Range: 0 to 0.99
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How concentrated the post-conversion deposit distribution is. Household deposits are reassigned with weights of skill raised to one plus four times this value. At 0 the weights are skill itself. At 0.99 high-skill households receive almost all deposits. Unused when the transition length is 0.
+
+## transition.lengthMonths
+
+- Label: Transition length
+- Group: regime
+- Unit: months
+- Default: 0
+- Range: 0 to 120
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Months of a one-time fiat-to-bitcoin rebase. At 0 there is no transition and regime.type selects a steady rule set. A positive length starts the run on fiat rules (with satoshi balances so holdings can be reassigned), and at the last transition month debts may be haircut, deposits are reassigned by holder concentration, government bonds on bank books are cleared, and the active regime becomes bitcoin. Monetization stays off afterward.
 
 ## wage.nominalRigidity
 

@@ -42,7 +42,10 @@ describe('payment flows', () => {
       'agentTaxRevenue',
       'agentSweep',
     ] as const) {
-      expect(series(result, id).every((value) => value === 0), id).toBe(true);
+      expect(
+        series(result, id).every((value) => value === 0),
+        id,
+      ).toBe(true);
     }
   });
 
@@ -83,9 +86,10 @@ describe('household census', () => {
     const small = series(result, 'jobSmallFirmShare');
     const large = series(result, 'jobLargeFirmShare');
     for (let index = 0; index < unemployed.length; index += 1) {
-      expect(
-        (unemployed[index] ?? 0) + (small[index] ?? 0) + (large[index] ?? 0),
-      ).toBeCloseTo(1, 10);
+      expect((unemployed[index] ?? 0) + (small[index] ?? 0) + (large[index] ?? 0)).toBeCloseTo(
+        1,
+        10,
+      );
     }
   });
 

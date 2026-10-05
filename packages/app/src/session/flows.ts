@@ -138,11 +138,7 @@ export const FLOW_NODES = [
   { id: 'agents', label: 'AI agents', x: 200, y: 340 },
 ] as const;
 
-export function monthFlows(
-  result: RunSuccess,
-  regime: string,
-  monthIndex: number,
-): MonthFlows {
+export function monthFlows(result: RunSuccess, regime: string, monthIndex: number): MonthFlows {
   const index = clampIndex(monthIndex, result.ticks.length);
   const displayed = result.kind === 'compare' ? 'fiat' : regime;
   return {
@@ -176,8 +172,7 @@ export function maxFlowAmount(edges: readonly FlowEdge[]): number {
 }
 
 function valueAt(result: RunSuccess, id: MetricId, index: number): number {
-  const values =
-    result.kind === 'band' ? bandMid(result, id) : requireSeries(result.series, id);
+  const values = result.kind === 'band' ? bandMid(result, id) : requireSeries(result.series, id);
   const value = values[index];
   if (value === undefined || !Number.isFinite(value)) {
     throw new Error(`Missing ${id} at month ${index}`);

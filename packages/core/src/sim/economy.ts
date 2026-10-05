@@ -53,4 +53,12 @@ export interface Economy {
   govDeposits: number;
   tick: number;
   demandBase: number;
+  desiredSpend: number;
+  depositRate: number;
+  tenureChanges: number;
+  newConsumerBorrowing: number;
+  loanFinance: number;
+  profitSharingFinance: number;
+  fiscalBoost: number;
+  transitionDone: boolean;
 }

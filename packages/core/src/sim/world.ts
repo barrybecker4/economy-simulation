@@ -2,6 +2,7 @@ import type { ResolvedConfig } from '../config/load.js';
 import type { PhaseHandlers } from '../engine/engine.js';
 import { onBookkeeping } from './bookkeeping.js';
 import { onCentralBank } from './central-bank.js';
+import { onContractChoice } from './contracts.js';
 import { onCredit } from './credit.js';
 import type { Economy } from './economy.js';
 import { onGoods } from './goods.js';
@@ -12,6 +13,7 @@ import { loadParameters } from './parameters.js';
 import { onPopulation } from './population.js';
 import { onProduction } from './production.js';
 import { onShocks } from './shocks.js';
+import { onTransition } from './transition.js';
 import type { ForcedShock } from './types.js';
 import { onWelfare } from './welfare.js';
 
@@ -34,10 +36,13 @@ export class World {
       laborMarket: () => onLabor(economy),
       production: () => onProduction(economy),
       goodsAndAssets: () => onGoods(economy),
-      contractChoice: () => undefined,
+      contractChoice: () => onContractChoice(economy),
       credit: () => onCredit(economy),
       government: () => onGovernment(economy),
-      centralBank: () => onCentralBank(economy),
+      centralBank: () => {
+        onTransition(economy);
+        onCentralBank(economy);
+      },
       bookkeeping: (ctx) => onBookkeeping(economy, ctx),
       welfare: (ctx) => onWelfare(economy, ctx),
     };

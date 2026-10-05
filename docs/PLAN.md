@@ -198,16 +198,16 @@ Welfare composite weights, all defaulting to 0 so the index stays off until a us
 
 ### Hypotheses
 
-| Id  | Hypothesis                                                                                                                                                                | Sweep                                                                    | Outputs                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| H1  | Under a fixed money supply, rapid AI productivity growth lowers the price level, and with rigid nominal wages this raises unemployment and debt burdens in the short run. | regime.type, ai.adoptionSteepness, wage.nominalRigidity                  | Price level, unemployment, defaults, credit relative to GDP |
-| H2  | A central bank that targets inflation smooths the transition to AI-driven growth more than a fixed supply does.                                                           | regime.type, centralBank.inflationWeight, shock.size                     | Output volatility, boom-bust amplitude                      |
-| H3  | Labor share falls as AI is adopted in any regime, and the fall depends mainly on ownership concentration.                                                                 | ai.ownershipConcentration, regime.type                                   | Labor share, Gini, top decile share                         |
-| H4  | Lower payment friction for AI agents increases their share of transactions.                                                                                               | ai.paymentFrictionFiat, ai.paymentFrictionBitcoin, regime.type           | AI transaction share, GDP growth                            |
-| H5  | Credit-driven booms are smaller when lending is limited to saved funds.                                                                                                   | bitcoin.lendingModel, bank.reserveRequirement, regime.type               | Credit relative to GDP, bank failures, boom-bust amplitude  |
-| H6  | A physical bottleneck limits how much AI raises growth, regardless of regime.                                                                                             | ai.physicalTaskShare, regime.type                                        | GDP growth, productivity per human                          |
-| H7  | Stronger deflation reduces credit, borrowing, and speculation, and raises profit-sharing and non-mortgage housing.                                                        | deflation.sensitivity, regime.type, productivity.baseGrowth              | Credit relative to GDP, property turnover, contract shares  |
-| H8  | Electronics get cheaper and housing gets more expensive inside either headline inflation path.                                                                             | goods.electronicsProductivity, goods.housingSupplyGrowth, regime.type    | Relative prices, CPI                                        |
+| Id  | Hypothesis                                                                                                                                                                | Sweep                                                                 | Outputs                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------- |
+| H1  | Under a fixed money supply, rapid AI productivity growth lowers the price level, and with rigid nominal wages this raises unemployment and debt burdens in the short run. | regime.type, ai.adoptionSteepness, wage.nominalRigidity               | Price level, unemployment, defaults, credit relative to GDP |
+| H2  | A central bank that targets inflation smooths the transition to AI-driven growth more than a fixed supply does.                                                           | regime.type, centralBank.inflationWeight, shock.size                  | Output volatility, boom-bust amplitude                      |
+| H3  | Labor share falls as AI is adopted in any regime, and the fall depends mainly on ownership concentration.                                                                 | ai.ownershipConcentration, regime.type                                | Labor share, Gini, top decile share                         |
+| H4  | Lower payment friction for AI agents increases their share of transactions.                                                                                               | ai.paymentFrictionFiat, ai.paymentFrictionBitcoin, regime.type        | AI transaction share, GDP growth                            |
+| H5  | Credit-driven booms are smaller when lending is limited to saved funds.                                                                                                   | bitcoin.lendingModel, bank.reserveRequirement, regime.type            | Credit relative to GDP, bank failures, boom-bust amplitude  |
+| H6  | A physical bottleneck limits how much AI raises growth, regardless of regime.                                                                                             | ai.physicalTaskShare, regime.type                                     | GDP growth, productivity per human                          |
+| H7  | Stronger deflation reduces credit, borrowing, and speculation, and raises profit-sharing and non-mortgage housing.                                                        | deflation.sensitivity, regime.type, productivity.baseGrowth           | Credit relative to GDP, property turnover, contract shares  |
+| H8  | Electronics get cheaper and housing gets more expensive inside either headline inflation path.                                                                            | goods.electronicsProductivity, goods.housingSupplyGrowth, regime.type | Relative prices, CPI                                        |
 
 ## Phases
 
@@ -406,6 +406,90 @@ Acceptance:
 - The deployed application matches the CLI for the same seed and scenario.
 - A new contributor can run a sweep from the README alone.
 
+### Phase 10: Spending and prices respond to deflation
+
+Goal: expected deflation can cut discretionary spending, and prices can follow excess demand, without emptying the food and housing floor.
+
+1. Split each household's goods budget into a food and housing floor (the sum of those CPI weights) and a discretionary remainder.
+2. `household.realReturnSensitivity` multiplies only the remainder by `max(0, 1 − sensitivity × real return)` when the real return on money is positive. The real return is the deposit rate minus year-over-year inflation. Deposits pay nothing until a later phase. At sensitivity 0 the budget is unchanged.
+3. `prices.trendWeight` mixes the regime price trend with excess demand (desired goods spending relative to nominal capacity). At 1 the posted-price rule is unchanged.
+
+Acceptance:
+
+- Sensitivity 0 and trend weight 1 match the previous phase for the same seeds.
+- Under deflation, a higher sensitivity cuts household goods spending, and spending stays at or above the food and housing floor.
+- With trend weight 0, a negative demand impulse ends at a lower CPI than the same seed at trend weight 1.
+- The ledger audit still passes.
+
+Out of scope: household credit, wage-driven hiring, fiscal monetization, and a transition.
+
+### Phase 11: The wage sets employment
+
+Goal: sticky money wages can raise unemployment when prices fall.
+
+1. `labor.wageElasticity` scales the hiring quota when the real wage is high or low relative to productivity. At 0 the quota is unchanged.
+
+Acceptance:
+
+- Elasticity 0 matches Phase 10 for the same seeds.
+- Under a falling price level with high nominal wage rigidity and elasticity above 0, unemployment ends higher than in the flexible-wage run.
+
+### Phase 12: Household debts and housing tenure
+
+Goal: households choose tenure and borrow for discretionary spending; deflation raises the burden of nominal mortgages and cuts new consumer credit without removing the food and housing floor.
+
+1. `housing.tenureChoice` defaults to `off`. Off keeps the penalty formulas for profit-sharing, non-mortgage housing, and property turnover.
+2. On: each household picks rent, mortgage, or owned by expected real burden. Shelter payments stay inside the Phase 10 floor. Consumer loans fund only discretionary spending and fall as expected deflation rises.
+3. Measured shares and debt-service series replace the penalty formulas when the switch is on. Household loans join `totalLoans`.
+
+Acceptance:
+
+- `off` matches Phase 11, and H7 still holds.
+- `on`, stronger expected deflation lowers the mortgage share and new consumer borrowing, keeps goods spending at or above the floor, and raises debt service for existing mortgages.
+- Household loan creation and repayment pass the ledger audit.
+
+### Phase 13: Investment clears a hurdle
+
+Goal: firms invest only when expected return beats the real return on money plus a premium.
+
+1. `firm.investmentHurdle` defaults to `off`. Off keeps the scheduled capital rule and the profit-sharing formula.
+2. On: install capital only when expected profit clears the hurdle; otherwise fund with a profit-sharing claim. `profitSharingShare` becomes the measured finance share.
+
+Acceptance:
+
+- `off` matches Phase 12.
+- `on`, higher expected deflation cuts real investment and new firm borrowing and raises the measured profit-sharing share.
+- Bitcoin credit still cannot exceed unused savings.
+
+### Phase 14: Fiscal policy has different constraints
+
+Goal: fiat can monetize bonds and stabilize spending; bitcoin cannot; the policy rate can pull discretionary spending through deposit interest.
+
+1. `bank.depositPassThrough` pays a fraction of the policy rate on deposits. It can cut discretionary spending and new consumer credit, not the food and housing floor.
+2. `centralBank.bondPurchaseShare` lets the fiat central bank buy a share of new bonds with new reserves. Bitcoin and hybrid ignore it.
+3. `government.stabilizer` raises the fiat spending share with the unemployment gap. Under bitcoin, spending is limited to tax revenue plus bonds banks can hold without new base money.
+
+Acceptance:
+
+- All three at 0 match Phase 13.
+- Under fiat, a demand shock with higher stabilizer and bond purchases ends with a smaller output drop and higher base money.
+- The same shock under bitcoin does not raise base money, and spending does not rise with the stabilizer.
+- Pass-through above 0 lets a higher fiat policy rate cut discretionary spending and new consumer credit while leaving the floor in place.
+
+### Phase 15: A one-time transition
+
+Goal: a separate scenario rebases a fiat economy into bitcoin over a window, including existing debts and the distribution of new base-money holdings.
+
+1. `transition.lengthMonths` defaults to 0 (no transition). A positive length starts on fiat and rebases into satoshis over those months.
+2. Nominal debts convert at the same rate as deposits unless `transition.debtHaircut` writes part of them off. `transition.holderConcentration` assigns new base-money balances.
+3. After the window the regime is bitcoin and Phase 14 monetization is off. There is no second goods price.
+
+Acceptance:
+
+- Length 0 matches steady fiat and bitcoin from Phase 14.
+- A positive length conserves the ledger at conversion ticks, puts base money on the bitcoin schedule afterward, and raises wealth Gini when holder concentration is higher.
+- A methods note compares 120-month runs across steady fiat, steady bitcoin, and the transition, with seed bands and no composite ranking.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.
@@ -428,7 +512,7 @@ Before testing a new idea in a regime, the model should reproduce facts economis
 
 ## Still deferred
 
-- A market for firm shares. Profit-sharing is the substitute in this release.
+- A market for firm shares. Profit-sharing is the substitute in this release, measured from finance flows when the investment hurdle is on.
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
 - A bitcoin price separate from goods prices in satoshis.

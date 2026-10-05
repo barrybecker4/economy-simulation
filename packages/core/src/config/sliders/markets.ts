@@ -13,6 +13,16 @@ export const MARKET_SLIDERS: readonly Slider[] = [
     'How many firms an unemployed household can ask for work in one month. The run rounds this to a whole number. Hiring fills openings until employment is near 94 percent of households times the human share of output, with a small tilt when a demand shock is on. That target rises the natural unemployment rate as AI capacity grows. A searcher walks a short list of firms and takes the first one that still has room. A household displaced by automation is limited to one application even when this slider is higher. More applications make it easier to find a firm that is still hiring. This slider only limits how wide the search is.',
   ),
   numberSlider(
+    'labor.wageElasticity',
+    'Wage elasticity of hiring',
+    'behavior',
+    'coefficient',
+    0,
+    0,
+    3,
+    'How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.',
+  ),
+  numberSlider(
     'production.alpha',
     'Capital elasticity',
     'behavior',

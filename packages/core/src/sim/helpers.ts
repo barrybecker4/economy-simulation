@@ -85,6 +85,9 @@ export function totalLoans(economy: Economy): number {
   for (const firm of economy.firms) {
     total += firm.loan;
   }
+  for (const household of economy.households) {
+    total += household.mortgage + household.consumerLoan;
+  }
   return total;
 }
 
@@ -93,6 +96,11 @@ export function loansAt(economy: Economy, bankId: number): number {
   for (const firm of economy.firms) {
     if (firm.bank === bankId) {
       total += firm.loan;
+    }
+  }
+  for (const household of economy.households) {
+    if (household.bank === bankId) {
+      total += household.mortgage + household.consumerLoan;
     }
   }
   return total;

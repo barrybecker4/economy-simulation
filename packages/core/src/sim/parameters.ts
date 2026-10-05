@@ -46,10 +46,26 @@ export interface Parameters {
   bankCount: number;
   skillSigma: number;
   prefStd: number;
+  realReturnSensitivity: number;
+  trendWeight: number;
+  wageElasticity: number;
+  tenureChoice: 'off' | 'on';
+  mortgageTermYears: number;
+  mortgageLtv: number;
+  consumerCreditLimit: number;
+  investmentHurdle: 'off' | 'on';
+  hurdlePremium: number;
+  depositPassThrough: number;
+  bondPurchaseShare: number;
+  stabilizer: number;
+  transitionLength: number;
+  debtHaircut: number;
+  holderConcentration: number;
 }
 
 export function loadParameters(config: ResolvedConfig): Parameters {
-  const regime = regimeOf(config);
+  const transitionLength = Math.round(slider(config, 'transition.lengthMonths'));
+  const regime = transitionLength > 0 ? 'fiat' : regimeOf(config);
   return {
     alpha: slider(config, 'production.alpha'),
     markup: slider(config, 'firm.markup'),
@@ -79,7 +95,9 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     housingSupplyGrowth: slider(config, 'goods.housingSupplyGrowth'),
     housingWeight: slider(config, 'welfare.housingSecurityWeight'),
     regime,
-    unit: regime === 'fiat' ? 'cent' : 'satoshi',
+    // Transition runs use satoshis from the start so the conversion can reassign
+    // holdings without changing the ledger class mid-run.
+    unit: transitionLength > 0 || regime !== 'fiat' ? 'satoshi' : 'cent',
     lendingModel: lendingModelOf(config),
     deflationSensitivity: slider(config, 'deflation.sensitivity'),
     autoStart: slider(config, 'ai.automatableShareStart'),
@@ -100,7 +118,38 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     bankCount: Math.round(slider(config, 'scale.banks')),
     skillSigma: slider(config, 'household.skillSigma'),
     prefStd: slider(config, 'household.timePreferenceStd'),
+    realReturnSensitivity: slider(config, 'household.realReturnSensitivity'),
+    trendWeight: slider(config, 'prices.trendWeight'),
+    wageElasticity: slider(config, 'labor.wageElasticity'),
+    tenureChoice: tenureChoiceOf(config),
+    mortgageTermYears: slider(config, 'housing.mortgageTermYears'),
+    mortgageLtv: slider(config, 'housing.mortgageLtv'),
+    consumerCreditLimit: slider(config, 'housing.consumerCreditLimit'),
+    investmentHurdle: investmentHurdleOf(config),
+    hurdlePremium: slider(config, 'firm.hurdlePremium'),
+    depositPassThrough: slider(config, 'bank.depositPassThrough'),
+    bondPurchaseShare: slider(config, 'centralBank.bondPurchaseShare'),
+    stabilizer: slider(config, 'government.stabilizer'),
+    transitionLength,
+    debtHaircut: slider(config, 'transition.debtHaircut'),
+    holderConcentration: slider(config, 'transition.holderConcentration'),
   };
+}
+
+export function tenureChoiceOf(config: ResolvedConfig): 'off' | 'on' {
+  const value = config.sliders['housing.tenureChoice'];
+  if (value === 'off' || value === 'on') {
+    return value;
+  }
+  throw new Error('housing.tenureChoice must be off or on');
+}
+
+export function investmentHurdleOf(config: ResolvedConfig): 'off' | 'on' {
+  const value = config.sliders['firm.investmentHurdle'];
+  if (value === 'off' || value === 'on') {
+    return value;
+  }
+  throw new Error('firm.investmentHurdle must be off or on');
 }
 
 export function regimeOf(config: ResolvedConfig): Regime {

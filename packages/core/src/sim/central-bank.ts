@@ -3,6 +3,7 @@ import {
   employedCount,
   humanWeight,
   inflation,
+  moneyAmount,
   naturalUnemployment,
   savingsStock,
   totalDeposits,
@@ -28,10 +29,12 @@ export function taylorRate(input: {
 }
 
 export function onCentralBank(economy: Economy): void {
+  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   if (economy.params.regime !== 'fiat') {
     const savings = savingsStock(economy);
     const pressure = savings > 0 ? totalLoans(economy) / savings - 1 : 0;
     economy.policyRate = Math.max(0, economy.policyRate + 0.05 * pressure);
+    economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
     if (economy.params.regime === 'hybrid') {
       for (const bank of economy.banks) {
         if (bank.equity < 0) {
@@ -42,6 +45,7 @@ export function onCentralBank(economy: Economy): void {
         }
       }
     }
+    payDepositInterest(economy);
     return;
   }
   const inflationRate = inflation(economy);
@@ -55,6 +59,7 @@ export function onCentralBank(economy: Economy): void {
     outputWeight: economy.params.outputWeight,
     outputGap: gap,
   });
+  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   const deposits = totalDeposits(economy);
   const required = Math.round(economy.params.reserveRequirement * deposits);
   const reserves = economy.banks.reduce((sum, bank) => sum + bank.reserves, 0);
@@ -64,5 +69,26 @@ export function onCentralBank(economy: Economy): void {
     if (bank) {
       bank.reserves += add;
     }
+  }
+  payDepositInterest(economy);
+}
+
+function payDepositInterest(economy: Economy): void {
+  if (economy.depositRate <= 0) {
+    return;
+  }
+  const monthly = economy.depositRate / 12;
+  for (const household of economy.households) {
+    const bank = economy.banks[household.bank];
+    if (!bank || bank.failed || household.deposit <= 0) {
+      continue;
+    }
+    const interest = moneyAmount(economy, household.deposit * monthly);
+    if (interest <= 0 || bank.equity < interest) {
+      continue;
+    }
+    bank.equity -= interest;
+    household.deposit += interest;
+    economy.privateEquity += interest;
   }
 }

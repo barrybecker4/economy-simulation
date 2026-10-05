@@ -6,6 +6,7 @@ import {
   renderAssumptions,
   runHypotheses,
   runSweep,
+  runTransitionComparison,
   simulate,
   simulationToJson,
   type MetricId,
@@ -95,6 +96,11 @@ function runCommand(command: Exclude<Command, { kind: 'help' }>): void {
   }
   if (command.kind === 'hypotheses') {
     writeFileSync(command.out, `${JSON.stringify(runHypotheses(), null, 2)}\n`);
+    console.log(`wrote ${command.out}`);
+    return;
+  }
+  if (command.kind === 'transition') {
+    writeFileSync(command.out, `${JSON.stringify(runTransitionComparison(), null, 2)}\n`);
     console.log(`wrote ${command.out}`);
     return;
   }

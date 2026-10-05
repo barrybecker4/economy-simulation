@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { bottomShare, distributionOf, gini, mean, median, monthlyFromAnnual, quintileShares, topShare } from './stats.js';
+import {
+  bottomShare,
+  distributionOf,
+  gini,
+  mean,
+  median,
+  monthlyFromAnnual,
+  quintileShares,
+  topShare,
+} from './stats.js';
 
 describe('stats', () => {
   it('reports a zero Gini for equal values', () => {

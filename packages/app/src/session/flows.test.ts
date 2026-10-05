@@ -23,9 +23,9 @@ describe('monthFlows', () => {
     expect(flows.monthIndex).toBe(1);
     expect(flows.unit).toBe('cents');
     expect(flows.edges.find((edge) => edge.label === 'Wages')?.amount).toBe(200);
-    expect(flows.edges.find((edge) => edge.from === 'households' && edge.to === 'firms')?.amount).toBe(
-      20,
-    );
+    expect(
+      flows.edges.find((edge) => edge.from === 'households' && edge.to === 'firms')?.amount,
+    ).toBe(20);
   });
 
   it('uses band medians and clamps the month index', () => {

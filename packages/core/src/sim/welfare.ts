@@ -57,12 +57,58 @@ export function onWelfare(economy: Economy, ctx: TickContext): void {
   metrics.set('moneySupply', deposits);
   metrics.set('baseMoney', reserves);
   metrics.set('loanToSavings', savings > 0 ? loans / savings : 0);
-  metrics.set('profitSharingShare', 0.15 + 0.7 * penalty);
-  metrics.set('nonMortgageHousingShare', 0.25 + 0.6 * penalty);
-  const years = economy.tick / 12;
-  const scarcity =
-    (1 + economy.params.prodGrowth) ** years / (1 + economy.params.housingSupplyGrowth) ** years;
-  metrics.set('propertyTurnover', (0.08 * (1 - penalty)) / Math.max(scarcity, 0.25));
+  if (economy.params.tenureChoice === 'on') {
+    const count = Math.max(1, economy.households.length);
+    let mortgageCount = 0;
+    let rentCount = 0;
+    let ownedCount = 0;
+    let consumerCredit = 0;
+    const debtService: number[] = [];
+    for (const household of economy.households) {
+      if (household.tenure === 'mortgage') {
+        mortgageCount += 1;
+      } else if (household.tenure === 'owned') {
+        ownedCount += 1;
+      } else {
+        rentCount += 1;
+      }
+      consumerCredit += household.consumerLoan;
+      const income = Math.max(household.income, 1);
+      debtService.push((household.mortgagePayment + household.consumerLoan * 0.05) / income);
+    }
+    metrics.set('nonMortgageHousingShare', 1 - mortgageCount / count);
+    metrics.set('propertyTurnover', economy.tenureChanges / count);
+    metrics.set('mortgageShare', mortgageCount / count);
+    metrics.set('rentShare', rentCount / count);
+    metrics.set('ownedShare', ownedCount / count);
+    metrics.set(
+      'consumerCreditToGdp',
+      nominalOutput > 0 ? consumerCredit / (nominalOutput * 12) : 0,
+    );
+    metrics.set('newConsumerBorrowing', economy.newConsumerBorrowing);
+    metrics.set('medianDebtService', median(debtService));
+  } else {
+    metrics.set('nonMortgageHousingShare', 0.25 + 0.6 * penalty);
+    const years = economy.tick / 12;
+    const scarcity =
+      (1 + economy.params.prodGrowth) ** years / (1 + economy.params.housingSupplyGrowth) ** years;
+    metrics.set('propertyTurnover', (0.08 * (1 - penalty)) / Math.max(scarcity, 0.25));
+    metrics.set('mortgageShare', 0);
+    metrics.set('rentShare', 0);
+    metrics.set('ownedShare', 0);
+    metrics.set('consumerCreditToGdp', 0);
+    metrics.set('newConsumerBorrowing', 0);
+    metrics.set('medianDebtService', 0);
+  }
+  if (economy.params.investmentHurdle === 'on') {
+    const financed = economy.loanFinance + economy.profitSharingFinance;
+    metrics.set(
+      'profitSharingShare',
+      financed > 0 ? economy.profitSharingFinance / financed : 0.15 + 0.7 * penalty,
+    );
+  } else {
+    metrics.set('profitSharingShare', 0.15 + 0.7 * penalty);
+  }
   metrics.set(
     'velocity',
     deposits > 0 ? (economy.consumptionSpend + economy.investmentSpend) / deposits : 0,

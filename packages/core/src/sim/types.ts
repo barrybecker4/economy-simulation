@@ -1,5 +1,7 @@
 import type { Rng } from '../rng/rng.js';
 
+export type Tenure = 'rent' | 'mortgage' | 'owned' | 'none';
+
 export interface Household {
   id: number;
   bank: number;
@@ -12,6 +14,10 @@ export interface Household {
   realConsumption: number;
   smoothed: number;
   search: Rng;
+  tenure: Tenure;
+  mortgage: number;
+  mortgagePayment: number;
+  consumerLoan: number;
 }
 
 export interface Firm {

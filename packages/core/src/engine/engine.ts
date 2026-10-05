@@ -39,7 +39,8 @@ export function runSimulation(
   if (typeof regime !== 'string') {
     throw new Error('regime.type must be a string');
   }
-  const unit = unitForRegime(regime);
+  const transition = config.sliders['transition.lengthMonths'];
+  const unit = typeof transition === 'number' && transition > 0 ? 'satoshi' : unitForRegime(regime);
   const rng = new Rng(config.seed);
   const ledger = new Ledger(unit);
   const metrics = new MetricsRecorder();

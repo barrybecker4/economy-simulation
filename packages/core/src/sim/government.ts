@@ -1,7 +1,14 @@
 import { splitEqual } from './allocate.js';
 import type { Economy } from './economy.js';
-import { humanWeight, moneyAmount } from './helpers.js';
+import {
+  employedCount,
+  humanWeight,
+  moneyAmount,
+  naturalUnemployment,
+  savingsRoom,
+} from './helpers.js';
 import { distributeIncome, redistributeToUnemployed } from './income.js';
+import { clamp } from './stats.js';
 
 export { distributeIncome, redistributeToUnemployed } from './income.js';
 
@@ -28,6 +35,12 @@ export function onGovernment(economy: Economy): void {
   if (economy.govDeposits < 0) {
     issueBonds(economy, -economy.govDeposits);
   }
+  const unemployment = 1 - employedCount(economy) / Math.max(1, economy.households.length);
+  const gap = Math.max(0, unemployment - naturalUnemployment(economy));
+  economy.fiscalBoost =
+    economy.params.regime === 'fiat' && economy.params.stabilizer > 0
+      ? economy.params.stabilizer * gap
+      : 0;
 }
 
 function collectTax(economy: Economy): void {
@@ -78,8 +91,26 @@ function payUbi(economy: Economy): number[] {
   return grants;
 }
 
+function effectiveSpendShare(economy: Economy): number {
+  const share = economy.params.spendShare;
+  const stabilizer = economy.params.stabilizer;
+  if (stabilizer <= 0) {
+    return share;
+  }
+  if (economy.params.regime === 'fiat') {
+    const unemployment = 1 - employedCount(economy) / economy.households.length;
+    const gap = Math.max(0, unemployment - naturalUnemployment(economy));
+    return clamp(share + stabilizer * gap, 0, 0.8);
+  }
+  return share;
+}
+
 function buyGoods(economy: Economy): void {
-  const purchases = Math.max(0, Math.round(economy.params.spendShare * economy.demandBase));
+  let purchases = Math.max(0, Math.round(effectiveSpendShare(economy) * economy.demandBase));
+  if (economy.params.regime !== 'fiat' && economy.params.stabilizer > 0) {
+    const room = Math.max(0, economy.govDeposits) + Math.max(0, savingsRoom(economy));
+    purchases = Math.min(purchases, Math.round(room));
+  }
   if (economy.govDeposits < purchases) {
     issueBonds(economy, purchases - Math.max(0, economy.govDeposits));
   }
@@ -107,9 +138,17 @@ export function issueBonds(economy: Economy, amount: number): void {
     return;
   }
   economy.govDeposits += amount;
+  const purchaseShare =
+    economy.params.regime === 'fiat' ? clamp(economy.params.bondPurchaseShare, 0, 1) : 0;
+  const monetized = moneyAmount(economy, amount * purchaseShare);
+  const bankShare = amount - monetized;
   const buyer = economy.banks[0];
-  if (buyer) {
-    buyer.bonds += amount;
+  if (buyer && bankShare > 0) {
+    buyer.bonds += bankShare;
+  }
+  if (buyer && monetized > 0) {
+    buyer.bonds += monetized;
+    buyer.reserves += monetized;
   }
 }
 

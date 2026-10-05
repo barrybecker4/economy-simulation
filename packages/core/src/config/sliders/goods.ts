@@ -1,5 +1,5 @@
 import type { Slider } from '../builders.js';
-import { basketProductivity, numberSlider } from '../builders.js';
+import { basketProductivity, enumSlider, numberSlider } from '../builders.js';
 
 export const GOODS_SLIDERS: readonly Slider[] = [
   numberSlider(
@@ -79,6 +79,45 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     1,
     0,
     5,
-    'How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise. Those shares are accounting reports. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.',
+    'How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise when tenure choice is off. When tenure choice is on, those housing shares are measured from household tenures instead. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.',
+  ),
+  enumSlider(
+    'housing.tenureChoice',
+    'Housing tenure choice',
+    'contracts',
+    'mode',
+    'off',
+    ['off', 'on'],
+    'Whether households choose rent, a nominal mortgage, or cash ownership. Off keeps the penalty formulas for non-mortgage housing and property turnover, and households hold no mortgages or consumer loans. On: each household picks the tenure with the lowest expected real burden. Expected deflation raises the mortgage burden, so fewer new mortgages are taken. Shelter stays inside the food and housing spending floor. Consumer loans fund only discretionary spending above that floor and fall as the deflation penalty rises, down to zero. Household loans count in total credit and the bank capital rule.',
+  ),
+  numberSlider(
+    'housing.mortgageTermYears',
+    'Mortgage term',
+    'contracts',
+    'years',
+    30,
+    5,
+    40,
+    'Length of a new nominal mortgage when tenure choice is on. The monthly payment is the principal divided by the term in months. A longer term lowers the monthly payment and raises the expected real burden under deflation, because the debt is outstanding longer. Unused when tenure choice is off.',
+  ),
+  numberSlider(
+    'housing.mortgageLtv',
+    'Mortgage loan-to-value',
+    'contracts',
+    'share',
+    0.8,
+    0.5,
+    0.95,
+    'Maximum loan as a share of the home price when tenure choice is on. The home price is 48 months of the household’s income. A higher ratio lets more of the purchase be debt. Unused when tenure choice is off.',
+  ),
+  numberSlider(
+    'housing.consumerCreditLimit',
+    'Consumer credit limit',
+    'contracts',
+    'share of income',
+    0.2,
+    0,
+    1,
+    'Maximum consumer loan stock as a share of monthly income when tenure choice is on. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off.',
   ),
 ];

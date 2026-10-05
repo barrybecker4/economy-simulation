@@ -22,6 +22,19 @@ export function wageGrowth(input: { trend: number; tightness: number; rigidity: 
   return clamp(input.trend + stickyGap, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
 }
 
+/** Scale the hiring quota when the real wage is away from its cost reference. Elasticity 0 leaves it at 1. */
+export function hiringScale(input: {
+  realWage: number;
+  referenceRealWage: number;
+  elasticity: number;
+}): number {
+  if (input.elasticity <= 0 || input.referenceRealWage <= 0) {
+    return 1;
+  }
+  const gap = input.realWage / input.referenceRealWage - 1;
+  return clamp(1 - input.elasticity * gap, 0.5, 1.25);
+}
+
 export function onLabor(economy: Economy): void {
   for (const household of economy.households) {
     if (household.employer < 0) {
@@ -32,14 +45,35 @@ export function onLabor(economy: Economy): void {
     }
   }
   const weight = humanWeight(economy);
+  const realWage = economy.priceLevel > 0 ? economy.wageLevel / economy.priceLevel : 1;
+  const referenceRealWage = 1 / (1 + economy.params.markup);
+  const scale = hiringScale({
+    realWage,
+    referenceRealWage,
+    elasticity: economy.params.wageElasticity,
+  });
   const target = Math.round(
     economy.households.length *
       (1 - NATURAL_UNEMPLOYMENT) *
       weight *
-      clamp(1 + economy.demandImpulse, 0.85, 1.1),
+      clamp(1 + economy.demandImpulse + economy.fiscalBoost, 0.85, 1.1) *
+      scale,
   );
   const perFirm = Math.max(1, Math.ceil(Math.max(target, 1) / economy.firms.length));
   let employed = employedCount(economy);
+  // When the real wage is high, separate enough workers to leave room for the lower quota.
+  if (employed > target) {
+    for (const household of economy.households) {
+      if (employed <= target) {
+        break;
+      }
+      if (household.employer < 0) {
+        continue;
+      }
+      separate(economy, household);
+      employed -= 1;
+    }
+  }
   for (const household of economy.households) {
     if (employed >= target) {
       break;

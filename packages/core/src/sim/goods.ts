@@ -1,15 +1,21 @@
 import { INVENTORY_MONTHS, MAX_MONTHLY_PRICE_MOVE, WEALTH_MPC } from './rules.js';
 import { clamp } from './stats.js';
 import type { Economy } from './economy.js';
-import { firmCapacity, moneyAmount, pay, priceTrend } from './helpers.js';
+import { firmCapacity, inflation, moneyAmount, pay, priceTrend } from './helpers.js';
 import { buyFromFirms } from './shop.js';
+import { discretionaryAfterRealReturn, subsistenceShare } from './spending.js';
 
 export function onGoods(economy: Economy): void {
+  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   economy.consumptionSpend = 0;
+  economy.desiredSpend = 0;
   economy.demandBase = 0;
   for (const household of economy.households) {
     economy.demandBase += household.smoothed;
   }
+  const floorShare = subsistenceShare();
+  const realReturn = economy.depositRate - inflation(economy);
+  const demandFactor = 1 + economy.demandImpulse + economy.fiscalBoost;
   for (const household of economy.households) {
     const mpc = clamp(
       1 - economy.params.spendShare + household.timePref - economy.params.timePrefMean,
@@ -18,7 +24,14 @@ export function onGoods(economy: Economy): void {
     );
     const buffer = household.income * 48;
     const extra = Math.max(0, household.deposit - buffer) * WEALTH_MPC;
-    const budget = household.smoothed * mpc * (1 + economy.demandImpulse) + extra;
+    const uncut = household.smoothed * mpc * demandFactor + extra;
+    const budget = discretionaryAfterRealReturn({
+      uncutBudget: uncut,
+      realReturn,
+      sensitivity: economy.params.realReturnSensitivity,
+      floorShare,
+    });
+    economy.desiredSpend += budget;
     const left = Math.max(0, Math.min(household.deposit, Math.round(budget)));
     const start =
       economy.firms.length > 0 ? household.search.uniformInt(0, economy.firms.length - 1) : 0;
@@ -86,7 +99,8 @@ function shopAgents(economy: Economy): void {
     const taxReserve = moneyAmount(economy, economy.params.taxRate * agent.income);
     const buffer = agent.income * 48;
     const extra = Math.max(0, agent.deposit - buffer) * WEALTH_MPC;
-    const budget = agent.smoothed * mpc * (1 + economy.demandImpulse) + extra;
+    const budget = agent.smoothed * mpc * (1 + economy.demandImpulse + economy.fiscalBoost) + extra;
+    economy.desiredSpend += budget;
     const left = Math.max(0, Math.min(Math.max(0, agent.deposit - taxReserve), Math.round(budget)));
     const start = agent.id % economy.firms.length;
     const { spent } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
@@ -99,6 +113,13 @@ function shopAgents(economy: Economy): void {
 function updatePrices(economy: Economy): void {
   let output = 0;
   let weightedPrice = 0;
+  let capacityValue = 0;
+  for (const firm of economy.firms) {
+    capacityValue += firmCapacity(economy, firm) * firm.price;
+  }
+  const excessDemand =
+    capacityValue > 0 ? clamp(economy.desiredSpend / capacityValue - 1, -0.2, 0.2) : 0;
+  const trendWeight = economy.params.trendWeight;
   for (const firm of economy.firms) {
     const capacity = firmCapacity(economy, firm);
     const wageBill = firm.workers.reduce((sum, workerId) => {
@@ -119,7 +140,12 @@ function updatePrices(economy: Economy): void {
       0.001,
     );
     const shockTilt = 0.12 * economy.demandImpulse - 0.12 * economy.productivityImpulse;
-    const move = clamp(trend + nudge + shockTilt, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+    const demandMove = trendWeight * trend + (1 - trendWeight) * excessDemand;
+    const move = clamp(
+      demandMove + nudge + shockTilt,
+      -MAX_MONTHLY_PRICE_MOVE,
+      MAX_MONTHLY_PRICE_MOVE,
+    );
     firm.price = Math.max(1, firm.price * (1 + move));
     firm.salesUnits = 0;
     output += firm.output;

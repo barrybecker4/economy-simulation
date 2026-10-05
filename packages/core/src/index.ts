@@ -33,6 +33,8 @@ export { summarize, pairedDifference } from './experiments/summary.js';
 export { morrisScreen } from './experiments/morris.js';
 export { runHypotheses } from './experiments/hypotheses.js';
 export type { HypothesisResult } from './experiments/hypotheses.js';
+export { runTransitionComparison } from './experiments/transition.js';
+export type { TransitionBand, TransitionPathReport } from './experiments/transition.js';
 export { simulate } from './sim/simulate.js';
 export type { ForcedShock } from './sim/simulate.js';
 export { Rng } from './rng/rng.js';
