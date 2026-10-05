@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PercentileBand, RunSuccess } from '../worker/protocol.js';
 import { CHART_METRICS } from '../worker/series.js';
-import { chartViews, moneyUnit } from './view.js';
+import { chartViews, moneyUnit, VARIANT_DASH } from './view.js';
 
 const ticks = [0, 1];
 
@@ -142,6 +142,90 @@ describe('chartViews', () => {
     expect(views[0]?.lines[0]?.values).toEqual([500, 250_000]);
     expect(views.find((view) => view.key === 'prices')?.unit).toBe('dollars');
     expect(views.find((view) => view.key === 'prices')?.lines[0]?.values).toEqual([5, 2_500]);
+  });
+
+  it('overlays a solid baseline and a dashed variant in the same color', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([1, 2]) };
+    const variant = { kind: 'run' as const, ticks, series: series([3, 4]) };
+    const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
+    const prices = views.find((view) => view.key === 'prices');
+    expect(prices?.lines.map((line) => line.label)).toEqual([
+      'CPI baseline',
+      'CPI',
+      'Food and bev baseline',
+      'Food and bev',
+      'Housing baseline',
+      'Housing',
+      'Energy baseline',
+      'Energy',
+      'Apparel baseline',
+      'Apparel',
+      'Transportation baseline',
+      'Transportation',
+      'Medical baseline',
+      'Medical',
+      'Education baseline',
+      'Education',
+      'Recreation baseline',
+      'Recreation',
+      'Electronics baseline',
+      'Electronics',
+    ]);
+    expect(prices?.lines[0]?.values).toEqual([1, 2]);
+    expect(prices?.lines[1]?.values).toEqual([3, 4]);
+    expect(prices?.lines[0]?.color).toBe('#1e3a8a');
+    expect(prices?.lines[1]?.color).toBe('#1e3a8a');
+    expect(prices?.lines[0]?.dash).toBeUndefined();
+    expect(prices?.lines[1]?.dash).toEqual([...VARIANT_DASH]);
+    expect(prices?.unit).toBe('cents');
+  });
+
+  it('scales paired fiat money charts from the combined peak', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([100, 200]) };
+    const variant = { kind: 'run' as const, ticks, series: series([500, 2_000]) };
+    const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
+    const ubi = views.find((view) => view.key === 'ubi');
+    expect(ubi?.unit).toBe('dollars');
+    expect(ubi?.lines.map((line) => line.values)).toEqual([
+      [1, 2],
+      [5, 20],
+    ]);
+    expect(ubi?.lines[1]?.dash).toEqual([...VARIANT_DASH]);
+  });
+
+  it('annotates mixed money units on paired charts', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([500, 250_000]) };
+    const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
+    const views = chartViews(variant, 'bitcoin', { result: baseline, regime: 'fiat' });
+    const prices = views.find((view) => view.key === 'prices');
+    expect(prices?.unit).toBe('');
+    expect(prices?.note).toMatch(/unit is in its label/);
+    expect(prices?.lines[0]?.label).toBe('CPI baseline (cents)');
+    expect(prices?.lines[1]?.label).toBe('CPI (satoshis)');
+    expect(prices?.lines[0]?.values).toEqual([500, 250_000]);
+    expect(prices?.lines[1]?.values).toEqual([8, 9]);
+  });
+
+  it('ignores a baseline for band and regime-compare results', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([1, 2]) };
+    const band = chartViews(
+      { kind: 'band', ticks, series: {}, bands: bands([3, 4]) },
+      'fiat',
+      { result: baseline, regime: 'fiat' },
+    );
+    expect(band[0]?.lines.map((line) => line.label)).toEqual([
+      'Mean well-being',
+      'Median well-being',
+    ]);
+    const compared = series([1, 2]);
+    compared.priceLevelBitcoin = [8, 9];
+    const views = chartViews(
+      { kind: 'compare', ticks, series: compared },
+      'fiat',
+      { result: baseline, regime: 'fiat' },
+    );
+    expect(views[0]?.key).toBe('regimes');
+    expect(views.find((view) => view.key === 'prices')?.lines).toHaveLength(10);
   });
 
   it('rejects a run with no ticks, a missing series, or a short series', () => {

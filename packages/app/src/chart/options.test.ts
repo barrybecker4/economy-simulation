@@ -12,6 +12,17 @@ describe('plotOptions', () => {
     expect(options.series[1]?.stroke).toBe('#246');
   });
 
+  it('dashes a variant line and leaves the baseline solid', () => {
+    const options = plotOptions(640, [
+      { label: 'CPI baseline', color: '#1e3a8a' },
+      { label: 'CPI', color: '#1e3a8a', dash: [6, 4] },
+    ]);
+    expect(options.series[1]?.dash).toBeUndefined();
+    expect(options.series[2]?.dash).toEqual([6, 4]);
+    expect(options.series[1]?.stroke).toBe('#1e3a8a');
+    expect(options.series[2]?.stroke).toBe('#1e3a8a');
+  });
+
   it('widens the y-axis for large money flows and formats ticks compactly', () => {
     const options = plotOptions(640, [
       { label: 'Wages', color: '#a16207', values: [0, 250_000, 1_200_000] },

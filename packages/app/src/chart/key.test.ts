@@ -11,5 +11,6 @@ describe('chartKey', () => {
     expect(chartKey(320, ticks, [line])).not.toBe(first);
     expect(chartKey(640, ticks, [{ ...line, values: [1, 3] }])).not.toBe(first);
     expect(chartKey(640, ticks, [{ ...line, label: 'Other' }])).not.toBe(first);
+    expect(chartKey(640, ticks, [{ ...line, dash: [6, 4] }])).not.toBe(first);
   });
 });

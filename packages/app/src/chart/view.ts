@@ -6,6 +6,8 @@ export interface ChartLine {
   label: string;
   values: number[];
   color: string;
+  /** Stroke dash segments for uPlot. Omit for a solid line. */
+  dash?: readonly number[];
 }
 
 export interface ChartView {
@@ -256,9 +258,24 @@ export function moneyUnit(regime: string): string {
   throw new Error(`Unknown regime ${regime}`);
 }
 
-export function chartViews(result: RunSuccess, regime: string): ChartView[] {
+/** Dash pattern for the variant line when a baseline is overlaid. */
+export const VARIANT_DASH = [6, 4] as const;
+
+export interface BaselineRun {
+  result: RunSuccess;
+  regime: string;
+}
+
+export function chartViews(
+  result: RunSuccess,
+  regime: string,
+  baseline: BaselineRun | null = null,
+): ChartView[] {
   if (result.ticks.length === 0) {
     throw new Error('Run has no ticks');
+  }
+  if (baseline !== null && result.kind === 'run' && baseline.result.kind === 'run') {
+    return pairedViews(result, regime, baseline);
   }
   const displayed = result.kind === 'compare' ? 'fiat' : regime;
   const views = SPECS.map((spec) => viewFromSpec(spec, result, displayed));
@@ -279,11 +296,73 @@ const CENTS_PER_DOLLAR = 100;
 /** Fiat money charts stay in cents at this level and switch to dollars above it. */
 const CENT_DISPLAY_MAX = 1_000;
 
+function pairedViews(variant: RunSuccess, regime: string, baseline: BaselineRun): ChartView[] {
+  if (baseline.result.ticks.length === 0) {
+    throw new Error('Baseline run has no ticks');
+  }
+  if (baseline.result.ticks.length !== variant.ticks.length) {
+    throw new Error('Baseline and variant must share the same month count');
+  }
+  return SPECS.map((spec) => pairedViewFromSpec(spec, variant, regime, baseline));
+}
+
 function viewFromSpec(spec: ChartSpec, result: RunSuccess, regime: string): ChartView {
   const scaled = scaleCents(
     unitText(spec.unit, regime),
     spec.lines.map((line) => lineOf(result, line)),
   );
+  return {
+    key: spec.key,
+    title: spec.title,
+    group: spec.group,
+    unit: scaled.unit,
+    description: spec.description,
+    lines: scaled.lines,
+  };
+}
+
+function pairedViewFromSpec(
+  spec: ChartSpec,
+  variant: RunSuccess,
+  regime: string,
+  baseline: BaselineRun,
+): ChartView {
+  const mixedMoney =
+    spec.unit === 'money' && moneyUnit(regime) !== moneyUnit(baseline.regime);
+  const lines: ChartLine[] = [];
+  for (const line of spec.lines) {
+    const baseUnit = mixedMoney ? ` (${moneyUnit(baseline.regime)})` : '';
+    const variantUnit = mixedMoney ? ` (${moneyUnit(regime)})` : '';
+    lines.push(
+      checkedLine(
+        baseline.result.ticks,
+        `${line.label} baseline${baseUnit}`,
+        valuesFor(baseline.result, line.id),
+        line.color,
+      ),
+    );
+    lines.push(
+      checkedLine(
+        variant.ticks,
+        `${line.label}${variantUnit}`,
+        valuesFor(variant, line.id),
+        line.color,
+        VARIANT_DASH,
+      ),
+    );
+  }
+  if (mixedMoney) {
+    return {
+      key: spec.key,
+      title: spec.title,
+      group: spec.group,
+      unit: '',
+      note: "Each line's unit is in its label.",
+      description: spec.description,
+      lines,
+    };
+  }
+  const scaled = scaleCents(unitText(spec.unit, regime), lines);
   return {
     key: spec.key,
     title: spec.title,
@@ -400,9 +479,13 @@ function checkedLine(
   label: string,
   values: number[],
   color: string,
+  dash?: readonly number[],
 ): ChartLine {
   if (values.length !== ticks.length) {
     throw new Error(`${label} has ${values.length} points for ${ticks.length} ticks`);
   }
-  return { label, values, color };
+  if (dash === undefined) {
+    return { label, values, color };
+  }
+  return { label, values, color, dash };
 }

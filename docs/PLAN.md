@@ -376,7 +376,7 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 
 1. Run the simulation in a Web Worker and stream results so the page stays responsive.
 2. Slider panel generated from the registry, grouped, with a tooltip for description, source, and status.
-3. Regime toggle and a side-by-side comparison of the same seed.
+3. Regime toggle and a pinned-baseline overlay of the same seed: freeze a single run, edit the variant, and draw both on each chart with a solid baseline and a dashed variant in the same color.
 4. Charts with uPlot for the welfare dashboard and category prices. The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed. Seed selector. Many-seeds mode shows the median and a band from the 5th to the 95th percentile.
 5. The composite welfare index stays off until the user moves a weight.
 6. Shareable links encode the resolved configuration.

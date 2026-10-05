@@ -6,12 +6,24 @@
     seed = $bindable(),
     ticks = $bindable(),
     busy,
+    pinned,
+    canPin,
+    canPromote,
     onRun,
+    onPin,
+    onClear,
+    onPromote,
   }: {
     seed: number;
     ticks: number;
     busy: boolean;
+    pinned: boolean;
+    canPin: boolean;
+    canPromote: boolean;
     onRun: (kind: RunKind) => void;
+    onPin: () => void;
+    onClear: () => void;
+    onPromote: () => void;
   } = $props();
 </script>
 
@@ -23,20 +35,69 @@
   </NameTip>
   <NameTip
     id="band"
-    intro="Same settings as Run, with five seeds: the chosen seed and the next four. Charts draw the median. The CPI chart also shows the 5th and 95th percentiles."
+    intro="Same settings as Run, with five seeds: the chosen seed and the next four. Charts draw the median. The CPI chart also shows the 5th and 95th percentiles. Disabled while a baseline is pinned."
   >
-    <button type="button" aria-describedby="help-band" onclick={() => onRun('band')} disabled={busy}>
+    <button
+      type="button"
+      aria-describedby="help-band"
+      onclick={() => onRun('band')}
+      disabled={busy || pinned}
+    >
       Five-seed band
     </button>
   </NameTip>
   <NameTip
     id="compare"
-    intro="Same seed and sliders as Run, twice: once as fiat and once as bitcoin. The first chart compares those two CPIs, fiat in cents and bitcoin in satoshis. The charts under it are the fiat run only."
+    intro="Same seed and sliders as Run, twice: once as fiat and once as bitcoin. The first chart compares those two CPIs, fiat in cents and bitcoin in satoshis. The charts under it are the fiat run only. Disabled while a baseline is pinned."
   >
-    <button type="button" aria-describedby="help-compare" onclick={() => onRun('compare')} disabled={busy}>
+    <button
+      type="button"
+      aria-describedby="help-compare"
+      onclick={() => onRun('compare')}
+      disabled={busy || pinned}
+    >
       Compare fiat and bitcoin
     </button>
   </NameTip>
+  {#if pinned}
+    <NameTip
+      id="clear-baseline"
+      intro="Drops the pinned baseline so charts follow the live run alone. Five-seed band and regime compare become available again."
+    >
+      <button type="button" aria-describedby="help-clear-baseline" onclick={onClear} disabled={busy}>
+        Clear baseline
+      </button>
+    </NameTip>
+    {#if canPromote}
+      <NameTip
+        id="promote-baseline"
+        intro="Replaces the pinned baseline with the current variant result and its settings."
+      >
+        <button
+          type="button"
+          aria-describedby="help-promote-baseline"
+          onclick={onPromote}
+          disabled={busy}
+        >
+          Use variant as baseline
+        </button>
+      </NameTip>
+    {/if}
+  {:else}
+    <NameTip
+      id="pin-baseline"
+      intro="Freezes the current single run as a baseline. Later runs overlay on the same charts. Edit parameters for the variant only."
+    >
+      <button
+        type="button"
+        aria-describedby="help-pin-baseline"
+        onclick={onPin}
+        disabled={busy || !canPin}
+      >
+        Pin as baseline
+      </button>
+    </NameTip>
+  {/if}
 </section>
 
 <style>

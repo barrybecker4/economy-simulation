@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { listSliders, type Slider } from '../../core/src/config/registry.js';
+  import { getSlider, listSliders, type Slider } from '../../core/src/config/registry.js';
   import Chart from './chart/Chart.svelte';
   import { chartViews } from './chart/view.js';
   import {
@@ -9,6 +9,7 @@
     compositeWeights,
     levelsFrom,
   } from './session/composite.js';
+  import { compareDiffs } from './session/compare.js';
   import { monthCensus } from './session/census.js';
   import { monthFlows } from './session/flows.js';
   import { applyCategory, matchingCategories } from './session/presets.js';
@@ -21,6 +22,7 @@
     sliderValue,
     writeSlider,
   } from './session/sliders.js';
+  import Compare from './ui/Compare.svelte';
   import Controls from './ui/Controls.svelte';
   import Ledger from './ui/Ledger.svelte';
   import Month from './ui/Month.svelte';
@@ -34,6 +36,14 @@
     type WorkerMessage,
   } from './worker/protocol.js';
 
+  interface Pin {
+    result: RunSuccess;
+    regime: string;
+    overrides: Record<string, number | string>;
+    seed: number;
+    ticks: number;
+  }
+
   const sliders = listSliders();
   const parameters = parameterSliders(sliders);
   const initial = parsePageState(location.search, defaultPage());
@@ -44,8 +54,11 @@
   let chartRegime = $state(initial.regime);
   let overrides = $state(initial.overrides);
   let requestedRegime = initial.regime;
+  let pendingOverrides: Record<string, number | string> = { ...initial.overrides };
+  let resultOverrides = $state<Record<string, number | string>>({ ...initial.overrides });
   let status = $state('Set the parameters and run.');
   let result = $state<RunSuccess | null>(null);
+  let pin = $state<Pin | null>(null);
   let busy = $state(false);
   let progressCompleted = $state(0);
   let progressTotal = $state(0);
@@ -56,7 +69,10 @@
   const weights = $derived(compositeWeights(regime, overrides));
   const composite = $derived(shownComposite(result, weights));
   const note = $derived(compositeNote(compositeEnabled(weights), composite));
-  const views = $derived(result === null ? [] : chartViews(result, chartRegime));
+  const overlayBaseline = $derived(pairedBaseline(pin, result));
+  const views = $derived(
+    result === null ? [] : chartViews(result, chartRegime, overlayBaseline),
+  );
   const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
   const monthViews = $derived(views.filter((view) => view.group === 'This month'));
   const categories = $derived(matchingCategories(overrides));
@@ -67,6 +83,20 @@
   const census = $derived(
     result === null ? null : monthCensus(result, monthIndex, householdCount, ownership),
   );
+  const diffs = $derived(
+    pin === null
+      ? []
+      : compareDiffs(
+          sliders,
+          { regime: pin.regime, overrides: pin.overrides },
+          { regime, overrides },
+        ),
+  );
+  const canPin = $derived(result?.kind === 'run');
+  const canPromote = $derived(
+    pin !== null && result !== null && result !== pin.result && result.kind === 'run',
+  );
+  const pinned = $derived(pin !== null);
 
   const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
   worker.onmessage = onWorkerMessage;
@@ -77,9 +107,34 @@
     fail('could not read the worker reply.');
   };
 
+  $effect(() => {
+    if (pin === null) {
+      return;
+    }
+    if (seed !== pin.seed || ticks !== pin.ticks) {
+      pin = null;
+    }
+  });
+
   function numericOverride(id: string, fallback: number): number {
     const value = resolved[id];
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  }
+
+  function pairedBaseline(
+    current: Pin | null,
+    currentResult: RunSuccess | null,
+  ): { result: RunSuccess; regime: string } | null {
+    if (
+      current === null ||
+      currentResult === null ||
+      currentResult === current.result ||
+      currentResult.kind !== 'run' ||
+      current.result.kind !== 'run'
+    ) {
+      return null;
+    }
+    return { result: current.result, regime: current.regime };
   }
 
   function onWorkerMessage(event: MessageEvent<WorkerMessage>): void {
@@ -109,6 +164,7 @@
   function showResult(message: RunSuccess): void {
     busy = false;
     chartRegime = requestedRegime;
+    resultOverrides = { ...pendingOverrides };
     result = message;
     monthIndex = Math.max(0, message.ticks.length - 1);
     status = readyLabel(message.kind);
@@ -132,6 +188,9 @@
   }
 
   function run(kind: RunKind): void {
+    if (pin !== null && kind !== 'run') {
+      return;
+    }
     let request;
     try {
       request = runRequest(kind, seed, ticks, resolvedSliders(sliders, regime, overrides));
@@ -140,11 +199,56 @@
       return;
     }
     requestedRegime = regime;
+    pendingOverrides = { ...overrides };
     progressCompleted = 0;
     progressTotal = tickBudget(request);
     busy = true;
     status = activityLabel(kind);
     worker.postMessage(request);
+  }
+
+  function pinBaseline(): void {
+    if (result === null || result.kind !== 'run') {
+      return;
+    }
+    pin = {
+      result,
+      regime: chartRegime,
+      overrides: { ...resultOverrides },
+      seed,
+      ticks,
+    };
+    status = 'Baseline pinned. Edit parameters and run a variant.';
+  }
+
+  function clearBaseline(): void {
+    pin = null;
+    status = result === null ? 'Set the parameters and run.' : readyLabel(result.kind);
+  }
+
+  function promoteBaseline(): void {
+    if (result === null || result.kind !== 'run') {
+      return;
+    }
+    pin = {
+      result,
+      regime: chartRegime,
+      overrides: { ...resultOverrides },
+      seed,
+      ticks,
+    };
+    status = 'Variant is now the baseline.';
+  }
+
+  function resetDiff(id: string): void {
+    if (pin === null) {
+      return;
+    }
+    const slider = getSlider(id);
+    const baselineValue = sliderValue(slider, pin.regime, pin.overrides);
+    const next = writeSlider(slider, String(baselineValue), regime, overrides);
+    regime = next.regime;
+    overrides = next.overrides;
   }
 
   function applyCategoryChoice(categoryId: string, optionId: string): void {
@@ -187,8 +291,23 @@
     {/if}
   </header>
 
-  <Controls bind:seed bind:ticks {busy} onRun={run} />
+  <Controls
+    bind:seed
+    bind:ticks
+    {busy}
+    {pinned}
+    {canPin}
+    {canPromote}
+    onRun={run}
+    onPin={pinBaseline}
+    onClear={clearBaseline}
+    onPromote={promoteBaseline}
+  />
   <Ledger sliders={changed} {note} value={valueOf} />
+
+  {#if pin}
+    <Compare {diffs} onReset={resetDiff} />
+  {/if}
 
   {#if result}
     {#each outcomeViews as chart, index (chart.key)}
@@ -210,6 +329,9 @@
     {#if flows && census}
       <h2 class="group">This month</h2>
       {#each monthViews as chart (chart.key)}
+        {#if chart.note}
+          <p class="hint">{chart.note}</p>
+        {/if}
         <Chart
           title={chart.title}
           unit={chart.unit}

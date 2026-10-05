@@ -7,7 +7,12 @@ const Y_AXIS_CHAR = 7;
 
 export function plotOptions(
   width: number,
-  lines: readonly { label: string; color: string; values?: readonly number[] }[],
+  lines: readonly {
+    label: string;
+    color: string;
+    values?: readonly number[];
+    dash?: readonly number[];
+  }[],
 ) {
   const samples = lines.flatMap((line) => line.values ?? []);
   const axisLabels = yAxisSplits(samples).map(formatAxisNumber);
@@ -20,6 +25,7 @@ export function plotOptions(
       ...lines.map((line) => ({
         label: line.label,
         stroke: line.color,
+        ...(line.dash !== undefined ? { dash: [...line.dash] } : {}),
         value: (_u: uPlot, value: number | null) =>
           value === null || !Number.isFinite(value) ? '--' : formatAxisNumber(value),
       })),
