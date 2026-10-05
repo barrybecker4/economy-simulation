@@ -1,7 +1,14 @@
 import { INVENTORY_MONTHS, MAX_MONTHLY_PRICE_MOVE, WEALTH_MPC } from './rules.js';
 import { clamp } from './stats.js';
 import type { Economy } from './economy.js';
-import { firmCapacity, inflation, moneyAmount, normalInflation, pay, priceTrend } from './helpers.js';
+import {
+  firmCapacity,
+  inflation,
+  moneyAmount,
+  normalInflation,
+  pay,
+  priceTrend,
+} from './helpers.js';
 import { buyFromFirms } from './shop.js';
 import { discretionaryAfterRealReturn, goodsSpendingShare, subsistenceShare } from './spending.js';
 

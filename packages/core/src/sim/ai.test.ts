@@ -170,12 +170,14 @@ describe('AI productivity', () => {
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
       'ai.physicalTaskShare': 0.1,
+      'ai.roboticsStartYear': 50,
     });
     const physical = run({
       ...scale,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
       'ai.physicalTaskShare': 0.7,
+      'ai.roboticsStartYear': 50,
     });
     expect(last(physical, 'productivityPerHuman')).toBeLessThan(
       last(flexible, 'productivityPerHuman'),

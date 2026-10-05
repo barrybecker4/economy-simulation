@@ -35,6 +35,9 @@ export interface Parameters {
   adoptionSteepness: number;
   computeDecline: number;
   physicalShare: number;
+  bullishness: number;
+  roboticsStartYear: number;
+  roboticsRampYears: number;
   ownership: number;
   autonomyEnd: number;
   frictionFiat: number;
@@ -108,6 +111,9 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     adoptionSteepness: slider(config, 'ai.adoptionSteepness'),
     computeDecline: slider(config, 'ai.computeCostDeclineRate'),
     physicalShare: slider(config, 'ai.physicalTaskShare'),
+    bullishness: slider(config, 'ai.bullishness'),
+    roboticsStartYear: slider(config, 'ai.roboticsStartYear'),
+    roboticsRampYears: slider(config, 'ai.roboticsRampYears'),
     ownership: slider(config, 'ai.ownershipConcentration'),
     autonomyEnd: slider(config, 'ai.agentAutonomyShareEnd'),
     frictionFiat: slider(config, 'ai.paymentFrictionFiat'),

@@ -35,6 +35,7 @@ export function createEconomy(
     ledger: null,
     ready: false,
     aiFactor: 1,
+    displacementFactor: 1,
     automatedShare: params.autoStart,
     agentVolume: 0,
     agentGoodsSpend: 0,

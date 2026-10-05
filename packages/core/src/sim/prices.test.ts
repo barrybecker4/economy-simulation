@@ -75,7 +75,13 @@ function run(sliders: Record<string, number>): SimulationResult {
       name: 'prices',
       seed: 3,
       ticks: 120,
-      sliders: { 'scale.households': 80, 'scale.firms': 8, 'scale.banks': 1, ...sliders },
+      sliders: {
+        'scale.households': 80,
+        'scale.firms': 8,
+        'scale.banks': 1,
+        'ai.roboticsStartYear': 50,
+        ...sliders,
+      },
     }),
   );
 }

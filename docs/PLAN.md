@@ -506,6 +506,23 @@ Acceptance:
 - A positive inflation gap raises the spending share by sensitivity times the gap.
 - The fiat policy rate rule still uses `household.timePreferenceMean` alone.
 
+### Phase 17: AI bullishness and mass robotics
+
+Goal: the size of the AI productivity gain is a slider, and mass robotics later opens the physical-task ceiling.
+
+1. `ai.bullishness` defaults to 1. At 0 the gain on each adopted task is one tenth of the default and saturates with the adoption curve. At 1 the AI factor is `1 + adopted`, matching Phase 16 when robotics has not started. Above 1 the task gain compounds at `0.15 × (bullishness − 1)` per year with no ceiling.
+2. `ai.roboticsStartYear` defaults to 5 and `ai.roboticsRampYears` defaults to 8. From the start year the effective physical-task share falls in a straight line to zero. A start year at or past the last year of the run leaves the ceiling intact.
+3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain does not drive unemployment to one. The AI share of output and the household grant track `1 − 1 / AI factor`.
+
+Acceptance:
+
+- Bullishness 1 with robotics delayed past the run matches Phase 16 for the same seeds.
+- Bullishness 0 ends with a smaller productivity and unemployment gap than bullishness 1.
+- Bullishness 2 keeps productivity per human rising after adoption and the robotics ramp have flattened.
+- Equal automatable shares still ignore bullishness and robotics.
+- With robotics delayed, a higher physical-task share still lowers the gain. After a finished ramp that gap shrinks sharply.
+- The ledger audit passes at bullishness 2 with the default ramp.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

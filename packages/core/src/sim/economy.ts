@@ -19,6 +19,7 @@ export interface Economy {
   ledger: Ledger | null;
   ready: boolean;
   aiFactor: number;
+  displacementFactor: number;
   automatedShare: number;
   agentVolume: number;
   agentGoodsSpend: number;

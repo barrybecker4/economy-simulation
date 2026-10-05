@@ -5,7 +5,7 @@ import type { Economy } from './economy.js';
 import type { Firm, Household } from './types.js';
 
 export function humanWeight(economy: Economy): number {
-  return 1 / Math.max(economy.aiFactor, 1);
+  return 1 / Math.max(economy.displacementFactor, 1);
 }
 
 export function naturalUnemployment(economy: Economy): number {
@@ -35,6 +35,7 @@ export function firmCapacity(economy: Economy, firm: Firm): number {
     labor: firm.workers.length,
     laborStar: referenceWorkersPerFirm(economy),
     aiFactor: economy.aiFactor,
+    humanWeight: humanWeight(economy),
   });
 }
 
@@ -48,8 +49,9 @@ export function productionCapacity(input: {
   labor: number;
   laborStar: number;
   aiFactor: number;
+  humanWeight: number;
 }): number {
-  const weight = 1 / Math.max(input.aiFactor, 1);
+  const weight = Math.min(1, Math.max(input.humanWeight, 1e-9));
   const laborHat = Math.max(1e-9, input.laborStar * weight);
   const staffing = input.labor <= 0 ? 0 : (input.labor / laborHat) ** ((1 - input.alpha) * weight);
   if (input.capital <= 0) {

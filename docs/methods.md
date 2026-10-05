@@ -36,7 +36,7 @@ Both are bitcoin economies with shocks on. Support means the full-reserve loan-t
 
 Claim: a larger physical-task share lowers the productivity gain from AI.
 
-Both runs adopt quickly. Physical-task share is 0.1 in one and 0.7 in the other. Support means productivity per human is lower when more tasks stay physical.
+Both runs adopt quickly. Physical-task share is 0.1 in one and 0.7 in the other. Robotics start is set past the sample so the physical ceiling stays in place for the comparison. Support means productivity per human is lower when more tasks stay physical. In the default scenario the ceiling rises across the robotics ramp, and after that ramp finishes the gap between those two physical shares shrinks.
 
 ## H7
 

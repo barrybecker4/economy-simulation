@@ -25,3 +25,7 @@ export const SHOCK_PHASE_MONTHS = 12;
 export const INITIAL_WAGE = 100;
 /** Share of loans written off in the contraction phase of a credit shock. */
 export const CREDIT_WRITEOFF = 0.1;
+/** Task-gain scale at AI bullishness 0 relative to the default saturating gain. */
+export const AI_INTERNET_TASK_GAIN = 0.1;
+/** Extra annual growth of the task gain for each point of AI bullishness above 1. */
+export const AI_UNBOUNDED_GROWTH = 0.15;

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { taylorRate } from './central-bank.js';
 import { deflationPenaltyFrom, productionCapacity } from './helpers.js';
 import { wageGrowth } from './labor.js';
-import { automationShare } from './population.js';
+import { automationShare, roboticsProgress, taskGain } from './population.js';
+import { AI_INTERNET_TASK_GAIN } from './rules.js';
 import { goodsSpendingShare } from './spending.js';
 
 describe('pure economy formulas', () => {
@@ -16,6 +17,7 @@ describe('pure economy formulas', () => {
       labor: 2,
       laborStar: 2,
       aiFactor: 1,
+      humanWeight: 1,
     });
     expect(capacity).toBeCloseTo(8 ** 0.5 * 2 ** 0.5, 12);
   });
@@ -23,6 +25,16 @@ describe('pure economy formulas', () => {
   it('puts the automatable share at the midpoint halfway through', () => {
     expect(automationShare(0.1, 0.9, 0.4, 15, 15)).toBeCloseTo(0.5, 12);
     expect(automationShare(0.3, 0.3, 1, 10, 20)).toBe(0.3);
+  });
+
+  it('scales the task gain with bullishness and retires the physical share on a ramp', () => {
+    expect(taskGain(0, 10)).toBeCloseTo(AI_INTERNET_TASK_GAIN, 12);
+    expect(taskGain(1, 10)).toBeCloseTo(1, 12);
+    expect(taskGain(2, 10)).toBeCloseTo(Math.exp(0.15 * 10), 12);
+    expect(roboticsProgress(4, 5, 8)).toBe(0);
+    expect(roboticsProgress(5, 5, 8)).toBe(0);
+    expect(roboticsProgress(9, 5, 8)).toBeCloseTo(0.5, 12);
+    expect(roboticsProgress(13, 5, 8)).toBe(1);
   });
 
   it('makes downward wage pressure stickier than upward', () => {

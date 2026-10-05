@@ -1,12 +1,6 @@
 import { splitEqual } from './allocate.js';
 import type { Economy } from './economy.js';
-import {
-  employedCount,
-  humanWeight,
-  moneyAmount,
-  naturalUnemployment,
-  savingsRoom,
-} from './helpers.js';
+import { employedCount, moneyAmount, naturalUnemployment, savingsRoom } from './helpers.js';
 import { distributeIncome, redistributeToUnemployed } from './income.js';
 import { clamp } from './stats.js';
 
@@ -67,7 +61,7 @@ function collectTax(economy: Economy): void {
 function payUbi(economy: Economy): number[] {
   const grants = new Array<number>(economy.households.length).fill(0);
   economy.ubiOutlay = 0;
-  const aiShare = economy.aiFactor > 1 ? 1 - humanWeight(economy) : 0;
+  const aiShare = economy.aiFactor > 1 ? 1 - 1 / economy.aiFactor : 0;
   const nominalGdp = economy.priceLevel * economy.realGdp;
   const grantPool = Math.max(0, Math.round(economy.params.ubiShare * aiShare * nominalGdp));
   if (grantPool <= 0 || economy.households.length === 0) {
