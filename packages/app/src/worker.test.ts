@@ -1,7 +1,32 @@
 import { describe, expect, it, vi } from 'vitest';
-import { formatWorkerError } from './worker-protocol.js';
+import { formatWorkerError, percentComplete, publishPercent } from './worker-protocol.js';
 import { handleRequest } from './run-request.js';
 import { safeHandleRequest } from './worker-safe.js';
+
+const small = {
+  'scale.households': 20,
+  'scale.firms': 4,
+  'scale.banks': 1,
+};
+
+describe('percentComplete', () => {
+  it('stays at zero until a whole percent of the run is done', () => {
+    expect(percentComplete(0, 120)).toBe(0);
+    expect(percentComplete(0, 0)).toBe(0);
+    expect(percentComplete(1, 200)).toBe(0);
+    expect(percentComplete(2, 200)).toBe(1);
+    expect(percentComplete(200, 200)).toBe(100);
+  });
+});
+
+describe('publishPercent', () => {
+  it('publishes only when the integer percent increases', () => {
+    expect(publishPercent(1, 200, 0)).toBeNull();
+    expect(publishPercent(2, 200, 0)).toBe(1);
+    expect(publishPercent(3, 200, 1)).toBeNull();
+    expect(publishPercent(200, 200, 99)).toBe(100);
+  });
+});
 
 describe('formatWorkerError', () => {
   it('prefers an Error message', () => {
@@ -33,6 +58,37 @@ describe('handleRequest', () => {
     expect(result.series.unemployment).toHaveLength(360);
     expect(result.series.interestRate).toHaveLength(360);
     expect(result.series.creditToGdp).toHaveLength(360);
+  });
+
+  it('reports every tick of a run, a band, and a comparison', () => {
+    const updates: Array<[number, number]> = [];
+    handleRequest({ kind: 'run', seed: 1, ticks: 3, sliders: small }, (completed, total) =>
+      updates.push([completed, total]),
+    );
+    expect(updates).toEqual([
+      [1, 3],
+      [2, 3],
+      [3, 3],
+    ]);
+
+    updates.length = 0;
+    handleRequest(
+      { kind: 'band', seed: 1, ticks: 1, seeds: [1, 2], sliders: small },
+      (completed, total) => updates.push([completed, total]),
+    );
+    expect(updates).toEqual([
+      [1, 2],
+      [2, 2],
+    ]);
+
+    updates.length = 0;
+    handleRequest({ kind: 'compare', seed: 1, ticks: 1, sliders: small }, (completed, total) =>
+      updates.push([completed, total]),
+    );
+    expect(updates).toEqual([
+      [1, 2],
+      [2, 2],
+    ]);
   });
 });
 

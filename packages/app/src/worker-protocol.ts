@@ -24,6 +24,36 @@ export interface RunError {
 
 export type RunResponse = RunSuccess | RunError;
 
+export interface RunProgress {
+  kind: 'progress';
+  completed: number;
+  total: number;
+}
+
+export type WorkerMessage = RunProgress | RunResponse;
+
+/** Integer percent of ticks finished. Zero until the first whole percent, then 100 at the end. */
+export function percentComplete(completed: number, total: number): number {
+  if (!Number.isFinite(completed) || !Number.isFinite(total) || total <= 0 || completed <= 0) {
+    return 0;
+  }
+  const done = Math.min(completed, total);
+  return Math.min(100, Math.floor((done * 100) / total));
+}
+
+/** Percent to publish, or null when the integer percent has not moved. */
+export function publishPercent(
+  completed: number,
+  total: number,
+  lastPercent: number,
+): number | null {
+  const percent = percentComplete(completed, total);
+  if (percent <= lastPercent) {
+    return null;
+  }
+  return percent;
+}
+
 export function formatWorkerError(err: unknown): string {
   if (err instanceof Error && err.message.trim().length > 0) {
     return err.message;

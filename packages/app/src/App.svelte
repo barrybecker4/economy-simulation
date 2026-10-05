@@ -2,7 +2,8 @@
   import { listSliders, type Slider } from '../../core/src/config/registry.js';
   import Chart from './Chart.svelte';
   import NameTip from './NameTip.svelte';
-  import type { RunRequest, RunResponse } from './worker.ts';
+  import { percentComplete } from './worker-protocol.js';
+  import type { RunRequest, WorkerMessage } from './worker.ts';
 
   const sliders = listSliders();
   const parameters = [
@@ -23,11 +24,22 @@
   let requestedRegime = 'fiat';
   let overrides = $state<Record<string, number | string>>({});
   let status = $state('Set the parameters and run.');
-  let result = $state<Extract<RunResponse, { kind: 'run' | 'band' | 'compare' }> | null>(null);
+  let result = $state<Extract<WorkerMessage, { kind: 'run' | 'band' | 'compare' }> | null>(null);
   let busy = $state(false);
+  let progressCompleted = $state(0);
+  let progressTotal = $state(0);
+  let activity = 'Running…';
+  const progressPercent = $derived(percentComplete(progressCompleted, progressTotal));
 
   const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
-  worker.onmessage = (event: MessageEvent<RunResponse>) => {
+  worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
+    if (event.data.kind === 'progress') {
+      progressCompleted = event.data.completed;
+      progressTotal = event.data.total;
+      const percent = percentComplete(event.data.completed, event.data.total);
+      status = `${activity} ${percent}%`;
+      return;
+    }
     busy = false;
     if (event.data.kind === 'error') {
       result = null;
@@ -79,11 +91,25 @@
     return kind === 'fiat' ? 'cents' : 'satoshis';
   }
 
+  function plannedTicks(kind: 'run' | 'band' | 'compare'): number {
+    const months = Number.isFinite(ticks) && ticks > 0 ? ticks : 0;
+    if (kind === 'band') {
+      return months * 5;
+    }
+    if (kind === 'compare') {
+      return months * 2;
+    }
+    return months;
+  }
+
   function run(kind: 'run' | 'band' | 'compare'): void {
     requestedRegime = regime;
+    progressCompleted = 0;
+    progressTotal = plannedTicks(kind);
     busy = true;
-    status =
+    activity =
       kind === 'band' ? 'Running five seeds…' : kind === 'compare' ? 'Comparing regimes…' : 'Running…';
+    status = `${activity} 0%`;
     const request: RunRequest = {
       kind,
       seed,
@@ -236,10 +262,20 @@
   }
 </script>
 
-<main>
+<main aria-busy={busy}>
   <header>
     <h1>Economy simulation</h1>
     <p>{status}</p>
+    {#if busy}
+      <div class="progress">
+        <progress
+          max={progressTotal > 0 ? progressTotal : 1}
+          value={progressCompleted}
+          aria-label="Simulation progress"
+        ></progress>
+        <span>{progressPercent}%</span>
+      </div>
+    {/if}
   </header>
 
   <section class="controls">
@@ -265,9 +301,25 @@
         <option value="keynesian-leaning">Keynesian-leaning</option>
       </select>
     </label>
-    <button type="button" onclick={() => run('run')} disabled={busy}>Run</button>
-    <button type="button" onclick={() => run('band')} disabled={busy}>Five-seed band</button>
-    <button type="button" onclick={() => run('compare')} disabled={busy}>Compare fiat and bitcoin</button>
+    <NameTip id="run" intro="Runs one simulation with the current seed, month count, regime, and sliders.">
+      <button type="button" aria-describedby="help-run" onclick={() => run('run')} disabled={busy}>Run</button>
+    </NameTip>
+    <NameTip
+      id="band"
+      intro="Same settings as Run, with five seeds: the chosen seed and the next four. Charts draw the median. The CPI chart also shows the 5th and 95th percentiles."
+    >
+      <button type="button" aria-describedby="help-band" onclick={() => run('band')} disabled={busy}>
+        Five-seed band
+      </button>
+    </NameTip>
+    <NameTip
+      id="compare"
+      intro="Same seed and sliders as Run, twice: once as fiat and once as bitcoin. The first chart compares those two CPIs, fiat in cents and bitcoin in satoshis. The charts under it are the fiat run only."
+    >
+      <button type="button" aria-describedby="help-compare" onclick={() => run('compare')} disabled={busy}>
+        Compare fiat and bitcoin
+      </button>
+    </NameTip>
   </section>
 
   <section class="ledger">
@@ -296,6 +348,24 @@
   </section>
 
   {#if result}
+    {#if result.kind === 'compare' && result.series['priceLevel'] && result.series['priceLevelBitcoin']}
+      <p class="hint">
+        The first chart compares this seed under fiat and under bitcoin. The charts below it are the fiat run only.
+      </p>
+      <Chart
+        title="Same seed, two regimes"
+        description="CPI for this seed under fiat, in cents, and under bitcoin, in satoshis. The two lines use different units, so compare their shapes, not their heights. Every other slider stays as set. The charts below are the fiat run only."
+        ticks={result.ticks}
+        lines={[
+          { label: 'Fiat CPI (cents)', values: result.series['priceLevel'], color: '#246' },
+          {
+            label: 'Bitcoin CPI (satoshis)',
+            values: result.series['priceLevelBitcoin'],
+            color: '#a60',
+          },
+        ]}
+      />
+    {/if}
     {@const wellbeing = line('meanWellbeing', 'Mean well-being', '#0b6')}
     {@const median = line('medianWellbeing', 'Median well-being', '#064')}
     {@const cpi = line('priceLevel', 'CPI', '#1e3a8a')}
@@ -357,21 +427,6 @@
         description="Tasks automated is the share of tasks software can do. AI agents is autonomous agents divided by households plus agents. AI share of output is the fraction of capacity from the AI multiplier. With equal start and end automatable shares that share stays at zero. A five-seed band draws each median."
         ticks={result.ticks}
         lines={[tasks, agents, aiOutput]}
-      />
-    {/if}
-    {#if result.kind === 'compare' && result.series['priceLevel'] && result.series['priceLevelBitcoin']}
-      <Chart
-        title="Same seed, two regimes"
-        description="CPI for this seed under fiat, in cents, and under bitcoin, in satoshis. Every other slider stays as set."
-        ticks={result.ticks}
-        lines={[
-          { label: 'Fiat CPI (cents)', values: result.series['priceLevel'], color: '#246' },
-          {
-            label: 'Bitcoin CPI (satoshis)',
-            values: result.series['priceLevelBitcoin'],
-            color: '#a60',
-          },
-        ]}
       />
     {/if}
     {#if result.kind === 'band' && result.bands?.priceLevel}
@@ -463,5 +518,22 @@
   button {
     font: inherit;
     padding: 0.4rem 0.8rem;
+  }
+  .progress {
+    align-items: center;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr auto;
+    margin: 0.25rem 0 0;
+  }
+  .progress progress {
+    accent-color: #1c1917;
+    height: 0.75rem;
+    width: 100%;
+  }
+  .progress span {
+    font-variant-numeric: tabular-nums;
+    min-width: 3.5ch;
+    text-align: right;
   }
 </style>

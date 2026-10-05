@@ -11,7 +11,8 @@ export interface ForcedShock {
 export function simulate(
   config: ResolvedConfig,
   shock: ForcedShock | null = null,
+  onTick?: (completed: number, total: number) => void,
 ): SimulationResult {
   const world = new World(config, shock);
-  return runSimulation(config, world.handlers());
+  return runSimulation(config, world.handlers(), onTick);
 }

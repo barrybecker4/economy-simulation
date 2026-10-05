@@ -28,10 +28,12 @@ export interface SimulationResult {
 /**
  * Runs empty phases unless the caller supplies handlers.
  * Phase 1 does not implement agents, markets, or regime rules.
+ * `onTick` runs after each committed tick. It does not change the result unless it throws.
  */
 export function runSimulation(
   config: ResolvedConfig,
   handlers: PhaseHandlers = {},
+  onTick?: (completed: number, total: number) => void,
 ): SimulationResult {
   const regime = config.sliders['regime.type'];
   if (typeof regime !== 'string') {
@@ -61,6 +63,7 @@ export function runSimulation(
     audit = ledger.audit();
     metrics.set('auditOk', audit.ok ? 1 : 0);
     metrics.commitTick(tick);
+    onTick?.(tick + 1, config.ticks);
   }
 
   return {

@@ -23,7 +23,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, type Snippet } from 'svelte';
   import type { Slider, SliderGroup, SliderStatus } from '../../core/src/config/registry.js';
 
   let {
@@ -35,6 +35,7 @@
     kicker,
     intro,
     items,
+    children,
   }: {
     slider?: Slider;
     label?: string;
@@ -44,6 +45,7 @@
     kicker?: string;
     intro?: string;
     items?: readonly { name: string; detail: string }[];
+    children?: Snippet;
   } = $props();
 
   const caption = $derived(label ?? slider?.label ?? '');
@@ -126,8 +128,13 @@
     const spaceRight = window.innerWidth - anchor.right - margin;
     const spaceBelow = window.innerHeight - anchor.bottom - gap - margin;
     const spaceAbove = anchor.top - gap - margin;
+    const buttonHost = nameEl.classList.contains('host');
     const nextPlacement: 'below' | 'above' | 'side' =
-      spaceRight >= 300 ? 'side' : spaceBelow < 180 && spaceAbove > spaceBelow ? 'above' : 'below';
+      !buttonHost && spaceRight >= 300
+        ? 'side'
+        : spaceBelow < 180 && spaceAbove > spaceBelow
+          ? 'above'
+          : 'below';
     const room =
       nextPlacement === 'side'
         ? Math.max(160, window.innerHeight - margin * 2)
@@ -183,7 +190,7 @@
 
   onMount(() => {
     listenForPointerModality();
-    const row = nameEl?.closest('label');
+    const row = nameEl?.closest('label') ?? nameEl;
     const tip = tipEl;
     if (!row || !tip) {
       return;
@@ -242,11 +249,18 @@
 </script>
 
 <span
-  class="name"
+  class:name={!children}
+  class:host={!!children}
   class:wide
-  id={described ? `label-${tipId}` : undefined}
-  bind:this={nameEl}>{caption}</span
+  id={described && !children ? `label-${tipId}` : undefined}
+  bind:this={nameEl}
 >
+  {#if children}
+    {@render children()}
+  {:else}
+    {caption}
+  {/if}
+</span>
 <div
   bind:this={tipEl}
   class="tip"
@@ -309,6 +323,10 @@
   }
   .name.wide {
     flex: 0 0 16rem;
+  }
+  .host {
+    display: inline-flex;
+    position: relative;
   }
   .tip:not(.open) {
     position: absolute;

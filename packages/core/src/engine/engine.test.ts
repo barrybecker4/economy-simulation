@@ -49,6 +49,22 @@ describe('runSimulation', () => {
     expect(first.metrics.series.auditOk).toEqual([1, 1]);
   });
 
+  it('reports each completed tick without changing the recorded metrics', () => {
+    const seen: Array<[number, number]> = [];
+    const config = loadScenario({ name: 'progress', seed: 1, ticks: 3 });
+    const withProgress = runSimulation(config, {}, (completed, total) => {
+      seen.push([completed, total]);
+    });
+    const plain = runSimulation(config, {});
+    expect(seen).toEqual([
+      [1, 3],
+      [2, 3],
+      [3, 3],
+    ]);
+    expect(withProgress.metrics).toEqual(plain.metrics);
+    expect(withProgress.audit).toEqual(plain.audit);
+  });
+
   it('audits a fractional satoshi posting made during bookkeeping', () => {
     const result = runSimulation(
       loadScenario({
