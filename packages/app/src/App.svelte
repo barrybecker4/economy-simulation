@@ -16,6 +16,8 @@
   let seed = $state(1);
   let ticks = $state(120);
   let regime = $state('fiat');
+  let chartRegime = $state('fiat');
+  let requestedRegime = 'fiat';
   let overrides = $state<Record<string, number | string>>({});
   let status = $state('Set the sliders and run.');
   let result = $state<RunResponse | null>(null);
@@ -23,6 +25,7 @@
 
   const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
   worker.onmessage = (event: MessageEvent<RunResponse>) => {
+    chartRegime = requestedRegime;
     result = event.data;
     busy = false;
     status =
@@ -54,7 +57,12 @@
     return slidersOut;
   }
 
+  function moneyUnit(kind: string): string {
+    return kind === 'fiat' ? 'cents' : 'satoshis';
+  }
+
   function run(kind: 'run' | 'band' | 'compare'): void {
+    requestedRegime = regime;
     busy = true;
     status =
       kind === 'band' ? 'Running five seeds…' : kind === 'compare' ? 'Comparing regimes…' : 'Running…';
@@ -250,7 +258,8 @@
     {#if wellbeing && median}
       <Chart
         title="Well-being"
-        description="Mean and median human well-being. AI agents are not included. A five-seed band draws the median."
+        unit="log points"
+        description="Mean and median human well-being. The level is the natural log of real consumption, floored at 0.01, plus a housing-security term. AI agents are not included. A five-seed band draws the median."
         ticks={result.ticks}
         lines={[wellbeing, median]}
       />
@@ -258,6 +267,7 @@
     {#if cpi && electronics && beach}
       <Chart
         title="Prices"
+        unit={result.kind === 'compare' ? 'cents' : moneyUnit(chartRegime)}
         description="CPI is the consumption basket. Electronics and beachfront can move apart from it. A five-seed band draws each median."
         ticks={result.ticks}
         lines={[cpi, electronics, beach]}
@@ -266,17 +276,22 @@
     {#if result.kind === 'compare' && result.series['priceLevel'] && result.series['priceLevelBitcoin']}
       <Chart
         title="Same seed, two regimes"
-        description="CPI for this seed under fiat and under bitcoin. Every other slider stays as set."
+        description="CPI for this seed under fiat, in cents, and under bitcoin, in satoshis. Every other slider stays as set."
         ticks={result.ticks}
         lines={[
-          { label: 'Fiat CPI', values: result.series['priceLevel'], color: '#246' },
-          { label: 'Bitcoin CPI', values: result.series['priceLevelBitcoin'], color: '#a60' },
+          { label: 'Fiat CPI (cents)', values: result.series['priceLevel'], color: '#246' },
+          {
+            label: 'Bitcoin CPI (satoshis)',
+            values: result.series['priceLevelBitcoin'],
+            color: '#a60',
+          },
         ]}
       />
     {/if}
     {#if result.kind === 'band' && result.bands?.priceLevel}
       <Chart
         title="CPI band"
+        unit={moneyUnit(chartRegime)}
         description="Median CPI across five seeds, with the 5th and 95th percentiles."
         ticks={result.ticks}
         lines={[
