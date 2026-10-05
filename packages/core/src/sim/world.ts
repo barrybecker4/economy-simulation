@@ -3,9 +3,8 @@ import type { TickContext } from '../engine/engine.js';
 import type { PhaseHandlers } from '../engine/engine.js';
 import { Ledger, type EntrySide } from '../ledger/ledger.js';
 import { Rng } from '../rng/rng.js';
+import { BASKET_METRICS, splitBasket, type CategoryProductivity } from './basket.js';
 import {
-  CONSUMPTION_ELECTRONICS_SHARE,
-  CONSUMPTION_GENERAL_SHARE,
   CREDIT_WRITEOFF,
   FAILURE_TICKS,
   INITIAL_WAGE,
@@ -99,8 +98,8 @@ export class World {
   private readonly capitalRatio: number;
   private readonly timePrefMean: number;
   private readonly prodGrowth: number;
-  private readonly electronicsGrowth: number;
-  private readonly beachSupplyGrowth: number;
+  private readonly categoryGrowth: CategoryProductivity;
+  private readonly housingSupplyGrowth: number;
   private readonly housingWeight: number;
   private readonly regime: 'fiat' | 'bitcoin' | 'hybrid';
   private readonly unit: 'cent' | 'satoshi';
@@ -172,8 +171,17 @@ export class World {
     this.capitalRatio = slider(config, 'bank.capitalRatio');
     this.timePrefMean = slider(config, 'household.timePreferenceMean');
     this.prodGrowth = slider(config, 'productivity.baseGrowth');
-    this.electronicsGrowth = slider(config, 'goods.electronicsProductivity');
-    this.beachSupplyGrowth = slider(config, 'goods.beachfrontSupplyGrowth');
+    this.categoryGrowth = {
+      food: slider(config, 'goods.foodProductivity'),
+      energy: slider(config, 'goods.energyProductivity'),
+      apparel: slider(config, 'goods.apparelProductivity'),
+      transportation: slider(config, 'goods.transportProductivity'),
+      medical: slider(config, 'goods.medicalProductivity'),
+      education: slider(config, 'goods.educationProductivity'),
+      recreation: slider(config, 'goods.recreationProductivity'),
+      electronics: slider(config, 'goods.electronicsProductivity'),
+    };
+    this.housingSupplyGrowth = slider(config, 'goods.housingSupplyGrowth');
     this.housingWeight = slider(config, 'welfare.housingSecurityWeight');
     this.regime = regimeOf(config);
     this.unit = this.regime === 'fiat' ? 'cent' : 'satoshi';
@@ -771,13 +779,13 @@ export class World {
     const loans = this.totalLoans();
     const deposits = this.totalDeposits();
     const categories = this.categoryPrices();
-    const relativeBeach = categories.beachfront / Math.max(this.priceLevel, 1);
+    const relativeHousing = categories.priceHousing / Math.max(this.priceLevel, 1);
     const realIncomes = this.households.map(
       (household) => household.income / Math.max(this.priceLevel, 1),
     );
     const typical = Math.max(median(realIncomes), 0.01);
     const securities = realIncomes.map((income) =>
-      clamp(income / typical / (1 + relativeBeach), 0, 1),
+      clamp(income / typical / (1 + relativeHousing), 0, 1),
     );
     const wellbeing = consumption.map(
       (value, index) =>
@@ -788,9 +796,10 @@ export class World {
     metrics.set('growth', this.growth());
     metrics.set('productivityPerHuman', employed > 0 ? this.realGdp / employed : 0);
     metrics.set('priceLevel', this.priceLevel);
-    metrics.set('priceGeneral', categories.general);
-    metrics.set('priceElectronics', categories.electronics);
-    metrics.set('priceBeachfront', categories.beachfront);
+    metrics.set('priceGeneral', categories.priceGeneral);
+    for (const id of BASKET_METRICS) {
+      metrics.set(id, categories[id]);
+    }
     metrics.set('housingSecurity', mean(securities));
     metrics.set('inflation', this.inflation());
     metrics.set('interestRate', this.policyRate);
@@ -803,7 +812,7 @@ export class World {
     metrics.set('profitSharingShare', 0.15 + 0.7 * penalty);
     metrics.set('nonMortgageHousingShare', 0.25 + 0.6 * penalty);
     const years = this.tick / 12;
-    const scarcity = (1 + this.prodGrowth) ** years / (1 + this.beachSupplyGrowth) ** years;
+    const scarcity = (1 + this.prodGrowth) ** years / (1 + this.housingSupplyGrowth) ** years;
     metrics.set('propertyTurnover', (0.08 * (1 - penalty)) / Math.max(scarcity, 0.25));
     metrics.set(
       'velocity',
@@ -1151,24 +1160,16 @@ export class World {
     return Math.max(1, Math.round(firm.wage * household.skill));
   }
 
-  /**
-   * The goods market clears one basket. Its price is the CPI.
-   * General and electronics prices are the cost split of that basket.
-   * Beachfront is an asset price and is left out of the CPI.
-   */
-  private categoryPrices(): { general: number; electronics: number; beachfront: number } {
-    const years = this.tick / 12;
-    const income = (1 + this.prodGrowth) ** years;
-    const relativeElectronics = income / (1 + this.electronicsGrowth) ** years;
-    const relativeBeach =
-      (income * (1 - this.deflationPenalty())) / (1 + this.beachSupplyGrowth) ** years;
-    const weight = CONSUMPTION_GENERAL_SHARE + CONSUMPTION_ELECTRONICS_SHARE * relativeElectronics;
-    const general = this.priceLevel / weight;
-    return {
-      general,
-      electronics: general * relativeElectronics,
-      beachfront: this.priceLevel * relativeBeach,
-    };
+  /** The goods market clears one basket. Category prices are an accounting split of the CPI. */
+  private categoryPrices(): ReturnType<typeof splitBasket> {
+    return splitBasket({
+      cpi: this.priceLevel,
+      years: this.tick / 12,
+      baselineGrowth: this.prodGrowth,
+      productivity: this.categoryGrowth,
+      housingSupplyGrowth: this.housingSupplyGrowth,
+      deflationPenalty: this.deflationPenalty(),
+    });
   }
 
   private priceTrend(): number {

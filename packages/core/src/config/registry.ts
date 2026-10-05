@@ -63,6 +63,25 @@ function numberSlider(
   };
 }
 
+function basketProductivity(
+  id: string,
+  label: string,
+  share: string,
+  defaultValue: number,
+  note: string,
+): NumberSlider {
+  return numberSlider(
+    id,
+    `${label} productivity`,
+    'goods',
+    '1/year',
+    defaultValue,
+    0,
+    0.3,
+    `Annual productivity growth of ${label.toLowerCase()}, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is ${share} of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. ${note}`,
+  );
+}
+
 function enumSlider(
   id: string,
   label: string,
@@ -165,7 +184,7 @@ const RAW_SLIDERS: readonly Slider[] = [
     0.01,
     0,
     0.04,
-    'Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin or hybrid money the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Electronics and beachfront prices are measured against this baseline. Match their growth sliders to it and those prices stay on the CPI.',
+    'Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin or hybrid money the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Category prices are measured against this baseline. Match a category productivity, or housing supply growth, to it and that unscaled price stays flat against the baseline. Set every one of them equal to it to put every price on the CPI.',
   ),
   numberSlider(
     'population.growth',
@@ -293,17 +312,66 @@ const RAW_SLIDERS: readonly Slider[] = [
     0.08,
     0,
     0.3,
-    'Annual productivity growth of electronics-like goods, used only to split the consumption basket price. After t years the electronics price relative to ordinary goods is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. Ordinary goods are three quarters of the basket and electronics one quarter, and the two prices are scaled so that average still equals the CPI. A higher rate makes electronics cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set it equal to baseline productivity growth to keep electronics on the CPI.',
+    'Annual productivity growth of electronics, used only to split the CPI. After t years the unscaled electronics price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. Electronics are about 1 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes electronics cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI.',
+  ),
+  basketProductivity(
+    'goods.foodProductivity',
+    'Food and bev',
+    'about 15 percent',
+    0.01,
+    'The default equals baseline productivity.',
   ),
   numberSlider(
-    'goods.beachfrontSupplyGrowth',
-    'Beachfront supply growth',
+    'goods.housingSupplyGrowth',
+    'Housing supply growth',
     'goods',
     '1/year',
     0,
     -0.01,
     0.02,
-    'Annual growth in the supply of scarce property, such as beachfront. Demand is taken to rise with real income, so the property price relative to the CPI is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. Expected deflation can cut that demand further. Beachfront is an asset price and is left out of the CPI. It does enter housing security: a higher property price relative to the CPI lowers security. At zero, the relative price rises with productivity. A negative rate means the stock of property shrinks. Set it equal to baseline productivity growth to keep the relative price flat, aside from the deflation term.',
+    'Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term.',
+  ),
+  basketProductivity(
+    'goods.energyProductivity',
+    'Energy',
+    'about 7 percent',
+    0.005,
+    'The default is below baseline, so energy rises relative to it, and by less than housing.',
+  ),
+  basketProductivity(
+    'goods.apparelProductivity',
+    'Apparel',
+    'about 3 percent',
+    0.04,
+    'The default is above baseline, so apparel cheapens.',
+  ),
+  basketProductivity(
+    'goods.transportProductivity',
+    'Transportation',
+    'about 14 percent',
+    0.02,
+    'The default is a little above baseline, so transportation cheapens slowly. Motor fuel is in energy, not here.',
+  ),
+  basketProductivity(
+    'goods.medicalProductivity',
+    'Medical',
+    'about 9 percent',
+    0.003,
+    'The default is below baseline, so medical care rises relative to it.',
+  ),
+  basketProductivity(
+    'goods.educationProductivity',
+    'Education',
+    'about 3 percent',
+    0.001,
+    'The default is just below baseline, so education rises slightly relative to it. Communication is not in this share.',
+  ),
+  basketProductivity(
+    'goods.recreationProductivity',
+    'Recreation',
+    'about 6 percent',
+    0.03,
+    'The default is above baseline, so recreation cheapens.',
   ),
   numberSlider(
     'deflation.sensitivity',
@@ -313,7 +381,7 @@ const RAW_SLIDERS: readonly Slider[] = [
     1,
     0,
     5,
-    'How strongly expected deflation changes credit and property. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, beachfront demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise. Those shares are accounting reports. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.',
+    'How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise. Those shares are accounting reports. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.',
   ),
   numberSlider(
     'welfare.housingSecurityWeight',
@@ -323,7 +391,7 @@ const RAW_SLIDERS: readonly Slider[] = [
     0.5,
     0,
     2,
-    'How much housing security adds to human well-being. Well-being is the log of real consumption, floored at 0.01, plus this weight times housing security. Security is real income relative to the median, divided by one plus the beachfront price relative to the CPI, and kept between 0 and 1. A higher weight makes income gaps and property prices matter more on the well-being chart. It does not change what anyone earns, buys, or borrows. AI agents are left out of well-being.',
+    'How much housing security adds to human well-being. Well-being is the log of real consumption, floored at 0.01, plus this weight times housing security. Security is real income relative to the median, divided by one plus the housing price relative to the CPI, and kept between 0 and 1. A higher weight makes income gaps and housing prices matter more on the well-being chart. It does not change what anyone earns, buys, or borrows. AI agents are left out of well-being.',
   ),
   numberSlider(
     'welfare.weightInequality',

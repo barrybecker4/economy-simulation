@@ -149,12 +149,12 @@ function h8(): HypothesisResult {
   const fiat = run(base);
   const bitcoin = run({ ...base, 'regime.type': 'bitcoin' });
   const electronics = last(fiat, 'priceElectronics') < last(fiat, 'priceGeneral');
-  const beach = last(fiat, 'priceBeachfront') > last(fiat, 'priceLevel');
+  const housing = last(fiat, 'priceHousing') > last(fiat, 'priceLevel');
   const pathsDiffer = last(fiat, 'inflation') > last(bitcoin, 'inflation');
   return {
     id: 'H8',
-    claim: 'Electronics cheapen and beachfront rises inside both a rising and a falling CPI.',
-    supported: electronics && beach && pathsDiffer,
+    claim: 'Electronics cheapen and housing rises inside both a rising and a falling CPI.',
+    supported: electronics && housing && pathsDiffer,
     detail: `fiat inflation ${last(fiat, 'inflation')} bitcoin ${last(bitcoin, 'inflation')}`,
   };
 }

@@ -25,7 +25,3 @@ export const SHOCK_PHASE_MONTHS = 12;
 export const INITIAL_WAGE = 100;
 /** Share of loans written off in the contraction phase of a credit shock. */
 export const CREDIT_WRITEOFF = 0.1;
-/** Weight of ordinary goods in the consumption price index. */
-export const CONSUMPTION_GENERAL_SHARE = 0.75;
-/** Weight of electronics-like goods in the consumption price index. Property is excluded. */
-export const CONSUMPTION_ELECTRONICS_SHARE = 0.25;

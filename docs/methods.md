@@ -46,6 +46,6 @@ Both are bitcoin economies. Sensitivity is 0 in one and 5 in the other. Support 
 
 ## H8
 
-Claim: electronics cheapen and beachfront rises inside both a rising and a falling CPI.
+Claim: electronics cheapen and housing rises inside both a rising and a falling CPI.
 
-The fiat run uses default category growth, so electronics should end below ordinary goods and beachfront above the CPI. The bitcoin run should end with lower inflation than fiat. Support needs all three.
+The fiat run uses default category growth, so electronics should end below the rest of the basket and housing above the CPI. The bitcoin run should end with lower inflation than fiat. Support needs all three.

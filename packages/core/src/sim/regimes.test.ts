@@ -41,7 +41,7 @@ describe('regimes', () => {
     const money = series(bitcoin, 'moneySupply');
     expect((money[money.length - 1] ?? 0) % 1).not.toBe(0);
     expect(relative(bitcoin, 'priceElectronics', 'priceGeneral')).toBeLessThan(1);
-    expect(relative(bitcoin, 'priceBeachfront', 'priceLevel')).toBeGreaterThan(1);
+    expect(relative(bitcoin, 'priceHousing', 'priceLevel')).toBeGreaterThan(1);
   });
 
   it('cuts credit and speculation when deflation sensitivity is higher', () => {

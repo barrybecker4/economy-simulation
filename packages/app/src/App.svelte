@@ -252,9 +252,16 @@
   {#if result}
     {@const wellbeing = line('meanWellbeing', 'Mean well-being', '#0b6')}
     {@const median = line('medianWellbeing', 'Median well-being', '#064')}
-    {@const cpi = line('priceLevel', 'CPI', '#246')}
-    {@const electronics = line('priceElectronics', 'Electronics', '#c43')}
-    {@const beach = line('priceBeachfront', 'Beachfront', '#a80')}
+    {@const cpi = line('priceLevel', 'CPI', '#1e3a8a')}
+    {@const food = line('priceFood', 'Food and bev', '#9a3412')}
+    {@const housing = line('priceHousing', 'Housing', '#a16207')}
+    {@const energy = line('priceEnergy', 'Energy', '#c2410c')}
+    {@const apparel = line('priceApparel', 'Apparel', '#7e22ce')}
+    {@const transport = line('priceTransportation', 'Transportation', '#0f766e')}
+    {@const medical = line('priceMedical', 'Medical', '#be123c')}
+    {@const education = line('priceEducation', 'Education', '#0369a1')}
+    {@const recreation = line('priceRecreation', 'Recreation', '#4d7c0f')}
+    {@const electronics = line('priceElectronics', 'Electronics', '#db2777')}
     {#if wellbeing && median}
       <Chart
         title="Well-being"
@@ -264,13 +271,13 @@
         lines={[wellbeing, median]}
       />
     {/if}
-    {#if cpi && electronics && beach}
+    {#if cpi && food && housing && energy && apparel && transport && medical && education && recreation && electronics}
       <Chart
         title="Prices"
         unit={result.kind === 'compare' ? 'cents' : moneyUnit(chartRegime)}
-        description="CPI is the consumption basket. Electronics and beachfront can move apart from it. A five-seed band draws each median."
+        description="CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. A five-seed band draws each median."
         ticks={result.ticks}
-        lines={[cpi, electronics, beach]}
+        lines={[cpi, food, housing, energy, apparel, transport, medical, education, recreation, electronics]}
       />
     {/if}
     {#if result.kind === 'compare' && result.series['priceLevel'] && result.series['priceLevelBitcoin']}

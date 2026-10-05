@@ -99,13 +99,9 @@ These are starting rules. Mark each as sourced or as a guess when it is implemen
 
 ### Relative prices
 
-Phase 2 uses one consumption good. Phase 3 adds categories, each with a price in the regime's unit.
+Phase 2 uses one consumption good. The current basket is the nine CPI categories in [docs/model.md](model.md): food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. Each has a price in the regime's unit. Housing supply and the category productivity rates move those prices apart. The expenditure-weighted average is the CPI.
 
-- General consumption: baseline productivity, included in the CPI.
-- Electronics-like goods: high productivity growth and elastic supply, so the relative price falls.
-- Beachfront-like property: fixed or very slow supply. Demand rises with real wealth. The relative price can rise while produced goods get cheaper. Housing services enter the CPI. The asset price is reported separately.
-
-Headline inflation is the expenditure-weighted change in consumption prices. It can sit near the fiat target, or fall under bitcoin, while electronics deflate faster and beachfront rises.
+Headline inflation is the change in that index. It can sit near the fiat target, or fall under bitcoin, while electronics and apparel cheapen and housing, energy, medical care, and education rise.
 
 ### Deflation and contracts
 
@@ -176,7 +172,14 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | Regime      | regime.type                            | fiat            | fiat, bitcoin, hybrid        |
 | Regime      | bitcoin.lendingModel                   | maturityMatched | maturityMatched, fullReserve |
 | Goods       | goods.electronicsProductivity (annual) | 0.08            | 0 to 0.3                     |
-| Goods       | goods.beachfrontSupplyGrowth (annual)  | 0               | -0.01 to 0.02                |
+| Goods       | goods.foodProductivity (annual)        | 0.01            | 0 to 0.3                     |
+| Goods       | goods.housingSupplyGrowth (annual)     | 0               | -0.01 to 0.02                |
+| Goods       | goods.energyProductivity (annual)      | 0.005           | 0 to 0.3                     |
+| Goods       | goods.apparelProductivity (annual)     | 0.04            | 0 to 0.3                     |
+| Goods       | goods.transportProductivity (annual)   | 0.02            | 0 to 0.3                     |
+| Goods       | goods.medicalProductivity (annual)     | 0.003           | 0 to 0.3                     |
+| Goods       | goods.educationProductivity (annual)   | 0.001           | 0 to 0.3                     |
+| Goods       | goods.recreationProductivity (annual)  | 0.03            | 0 to 0.3                     |
 | Contracts   | deflation.sensitivity                  | 1               | 0 to 5                       |
 | Welfare     | welfare.housingSecurityWeight          | 0.5             | 0 to 2                       |
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
@@ -203,7 +206,7 @@ Welfare composite weights, all defaulting to 0 so the index stays off until a us
 | H5  | Credit-driven booms are smaller when lending is limited to saved funds.                                                                                                   | bitcoin.lendingModel, bank.reserveRequirement, regime.type               | Credit relative to GDP, bank failures, boom-bust amplitude  |
 | H6  | A physical bottleneck limits how much AI raises growth, regardless of regime.                                                                                             | ai.physicalTaskShare, regime.type                                        | GDP growth, productivity per human                          |
 | H7  | Stronger deflation reduces credit, borrowing, and speculation, and raises profit-sharing and non-mortgage housing.                                                        | deflation.sensitivity, regime.type, productivity.baseGrowth              | Credit relative to GDP, property turnover, contract shares  |
-| H8  | Electronics get cheaper and scarce property gets more expensive inside either headline inflation path.                                                                    | goods.electronicsProductivity, goods.beachfrontSupplyGrowth, regime.type | Relative prices, CPI                                        |
+| H8  | Electronics get cheaper and housing gets more expensive inside either headline inflation path.                                                                             | goods.electronicsProductivity, goods.housingSupplyGrowth, regime.type    | Relative prices, CPI                                        |
 
 ## Phases
 
@@ -271,14 +274,14 @@ Out of scope: bitcoin, relative prices, contract switching, and AI.
 
 Goal: different goods can inflate differently inside the fiat economy.
 
-1. Add general consumption, electronics-like goods, and beachfront-like property.
-2. CPI is the expenditure-weighted consumption index. Property asset prices are separate. Housing security starts here.
-3. A neutral preset with the same productivity and elastic supply for every category reproduces Phase 2.
+1. Split the CPI into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics.
+2. CPI is the expenditure-weighted average of those categories. Housing security uses the housing price relative to the CPI.
+3. A neutral setting with every category productivity and housing supply growth equal to baseline productivity reproduces one price.
 
 Acceptance:
 
 - Raising electronics productivity lowers that relative price.
-- Tightening beachfront supply raises that relative price.
+- Tightening housing supply raises that relative price.
 - Headline CPI can stay near target while those relative prices move in opposite directions.
 - The ledger audit still passes.
 

@@ -12,7 +12,7 @@ The original design note stored money as integer cents or integer satoshis, trea
 
 - Fiat balances stay integer cents. Bitcoin balances, prices, and settlements are IEEE-754 doubles in satoshis and may be fractional. The fiat ledger audit is exact. The bitcoin audit passes within a relative epsilon. Saved output uses a canonical decimal format.
 - Humans and AI agents are one population. The AI share is an assumption and may become most of the economy. Well-being uses human agents only.
-- After the single-good baseline, the model has a few categories. Electronics-like goods get cheaper as productivity rises. Beachfront-like property has nearly fixed supply and can get more expensive. Headline inflation is a consumption index.
+- After the single-good baseline, the CPI is split into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. Productivity and housing supply move those prices apart. Headline inflation is their expenditure-weighted average.
 - Expected deflation reduces lending, borrowing, and speculation in proportion to its strength. Firms can shift from tradeable stock to profit-sharing. Housing can shift from nominal mortgages to bitcoin-collateralized loans, targeted savings cooperatives, or rent-to-own.
 - Outcome quality is a dashboard: inequality, mean and median real wealth, mean and median real consumption, and well-being. A single index exists only when the user sets weights, and those weights are assumptions.
 

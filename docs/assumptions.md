@@ -191,7 +191,7 @@ Registry version: 2.
 - Range: 0 to 5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly expected deflation changes credit and property. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, beachfront demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise. Those shares are accounting reports. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.
+- Description: How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise. Those shares are accounting reports. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.
 
 ## firm.markup
 
@@ -215,16 +215,27 @@ Registry version: 2.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly the price is pulled toward the cost target each month. The pull is this speed times 1 percent of the gap between the target and the current price, and it is capped at 0.1 percent a month, so a speed of 1 still cannot reprice faster than that cap. Low inventory raises the target and high inventory lowers it. Raising the speed closes the gap to cost sooner. The inflation trend, set by the regime, is separate from this pull.
 
-## goods.beachfrontSupplyGrowth
+## goods.apparelProductivity
 
-- Label: Beachfront supply growth
+- Label: Apparel productivity
 - Group: goods
 - Unit: 1/year
-- Default: 0
-- Range: -0.01 to 0.02
+- Default: 0.04
+- Range: 0 to 0.3
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual growth in the supply of scarce property, such as beachfront. Demand is taken to rise with real income, so the property price relative to the CPI is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. Expected deflation can cut that demand further. Beachfront is an asset price and is left out of the CPI. It does enter housing security: a higher property price relative to the CPI lowers security. At zero, the relative price rises with productivity. A negative rate means the stock of property shrinks. Set it equal to baseline productivity growth to keep the relative price flat, aside from the deflation term.
+- Description: Annual productivity growth of apparel, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 3 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is above baseline, so apparel cheapens.
+
+## goods.educationProductivity
+
+- Label: Education productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.001
+- Range: 0 to 0.3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual productivity growth of education, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 3 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is just below baseline, so education rises slightly relative to it. Communication is not in this share.
 
 ## goods.electronicsProductivity
 
@@ -235,7 +246,62 @@ Registry version: 2.
 - Range: 0 to 0.3
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual productivity growth of electronics-like goods, used only to split the consumption basket price. After t years the electronics price relative to ordinary goods is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. Ordinary goods are three quarters of the basket and electronics one quarter, and the two prices are scaled so that average still equals the CPI. A higher rate makes electronics cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set it equal to baseline productivity growth to keep electronics on the CPI.
+- Description: Annual productivity growth of electronics, used only to split the CPI. After t years the unscaled electronics price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. Electronics are about 1 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes electronics cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI.
+
+## goods.energyProductivity
+
+- Label: Energy productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.005
+- Range: 0 to 0.3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual productivity growth of energy, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 7 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is below baseline, so energy rises relative to it, and by less than housing.
+
+## goods.foodProductivity
+
+- Label: Food and bev productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.01
+- Range: 0 to 0.3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual productivity growth of food and bev, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 15 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default equals baseline productivity.
+
+## goods.housingSupplyGrowth
+
+- Label: Housing supply growth
+- Group: goods
+- Unit: 1/year
+- Default: 0
+- Range: -0.01 to 0.02
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term.
+
+## goods.medicalProductivity
+
+- Label: Medical productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.003
+- Range: 0 to 0.3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual productivity growth of medical, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 9 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is below baseline, so medical care rises relative to it.
+
+## goods.recreationProductivity
+
+- Label: Recreation productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.03
+- Range: 0 to 0.3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual productivity growth of recreation, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 6 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is above baseline, so recreation cheapens.
 
 ## goods.sampleSize
 
@@ -247,6 +313,17 @@ Registry version: 2.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How many firms a household can visit while spending its monthly budget. The run rounds this to a whole number. The walk starts at a random firm and continues to the following firms until the budget is spent, the visits run out, or those firms are out of stock. The household buys from the firms on that walk that still have inventory. A larger sample makes a stockout easier to work around. Shoppers do not sort firms by price.
+
+## goods.transportProductivity
+
+- Label: Transportation productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.02
+- Range: 0 to 0.3
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual productivity growth of transportation, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 14 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is a little above baseline, so transportation cheapens slowly. Motor fuel is in energy, not here.
 
 ## government.spendingShareOfGDP
 
@@ -345,7 +422,7 @@ Registry version: 2.
 - Range: 0 to 0.04
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin or hybrid money the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Electronics and beachfront prices are measured against this baseline. Match their growth sliders to it and those prices stay on the CPI.
+- Description: Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin or hybrid money the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Category prices are measured against this baseline. Match a category productivity, or housing supply growth, to it and that unscaled price stays flat against the baseline. Set every one of them equal to it to put every price on the CPI.
 
 ## regime.type
 
@@ -444,7 +521,7 @@ Registry version: 2.
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How much housing security adds to human well-being. Well-being is the log of real consumption, floored at 0.01, plus this weight times housing security. Security is real income relative to the median, divided by one plus the beachfront price relative to the CPI, and kept between 0 and 1. A higher weight makes income gaps and property prices matter more on the well-being chart. It does not change what anyone earns, buys, or borrows. AI agents are left out of well-being.
+- Description: How much housing security adds to human well-being. Well-being is the log of real consumption, floored at 0.01, plus this weight times housing security. Security is real income relative to the median, divided by one plus the housing price relative to the CPI, and kept between 0 and 1. A higher weight makes income gaps and housing prices matter more on the well-being chart. It does not change what anyone earns, buys, or borrows. AI agents are left out of well-being.
 
 ## welfare.weightInequality
 
