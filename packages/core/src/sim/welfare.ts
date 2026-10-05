@@ -1,6 +1,6 @@
 import type { TickContext } from '../engine/engine.js';
 import { BASKET_METRICS, splitBasket } from './basket.js';
-import { bottomShare, clamp, gini, mean, median, topShare } from './stats.js';
+import { clamp, distributionOf, mean, median } from './stats.js';
 import type { Economy } from './economy.js';
 import {
   deflationPenalty,
@@ -25,17 +25,20 @@ export function onWelfare(economy: Economy, ctx: TickContext): void {
   const deposits = totalDeposits(economy);
   const categories = categoryPrices(economy);
   const relativeHousing = categories.priceHousing / Math.max(economy.priceLevel, 1);
-  const realIncomes = economy.households.map(
-    (household) => household.income / Math.max(economy.priceLevel, 1),
-  );
-  const typical = Math.max(median(realIncomes), 0.01);
-  const securities = realIncomes.map((income) =>
-    clamp(income / typical / (1 + relativeHousing), 0, 1),
+  const price = Math.max(economy.priceLevel, 1);
+  const incomeStats = distributionOf(incomes);
+  const typical = Math.max(incomeStats.median / price, 0.01);
+  const securities = incomes.map((income) =>
+    clamp(income / price / typical / (1 + relativeHousing), 0, 1),
   );
   const wellbeing = consumption.map(
     (value, index) =>
       Math.log(Math.max(value, 0.01)) + economy.params.housingWeight * (securities[index] ?? 0),
   );
+  const wealthStats = distributionOf(wealth);
+  const skillStats = distributionOf(skills);
+  const consumptionStats = distributionOf(consumption);
+  const wellbeingStats = distributionOf(wellbeing);
   const metrics = ctx.metrics;
   metrics.set('realGdp', economy.realGdp);
   metrics.set('growth', growth(economy));
@@ -76,28 +79,62 @@ export function onWelfare(economy: Economy, ctx: TickContext): void {
   metrics.set('taxRevenue', economy.taxRevenue);
   metrics.set('agentTaxRevenue', economy.agentTaxRevenue);
   metrics.set('ubiOutlay', economy.ubiOutlay);
+  metrics.set('wageBill', economy.wageBill);
+  metrics.set('profitPaid', economy.profitPaid);
+  metrics.set(
+    'householdGoodsSpend',
+    Math.max(0, economy.consumptionSpend - economy.agentGoodsSpend),
+  );
+  metrics.set('govGoodsSpend', economy.govGoodsSpend);
   metrics.set('agentGoodsSpend', economy.agentGoodsSpend);
-  metrics.set('giniWealth', gini(wealth));
-  metrics.set('giniIncome', gini(incomes));
-  metrics.set('giniSkill', gini(skills));
-  metrics.set('giniConsumption', gini(consumption));
+  metrics.set('agentVolume', economy.agentVolume);
+  metrics.set('agentFees', economy.agentFees);
+  metrics.set('agentSweep', economy.agentSweep);
+  metrics.set('interestPaid', economy.interestPaid);
+  metrics.set('newBorrowing', economy.newBorrowing);
+  metrics.set('loanRepaid', economy.loanRepaid);
+  metrics.set('demandImpulse', economy.demandImpulse);
+  metrics.set('creditImpulse', economy.creditImpulse);
+  metrics.set('productivityImpulse', economy.productivityImpulse);
+  metrics.set('giniWealth', wealthStats.gini);
+  metrics.set('giniIncome', incomeStats.gini);
+  metrics.set('giniSkill', skillStats.gini);
+  metrics.set('giniConsumption', consumptionStats.gini);
   metrics.set('realInvestment', economy.realInvestment);
-  metrics.set('topDecileWealthShare', topShare(wealth, 0.1));
-  metrics.set('bottomQuintileWealthShare', bottomShare(wealth, 0.2));
-  metrics.set('meanRealWealth', economy.priceLevel > 0 ? mean(wealth) / economy.priceLevel : 0);
-  metrics.set('medianRealWealth', economy.priceLevel > 0 ? median(wealth) / economy.priceLevel : 0);
-  metrics.set('meanRealIncome', economy.priceLevel > 0 ? mean(incomes) / economy.priceLevel : 0);
+  metrics.set('topDecileWealthShare', wealthStats.topDecile);
+  metrics.set('bottomQuintileWealthShare', wealthStats.bottomQuintile);
+  metrics.set('wealthQuintile1', wealthStats.quintiles[0]);
+  metrics.set('wealthQuintile2', wealthStats.quintiles[1]);
+  metrics.set('wealthQuintile3', wealthStats.quintiles[2]);
+  metrics.set('wealthQuintile4', wealthStats.quintiles[3]);
+  metrics.set('wealthQuintile5', wealthStats.quintiles[4]);
+  const jobs = jobShares(economy);
+  metrics.set('jobUnemployedShare', jobs.unemployed);
+  metrics.set('jobSmallFirmShare', jobs.small);
+  metrics.set('jobLargeFirmShare', jobs.large);
+  metrics.set('ownerWealthShare', ownerWealthShare(economy));
+  metrics.set('meanRealWealth', economy.priceLevel > 0 ? wealthStats.mean / economy.priceLevel : 0);
+  metrics.set(
+    'medianRealWealth',
+    economy.priceLevel > 0 ? wealthStats.median / economy.priceLevel : 0,
+  );
+  metrics.set('meanRealIncome', economy.priceLevel > 0 ? incomeStats.mean / economy.priceLevel : 0);
   metrics.set(
     'medianRealIncome',
-    economy.priceLevel > 0 ? median(incomes) / economy.priceLevel : 0,
+    economy.priceLevel > 0 ? incomeStats.median / economy.priceLevel : 0,
   );
-  metrics.set('meanRealConsumption', mean(consumption));
-  metrics.set('medianRealConsumption', median(consumption));
-  const floor = median(consumption) * 0.25;
-  const below = consumption.filter((value) => value < floor).length / economy.households.length;
-  metrics.set('consumptionFloorShare', below);
-  metrics.set('meanWellbeing', mean(wellbeing));
-  metrics.set('medianWellbeing', median(wellbeing));
+  metrics.set('meanRealConsumption', consumptionStats.mean);
+  metrics.set('medianRealConsumption', consumptionStats.median);
+  const floor = consumptionStats.median * 0.25;
+  let below = 0;
+  for (const value of consumption) {
+    if (value < floor) {
+      below += 1;
+    }
+  }
+  metrics.set('consumptionFloorShare', below / economy.households.length);
+  metrics.set('meanWellbeing', wellbeingStats.mean);
+  metrics.set('medianWellbeing', wellbeingStats.median);
   const population = economy.households.length + economy.agents.length;
   metrics.set('aiShareOfAgents', population > 0 ? economy.agents.length / population : 0);
   metrics.set('aiShareOfWealth', aiShareOfWealth(economy));
@@ -121,6 +158,65 @@ export function aiShareOfWealth(economy: Economy): number {
   }
   const total = householdWealth + agentWealth;
   return total > 0 ? agentWealth / total : 0;
+}
+
+/** Deposits of households that own at least one agent, over all household deposits. */
+export function ownerWealthShare(economy: Economy): number {
+  if (economy.agents.length === 0 || economy.households.length === 0) {
+    return 0;
+  }
+  // Owners are the first round(households * (1 - ownership)) household ids.
+  const ownerCount = Math.max(
+    1,
+    Math.round(economy.households.length * (1 - economy.params.ownership)),
+  );
+  let ownerWealth = 0;
+  let total = 0;
+  for (const household of economy.households) {
+    const deposit = Math.max(0, household.deposit);
+    total += deposit;
+    if (household.id < ownerCount) {
+      ownerWealth += deposit;
+    }
+  }
+  return total > 0 ? ownerWealth / total : 0;
+}
+
+/** Unemployed, employed at a firm at or below median size, employed at a larger firm. */
+export function jobShares(economy: Economy): {
+  unemployed: number;
+  small: number;
+  large: number;
+} {
+  const households = economy.households.length;
+  if (households === 0) {
+    return { unemployed: 0, small: 0, large: 0 };
+  }
+  const sizes = new Array<number>(economy.firms.length);
+  for (let index = 0; index < economy.firms.length; index += 1) {
+    sizes[index] = economy.firms[index]?.workers.length ?? 0;
+  }
+  const medianSize = median(sizes);
+  let unemployed = 0;
+  let small = 0;
+  let large = 0;
+  for (const household of economy.households) {
+    if (household.employer < 0) {
+      unemployed += 1;
+      continue;
+    }
+    const size = economy.firms[household.employer]?.workers.length ?? 0;
+    if (size <= medianSize) {
+      small += 1;
+    } else {
+      large += 1;
+    }
+  }
+  return {
+    unemployed: unemployed / households,
+    small: small / households,
+    large: large / households,
+  };
 }
 
 function categoryPrices(economy: Economy): ReturnType<typeof splitBasket> {

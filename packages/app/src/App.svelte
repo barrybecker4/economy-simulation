@@ -9,6 +9,8 @@
     compositeWeights,
     levelsFrom,
   } from './session/composite.js';
+  import { monthCensus } from './session/census.js';
+  import { monthFlows } from './session/flows.js';
   import { matchingPreset, presetById } from './session/presets.js';
   import { defaultPage, pageSearch, parsePageState } from './session/query.js';
   import { activityLabel, readyLabel, runRequest } from './session/run.js';
@@ -21,6 +23,7 @@
   } from './session/sliders.js';
   import Controls from './ui/Controls.svelte';
   import Ledger from './ui/Ledger.svelte';
+  import Month from './ui/Month.svelte';
   import Parameters from './ui/Parameters.svelte';
   import { tickBudget } from './worker/budget.js';
   import {
@@ -46,6 +49,7 @@
   let busy = $state(false);
   let progressCompleted = $state(0);
   let progressTotal = $state(0);
+  let monthIndex = $state(0);
 
   const progressPercent = $derived(percentComplete(progressCompleted, progressTotal));
   const changed = $derived(changedSliders(sliders, regime, overrides));
@@ -53,7 +57,16 @@
   const composite = $derived(shownComposite(result, weights));
   const note = $derived(compositeNote(compositeEnabled(weights), composite));
   const views = $derived(result === null ? [] : chartViews(result, chartRegime));
+  const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
+  const monthViews = $derived(views.filter((view) => view.group === 'This month'));
   const preset = $derived(matchingPreset(regime, overrides));
+  const resolved = $derived(resolvedSliders(sliders, regime, overrides));
+  const householdCount = $derived(numericOverride('scale.households', 1000));
+  const ownership = $derived(numericOverride('ai.ownershipConcentration', 0.5));
+  const flows = $derived(result === null ? null : monthFlows(result, chartRegime, monthIndex));
+  const census = $derived(
+    result === null ? null : monthCensus(result, monthIndex, householdCount, ownership),
+  );
 
   const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
   worker.onmessage = onWorkerMessage;
@@ -63,6 +76,11 @@
   worker.onmessageerror = () => {
     fail('could not read the worker reply.');
   };
+
+  function numericOverride(id: string, fallback: number): number {
+    const value = resolved[id];
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  }
 
   function onWorkerMessage(event: MessageEvent<WorkerMessage>): void {
     const message = event.data;
@@ -92,6 +110,7 @@
     busy = false;
     chartRegime = requestedRegime;
     result = message;
+    monthIndex = Math.max(0, message.ticks.length - 1);
     status = readyLabel(message.kind);
     const search = pageSearch({ seed, ticks, regime, overrides });
     history.replaceState(null, '', `?${search}`);
@@ -143,6 +162,13 @@
   function valueOf(slider: Slider): number | string {
     return sliderValue(slider, regime, overrides);
   }
+
+  function showGroup(index: number, group: string, list: typeof views): boolean {
+    if (index === 0) {
+      return true;
+    }
+    return list[index - 1]?.group !== group;
+  }
 </script>
 
 <main aria-busy={busy}>
@@ -161,7 +187,10 @@
   <Ledger sliders={changed} {note} value={valueOf} />
 
   {#if result}
-    {#each views as chart (chart.key)}
+    {#each outcomeViews as chart, index (chart.key)}
+      {#if showGroup(index, chart.group, outcomeViews)}
+        <h2 class="group">{chart.group}</h2>
+      {/if}
       {#if chart.note}
         <p class="hint">{chart.note}</p>
       {/if}
@@ -173,6 +202,20 @@
         lines={chart.lines}
       />
     {/each}
+
+    {#if flows && census}
+      <h2 class="group">This month</h2>
+      {#each monthViews as chart (chart.key)}
+        <Chart
+          title={chart.title}
+          unit={chart.unit}
+          description={chart.description}
+          ticks={result.ticks}
+          lines={chart.lines}
+        />
+      {/each}
+      <Month bind:monthIndex ticks={result.ticks} {flows} {census} />
+    {/if}
   {/if}
 
   <Parameters {parameters} value={valueOf} onSlider={onSlider} />
@@ -189,6 +232,11 @@
     margin: 0 auto;
     max-width: 960px;
     padding: 1rem;
+  }
+  .group {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 1.75rem 0 0.6rem;
   }
   .hint {
     color: #57534e;

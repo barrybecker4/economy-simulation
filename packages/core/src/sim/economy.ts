@@ -22,7 +22,14 @@ export interface Economy {
   automatedShare: number;
   agentVolume: number;
   agentGoodsSpend: number;
+  agentFees: number;
+  agentSweep: number;
   wageBill: number;
+  profitPaid: number;
+  govGoodsSpend: number;
+  interestPaid: number;
+  newBorrowing: number;
+  loanRepaid: number;
   taxRevenue: number;
   agentTaxRevenue: number;
   ubiOutlay: number;

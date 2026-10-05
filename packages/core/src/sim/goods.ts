@@ -36,9 +36,11 @@ export function onGoods(economy: Economy): void {
 function tradeAgents(economy: Economy): void {
   if (economy.agents.length === 0) {
     economy.agentVolume = 0;
+    economy.agentFees = 0;
     return;
   }
   economy.agentVolume = 0;
+  economy.agentFees = 0;
   const friction =
     economy.params.regime === 'fiat' ? economy.params.frictionFiat : economy.params.frictionBitcoin;
   const ask = economy.wageLevel * 0.04 * (1 + friction);
@@ -68,6 +70,7 @@ function tradeAgents(economy: Economy): void {
     if (fee > 0) {
       bank.equity += fee;
       economy.privateEquity -= fee;
+      economy.agentFees += fee;
     }
     economy.agentVolume += bill;
   }

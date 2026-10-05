@@ -99,6 +99,7 @@ function buyGoods(economy: Economy): void {
     economy.govDeposits -= bill;
     remaining -= bill;
   }
+  economy.govGoodsSpend = purchases - remaining;
 }
 
 export function issueBonds(economy: Economy, amount: number): void {
@@ -113,6 +114,7 @@ export function issueBonds(economy: Economy, amount: number): void {
 }
 
 function sweepAgents(economy: Economy): void {
+  economy.agentSweep = 0;
   const retain = economy.wageLevel * 0.01;
   for (const agent of economy.agents) {
     const sweep = agent.deposit - retain;
@@ -125,5 +127,6 @@ function sweepAgents(economy: Economy): void {
     }
     agent.deposit -= sweep;
     owner.deposit += sweep;
+    economy.agentSweep += sweep;
   }
 }

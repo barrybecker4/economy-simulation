@@ -12,6 +12,9 @@ import {
 export function onCredit(economy: Economy): void {
   economy.investmentSpend = 0;
   economy.realInvestment = 0;
+  economy.interestPaid = 0;
+  economy.newBorrowing = 0;
+  economy.loanRepaid = 0;
   for (const firm of economy.firms) {
     const bank = economy.banks[firm.bank];
     const rawInterest = (firm.loan * (economy.policyRate + LOAN_SPREAD)) / 12;
@@ -23,12 +26,14 @@ export function onCredit(economy: Economy): void {
       if (repay > 0) {
         firm.loan -= repay;
         firm.deposit -= repay;
+        economy.loanRepaid += repay;
       }
     }
     if (interest > 0 && firm.deposit >= interest && bank && !bank.failed) {
       firm.deposit -= interest;
       bank.equity += interest;
       economy.privateEquity -= interest;
+      economy.interestPaid += interest;
     }
     const desired = Math.max(1, firm.workers.length * (1 + Math.max(0, economy.creditImpulse)));
     const lumpy = economy.tick % 12 === 0 || economy.creditImpulse > 0;
@@ -46,6 +51,7 @@ export function onCredit(economy: Economy): void {
         if (borrowed > 0) {
           firm.loan += borrowed;
           firm.deposit += borrowed;
+          economy.newBorrowing += borrowed;
         }
       }
       firm.capital += gap;

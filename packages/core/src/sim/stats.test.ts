@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bottomShare, gini, mean, median, monthlyFromAnnual, topShare } from './stats.js';
+import { bottomShare, distributionOf, gini, mean, median, monthlyFromAnnual, quintileShares, topShare } from './stats.js';
 
 describe('stats', () => {
   it('reports a zero Gini for equal values', () => {
@@ -20,5 +20,27 @@ describe('stats', () => {
   it('computes top and bottom shares', () => {
     expect(topShare([1, 2, 3, 4, 90], 0.2)).toBeCloseTo(90 / 100, 10);
     expect(bottomShare([1, 2, 3, 4, 90], 0.2)).toBeCloseTo(1 / 100, 10);
+  });
+
+  it('splits wealth into five quintile shares', () => {
+    expect(quintileShares([1, 1, 1, 1, 96])).toEqual([
+      1 / 100,
+      1 / 100,
+      1 / 100,
+      1 / 100,
+      96 / 100,
+    ]);
+    expect(quintileShares([])).toEqual([0.2, 0.2, 0.2, 0.2, 0.2]);
+    expect(quintileShares([0, 0, 0])).toEqual([0.2, 0.2, 0.2, 0.2, 0.2]);
+  });
+
+  it('builds a full distribution from one sort', () => {
+    const stats = distributionOf([1, 2, 3, 4, 90]);
+    expect(stats.gini).toBe(gini([1, 2, 3, 4, 90]));
+    expect(stats.mean).toBe(20);
+    expect(stats.median).toBe(3);
+    expect(stats.topDecile).toBe(topShare([1, 2, 3, 4, 90], 0.1));
+    expect(stats.bottomQuintile).toBe(bottomShare([1, 2, 3, 4, 90], 0.2));
+    expect(stats.quintiles).toEqual(quintileShares([1, 2, 3, 4, 90]));
   });
 });

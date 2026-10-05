@@ -43,11 +43,26 @@ describe('chartViews', () => {
       'prices',
       'labor',
       'ubi',
+      'tax',
       'credit',
       'ai',
+      'ai-spend',
+      'output',
+      'living',
+      'inequality',
+      'turnover',
+      'money',
+      'shocks',
+      'flows',
     ]);
     expect(fiat.find((view) => view.key === 'prices')?.unit).toBe('cents');
     expect(bitcoin.find((view) => view.key === 'ubi')?.unit).toBe('satoshis');
+    expect(fiat.find((view) => view.key === 'output')?.group).toBe('Output');
+    expect(fiat.find((view) => view.key === 'shocks')?.lines.map((line) => line.label)).toEqual([
+      'Demand',
+      'Credit',
+      'Productivity',
+    ]);
     expect(fiat[0]?.lines.map((line) => line.label)).toEqual([
       'Mean well-being',
       'Median well-being',
@@ -71,9 +86,10 @@ describe('chartViews', () => {
   it('draws band medians and a CPI percentile chart', () => {
     const views = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'hybrid');
     expect(views[0]?.lines[0]?.values).toEqual([3, 4]);
-    expect(views.at(-1)?.key).toBe('cpi-band');
-    expect(views.at(-1)?.unit).toBe('satoshis');
-    expect(views.at(-1)?.lines.map((line) => line.label)).toEqual(['5th', 'Median', '95th']);
+    const pricesAt = views.findIndex((view) => view.key === 'prices');
+    expect(views[pricesAt + 1]?.key).toBe('cpi-band');
+    expect(views[pricesAt + 1]?.unit).toBe('satoshis');
+    expect(views[pricesAt + 1]?.lines.map((line) => line.label)).toEqual(['5th', 'Median', '95th']);
   });
 
   it('rejects a run with no ticks, a missing series, or a short series', () => {
