@@ -1,0 +1,35 @@
+/** Shared request and response shapes for the simulation worker. */
+
+export type RunKind = 'run' | 'band' | 'compare';
+
+export interface RunRequest {
+  kind: RunKind;
+  seed: number;
+  ticks: number;
+  sliders: Record<string, number | string>;
+  seeds?: number[];
+}
+
+export interface RunSuccess {
+  kind: 'run' | 'band' | 'compare';
+  ticks: number[];
+  series: Record<string, number[]>;
+  bands?: Record<string, { low: number[]; mid: number[]; high: number[] }>;
+}
+
+export interface RunError {
+  kind: 'error';
+  message: string;
+}
+
+export type RunResponse = RunSuccess | RunError;
+
+export function formatWorkerError(err: unknown): string {
+  if (err instanceof Error && err.message.trim().length > 0) {
+    return err.message;
+  }
+  if (typeof err === 'string' && err.trim().length > 0) {
+    return err;
+  }
+  return 'Unknown worker error';
+}

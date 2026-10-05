@@ -89,6 +89,25 @@ describe('regimes', () => {
     expect(Math.max(...bitcoinBase)).toBeCloseTo(bitcoinBase[0] ?? 0, 6);
     expect(Math.max(...hybridBase)).toBeGreaterThan(hybridBase[0] ?? 0);
   });
+  it('keeps the bitcoin stock journal balanced on a long Austrian-leaning run', () => {
+    const result = simulate(
+      loadScenario({
+        name: 'austrian-long',
+        seed: 3,
+        ticks: 360,
+        sliders: {
+          'regime.type': 'bitcoin',
+          'bank.capitalRatio': 0.16,
+          'government.spendingShareOfGDP': 0.1,
+          'deflation.sensitivity': 2,
+        },
+      }),
+    );
+    expect(result.unit).toBe('satoshi');
+    expect(result.audit.ok).toBe(true);
+    expect(result.metrics.ticks).toHaveLength(360);
+    expect(series(result, 'auditOk').every((value) => value === 1)).toBe(true);
+  });
 });
 
 function run(sliders: Record<string, number | string>): SimulationResult {

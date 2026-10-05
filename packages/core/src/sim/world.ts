@@ -873,6 +873,9 @@ export class World {
     const bonds = this.banks.reduce((sum, bank) => sum + bank.bonds, 0);
     const vault = this.banks.reduce((sum, bank) => sum + bank.vault, 0);
     const equity = this.banks.reduce((sum, bank) => sum + bank.equity, 0);
+    // Vault cash equals bank equity plus this residual. Re-seat it each post so
+    // floating-point interest and fees cannot unbalance the stock journal.
+    this.privateEquity = vault - equity;
     const targets = new Map<string, number>([
       ['deposits', deposits],
       ['bank-deposits', deposits],

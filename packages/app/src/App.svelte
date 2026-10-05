@@ -23,14 +23,20 @@
   let requestedRegime = 'fiat';
   let overrides = $state<Record<string, number | string>>({});
   let status = $state('Set the parameters and run.');
-  let result = $state<RunResponse | null>(null);
+  let result = $state<Extract<RunResponse, { kind: 'run' | 'band' | 'compare' }> | null>(null);
   let busy = $state(false);
 
   const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
   worker.onmessage = (event: MessageEvent<RunResponse>) => {
+    busy = false;
+    if (event.data.kind === 'error') {
+      result = null;
+      status = `The run failed: ${event.data.message}`;
+      console.error('[sim]', event.data.message);
+      return;
+    }
     chartRegime = requestedRegime;
     result = event.data;
-    busy = false;
     status =
       event.data.kind === 'band'
         ? 'Band ready.'
@@ -39,9 +45,18 @@
           : 'Run ready.';
     writeUrl();
   };
-  worker.onerror = () => {
+  worker.onerror = (event) => {
     busy = false;
-    status = 'The run failed.';
+    result = null;
+    const detail = event.message?.trim() || 'worker error';
+    status = `The run failed: ${detail}`;
+    console.error('[sim]', detail, event);
+  };
+  worker.onmessageerror = () => {
+    busy = false;
+    result = null;
+    status = 'The run failed: could not read the worker reply.';
+    console.error('[sim] worker message could not be deserialized');
   };
 
   function valueOf(slider: Slider): number | string {
