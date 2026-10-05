@@ -47,14 +47,13 @@ describe('preset categories', () => {
     expect(base['bitcoin.lendingModel']).toBe('fullReserve');
     expect(base['deflation.sensitivity']).toBe(2);
 
-    const next = applyCategoryOption('aiAdoption', 'fast', base);
+    const next = applyCategoryOption('aiBullishness', 'high', base);
     expect(next['bank.capitalRatio']).toBe(0.16);
+    expect(next['ai.bullishness']).toBe(1.5);
     expect(next['ai.adoptionMidpointYear']).toBe(5);
     expect(next['ai.adoptionSteepness']).toBe(1.2);
-    expect(next['ai.automatableShareStart']).toBeUndefined();
-    expect(next['ai.automatableShareEnd']).toBeUndefined();
     expect(matchingCategoryOption('credit', next)).toBe('tight');
-    expect(matchingCategoryOption('aiAdoption', next)).toBe('fast');
+    expect(matchingCategoryOption('aiBullishness', next)).toBe('high');
   });
 
   it('omits registry defaults from the override map', () => {
@@ -77,13 +76,20 @@ describe('preset categories', () => {
       'ai.automatableShareEnd': 0.3,
     });
     expect(composeScenario('fast-adoption').sliders).toEqual({
+      'ai.bullishness': 1.5,
       'ai.adoptionMidpointYear': 5,
       'ai.adoptionSteepness': 1.2,
     });
-    expect(composeScenario('high-physical').sliders).toEqual({
+    expect(composeScenario('slow-adoption').sliders).toEqual({
+      'ai.bullishness': 0,
+      'ai.adoptionMidpointYear': 30,
+      'ai.adoptionSteepness': 0.15,
       'ai.physicalTaskShare': 0.7,
       'ai.roboticsStartYear': 50,
     });
+    expect(composeScenario('high-physical').sliders).toEqual(
+      composeScenario('slow-adoption').sliders,
+    );
     expect(composeScenario('austrian')).toEqual({
       regime: 'bitcoin',
       sliders: {
@@ -122,12 +128,12 @@ describe('composeCategoryOptions', () => {
     const sliders = composeCategoryOptions({
       credit: 'tight',
       publicFinance: 'small',
-      aiAdoption: 'medium',
+      aiBullishness: 'substantial',
     });
     expect(sliders['bank.capitalRatio']).toBe(0.16);
     expect(sliders['tax.incomeRate']).toBe(0.1);
     expect(sliders['government.ubiShare']).toBe(0);
-    expect(sliders['ai.adoptionMidpointYear']).toBeUndefined();
+    expect(sliders['ai.bullishness']).toBeUndefined();
   });
 
   it('lists every named composition', () => {

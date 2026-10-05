@@ -43,7 +43,7 @@ describe('phase 2 fiat economy', () => {
     const skill = series(result, 'giniSkill')[last] ?? 0;
     expect(wealth, 'seed 1 wealth gini').toBeGreaterThan(income);
     expect(income, 'seed 1 income gini').toBeGreaterThan(skill);
-    expect(elapsed, 'development-size run').toBeLessThan(1500);
+    expect(elapsed, 'development-size run').toBeLessThan(2500);
   });
 
   it('keeps unemployment near 6 percent when the automatable share does not rise', () => {

@@ -5,7 +5,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.automatableShareStart',
     'Initial automatable share',
-    'aiAdoption',
+    'ai',
     'share',
     0.1,
     0,
@@ -15,7 +15,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.automatableShareEnd',
     'Final automatable share',
-    'aiAdoption',
+    'ai',
     'share',
     0.9,
     0.3,
@@ -25,7 +25,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.adoptionMidpointYear',
     'AI adoption midpoint',
-    'aiAdoption',
+    'ai',
     'years',
     15,
     3,
@@ -35,7 +35,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.adoptionSteepness',
     'AI adoption steepness',
-    'aiAdoption',
+    'ai',
     '1/year',
     0.4,
     0.1,
@@ -45,7 +45,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.computeCostDeclineRate',
     'Compute cost decline',
-    'aiAdoption',
+    'ai',
     '1/year',
     0.3,
     0,
@@ -55,7 +55,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.physicalTaskShare',
     'Physical task share',
-    'aiReach',
+    'ai',
     'share',
     0.3,
     0,
@@ -65,7 +65,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.bullishness',
     'AI bullishness',
-    'aiBullishness',
+    'ai',
     'index',
     1,
     0,
@@ -75,7 +75,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.roboticsStartYear',
     'Robotics start',
-    'aiReach',
+    'ai',
     'years',
     5,
     0,
@@ -85,7 +85,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.roboticsRampYears',
     'Robotics ramp',
-    'aiReach',
+    'ai',
     'years',
     8,
     1,

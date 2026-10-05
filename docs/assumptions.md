@@ -9,7 +9,7 @@ Registry version: 3.
 ## ai.adoptionMidpointYear
 
 - Label: AI adoption midpoint
-- Group: aiAdoption
+- Group: ai
 - Unit: years
 - Default: 15
 - Range: 3 to 40
@@ -20,7 +20,7 @@ Registry version: 3.
 ## ai.adoptionSteepness
 
 - Label: AI adoption steepness
-- Group: aiAdoption
+- Group: ai
 - Unit: 1/year
 - Default: 0.4
 - Range: 0.1 to 1.5
@@ -42,7 +42,7 @@ Registry version: 3.
 ## ai.automatableShareEnd
 
 - Label: Final automatable share
-- Group: aiAdoption
+- Group: ai
 - Unit: share
 - Default: 0.9
 - Range: 0.3 to 1
@@ -53,7 +53,7 @@ Registry version: 3.
 ## ai.automatableShareStart
 
 - Label: Initial automatable share
-- Group: aiAdoption
+- Group: ai
 - Unit: share
 - Default: 0.1
 - Range: 0 to 0.5
@@ -64,7 +64,7 @@ Registry version: 3.
 ## ai.bullishness
 
 - Label: AI bullishness
-- Group: aiBullishness
+- Group: ai
 - Unit: index
 - Default: 1
 - Range: 0 to 2
@@ -75,7 +75,7 @@ Registry version: 3.
 ## ai.computeCostDeclineRate
 
 - Label: Compute cost decline
-- Group: aiAdoption
+- Group: ai
 - Unit: 1/year
 - Default: 0.3
 - Range: 0 to 0.6
@@ -119,7 +119,7 @@ Registry version: 3.
 ## ai.physicalTaskShare
 
 - Label: Physical task share
-- Group: aiReach
+- Group: ai
 - Unit: share
 - Default: 0.3
 - Range: 0 to 0.7
@@ -130,7 +130,7 @@ Registry version: 3.
 ## ai.roboticsRampYears
 
 - Label: Robotics ramp
-- Group: aiReach
+- Group: ai
 - Unit: years
 - Default: 8
 - Range: 1 to 30
@@ -141,7 +141,7 @@ Registry version: 3.
 ## ai.roboticsStartYear
 
 - Label: Robotics start
-- Group: aiReach
+- Group: ai
 - Unit: years
 - Default: 5
 - Range: 0 to 50

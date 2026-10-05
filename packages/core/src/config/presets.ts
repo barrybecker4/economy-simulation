@@ -1,3 +1,4 @@
+import type { SliderGroup } from './builders.js';
 import { assertSliderValue, getSlider } from './registry.js';
 
 export interface CategoryOption {
@@ -11,6 +12,8 @@ export interface PresetCategory {
   id: string;
   name: string;
   detail: string;
+  /** Panel group that hosts this category's preset select. */
+  group: SliderGroup;
   /** Slider ids this category owns. Choosing an option rewrites only these. */
   owned: readonly string[];
   options: readonly CategoryOption[];
@@ -18,12 +21,24 @@ export interface PresetCategory {
   fiatOnly?: boolean;
 }
 
+const AI_OWNED = [
+  'ai.bullishness',
+  'ai.automatableShareStart',
+  'ai.automatableShareEnd',
+  'ai.adoptionMidpointYear',
+  'ai.adoptionSteepness',
+  'ai.physicalTaskShare',
+  'ai.roboticsStartYear',
+  'ai.roboticsRampYears',
+] as const;
+
 export const PRESET_CATEGORIES: readonly PresetCategory[] = [
   {
     id: 'centralBank',
     name: 'Central bank',
     detail:
       'How hard the fiat policy rate reacts to inflation and unemployment. Bitcoin and hybrid ignore these settings.',
+    group: 'centralBank',
     fiatOnly: true,
     owned: [
       'centralBank.inflationTarget',
@@ -78,6 +93,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
     id: 'publicFinance',
     name: 'Public finance',
     detail: 'Income tax, government purchases, the UBI grant, and the fiscal stabilizer.',
+    group: 'publicFinance',
     owned: [
       'tax.incomeRate',
       'government.spendingShareOfGDP',
@@ -136,6 +152,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
     id: 'credit',
     name: 'Credit',
     detail: 'Bank capital, the bitcoin lending model, and deflation sensitivity.',
+    group: 'credit',
     owned: ['bank.capitalRatio', 'bitcoin.lendingModel', 'deflation.sensitivity'],
     options: [
       {
@@ -173,126 +190,86 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
   {
     id: 'aiBullishness',
     name: 'AI bullishness',
-    detail: 'How large the productivity gain is on each adopted task.',
-    owned: ['ai.bullishness'],
-    options: [
-      {
-        id: 'modest',
-        name: 'Modest',
-        detail: 'Bullishness 0: about a decade of internet-era gains once adoption finishes.',
-        values: { 'ai.bullishness': 0 },
-      },
-      {
-        id: 'substantial',
-        name: 'Substantial',
-        detail: 'Bullishness 1: each adopted task adds its full share to capacity.',
-        values: { 'ai.bullishness': 1 },
-      },
-      {
-        id: 'high',
-        name: 'High',
-        detail:
-          'Bullishness 1.5: the level formula compounds at 7.5 percent a year above the default.',
-        values: { 'ai.bullishness': 1.5 },
-      },
-      {
-        id: 'extreme',
-        name: 'Extreme',
-        detail:
-          'Bullishness 2: the level formula compounds at 15 percent a year above the default.',
-        values: { 'ai.bullishness': 2 },
-      },
-    ],
-  },
-  {
-    id: 'aiAdoption',
-    name: 'AI adoption',
-    detail: 'The S-curve from the initial automatable share to the final share.',
-    owned: [
-      'ai.automatableShareStart',
-      'ai.automatableShareEnd',
-      'ai.adoptionMidpointYear',
-      'ai.adoptionSteepness',
-    ],
+    detail:
+      'How large, how soon, and how widely AI raises capacity: the productivity gain, the adoption curve, and the physical-task ceiling.',
+    group: 'ai',
+    owned: AI_OWNED,
     options: [
       {
         id: 'none',
         name: 'None',
-        detail: 'Start and end automatable shares both 30 percent, so the curve stays put.',
+        detail:
+          'Start and end automatable shares both 30 percent, so the curve stays put. Bullishness and reach stay at their defaults.',
         values: {
+          'ai.bullishness': 1,
           'ai.automatableShareStart': 0.3,
           'ai.automatableShareEnd': 0.3,
           'ai.adoptionMidpointYear': 15,
           'ai.adoptionSteepness': 0.4,
-        },
-      },
-      {
-        id: 'slow',
-        name: 'Slow',
-        detail: 'Share rises from 10 to 90 percent, midpoint year 30, steepness 0.15.',
-        values: {
-          'ai.automatableShareStart': 0.1,
-          'ai.automatableShareEnd': 0.9,
-          'ai.adoptionMidpointYear': 30,
-          'ai.adoptionSteepness': 0.15,
-        },
-      },
-      {
-        id: 'medium',
-        name: 'Medium',
-        detail: 'Share rises from 10 to 90 percent, midpoint year 15, steepness 0.4.',
-        values: {
-          'ai.automatableShareStart': 0.1,
-          'ai.automatableShareEnd': 0.9,
-          'ai.adoptionMidpointYear': 15,
-          'ai.adoptionSteepness': 0.4,
-        },
-      },
-      {
-        id: 'fast',
-        name: 'Fast',
-        detail: 'Share rises from 10 to 90 percent, midpoint year 5, steepness 1.2.',
-        values: {
-          'ai.automatableShareStart': 0.1,
-          'ai.automatableShareEnd': 0.9,
-          'ai.adoptionMidpointYear': 5,
-          'ai.adoptionSteepness': 1.2,
-        },
-      },
-    ],
-  },
-  {
-    id: 'aiReach',
-    name: 'AI reach',
-    detail:
-      'How much of the task set the adoption curve can touch, and when robotics opens the rest.',
-    owned: ['ai.physicalTaskShare', 'ai.roboticsStartYear', 'ai.roboticsRampYears'],
-    options: [
-      {
-        id: 'narrow',
-        name: 'Narrow',
-        detail: 'Physical-task share 70 percent, robotics start year 50, ramp 8 years.',
-        values: {
-          'ai.physicalTaskShare': 0.7,
-          'ai.roboticsStartYear': 50,
-          'ai.roboticsRampYears': 8,
-        },
-      },
-      {
-        id: 'typical',
-        name: 'Typical',
-        detail: 'Physical-task share 30 percent, robotics from year 5 over 8 years.',
-        values: {
           'ai.physicalTaskShare': 0.3,
           'ai.roboticsStartYear': 5,
           'ai.roboticsRampYears': 8,
         },
       },
       {
-        id: 'broad',
-        name: 'Broad',
-        detail: 'Physical-task share 10 percent, robotics from year 0 over 4 years.',
+        id: 'modest',
+        name: 'Modest',
+        detail:
+          'Bullishness 0, slow adoption (midpoint year 30, steepness 0.15), and a narrow reach (physical share 70 percent, robotics start year 50).',
         values: {
+          'ai.bullishness': 0,
+          'ai.automatableShareStart': 0.1,
+          'ai.automatableShareEnd': 0.9,
+          'ai.adoptionMidpointYear': 30,
+          'ai.adoptionSteepness': 0.15,
+          'ai.physicalTaskShare': 0.7,
+          'ai.roboticsStartYear': 50,
+          'ai.roboticsRampYears': 8,
+        },
+      },
+      {
+        id: 'substantial',
+        name: 'Substantial',
+        detail:
+          'Bullishness 1, medium adoption (midpoint year 15, steepness 0.4), and typical reach (physical share 30 percent, robotics from year 5 over 8 years).',
+        values: {
+          'ai.bullishness': 1,
+          'ai.automatableShareStart': 0.1,
+          'ai.automatableShareEnd': 0.9,
+          'ai.adoptionMidpointYear': 15,
+          'ai.adoptionSteepness': 0.4,
+          'ai.physicalTaskShare': 0.3,
+          'ai.roboticsStartYear': 5,
+          'ai.roboticsRampYears': 8,
+        },
+      },
+      {
+        id: 'high',
+        name: 'High',
+        detail:
+          'Bullishness 1.5, fast adoption (midpoint year 5, steepness 1.2), and typical reach.',
+        values: {
+          'ai.bullishness': 1.5,
+          'ai.automatableShareStart': 0.1,
+          'ai.automatableShareEnd': 0.9,
+          'ai.adoptionMidpointYear': 5,
+          'ai.adoptionSteepness': 1.2,
+          'ai.physicalTaskShare': 0.3,
+          'ai.roboticsStartYear': 5,
+          'ai.roboticsRampYears': 8,
+        },
+      },
+      {
+        id: 'extreme',
+        name: 'Extreme',
+        detail:
+          'Bullishness 2, fast adoption, and broad reach (physical share 10 percent, robotics from year 0 over 4 years).',
+        values: {
+          'ai.bullishness': 2,
+          'ai.automatableShareStart': 0.1,
+          'ai.automatableShareEnd': 0.9,
+          'ai.adoptionMidpointYear': 5,
+          'ai.adoptionSteepness': 1.2,
           'ai.physicalTaskShare': 0.1,
           'ai.roboticsStartYear': 0,
           'ai.roboticsRampYears': 4,
@@ -310,6 +287,10 @@ export function categoryById(id: string): PresetCategory {
     throw new Error(`Unknown preset category ${id}`);
   }
   return category;
+}
+
+export function categoryForGroup(group: SliderGroup): PresetCategory | undefined {
+  return PRESET_CATEGORIES.find((item) => item.group === group);
 }
 
 export function optionById(categoryId: string, optionId: string): CategoryOption {
@@ -391,19 +372,19 @@ export const SCENARIO_COMPOSITIONS: Readonly<
   },
   'no-ai': {
     regime: 'fiat',
-    choices: { aiAdoption: 'none' },
+    choices: { aiBullishness: 'none' },
   },
   'slow-adoption': {
     regime: 'fiat',
-    choices: { aiAdoption: 'slow' },
+    choices: { aiBullishness: 'modest' },
   },
   'fast-adoption': {
     regime: 'fiat',
-    choices: { aiAdoption: 'fast' },
+    choices: { aiBullishness: 'high' },
   },
   'high-physical': {
     regime: 'fiat',
-    choices: { aiReach: 'narrow' },
+    choices: { aiBullishness: 'modest' },
   },
   austrian: {
     regime: 'bitcoin',
@@ -426,8 +407,6 @@ export function composeScenario(name: string): {
   const sliders = composeCategoryOptions(composition.choices);
   if (composition.regime !== 'fiat') {
     sliders['regime.type'] = composition.regime;
-  } else {
-    // Fiat is the registry default; leave it out of the override map.
   }
   return { regime: composition.regime, sliders };
 }
@@ -454,11 +433,16 @@ function optionMatches(
 function assertCatalog(categories: readonly PresetCategory[]): void {
   const seenIds = new Set<string>();
   const owned = new Set<string>();
+  const groups = new Set<SliderGroup>();
   for (const category of categories) {
     if (seenIds.has(category.id)) {
       throw new Error(`Duplicate preset category ${category.id}`);
     }
     seenIds.add(category.id);
+    if (groups.has(category.group)) {
+      throw new Error(`Two categories claim panel group ${category.group}`);
+    }
+    groups.add(category.group);
     if (category.options.length === 0) {
       throw new Error(`Category ${category.id} has no options`);
     }

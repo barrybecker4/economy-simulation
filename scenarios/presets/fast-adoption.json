@@ -2,6 +2,7 @@
   "name": "fast-adoption",
   "ticks": 600,
   "sliders": {
+    "ai.bullishness": 1.5,
     "ai.adoptionMidpointYear": 5,
     "ai.adoptionSteepness": 1.2
   }

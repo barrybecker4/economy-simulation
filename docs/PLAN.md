@@ -320,7 +320,7 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 3. AI capital ownership across humans, concentrated by `ai.ownershipConcentration`.
 4. Displaced workers search less effectively when their skills match automated tasks.
 5. Outputs: labor share, AI share of output, share of tasks automated, Gini, top decile.
-6. Presets as category compositions: no-AI (adoption none), fast adoption, slow adoption, and high physical as narrow reach. Fast adoption changes only the adoption curve; reach is a separate category.
+6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme. AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling together.
 7. Write the channel 1 and 2 sections of `docs/model.md`.
 
 Acceptance:
@@ -381,7 +381,7 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 5. The composite welfare index stays off until the user moves a weight.
 6. Shareable links encode the resolved configuration.
 7. Assumption ledger: sliders that differ from the default, with guesses flagged.
-8. Orthogonal category selectors (central bank, public finance, credit, AI bullishness, adoption, reach), each rewriting only its owned sliders.
+8. Orthogonal category selectors on each collapsible parameter group (central bank, public finance, credit, AI bullishness), each rewriting only its owned sliders. Groups start collapsed so the presets are visible first.
 9. Keyboard-operable controls and chart descriptions.
 
 Acceptance:

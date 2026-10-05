@@ -187,16 +187,7 @@
     {/if}
   </header>
 
-  <Controls
-    bind:seed
-    bind:ticks
-    bind:regime
-    {categories}
-    {busy}
-    onRegime={onRegime}
-    onCategory={applyCategoryChoice}
-    onRun={run}
-  />
+  <Controls bind:seed bind:ticks {busy} onRun={run} />
   <Ledger sliders={changed} {note} value={valueOf} />
 
   {#if result}
@@ -231,7 +222,15 @@
     {/if}
   {/if}
 
-  <Parameters {parameters} value={valueOf} onSlider={onSlider} />
+  <Parameters
+    {parameters}
+    {regime}
+    {categories}
+    value={valueOf}
+    onRegime={onRegime}
+    onCategory={applyCategoryChoice}
+    onSlider={onSlider}
+  />
 </main>
 
 <style>

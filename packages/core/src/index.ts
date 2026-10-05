@@ -18,6 +18,7 @@ export {
   SCENARIO_COMPOSITIONS,
   applyCategoryOption,
   categoryById,
+  categoryForGroup,
   composeCategoryOptions,
   composeScenario,
   matchingCategoryOption,

@@ -1,94 +1,243 @@
 <script lang="ts">
-  import type { Slider } from '../../../core/src/config/registry.js';
+  import type { Slider, SliderGroup } from '../../../core/src/config/registry.js';
+  import { categoryForGroup, type PresetCategory } from '../../../core/src/config/presets.js';
   import NameTip from '../tip/NameTip.svelte';
-  import { groupLabel } from '../tip/labels.js';
+  import { GROUP_ORDER, groupLabel } from '../tip/labels.js';
+  import { categoryTipItems } from '../session/presets.js';
   import { sliderStep } from '../session/sliders.js';
 
   let {
     parameters,
+    regime,
+    categories,
     value,
+    onRegime,
+    onCategory,
     onSlider,
   }: {
     parameters: readonly Slider[];
+    regime: string;
+    categories: Readonly<Record<string, string | null>>;
     value: (slider: Slider) => number | string;
+    onRegime: (value: string) => void;
+    onCategory: (categoryId: string, optionId: string) => void;
     onSlider: (slider: Slider, raw: string) => void;
   } = $props();
+
+  const groups = $derived(groupedParameters(parameters));
+  let openGroups = $state<Record<string, boolean>>({});
 
   function rawValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
-  function showGroup(index: number): boolean {
-    if (index === 0) {
-      return true;
-    }
-    return parameters[index]?.group !== parameters[index - 1]?.group;
-  }
-
-  function groupNote(group: string): string | null {
+  function groupNote(group: SliderGroup): string | null {
     if (group === 'centralBank') {
       return 'Bitcoin and hybrid ignore these sliders.';
     }
     return null;
+  }
+
+  function chooseCategory(categoryId: string, event: Event): void {
+    const next = (event.target as HTMLSelectElement).value;
+    if (next === '') {
+      return;
+    }
+    onCategory(categoryId, next);
+  }
+
+  function chooseRegime(event: Event): void {
+    onRegime((event.target as HTMLSelectElement).value);
+  }
+
+  function isOpen(group: SliderGroup): boolean {
+    return openGroups[group] === true;
+  }
+
+  function toggleGroup(group: SliderGroup): void {
+    openGroups = { ...openGroups, [group]: !isOpen(group) };
+  }
+
+  function groupedParameters(
+    list: readonly Slider[],
+  ): { group: SliderGroup; sliders: Slider[]; category: PresetCategory | undefined }[] {
+    const byGroup = new Map<SliderGroup, Slider[]>();
+    for (const slider of list) {
+      const bucket = byGroup.get(slider.group);
+      if (bucket === undefined) {
+        byGroup.set(slider.group, [slider]);
+      } else {
+        bucket.push(slider);
+      }
+    }
+    return GROUP_ORDER.flatMap((group) => {
+      const sliders = byGroup.get(group);
+      if (sliders === undefined || sliders.length === 0) {
+        return [];
+      }
+      return [{ group, sliders, category: categoryForGroup(group) }];
+    });
   }
 </script>
 
 <section class="parameters">
   <h2>Parameters</h2>
   <p class="hint">
-    Hover a name to read what that parameter changes. The note also shows its unit, default, and whether the value
-    is sourced, calibrated, or a guess.
+    Each group starts collapsed on its preset. Expand a group to adjust the sliders it owns. Hover a name for unit,
+    default, and whether the value is sourced, calibrated, or a guess.
   </p>
-  {#each parameters as slider, index (slider.id)}
-    {#if showGroup(index)}
-      <h3 class="group">{groupLabel(slider.group)}</h3>
-      {#if groupNote(slider.group)}
-        <p class="hint">{groupNote(slider.group)}</p>
-      {/if}
-    {/if}
-    <label>
-      <NameTip {slider} wide />
-      {#if slider.kind === 'number'}
-        <input
-          type="range"
-          min={slider.min}
-          max={slider.max}
-          step={sliderStep(slider)}
-          value={Number(value(slider))}
-          aria-labelledby="label-{slider.id}"
-          aria-describedby="help-{slider.id}"
-          oninput={(event) => onSlider(slider, rawValue(event))}
-        />
-        <output>{value(slider)}</output>
-      {:else}
-        <select
-          value={String(value(slider))}
-          aria-labelledby="label-{slider.id}"
-          aria-describedby="help-{slider.id}"
-          onchange={(event) => onSlider(slider, rawValue(event))}
+  {#each groups as block (block.group)}
+    <div class="block">
+      <div class="header">
+        <button
+          type="button"
+          class="toggle"
+          aria-expanded={isOpen(block.group)}
+          aria-controls={`group-${block.group}`}
+          onclick={() => toggleGroup(block.group)}
         >
-          {#each slider.options as option (option)}
-            <option value={option}>{option}</option>
+          <span class="marker" aria-hidden="true">{isOpen(block.group) ? '▾' : '▸'}</span>
+          <span class="title">{groupLabel(block.group)}</span>
+        </button>
+        {#if block.group === 'regime'}
+          {@const regimeSlider = block.sliders.find((slider) => slider.id === 'regime.type')}
+          {#if regimeSlider !== undefined && regimeSlider.kind === 'enum'}
+            <label class="preset">
+              <NameTip
+                id="regime"
+                label="Regime"
+                kicker="Monetary regime"
+                intro="Fiat, bitcoin, or hybrid. Central-bank presets apply only under fiat."
+              />
+              <select
+                aria-labelledby="label-regime"
+                aria-describedby="help-regime"
+                value={regime}
+                onchange={chooseRegime}
+              >
+                {#each regimeSlider.options as option (option)}
+                  <option value={option}>{option}</option>
+                {/each}
+              </select>
+            </label>
+          {/if}
+        {:else if block.category}
+          {@const category = block.category}
+          <label class="preset">
+            <NameTip
+              id={`category-${category.id}`}
+              label="Preset"
+              kicker={category.name}
+              intro={category.detail}
+              items={categoryTipItems(category)}
+            />
+            <select
+              aria-labelledby={`label-category-${category.id}`}
+              aria-describedby={`help-category-${category.id}`}
+              value={categories[category.id] ?? ''}
+              disabled={category.fiatOnly === true && regime !== 'fiat'}
+              onchange={(event) => chooseCategory(category.id, event)}
+            >
+              {#if categories[category.id] === null || categories[category.id] === undefined}
+                <option value="">Custom</option>
+              {/if}
+              {#each category.options as option (option.id)}
+                <option value={option.id}>{option.name}</option>
+              {/each}
+            </select>
+          </label>
+        {/if}
+      </div>
+      {#if isOpen(block.group)}
+        <div class="body" id={`group-${block.group}`}>
+          {#if groupNote(block.group)}
+            <p class="hint">{groupNote(block.group)}</p>
+          {/if}
+          {#each block.sliders as slider (slider.id)}
+            {#if slider.id !== 'regime.type'}
+              <label>
+                <NameTip {slider} wide />
+                {#if slider.kind === 'number'}
+                  <input
+                    type="range"
+                    min={slider.min}
+                    max={slider.max}
+                    step={sliderStep(slider)}
+                    value={Number(value(slider))}
+                    aria-labelledby="label-{slider.id}"
+                    aria-describedby="help-{slider.id}"
+                    oninput={(event) => onSlider(slider, rawValue(event))}
+                  />
+                  <output>{value(slider)}</output>
+                {:else}
+                  <select
+                    value={String(value(slider))}
+                    aria-labelledby="label-{slider.id}"
+                    aria-describedby="help-{slider.id}"
+                    onchange={(event) => onSlider(slider, rawValue(event))}
+                  >
+                    {#each slider.options as option (option)}
+                      <option value={option}>{option}</option>
+                    {/each}
+                  </select>
+                {/if}
+              </label>
+            {/if}
           {/each}
-        </select>
+        </div>
       {/if}
-    </label>
+    </div>
   {/each}
 </section>
 
 <style>
-  .parameters label {
+  .block {
+    border-bottom: 1px solid #ddd;
+    padding: 0.35rem 0;
+  }
+  .header {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.35rem 0;
+  }
+  .toggle {
+    align-items: center;
+    background: none;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    gap: 0.35rem;
+    padding: 0;
+    text-align: left;
+  }
+  .marker {
+    display: inline-block;
+    width: 1ch;
+  }
+  .title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    min-width: 10rem;
+  }
+  .preset {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+  }
+  .body label {
     position: relative;
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #eee;
     padding: 0.4rem 0;
-  }
-  .group {
-    margin: 1rem 0 0.25rem;
-    font-size: 1.05rem;
   }
   .hint {
     color: #57534e;

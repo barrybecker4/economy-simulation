@@ -19,22 +19,21 @@ describe('presets', () => {
     expect(match.publicFinance).toBe('moderate');
     expect(match.credit).toBe('moderate');
     expect(match.aiBullishness).toBe('substantial');
-    expect(match.aiAdoption).toBe('medium');
-    expect(match.aiReach).toBe('typical');
   });
 
   it('applies one category and leaves the others matched', () => {
-    const next = applyCategory('aiAdoption', 'fast', 'fiat', {});
+    const next = applyCategory('aiBullishness', 'high', 'fiat', {});
     expect(next.regime).toBe('fiat');
     expect(next.overrides['ai.adoptionMidpointYear']).toBe(5);
+    expect(next.overrides['ai.bullishness']).toBe(1.5);
     const match = matchingCategories(next.overrides);
-    expect(match.aiAdoption).toBe('fast');
+    expect(match.aiBullishness).toBe('high');
     expect(match.credit).toBe('moderate');
   });
 
   it('reads Custom when an owned slider leaves every option', () => {
     const match = matchingCategories({ 'ai.bullishness': 0.5 });
     expect(match.aiBullishness).toBeNull();
-    expect(match.aiAdoption).toBe('medium');
+    expect(match.credit).toBe('moderate');
   });
 });
