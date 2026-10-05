@@ -13,6 +13,17 @@ export type {
   SliderGroup,
   SliderStatus,
 } from './config/registry.js';
+export {
+  PRESET_CATEGORIES,
+  SCENARIO_COMPOSITIONS,
+  applyCategoryOption,
+  categoryById,
+  composeCategoryOptions,
+  composeScenario,
+  matchingCategoryOption,
+  optionById,
+} from './config/presets.js';
+export type { CategoryOption, PresetCategory } from './config/presets.js';
 export { runSimulation } from './engine/engine.js';
 export type {
   PhaseHandler,

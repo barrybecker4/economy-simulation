@@ -4,6 +4,7 @@ import {
   type NumberSlider,
   type Slider,
 } from '../../../core/src/config/registry.js';
+import { groupRank } from '../tip/labels.js';
 
 const REGIME_ID = 'regime.type';
 
@@ -16,10 +17,13 @@ export function defaultRegime(): string {
 }
 
 export function parameterSliders(sliders: readonly Slider[]): Slider[] {
-  return [
-    ...sliders.filter((slider) => slider.kind === 'enum'),
-    ...sliders.filter((slider) => slider.kind === 'number'),
-  ];
+  return [...sliders].sort((left, right) => {
+    const byGroup = groupRank(left.group) - groupRank(right.group);
+    if (byGroup !== 0) {
+      return byGroup;
+    }
+    return left.id < right.id ? -1 : left.id > right.id ? 1 : 0;
+  });
 }
 
 export function sliderValue(

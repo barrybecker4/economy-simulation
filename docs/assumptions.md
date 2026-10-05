@@ -9,7 +9,7 @@ Registry version: 3.
 ## ai.adoptionMidpointYear
 
 - Label: AI adoption midpoint
-- Group: ai
+- Group: aiAdoption
 - Unit: years
 - Default: 15
 - Range: 3 to 40
@@ -20,7 +20,7 @@ Registry version: 3.
 ## ai.adoptionSteepness
 
 - Label: AI adoption steepness
-- Group: ai
+- Group: aiAdoption
 - Unit: 1/year
 - Default: 0.4
 - Range: 0.1 to 1.5
@@ -31,7 +31,7 @@ Registry version: 3.
 ## ai.agentAutonomyShareEnd
 
 - Label: AI agent autonomy share
-- Group: ai
+- Group: aiClaims
 - Unit: share
 - Default: 0.5
 - Range: 0 to 1
@@ -42,7 +42,7 @@ Registry version: 3.
 ## ai.automatableShareEnd
 
 - Label: Final automatable share
-- Group: ai
+- Group: aiAdoption
 - Unit: share
 - Default: 0.9
 - Range: 0.3 to 1
@@ -53,7 +53,7 @@ Registry version: 3.
 ## ai.automatableShareStart
 
 - Label: Initial automatable share
-- Group: ai
+- Group: aiAdoption
 - Unit: share
 - Default: 0.1
 - Range: 0 to 0.5
@@ -64,7 +64,7 @@ Registry version: 3.
 ## ai.bullishness
 
 - Label: AI bullishness
-- Group: ai
+- Group: aiBullishness
 - Unit: index
 - Default: 1
 - Range: 0 to 2
@@ -75,7 +75,7 @@ Registry version: 3.
 ## ai.computeCostDeclineRate
 
 - Label: Compute cost decline
-- Group: ai
+- Group: aiAdoption
 - Unit: 1/year
 - Default: 0.3
 - Range: 0 to 0.6
@@ -86,7 +86,7 @@ Registry version: 3.
 ## ai.ownershipConcentration
 
 - Label: AI ownership concentration
-- Group: ai
+- Group: aiClaims
 - Unit: share
 - Default: 0.8
 - Range: 0.1 to 0.99
@@ -97,7 +97,7 @@ Registry version: 3.
 ## ai.paymentFrictionBitcoin
 
 - Label: Bitcoin payment friction
-- Group: ai
+- Group: aiClaims
 - Unit: share per transaction
 - Default: 0.005
 - Range: 0 to 0.1
@@ -108,7 +108,7 @@ Registry version: 3.
 ## ai.paymentFrictionFiat
 
 - Label: Fiat payment friction
-- Group: ai
+- Group: aiClaims
 - Unit: share per transaction
 - Default: 0.02
 - Range: 0 to 0.1
@@ -119,7 +119,7 @@ Registry version: 3.
 ## ai.physicalTaskShare
 
 - Label: Physical task share
-- Group: ai
+- Group: aiReach
 - Unit: share
 - Default: 0.3
 - Range: 0 to 0.7
@@ -130,7 +130,7 @@ Registry version: 3.
 ## ai.roboticsRampYears
 
 - Label: Robotics ramp
-- Group: ai
+- Group: aiReach
 - Unit: years
 - Default: 8
 - Range: 1 to 30
@@ -141,7 +141,7 @@ Registry version: 3.
 ## ai.roboticsStartYear
 
 - Label: Robotics start
-- Group: ai
+- Group: aiReach
 - Unit: years
 - Default: 5
 - Range: 0 to 50
@@ -152,7 +152,7 @@ Registry version: 3.
 ## bank.capitalRatio
 
 - Label: Bank capital ratio
-- Group: policy
+- Group: credit
 - Unit: share
 - Default: 0.08
 - Range: 0.04 to 0.2
@@ -163,7 +163,7 @@ Registry version: 3.
 ## bank.depositPassThrough
 
 - Label: Deposit rate pass-through
-- Group: policy
+- Group: credit
 - Unit: share
 - Default: 0
 - Range: 0 to 1
@@ -174,7 +174,7 @@ Registry version: 3.
 ## bank.reserveRequirement
 
 - Label: Reserve requirement
-- Group: policy
+- Group: centralBank
 - Unit: share
 - Default: 0.1
 - Range: 0 to 0.3
@@ -185,7 +185,7 @@ Registry version: 3.
 ## bitcoin.lendingModel
 
 - Label: Bitcoin lending model
-- Group: regime
+- Group: credit
 - Unit: model
 - Default: maturityMatched
 - Options: maturityMatched, fullReserve
@@ -196,7 +196,7 @@ Registry version: 3.
 ## centralBank.bondPurchaseShare
 
 - Label: Central-bank bond purchase share
-- Group: policy
+- Group: centralBank
 - Unit: share
 - Default: 0
 - Range: 0 to 1
@@ -207,7 +207,7 @@ Registry version: 3.
 ## centralBank.inflationTarget
 
 - Label: Inflation target
-- Group: policy
+- Group: centralBank
 - Unit: 1/year
 - Default: 0.02
 - Range: 0 to 0.06
@@ -218,7 +218,7 @@ Registry version: 3.
 ## centralBank.inflationWeight
 
 - Label: Inflation weight
-- Group: policy
+- Group: centralBank
 - Unit: coefficient
 - Default: 1.5
 - Range: 1 to 3
@@ -229,7 +229,7 @@ Registry version: 3.
 ## centralBank.outputWeight
 
 - Label: Output weight
-- Group: policy
+- Group: centralBank
 - Unit: coefficient
 - Default: 0.5
 - Range: 0 to 1.5
@@ -240,7 +240,7 @@ Registry version: 3.
 ## deflation.sensitivity
 
 - Label: Deflation sensitivity
-- Group: contracts
+- Group: credit
 - Unit: coefficient
 - Default: 1
 - Range: 0 to 5
@@ -405,7 +405,7 @@ Registry version: 3.
 ## government.spendingShareOfGDP
 
 - Label: Government spending share
-- Group: policy
+- Group: publicFinance
 - Unit: share of GDP
 - Default: 0.2
 - Range: 0 to 0.5
@@ -416,7 +416,7 @@ Registry version: 3.
 ## government.stabilizer
 
 - Label: Fiscal stabilizer
-- Group: policy
+- Group: publicFinance
 - Unit: coefficient
 - Default: 0
 - Range: 0 to 2
@@ -427,7 +427,7 @@ Registry version: 3.
 ## government.ubiShare
 
 - Label: UBI share of AI GDP
-- Group: policy
+- Group: publicFinance
 - Unit: share
 - Default: 0.25
 - Range: 0 to 1
@@ -504,7 +504,7 @@ Registry version: 3.
 ## housing.consumerCreditLimit
 
 - Label: Consumer credit limit
-- Group: contracts
+- Group: credit
 - Unit: share of income
 - Default: 0.2
 - Range: 0 to 1
@@ -515,7 +515,7 @@ Registry version: 3.
 ## housing.mortgageLtv
 
 - Label: Mortgage loan-to-value
-- Group: contracts
+- Group: credit
 - Unit: share
 - Default: 0.8
 - Range: 0.5 to 0.95
@@ -526,7 +526,7 @@ Registry version: 3.
 ## housing.mortgageTermYears
 
 - Label: Mortgage term
-- Group: contracts
+- Group: credit
 - Unit: years
 - Default: 30
 - Range: 5 to 40
@@ -537,7 +537,7 @@ Registry version: 3.
 ## housing.tenureChoice
 
 - Label: Housing tenure choice
-- Group: contracts
+- Group: credit
 - Unit: mode
 - Default: off
 - Options: off, on
@@ -570,7 +570,7 @@ Registry version: 3.
 ## population.growth
 
 - Label: Population growth
-- Group: environment
+- Group: background
 - Unit: 1/year
 - Default: 0.005
 - Range: -0.01 to 0.02
@@ -603,7 +603,7 @@ Registry version: 3.
 ## productivity.baseGrowth
 
 - Label: Baseline productivity growth
-- Group: environment
+- Group: background
 - Unit: 1/year
 - Default: 0.01
 - Range: 0 to 0.04
@@ -658,7 +658,7 @@ Registry version: 3.
 ## shock.frequency
 
 - Label: Shock frequency
-- Group: environment
+- Group: shocks
 - Unit: 1/year
 - Default: 0.1
 - Range: 0 to 1
@@ -669,7 +669,7 @@ Registry version: 3.
 ## shock.size
 
 - Label: Shock size
-- Group: environment
+- Group: shocks
 - Unit: share
 - Default: 0.05
 - Range: 0 to 0.3
@@ -680,7 +680,7 @@ Registry version: 3.
 ## tax.incomeRate
 
 - Label: Income tax rate
-- Group: policy
+- Group: publicFinance
 - Unit: share
 - Default: 0.2
 - Range: 0 to 0.5

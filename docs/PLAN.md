@@ -320,7 +320,7 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 3. AI capital ownership across humans, concentrated by `ai.ownershipConcentration`.
 4. Displaced workers search less effectively when their skills match automated tasks.
 5. Outputs: labor share, AI share of output, share of tasks automated, Gini, top decile.
-6. Presets: no-AI, fast adoption, slow adoption, high physical bottleneck.
+6. Presets as category compositions: no-AI (adoption none), fast adoption, slow adoption, and high physical as narrow reach. Fast adoption changes only the adoption curve; reach is a separate category.
 7. Write the channel 1 and 2 sections of `docs/model.md`.
 
 Acceptance:
@@ -361,7 +361,7 @@ Goal: test hypotheses across seeds and parameter values.
 2. Store JSON lines with the resolved configuration and git commit.
 3. For every welfare series: mean, median, and 5th and 95th percentiles across seeds, and paired differences between regimes for the same seed.
 4. Morris screening in TypeScript. Optional Python notebook for Sobol indices.
-5. Presets: Austrian-leaning (high variation in time preference, low trust in banks, high wage flexibility), Keynesian-leaning (high wage rigidity, strong consumption response to income), and neutral.
+5. Presets as category compositions: Austrian-leaning (bitcoin, tight credit, small public finance), Keynesian-leaning (fiat, deficit spending, employment-leaning central bank), and neutral (every category at its default).
 6. A hypothesis runner for H1–H8.
 
 Acceptance:
@@ -381,7 +381,7 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 5. The composite welfare index stays off until the user moves a weight.
 6. Shareable links encode the resolved configuration.
 7. Assumption ledger: sliders that differ from the default, with guesses flagged.
-8. Preset picker.
+8. Orthogonal category selectors (central bank, public finance, credit, AI bullishness, adoption, reach), each rewriting only its owned sliders.
 9. Keyboard-operable controls and chart descriptions.
 
 Acceptance:

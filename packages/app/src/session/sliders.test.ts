@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getSlider, listSliders } from '../../../core/src/config/registry.js';
+import { GROUP_ORDER } from '../tip/labels.js';
 import {
   changedSliders,
   parameterSliders,
@@ -14,10 +15,19 @@ const markup = getSlider('firm.markup');
 const regime = getSlider('regime.type');
 
 describe('slider values', () => {
-  it('lists enums before numbers', () => {
-    const kinds = parameterSliders(sliders).map((slider) => slider.kind);
-    const firstNumber = kinds.indexOf('number');
-    expect(kinds.lastIndexOf('enum')).toBeLessThan(firstNumber);
+  it('lists parameters in panel group order', () => {
+    const groups = parameterSliders(sliders).map((slider) => slider.group);
+    const ranks = groups.map((group) => GROUP_ORDER.indexOf(group));
+    for (let index = 1; index < ranks.length; index += 1) {
+      const previous = ranks[index - 1];
+      const current = ranks[index];
+      expect(previous).toBeDefined();
+      expect(current).toBeDefined();
+      if (previous === undefined || current === undefined) {
+        throw new Error('missing group rank');
+      }
+      expect(current).toBeGreaterThanOrEqual(previous);
+    }
   });
 
   it('reads the regime from the page and other values from overrides or defaults', () => {

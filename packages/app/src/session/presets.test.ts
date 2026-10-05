@@ -1,26 +1,40 @@
 import { describe, expect, it } from 'vitest';
+import { applyCategory, matchingCategories, PRESET_CATEGORIES } from './presets.js';
 import { assertSliderValue } from '../../../core/src/config/registry.js';
-import { defaultRegime } from './sliders.js';
-import { matchingPreset, PRESETS, presetById } from './presets.js';
 
 describe('presets', () => {
-  it('keeps every preset inside the slider registry', () => {
-    for (const preset of PRESETS) {
-      assertSliderValue('regime.type', preset.regime);
-      for (const [id, value] of Object.entries(preset.overrides)) {
-        assertSliderValue(id, value);
+  it('keeps every category option inside the slider registry', () => {
+    for (const category of PRESET_CATEGORIES) {
+      for (const option of category.options) {
+        for (const [id, value] of Object.entries(option.values)) {
+          assertSliderValue(id, value);
+        }
       }
-      expect(matchingPreset(preset.regime, preset.overrides)).toBe(preset.id);
     }
   });
 
-  it('treats an empty fiat page as Neutral', () => {
-    expect(presetById('neutral').regime).toBe(defaultRegime());
-    expect(matchingPreset(defaultRegime(), {})).toBe('neutral');
-    expect(matchingPreset('bitcoin', {})).toBeNull();
+  it('matches defaults as the all-default option in each category', () => {
+    const match = matchingCategories({});
+    expect(match.centralBank).toBe('balanced');
+    expect(match.publicFinance).toBe('moderate');
+    expect(match.credit).toBe('moderate');
+    expect(match.aiBullishness).toBe('substantial');
+    expect(match.aiAdoption).toBe('medium');
+    expect(match.aiReach).toBe('typical');
   });
 
-  it('rejects an unknown preset', () => {
-    expect(() => presetById('missing')).toThrow(/Unknown preset missing/);
+  it('applies one category and leaves the others matched', () => {
+    const next = applyCategory('aiAdoption', 'fast', 'fiat', {});
+    expect(next.regime).toBe('fiat');
+    expect(next.overrides['ai.adoptionMidpointYear']).toBe(5);
+    const match = matchingCategories(next.overrides);
+    expect(match.aiAdoption).toBe('fast');
+    expect(match.credit).toBe('moderate');
+  });
+
+  it('reads Custom when an owned slider leaves every option', () => {
+    const match = matchingCategories({ 'ai.bullishness': 0.5 });
+    expect(match.aiBullishness).toBeNull();
+    expect(match.aiAdoption).toBe('medium');
   });
 });

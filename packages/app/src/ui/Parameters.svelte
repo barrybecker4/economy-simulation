@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Slider } from '../../../core/src/config/registry.js';
   import NameTip from '../tip/NameTip.svelte';
+  import { groupLabel } from '../tip/labels.js';
   import { sliderStep } from '../session/sliders.js';
 
   let {
@@ -16,6 +17,20 @@
   function rawValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
+
+  function showGroup(index: number): boolean {
+    if (index === 0) {
+      return true;
+    }
+    return parameters[index]?.group !== parameters[index - 1]?.group;
+  }
+
+  function groupNote(group: string): string | null {
+    if (group === 'centralBank') {
+      return 'Bitcoin and hybrid ignore these sliders.';
+    }
+    return null;
+  }
 </script>
 
 <section class="parameters">
@@ -24,7 +39,13 @@
     Hover a name to read what that parameter changes. The note also shows its unit, default, and whether the value
     is sourced, calibrated, or a guess.
   </p>
-  {#each parameters as slider (slider.id)}
+  {#each parameters as slider, index (slider.id)}
+    {#if showGroup(index)}
+      <h3 class="group">{groupLabel(slider.group)}</h3>
+      {#if groupNote(slider.group)}
+        <p class="hint">{groupNote(slider.group)}</p>
+      {/if}
+    {/if}
     <label>
       <NameTip {slider} wide />
       {#if slider.kind === 'number'}
@@ -64,6 +85,10 @@
     align-items: center;
     border-bottom: 1px solid #ddd;
     padding: 0.4rem 0;
+  }
+  .group {
+    margin: 1rem 0 0.25rem;
+    font-size: 1.05rem;
   }
   .hint {
     color: #57534e;

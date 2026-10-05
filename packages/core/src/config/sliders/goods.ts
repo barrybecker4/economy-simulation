@@ -74,7 +74,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
   numberSlider(
     'deflation.sensitivity',
     'Deflation sensitivity',
-    'contracts',
+    'credit',
     'coefficient',
     1,
     0,
@@ -84,7 +84,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
   enumSlider(
     'housing.tenureChoice',
     'Housing tenure choice',
-    'contracts',
+    'credit',
     'mode',
     'off',
     ['off', 'on'],
@@ -93,7 +93,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
   numberSlider(
     'housing.mortgageTermYears',
     'Mortgage term',
-    'contracts',
+    'credit',
     'years',
     30,
     5,
@@ -103,7 +103,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
   numberSlider(
     'housing.mortgageLtv',
     'Mortgage loan-to-value',
-    'contracts',
+    'credit',
     'share',
     0.8,
     0.5,
@@ -113,7 +113,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
   numberSlider(
     'housing.consumerCreditLimit',
     'Consumer credit limit',
-    'contracts',
+    'credit',
     'share of income',
     0.2,
     0,

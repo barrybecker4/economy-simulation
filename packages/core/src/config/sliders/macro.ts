@@ -5,7 +5,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'productivity.baseGrowth',
     'Baseline productivity growth',
-    'environment',
+    'background',
     '1/year',
     0.01,
     0,
@@ -15,7 +15,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'population.growth',
     'Population growth',
-    'environment',
+    'background',
     '1/year',
     0.005,
     -0.01,
@@ -25,7 +25,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'shock.frequency',
     'Shock frequency',
-    'environment',
+    'shocks',
     '1/year',
     0.1,
     0,
@@ -35,7 +35,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'shock.size',
     'Shock size',
-    'environment',
+    'shocks',
     'share',
     0.05,
     0,
@@ -45,7 +45,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'tax.incomeRate',
     'Income tax rate',
-    'policy',
+    'publicFinance',
     'share',
     0.2,
     0,
@@ -55,7 +55,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'government.spendingShareOfGDP',
     'Government spending share',
-    'policy',
+    'publicFinance',
     'share of GDP',
     0.2,
     0,
@@ -65,7 +65,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'government.ubiShare',
     'UBI share of AI GDP',
-    'policy',
+    'publicFinance',
     'share',
     0.25,
     0,
@@ -75,7 +75,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'centralBank.inflationTarget',
     'Inflation target',
-    'policy',
+    'centralBank',
     '1/year',
     0.02,
     0,
@@ -85,7 +85,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'centralBank.inflationWeight',
     'Inflation weight',
-    'policy',
+    'centralBank',
     'coefficient',
     1.5,
     1,
@@ -95,7 +95,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'centralBank.outputWeight',
     'Output weight',
-    'policy',
+    'centralBank',
     'coefficient',
     0.5,
     0,
@@ -105,7 +105,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'bank.reserveRequirement',
     'Reserve requirement',
-    'policy',
+    'centralBank',
     'share',
     0.1,
     0,
@@ -115,7 +115,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'bank.capitalRatio',
     'Bank capital ratio',
-    'policy',
+    'credit',
     'share',
     0.08,
     0.04,
@@ -125,7 +125,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'bank.depositPassThrough',
     'Deposit rate pass-through',
-    'policy',
+    'credit',
     'share',
     0,
     0,
@@ -135,7 +135,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'centralBank.bondPurchaseShare',
     'Central-bank bond purchase share',
-    'policy',
+    'centralBank',
     'share',
     0,
     0,
@@ -145,7 +145,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   numberSlider(
     'government.stabilizer',
     'Fiscal stabilizer',
-    'policy',
+    'publicFinance',
     'coefficient',
     0,
     0,
@@ -194,7 +194,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
   enumSlider(
     'bitcoin.lendingModel',
     'Bitcoin lending model',
-    'regime',
+    'credit',
     'model',
     'maturityMatched',
     ['maturityMatched', 'fullReserve'],

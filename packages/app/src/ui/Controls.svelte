@@ -1,53 +1,92 @@
 <script lang="ts">
   import NameTip from '../tip/NameTip.svelte';
-  import { PRESETS } from '../session/presets.js';
+  import { categoryTipItems, PRESET_CATEGORIES } from '../session/presets.js';
+  import { getSlider } from '../../../core/src/config/registry.js';
   import type { RunKind } from '../worker/protocol.js';
 
   let {
     seed = $bindable(),
     ticks = $bindable(),
-    preset,
+    regime = $bindable(),
+    categories,
     busy,
-    onPreset,
+    onRegime,
+    onCategory,
     onRun,
   }: {
     seed: number;
     ticks: number;
-    preset: string | null;
+    regime: string;
+    categories: Readonly<Record<string, string | null>>;
     busy: boolean;
-    onPreset: (id: string) => void;
+    onRegime: (value: string) => void;
+    onCategory: (categoryId: string, optionId: string) => void;
     onRun: (kind: RunKind) => void;
   } = $props();
 
-  function choosePreset(event: Event): void {
+  const regimeSlider = getSlider('regime.type');
+
+  function chooseRegime(event: Event): void {
+    onRegime((event.target as HTMLSelectElement).value);
+  }
+
+  function chooseCategory(categoryId: string, event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     if (value === '') {
       return;
     }
-    onPreset(value);
+    onCategory(categoryId, value);
   }
 </script>
 
 <section class="controls">
   <label>Seed <input type="number" min="0" bind:value={seed} /></label>
   <label>Months <input type="number" min="12" max="1200" bind:value={ticks} /></label>
-  <label>
-    <NameTip
-      id="preset"
-      label="Preset"
-      kicker="Preset"
-      intro="Choosing a preset clears every parameter change and leaves Seed and Months as they are. It then sets only the values below. Anything not named returns to its default."
-      items={PRESETS}
-    />
-    <select aria-labelledby="label-preset" aria-describedby="help-preset" value={preset ?? ''} onchange={choosePreset}>
-      {#if preset === null}
-        <option value="">Custom</option>
-      {/if}
-      {#each PRESETS as item (item.id)}
-        <option value={item.id}>{item.name}</option>
-      {/each}
-    </select>
-  </label>
+  {#if regimeSlider.kind === 'enum'}
+    <label>
+      <NameTip
+        id="regime"
+        label="Regime"
+        kicker="Monetary regime"
+        intro="Fiat, bitcoin, or hybrid. Central-bank presets apply only under fiat."
+      />
+      <select
+        aria-labelledby="label-regime"
+        aria-describedby="help-regime"
+        value={regime}
+        onchange={chooseRegime}
+      >
+        {#each regimeSlider.options as option (option)}
+          <option value={option}>{option}</option>
+        {/each}
+      </select>
+    </label>
+  {/if}
+  {#each PRESET_CATEGORIES as category (category.id)}
+    <label>
+      <NameTip
+        id={`category-${category.id}`}
+        label={category.name}
+        kicker={category.name}
+        intro={category.detail}
+        items={categoryTipItems(category)}
+      />
+      <select
+        aria-labelledby={`label-category-${category.id}`}
+        aria-describedby={`help-category-${category.id}`}
+        value={categories[category.id] ?? ''}
+        disabled={category.fiatOnly === true && regime !== 'fiat'}
+        onchange={(event) => chooseCategory(category.id, event)}
+      >
+        {#if categories[category.id] === null || categories[category.id] === undefined}
+          <option value="">Custom</option>
+        {/if}
+        {#each category.options as option (option.id)}
+          <option value={option.id}>{option.name}</option>
+        {/each}
+      </select>
+    </label>
+  {/each}
   <NameTip id="run" intro="Runs one simulation with the current seed, month count, regime, and sliders.">
     <button type="button" aria-describedby="help-run" onclick={() => onRun('run')} disabled={busy}>Run</button>
   </NameTip>

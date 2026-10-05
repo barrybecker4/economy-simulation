@@ -5,7 +5,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.automatableShareStart',
     'Initial automatable share',
-    'ai',
+    'aiAdoption',
     'share',
     0.1,
     0,
@@ -15,7 +15,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.automatableShareEnd',
     'Final automatable share',
-    'ai',
+    'aiAdoption',
     'share',
     0.9,
     0.3,
@@ -25,7 +25,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.adoptionMidpointYear',
     'AI adoption midpoint',
-    'ai',
+    'aiAdoption',
     'years',
     15,
     3,
@@ -35,7 +35,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.adoptionSteepness',
     'AI adoption steepness',
-    'ai',
+    'aiAdoption',
     '1/year',
     0.4,
     0.1,
@@ -45,7 +45,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.computeCostDeclineRate',
     'Compute cost decline',
-    'ai',
+    'aiAdoption',
     '1/year',
     0.3,
     0,
@@ -55,7 +55,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.physicalTaskShare',
     'Physical task share',
-    'ai',
+    'aiReach',
     'share',
     0.3,
     0,
@@ -65,7 +65,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.bullishness',
     'AI bullishness',
-    'ai',
+    'aiBullishness',
     'index',
     1,
     0,
@@ -75,7 +75,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.roboticsStartYear',
     'Robotics start',
-    'ai',
+    'aiReach',
     'years',
     5,
     0,
@@ -85,7 +85,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.roboticsRampYears',
     'Robotics ramp',
-    'ai',
+    'aiReach',
     'years',
     8,
     1,
@@ -95,7 +95,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.ownershipConcentration',
     'AI ownership concentration',
-    'ai',
+    'aiClaims',
     'share',
     0.8,
     0.1,
@@ -105,7 +105,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.agentAutonomyShareEnd',
     'AI agent autonomy share',
-    'ai',
+    'aiClaims',
     'share',
     0.5,
     0,
@@ -115,7 +115,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.paymentFrictionFiat',
     'Fiat payment friction',
-    'ai',
+    'aiClaims',
     'share per transaction',
     0.02,
     0,
@@ -125,7 +125,7 @@ export const AI_SLIDERS: readonly Slider[] = [
   numberSlider(
     'ai.paymentFrictionBitcoin',
     'Bitcoin payment friction',
-    'ai',
+    'aiClaims',
     'share per transaction',
     0.005,
     0,

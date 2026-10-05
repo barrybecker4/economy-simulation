@@ -1,15 +1,20 @@
 import { PLACEHOLDER_SOURCE } from './limits.js';
 
 export type SliderGroup =
-  | 'behavior'
-  | 'environment'
-  | 'policy'
   | 'regime'
+  | 'centralBank'
+  | 'publicFinance'
+  | 'credit'
+  | 'aiBullishness'
+  | 'aiAdoption'
+  | 'aiReach'
+  | 'aiClaims'
+  | 'shocks'
+  | 'background'
+  | 'behavior'
   | 'goods'
-  | 'contracts'
-  | 'welfare'
-  | 'ai'
-  | 'scale';
+  | 'scale'
+  | 'welfare';
 
 export type SliderStatus = 'sourced' | 'calibrated' | 'guess';
 

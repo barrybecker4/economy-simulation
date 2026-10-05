@@ -11,7 +11,7 @@
   } from './session/composite.js';
   import { monthCensus } from './session/census.js';
   import { monthFlows } from './session/flows.js';
-  import { matchingPreset, presetById } from './session/presets.js';
+  import { applyCategory, matchingCategories } from './session/presets.js';
   import { defaultPage, pageSearch, parsePageState } from './session/query.js';
   import { activityLabel, readyLabel, runRequest } from './session/run.js';
   import {
@@ -59,7 +59,7 @@
   const views = $derived(result === null ? [] : chartViews(result, chartRegime));
   const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
   const monthViews = $derived(views.filter((view) => view.group === 'This month'));
-  const preset = $derived(matchingPreset(regime, overrides));
+  const categories = $derived(matchingCategories(overrides));
   const resolved = $derived(resolvedSliders(sliders, regime, overrides));
   const householdCount = $derived(numericOverride('scale.households', 1000));
   const ownership = $derived(numericOverride('ai.ownershipConcentration', 0.5));
@@ -147,10 +147,14 @@
     worker.postMessage(request);
   }
 
-  function applyPreset(id: string): void {
-    const chosen = presetById(id);
-    regime = chosen.regime;
-    overrides = { ...chosen.overrides };
+  function applyCategoryChoice(categoryId: string, optionId: string): void {
+    const next = applyCategory(categoryId, optionId, regime, overrides);
+    regime = next.regime;
+    overrides = next.overrides;
+  }
+
+  function onRegime(value: string): void {
+    regime = value;
   }
 
   function onSlider(slider: Slider, raw: string): void {
@@ -183,7 +187,16 @@
     {/if}
   </header>
 
-  <Controls bind:seed bind:ticks {preset} {busy} onPreset={applyPreset} onRun={run} />
+  <Controls
+    bind:seed
+    bind:ticks
+    bind:regime
+    {categories}
+    {busy}
+    onRegime={onRegime}
+    onCategory={applyCategoryChoice}
+    onRun={run}
+  />
   <Ledger sliders={changed} {note} value={valueOf} />
 
   {#if result}
