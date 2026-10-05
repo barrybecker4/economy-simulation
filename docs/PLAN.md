@@ -370,7 +370,7 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 1. Run the simulation in a Web Worker and stream results so the page stays responsive.
 2. Slider panel generated from the registry, grouped, with a tooltip for description, source, and status.
 3. Regime toggle and a side-by-side comparison of the same seed.
-4. Charts with uPlot for the welfare dashboard and category prices. Seed selector. Many-seeds mode shows the median and a band from the 5th to the 95th percentile.
+4. Charts with uPlot for the welfare dashboard and category prices. The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed. Seed selector. Many-seeds mode shows the median and a band from the 5th to the 95th percentile.
 5. The composite welfare index stays off until the user moves a weight.
 6. Shareable links encode the resolved configuration.
 7. Assumption ledger: sliders that differ from the default, with guesses flagged.
@@ -380,7 +380,7 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 Acceptance:
 
 - A development-size run finishes in the browser in under three seconds.
-- A shared link reproduces the same charts on another computer.
+- A shared link reproduces the same series on another computer. Date labels follow the month when that computer views the page.
 - The application works without a server.
 
 ### Phase 9: Calibration, documentation, and release

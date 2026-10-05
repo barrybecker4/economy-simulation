@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import uPlot from 'uplot';
   import 'uplot/dist/uPlot.min.css';
+  import { monthAxisLabel, monthAxisSeconds } from './chart-time';
 
   interface Props {
     title: string;
@@ -13,6 +14,8 @@
   let { title, description, ticks, lines }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
+  const opened = new Date();
+  const axisNote = $derived(`Months run from ${monthAxisLabel(ticks, opened)}.`);
 
   function draw(): void {
     if (!host || ticks.length === 0) {
@@ -24,11 +27,14 @@
         title,
         width: host.clientWidth || 640,
         height: 240,
-        scales: { x: { time: false } },
-        series: [{}, ...lines.map((line) => ({ label: line.label, stroke: line.color }))],
-        axes: [{ values: (_u, vals) => vals.map((value) => String(value)) }, { size: 48 }],
+        scales: { x: { time: true } },
+        series: [
+          { label: 'Month', value: '{MMM} {YYYY}' },
+          ...lines.map((line) => ({ label: line.label, stroke: line.color })),
+        ],
+        axes: [{}, { size: 48 }],
       },
-      [ticks, ...lines.map((line) => line.values)],
+      [monthAxisSeconds(ticks, opened), ...lines.map((line) => line.values)],
       host,
     );
   }
@@ -47,7 +53,7 @@
 
 <figure>
   <div bind:this={host}></div>
-  <figcaption>{description}</figcaption>
+  <figcaption>{description} {axisNote}</figcaption>
 </figure>
 
 <style>

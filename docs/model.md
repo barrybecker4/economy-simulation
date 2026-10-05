@@ -24,7 +24,7 @@ An empty ledger satisfies the identity. The phase 2 economy posts one sector jou
 
 ## Time
 
-One tick is one month. A scenario's `ticks` field sets the length of a run. The default is 600 ticks, which is 50 years. The maximum accepted value is 12,000 ticks, a guard against an accidental huge run, not an economic assumption. The core never reads the wall clock.
+One tick is one month. A scenario's `ticks` field sets the length of a run. The default is 600 ticks, which is 50 years. The maximum accepted value is 12,000 ticks, a guard against an accidental huge run, not an economic assumption. The core never reads the wall clock. The web charts place tick 0 on the first day of the month when the page is viewed, and each later tick on that day in a later month. The run itself still starts at month 0.
 
 ## Randomness
 
