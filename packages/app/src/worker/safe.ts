@@ -1,5 +1,5 @@
-import { formatWorkerError, type RunRequest, type RunResponse } from './worker-protocol.js';
-import { handleRequest } from './run-request.js';
+import { handleRequest } from './request.js';
+import { formatWorkerError, type RunRequest, type RunResponse } from './protocol.js';
 
 export function safeHandleRequest(
   request: RunRequest,

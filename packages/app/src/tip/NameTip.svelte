@@ -2,8 +2,8 @@
   let usingKeyboard = false;
   let listening = false;
 
-  export function listenForPointerModality(): void {
-    if (listening || typeof window === 'undefined') {
+  function listenForPointerModality(): void {
+    if (listening) {
       return;
     }
     listening = true;
@@ -17,14 +17,16 @@
     });
   }
 
-  export function pointerIsKeyboard(): boolean {
+  function pointerIsKeyboard(): boolean {
     return usingKeyboard;
   }
 </script>
 
 <script lang="ts">
   import { onMount, tick, type Snippet } from 'svelte';
-  import type { Slider, SliderGroup, SliderStatus } from '../../core/src/config/registry.js';
+  import type { Slider } from '../../../core/src/config/registry.js';
+  import { groupLabel, sliderBounds, statusLabel } from './labels.js';
+  import { nameTipFrame, placeNameTip, type NameTipFrame, type Viewport } from './place.js';
 
   let {
     slider,
@@ -50,13 +52,6 @@
 
   const caption = $derived(label ?? slider?.label ?? '');
   const tipId = $derived(slider?.id ?? id ?? 'note');
-  const bounds = $derived(
-    slider === undefined
-      ? ''
-      : slider.kind === 'number'
-        ? `${slider.min} to ${slider.max}`
-        : slider.options.join(', '),
-  );
 
   const SHOW_MS = 40;
   const HIDE_MS = 200;
@@ -114,55 +109,78 @@
     focused = false;
   }
 
+  function currentViewport(): Viewport {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+
   async function layout(): Promise<void> {
     const gen = ++layoutGen;
     await tick();
-    if (gen !== layoutGen || !open || !nameEl || !tipEl) {
+    if (gen !== layoutGen || !open || nameEl === undefined || tipEl === undefined) {
       return;
     }
-    const row = nameEl.closest('label');
-    const anchor = (row ?? nameEl).getBoundingClientRect();
+    const row = anchorRow();
+    const anchor = row.getBoundingClientRect();
     const name = nameEl.getBoundingClientRect();
-    const margin = 12;
-    const gap = 10;
-    const spaceRight = window.innerWidth - anchor.right - margin;
-    const spaceBelow = window.innerHeight - anchor.bottom - gap - margin;
-    const spaceAbove = anchor.top - gap - margin;
-    const buttonHost = nameEl.classList.contains('host');
-    const nextPlacement: 'below' | 'above' | 'side' =
-      !buttonHost && spaceRight >= 300
-        ? 'side'
-        : spaceBelow < 180 && spaceAbove > spaceBelow
-          ? 'above'
-          : 'below';
-    const room =
-      nextPlacement === 'side'
-        ? Math.max(160, window.innerHeight - margin * 2)
-        : Math.max(120, Math.min(nextPlacement === 'above' ? spaceAbove : Math.max(spaceBelow, 120), 384));
-    maxHeight = room;
-    tipEl.style.setProperty('--max', `${room}px`);
-    if (nextPlacement === 'side') {
-      tipEl.style.width = `${Math.min(448, Math.max(280, spaceRight - gap))}px`;
-    } else {
-      tipEl.style.removeProperty('width');
-    }
-    const box = tipEl.getBoundingClientRect();
-    placement = nextPlacement;
-    if (nextPlacement === 'side') {
-      const nextTop = Math.min(Math.max(margin, anchor.top), window.innerHeight - margin - box.height);
-      top = nextTop;
-      left = anchor.right + gap;
-      arrow = Math.min(box.height - 22, Math.max(16, name.top + name.height / 2 - nextTop - 6));
-    } else {
-      const maxLeft = window.innerWidth - margin - box.width;
-      left = Math.max(margin, Math.min(anchor.left, Math.max(margin, maxLeft)));
-      top =
-        nextPlacement === 'above'
-          ? Math.max(margin, anchor.top - gap - box.height)
-          : anchor.bottom + gap;
-      arrow = Math.min(box.width - 22, Math.max(16, name.left - left + Math.min(name.width, 28)));
-    }
+    const viewport = currentViewport();
+    const frame = nameTipFrame(anchor, viewport, nameEl.classList.contains('host'));
+    applyFrame(tipEl, frame);
+    const position = placeNameTip(frame, anchor, name, tipEl.getBoundingClientRect(), viewport);
+    placement = frame.placement;
+    top = position.top;
+    left = position.left;
+    arrow = position.arrow;
+    maxHeight = frame.maxHeight;
     placed = true;
+  }
+
+  function applyFrame(tip: HTMLDivElement, frame: NameTipFrame): void {
+    tip.style.setProperty('--max', `${frame.maxHeight}px`);
+    if (frame.width === null) {
+      tip.style.removeProperty('width');
+      return;
+    }
+    tip.style.width = `${frame.width}px`;
+  }
+
+  function anchorRow(): HTMLElement {
+    if (nameEl === undefined) {
+      throw new Error('Name tip is missing its anchor');
+    }
+    const row = nameEl.closest('label');
+    if (row instanceof HTMLElement) {
+      return row;
+    }
+    return nameEl;
+  }
+
+  function bindHover(row: HTMLElement, tip: HTMLElement): () => void {
+    const hideUnlessInside = (event: MouseEvent): void => {
+      if (!staysInside(event, row, tip)) {
+        scheduleHide();
+      }
+    };
+    row.addEventListener('mouseenter', scheduleShow);
+    row.addEventListener('mouseleave', hideUnlessInside);
+    tip.addEventListener('mouseenter', scheduleShow);
+    tip.addEventListener('mouseleave', hideUnlessInside);
+    row.addEventListener('focusin', onFocusIn);
+    row.addEventListener('focusout', onFocusOut);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      row.removeEventListener('mouseenter', scheduleShow);
+      row.removeEventListener('mouseleave', hideUnlessInside);
+      tip.removeEventListener('mouseenter', scheduleShow);
+      tip.removeEventListener('mouseleave', hideUnlessInside);
+      row.removeEventListener('focusin', onFocusIn);
+      row.removeEventListener('focusout', onFocusOut);
+    };
+  }
+
+  function staysInside(event: MouseEvent, row: HTMLElement, tip: HTMLElement): boolean {
+    const next = event.relatedTarget;
+    return next instanceof Node && (row.contains(next) || tip.contains(next));
   }
 
   $effect(() => {
@@ -190,62 +208,11 @@
 
   onMount(() => {
     listenForPointerModality();
-    const row = nameEl?.closest('label') ?? nameEl;
-    const tip = tipEl;
-    if (!row || !tip) {
-      return;
+    if (tipEl === undefined) {
+      throw new Error('Name tip is missing its anchor');
     }
-    const staying = (event: MouseEvent): boolean => {
-      const next = event.relatedTarget;
-      return next instanceof Node && (row.contains(next) || tip.contains(next));
-    };
-    const onRowLeave = (event: MouseEvent): void => {
-      if (staying(event)) {
-        return;
-      }
-      scheduleHide();
-    };
-    const onTipLeave = (event: MouseEvent): void => {
-      if (staying(event)) {
-        return;
-      }
-      scheduleHide();
-    };
-    row.addEventListener('mouseenter', scheduleShow);
-    row.addEventListener('mouseleave', onRowLeave);
-    tip.addEventListener('mouseenter', scheduleShow);
-    tip.addEventListener('mouseleave', onTipLeave);
-    row.addEventListener('focusin', onFocusIn);
-    row.addEventListener('focusout', onFocusOut);
-    return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-      row.removeEventListener('mouseenter', scheduleShow);
-      row.removeEventListener('mouseleave', onRowLeave);
-      tip.removeEventListener('mouseenter', scheduleShow);
-      tip.removeEventListener('mouseleave', onTipLeave);
-      row.removeEventListener('focusin', onFocusIn);
-      row.removeEventListener('focusout', onFocusOut);
-    };
+    return bindHover(anchorRow(), tipEl);
   });
-
-  const groups: Record<SliderGroup, string> = {
-    behavior: 'Behavior',
-    environment: 'Environment',
-    policy: 'Policy',
-    regime: 'Monetary regime',
-    goods: 'Goods and property',
-    contracts: 'Contracts',
-    welfare: 'Welfare',
-    ai: 'Artificial intelligence',
-    scale: 'Scale',
-  };
-
-  const statuses: Record<SliderStatus, string> = {
-    sourced: 'Sourced',
-    calibrated: 'Calibrated',
-    guess: 'Guess',
-  };
 </script>
 
 <span
@@ -278,15 +245,15 @@
 >
   <div class="body">
     {#if slider}
-      <p class="kicker">{groups[slider.group]}</p>
+      <p class="kicker">{groupLabel(slider.group)}</p>
       <p class="copy">{slider.description}</p>
       <ul class="meta">
         <li><span>Unit</span> {slider.unit}</li>
         <li><span>Default</span> {slider.default}</li>
-        <li><span>{slider.kind === 'number' ? 'Range' : 'Options'}</span> {bounds}</li>
+        <li><span>{slider.kind === 'number' ? 'Range' : 'Options'}</span> {sliderBounds(slider)}</li>
       </ul>
       <p class="source">
-        <span class="badge {slider.status}">{statuses[slider.status]}</span>
+        <span class="badge {slider.status}">{statusLabel(slider.status)}</span>
         {slider.source}
       </p>
     {:else}

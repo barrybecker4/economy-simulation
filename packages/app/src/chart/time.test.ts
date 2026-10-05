@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { monthAxisLabel, monthAxisSeconds } from './chart-time.js';
+import { monthAxisLabel, monthAxisSeconds } from './time.js';
 
 describe('month axis', () => {
   const origin = new Date(2026, 9, 4);
@@ -20,5 +20,9 @@ describe('month axis', () => {
   it('labels the first tick', () => {
     expect(monthAxisLabel([0, 1, 2], origin)).toBe('October 2026');
     expect(monthAxisLabel([3], new Date(2026, 10, 15))).toBe('February 2027');
+  });
+
+  it('rejects an empty axis', () => {
+    expect(() => monthAxisLabel([], origin)).toThrow(/no ticks/);
   });
 });

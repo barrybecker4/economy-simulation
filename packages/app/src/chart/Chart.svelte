@@ -6,7 +6,11 @@
   import { onMount, tick } from 'svelte';
   import uPlot from 'uplot';
   import 'uplot/dist/uPlot.min.css';
-  import { monthAxisLabel, monthAxisSeconds } from './chart-time';
+  import { chartAnchorVisible, chartTipWidth, placeChartTip, type Viewport } from '../tip/place.js';
+  import { chartKey } from './key.js';
+  import { plotData, plotOptions } from './options.js';
+  import { monthAxisLabel } from './time.js';
+  import type { ChartLine } from './view.js';
 
   interface Props {
     title: string;
@@ -14,12 +18,13 @@
     unit?: string;
     description: string;
     ticks: number[];
-    lines: { label: string; values: number[]; color: string }[];
+    lines: ChartLine[];
   }
 
   let { title, unit = '', description, ticks, lines }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
+  let drawnKey = '';
   const opened = new Date();
   const axisNote = $derived(`Months run from ${monthAxisLabel(ticks, opened)}.`);
   const heading = $derived(unit ? `${title} (${unit})` : title);
@@ -48,12 +53,14 @@
 
   function scheduleHide(): void {
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      if (infoEl && document.activeElement === infoEl) {
-        return;
-      }
-      hovering = false;
-    }, 120);
+    hideTimer = setTimeout(hideUnlessFocused, 120);
+  }
+
+  function hideUnlessFocused(): void {
+    if (infoEl !== undefined && document.activeElement === infoEl) {
+      return;
+    }
+    hovering = false;
   }
 
   function onFocus(): void {
@@ -74,60 +81,64 @@
     infoEl?.blur();
   }
 
+  function currentViewport(): Viewport {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+
   async function layout(): Promise<void> {
     const gen = ++layoutGen;
     await tick();
-    if (gen !== layoutGen || !shown || !infoEl || !tipEl) {
+    if (gen !== layoutGen || !shown || infoEl === undefined || tipEl === undefined) {
       return;
     }
+    const viewport = currentViewport();
     const anchor = infoEl.getBoundingClientRect();
-    const margin = 12;
-    const gap = 8;
-    if (anchor.bottom < margin || anchor.top > window.innerHeight - margin) {
+    if (!chartAnchorVisible(anchor, viewport)) {
       placed = false;
       return;
     }
-    const width = Math.min(448, window.innerWidth - margin * 2);
-    tipEl.style.width = `${width}px`;
-    const box = tipEl.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - anchor.bottom - gap - margin;
-    const spaceAbove = anchor.top - gap - margin;
-    placement = spaceAbove >= box.height || spaceAbove > spaceBelow ? 'above' : 'below';
-    const maxLeft = window.innerWidth - margin - box.width;
-    const ideal = anchor.left + anchor.width / 2 - box.width / 2;
-    left = Math.max(margin, Math.min(ideal, Math.max(margin, maxLeft)));
-    const rawTop = placement === 'above' ? anchor.top - gap - box.height : anchor.bottom + gap;
-    const maxTop = Math.max(margin, window.innerHeight - margin - box.height);
-    top = Math.min(Math.max(margin, rawTop), maxTop);
-    arrow = Math.min(box.width - 22, Math.max(16, anchor.left + anchor.width / 2 - left - 6));
+    tipEl.style.width = `${chartTipWidth(viewport.width)}px`;
+    const position = placeChartTip(anchor, tipEl.getBoundingClientRect(), viewport);
+    placement = position.placement;
+    top = position.top;
+    left = position.left;
+    arrow = position.arrow;
     placed = true;
   }
 
   function draw(): void {
-    if (!host || ticks.length === 0) {
+    if (host === undefined || host.clientWidth <= 0 || ticks.length === 0) {
       return;
     }
+    const width = host.clientWidth;
+    const key = chartKey(width, ticks, lines);
+    if (plot !== undefined && key === drawnKey) {
+      return;
+    }
+    drawnKey = key;
     plot?.destroy();
-    plot = new uPlot(
-      {
-        width: host.clientWidth || 640,
-        height: 240,
-        scales: { x: { time: true } },
-        series: [
-          { label: 'Month', value: '{MMM} {YYYY}' },
-          ...lines.map((line) => ({ label: line.label, stroke: line.color })),
-        ],
-        axes: [{}, { size: 48 }],
-      },
-      [monthAxisSeconds(ticks, opened), ...lines.map((line) => line.values)],
-      host,
-    );
+    plot = new uPlot(plotOptions(width, lines), plotData(ticks, lines, opened), host);
+  }
+
+  function watchSize(target: HTMLDivElement): () => void {
+    const observer = new ResizeObserver(() => {
+      draw();
+    });
+    observer.observe(target);
+    return () => {
+      observer.disconnect();
+    };
   }
 
   onMount(() => {
+    if (host === undefined) {
+      throw new Error('Chart host is missing');
+    }
+    const stop = watchSize(host);
     draw();
     return () => {
       clearTimeout(hideTimer);
+      stop();
       plot?.destroy();
     };
   });

@@ -25,7 +25,11 @@ export function monthAxisSeconds(ticks: readonly number[], origin: Date): number
 
 /** English month and year of the first tick, for the chart caption. */
 export function monthAxisLabel(ticks: readonly number[], origin: Date): string {
-  const start = monthStart(origin, ticks[0] ?? 0);
+  const first = ticks[0];
+  if (first === undefined) {
+    throw new Error('Chart has no ticks');
+  }
+  const start = monthStart(origin, first);
   const name = MONTHS[start.getMonth()];
   if (name === undefined) {
     throw new Error('Month out of range');

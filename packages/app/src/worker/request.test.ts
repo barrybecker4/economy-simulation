@@ -1,44 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { formatWorkerError, percentComplete, publishPercent } from './worker-protocol.js';
-import { handleRequest } from './run-request.js';
-import { safeHandleRequest } from './worker-safe.js';
+import { handleRequest } from './request.js';
+import { safeHandleRequest } from './safe.js';
 
 const small = {
   'scale.households': 20,
   'scale.firms': 4,
   'scale.banks': 1,
 };
-
-describe('percentComplete', () => {
-  it('stays at zero until a whole percent of the run is done', () => {
-    expect(percentComplete(0, 120)).toBe(0);
-    expect(percentComplete(0, 0)).toBe(0);
-    expect(percentComplete(1, 200)).toBe(0);
-    expect(percentComplete(2, 200)).toBe(1);
-    expect(percentComplete(200, 200)).toBe(100);
-  });
-});
-
-describe('publishPercent', () => {
-  it('publishes only when the integer percent increases', () => {
-    expect(publishPercent(1, 200, 0)).toBeNull();
-    expect(publishPercent(2, 200, 0)).toBe(1);
-    expect(publishPercent(3, 200, 1)).toBeNull();
-    expect(publishPercent(200, 200, 99)).toBe(100);
-  });
-});
-
-describe('formatWorkerError', () => {
-  it('prefers an Error message', () => {
-    expect(formatWorkerError(new Error('Debits must equal credits'))).toBe(
-      'Debits must equal credits',
-    );
-  });
-
-  it('falls back for unknown values', () => {
-    expect(formatWorkerError(null)).toBe('Unknown worker error');
-  });
-});
 
 describe('handleRequest', () => {
   it('runs the Austrian-leaning bitcoin path that used to break the stock journal', () => {
@@ -58,13 +26,24 @@ describe('handleRequest', () => {
     expect(result.series.unemployment).toHaveLength(360);
     expect(result.series.interestRate).toHaveLength(360);
     expect(result.series.creditToGdp).toHaveLength(360);
+    expect(result.series.giniWealth).toHaveLength(360);
+    expect(result.series.priceGeneral).toBeUndefined();
+  });
+
+  it('adds the bitcoin price level when comparing regimes', () => {
+    const result = handleRequest({ kind: 'compare', seed: 1, ticks: 1, sliders: small });
+    expect(result.kind).toBe('compare');
+    expect(result.series.priceLevel).toHaveLength(1);
+    expect(result.series.priceLevelBitcoin).toHaveLength(1);
+    expect(result.series.meanWellbeingBitcoin).toBeUndefined();
   });
 
   it('reports every tick of a run, a band, and a comparison', () => {
     const updates: Array<[number, number]> = [];
-    handleRequest({ kind: 'run', seed: 1, ticks: 3, sliders: small }, (completed, total) =>
-      updates.push([completed, total]),
-    );
+    const record = (completed: number, total: number): void => {
+      updates.push([completed, total]);
+    };
+    handleRequest({ kind: 'run', seed: 1, ticks: 3, sliders: small }, record);
     expect(updates).toEqual([
       [1, 3],
       [2, 3],
@@ -72,23 +51,24 @@ describe('handleRequest', () => {
     ]);
 
     updates.length = 0;
-    handleRequest(
-      { kind: 'band', seed: 1, ticks: 1, seeds: [1, 2], sliders: small },
-      (completed, total) => updates.push([completed, total]),
-    );
+    handleRequest({ kind: 'band', seed: 1, ticks: 1, seeds: [1, 2], sliders: small }, record);
     expect(updates).toEqual([
       [1, 2],
       [2, 2],
     ]);
 
     updates.length = 0;
-    handleRequest({ kind: 'compare', seed: 1, ticks: 1, sliders: small }, (completed, total) =>
-      updates.push([completed, total]),
-    );
+    handleRequest({ kind: 'compare', seed: 1, ticks: 1, sliders: small }, record);
     expect(updates).toEqual([
       [1, 2],
       [2, 2],
     ]);
+  });
+
+  it('rejects a band with no seeds before starting', () => {
+    expect(() =>
+      handleRequest({ kind: 'band', seed: 1, ticks: 1, seeds: [], sliders: small }),
+    ).toThrow(/at least one seed/);
   });
 });
 

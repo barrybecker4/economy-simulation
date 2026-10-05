@@ -2,20 +2,52 @@
 
 export type RunKind = 'run' | 'band' | 'compare';
 
-export interface RunRequest {
-  kind: RunKind;
+interface RunFields {
   seed: number;
   ticks: number;
   sliders: Record<string, number | string>;
-  seeds?: number[];
 }
 
-export interface RunSuccess {
-  kind: 'run' | 'band' | 'compare';
+export interface SingleRunRequest extends RunFields {
+  kind: 'run';
+}
+
+export interface BandRunRequest extends RunFields {
+  kind: 'band';
+  seeds: readonly number[];
+}
+
+export interface CompareRunRequest extends RunFields {
+  kind: 'compare';
+}
+
+export type RunRequest = SingleRunRequest | BandRunRequest | CompareRunRequest;
+
+export interface PercentileBand {
+  low: number[];
+  mid: number[];
+  high: number[];
+}
+
+interface SuccessFields {
   ticks: number[];
   series: Record<string, number[]>;
-  bands?: Record<string, { low: number[]; mid: number[]; high: number[] }>;
 }
+
+export interface SingleRunResult extends SuccessFields {
+  kind: 'run';
+}
+
+export interface BandRunResult extends SuccessFields {
+  kind: 'band';
+  bands: Record<string, PercentileBand>;
+}
+
+export interface CompareRunResult extends SuccessFields {
+  kind: 'compare';
+}
+
+export type RunSuccess = SingleRunResult | BandRunResult | CompareRunResult;
 
 export interface RunError {
   kind: 'error';

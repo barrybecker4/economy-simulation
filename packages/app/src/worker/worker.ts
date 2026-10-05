@@ -1,9 +1,5 @@
-import { publishPercent, type RunRequest } from './worker-protocol.js';
-import { safeHandleRequest } from './worker-safe.js';
-
-export type { RunProgress, RunRequest, RunResponse, WorkerMessage } from './worker-protocol.js';
-export { handleRequest } from './run-request.js';
-export { safeHandleRequest } from './worker-safe.js';
+import { publishPercent, type RunRequest } from './protocol.js';
+import { safeHandleRequest } from './safe.js';
 
 self.onmessage = (event: MessageEvent<RunRequest>) => {
   let lastPercent = 0;
