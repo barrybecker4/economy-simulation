@@ -12,5 +12,7 @@ describe('chartKey', () => {
     expect(chartKey(640, ticks, [{ ...line, values: [1, 3] }])).not.toBe(first);
     expect(chartKey(640, ticks, [{ ...line, label: 'Other' }])).not.toBe(first);
     expect(chartKey(640, ticks, [{ ...line, dash: [6, 4] }])).not.toBe(first);
+    expect(chartKey(640, ticks, [{ ...line, omitLegend: true }])).not.toBe(first);
+    expect(chartKey(640, ticks, [{ ...line, pair: 'cpi' }])).not.toBe(first);
   });
 });

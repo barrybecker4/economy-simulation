@@ -8,6 +8,10 @@ export interface ChartLine {
   color: string;
   /** Stroke dash segments for uPlot. Omit for a solid line. */
   dash?: readonly number[];
+  /** Drawn, but left out of the legend. */
+  omitLegend?: boolean;
+  /** Lines with the same id share one legend item and one hover highlight. */
+  pair?: string;
 }
 
 export interface ChartView {
@@ -258,8 +262,8 @@ export function moneyUnit(regime: string): string {
   throw new Error(`Unknown regime ${regime}`);
 }
 
-/** Dash pattern for the variant line when a baseline is overlaid. */
-export const VARIANT_DASH = [6, 4] as const;
+/** Dash pattern, in CSS pixels, for the variant line when a baseline is overlaid. */
+export const VARIANT_DASH = [8, 6] as const;
 
 export interface BaselineRun {
   result: RunSuccess;
@@ -327,28 +331,26 @@ function pairedViewFromSpec(
   regime: string,
   baseline: BaselineRun,
 ): ChartView {
-  const mixedMoney =
-    spec.unit === 'money' && moneyUnit(regime) !== moneyUnit(baseline.regime);
+  const mixedMoney = spec.unit === 'money' && moneyUnit(regime) !== moneyUnit(baseline.regime);
   const lines: ChartLine[] = [];
   for (const line of spec.lines) {
-    const baseUnit = mixedMoney ? ` (${moneyUnit(baseline.regime)})` : '';
-    const variantUnit = mixedMoney ? ` (${moneyUnit(regime)})` : '';
     lines.push(
       checkedLine(
         baseline.result.ticks,
-        `${line.label} baseline${baseUnit}`,
+        line.label,
         valuesFor(baseline.result, line.id),
         line.color,
+        {
+          omitLegend: true,
+          pair: line.id,
+        },
       ),
     );
     lines.push(
-      checkedLine(
-        variant.ticks,
-        `${line.label}${variantUnit}`,
-        valuesFor(variant, line.id),
-        line.color,
-        VARIANT_DASH,
-      ),
+      checkedLine(variant.ticks, line.label, valuesFor(variant, line.id), line.color, {
+        dash: VARIANT_DASH,
+        pair: line.id,
+      }),
     );
   }
   if (mixedMoney) {
@@ -357,7 +359,7 @@ function pairedViewFromSpec(
       title: spec.title,
       group: spec.group,
       unit: '',
-      note: "Each line's unit is in its label.",
+      note: `Solid lines are the baseline, in ${moneyUnit(baseline.regime)}. Dashed lines are the variant, in ${moneyUnit(regime)}.`,
       description: spec.description,
       lines,
     };
@@ -479,13 +481,20 @@ function checkedLine(
   label: string,
   values: number[],
   color: string,
-  dash?: readonly number[],
+  options?: { dash?: readonly number[]; omitLegend?: boolean; pair?: string },
 ): ChartLine {
   if (values.length !== ticks.length) {
     throw new Error(`${label} has ${values.length} points for ${ticks.length} ticks`);
   }
-  if (dash === undefined) {
-    return { label, values, color };
+  const line: ChartLine = { label, values, color };
+  if (options?.dash !== undefined) {
+    line.dash = options.dash;
   }
-  return { label, values, color, dash };
+  if (options?.omitLegend === true) {
+    line.omitLegend = true;
+  }
+  if (options?.pair !== undefined) {
+    line.pair = options.pair;
+  }
+  return line;
 }

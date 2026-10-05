@@ -149,28 +149,26 @@ describe('chartViews', () => {
     const variant = { kind: 'run' as const, ticks, series: series([3, 4]) };
     const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
     const prices = views.find((view) => view.key === 'prices');
-    expect(prices?.lines.map((line) => line.label)).toEqual([
-      'CPI baseline',
+    const legend = [
       'CPI',
-      'Food and bev baseline',
       'Food and bev',
-      'Housing baseline',
       'Housing',
-      'Energy baseline',
       'Energy',
-      'Apparel baseline',
       'Apparel',
-      'Transportation baseline',
       'Transportation',
-      'Medical baseline',
       'Medical',
-      'Education baseline',
       'Education',
-      'Recreation baseline',
       'Recreation',
-      'Electronics baseline',
       'Electronics',
-    ]);
+    ];
+    expect(
+      prices?.lines.filter((line) => line.omitLegend !== true).map((line) => line.label),
+    ).toEqual(legend);
+    expect(
+      prices?.lines.filter((line) => line.omitLegend === true).map((line) => line.label),
+    ).toEqual(legend);
+    expect(prices?.lines[0]?.pair).toBe(prices?.lines[1]?.pair);
+    expect(prices?.lines[0]?.pair).not.toBe(prices?.lines[2]?.pair);
     expect(prices?.lines[0]?.values).toEqual([1, 2]);
     expect(prices?.lines[1]?.values).toEqual([3, 4]);
     expect(prices?.lines[0]?.color).toBe('#1e3a8a');
@@ -190,6 +188,9 @@ describe('chartViews', () => {
       [1, 2],
       [5, 20],
     ]);
+    expect(ubi?.lines[0]?.omitLegend).toBe(true);
+    expect(ubi?.lines[1]?.omitLegend).toBeUndefined();
+    expect(ubi?.lines[0]?.pair).toBe(ubi?.lines[1]?.pair);
     expect(ubi?.lines[1]?.dash).toEqual([...VARIANT_DASH]);
   });
 
@@ -199,31 +200,33 @@ describe('chartViews', () => {
     const views = chartViews(variant, 'bitcoin', { result: baseline, regime: 'fiat' });
     const prices = views.find((view) => view.key === 'prices');
     expect(prices?.unit).toBe('');
-    expect(prices?.note).toMatch(/unit is in its label/);
-    expect(prices?.lines[0]?.label).toBe('CPI baseline (cents)');
-    expect(prices?.lines[1]?.label).toBe('CPI (satoshis)');
+    expect(prices?.note).toBe(
+      'Solid lines are the baseline, in cents. Dashed lines are the variant, in satoshis.',
+    );
+    expect(prices?.lines[0]?.label).toBe('CPI');
+    expect(prices?.lines[1]?.label).toBe('CPI');
+    expect(prices?.lines[0]?.omitLegend).toBe(true);
+    expect(prices?.lines[1]?.omitLegend).toBeUndefined();
     expect(prices?.lines[0]?.values).toEqual([500, 250_000]);
     expect(prices?.lines[1]?.values).toEqual([8, 9]);
   });
 
   it('ignores a baseline for band and regime-compare results', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([1, 2]) };
-    const band = chartViews(
-      { kind: 'band', ticks, series: {}, bands: bands([3, 4]) },
-      'fiat',
-      { result: baseline, regime: 'fiat' },
-    );
+    const band = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'fiat', {
+      result: baseline,
+      regime: 'fiat',
+    });
     expect(band[0]?.lines.map((line) => line.label)).toEqual([
       'Mean well-being',
       'Median well-being',
     ]);
     const compared = series([1, 2]);
     compared.priceLevelBitcoin = [8, 9];
-    const views = chartViews(
-      { kind: 'compare', ticks, series: compared },
-      'fiat',
-      { result: baseline, regime: 'fiat' },
-    );
+    const views = chartViews({ kind: 'compare', ticks, series: compared }, 'fiat', {
+      result: baseline,
+      regime: 'fiat',
+    });
     expect(views[0]?.key).toBe('regimes');
     expect(views.find((view) => view.key === 'prices')?.lines).toHaveLength(10);
   });
