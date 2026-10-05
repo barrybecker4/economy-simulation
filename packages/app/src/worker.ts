@@ -17,6 +17,11 @@ const CHARTS = [
   'priceRecreation',
   'priceElectronics',
   'unemployment',
+  'interestRate',
+  'creditToGdp',
+  'tasksAutomated',
+  'aiShareOfAgents',
+  'aiShareOfOutput',
   'giniWealth',
   'medianRealWealth',
 ] as const satisfies readonly MetricId[];

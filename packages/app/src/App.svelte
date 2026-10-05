@@ -293,6 +293,12 @@
     {@const education = line('priceEducation', 'Education', '#0369a1')}
     {@const recreation = line('priceRecreation', 'Recreation', '#4d7c0f')}
     {@const electronics = line('priceElectronics', 'Electronics', '#db2777')}
+    {@const unemployment = line('unemployment', 'Unemployment', '#b45309')}
+    {@const interest = line('interestRate', 'Policy rate', '#1d4ed8')}
+    {@const credit = line('creditToGdp', 'Credit to GDP', '#7c3aed')}
+    {@const tasks = line('tasksAutomated', 'Tasks automated', '#0f766e')}
+    {@const agents = line('aiShareOfAgents', 'AI agents', '#a21caf')}
+    {@const aiOutput = line('aiShareOfOutput', 'AI share of output', '#c2410c')}
     {#if wellbeing && median}
       <Chart
         title="Well-being"
@@ -309,6 +315,33 @@
         description="CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. A five-seed band draws each median."
         ticks={result.ticks}
         lines={[cpi, food, housing, energy, apparel, transport, medical, education, recreation, electronics]}
+      />
+    {/if}
+    {#if unemployment && interest}
+      <Chart
+        title="Labor and interest"
+        unit="share"
+        description="Unemployment is the share of households without a job. The policy rate is the annual interest rate: under fiat it follows inflation and unemployment, and under bitcoin or hybrid it moves with the gap between loans and savings. A five-seed band draws each median."
+        ticks={result.ticks}
+        lines={[unemployment, interest]}
+      />
+    {/if}
+    {#if credit}
+      <Chart
+        title="Credit to GDP"
+        unit="share"
+        description="Private credit relative to annualized nominal GDP: firm and household loans divided by twelve times this month's nominal output. Government bonds are not in this ratio. A five-seed band draws the median."
+        ticks={result.ticks}
+        lines={[credit]}
+      />
+    {/if}
+    {#if tasks && agents && aiOutput}
+      <Chart
+        title="AI"
+        unit="share"
+        description="Tasks automated is the share of tasks software can do. AI agents is autonomous agents divided by households plus agents. AI share of output is the fraction of capacity from the AI multiplier. With equal start and end automatable shares that share stays at zero. A five-seed band draws each median."
+        ticks={result.ticks}
+        lines={[tasks, agents, aiOutput]}
       />
     {/if}
     {#if result.kind === 'compare' && result.series['priceLevel'] && result.series['priceLevelBitcoin']}
