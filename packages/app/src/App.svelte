@@ -5,7 +5,10 @@
   import type { RunRequest, RunResponse } from './worker.ts';
 
   const sliders = listSliders();
-  const regimeSlider = sliders.find((slider) => slider.id === 'regime.type');
+  const parameters = [
+    ...sliders.filter((slider) => slider.kind === 'enum'),
+    ...sliders.filter((slider) => slider.kind === 'number'),
+  ];
   const weights = [
     'welfare.weightInequality',
     'welfare.weightMedianWealth',
@@ -19,7 +22,7 @@
   let chartRegime = $state('fiat');
   let requestedRegime = 'fiat';
   let overrides = $state<Record<string, number | string>>({});
-  let status = $state('Set the sliders and run.');
+  let status = $state('Set the parameters and run.');
   let result = $state<RunResponse | null>(null);
   let busy = $state(false);
 
@@ -199,26 +202,6 @@
   <section class="controls">
     <label>Seed <input type="number" min="0" bind:value={seed} /></label>
     <label>Months <input type="number" min="12" max="1200" bind:value={ticks} /></label>
-    <label>
-      {#if regimeSlider}
-        <NameTip slider={regimeSlider} label="Regime" described={false} />
-      {/if}
-      <select bind:value={regime} aria-describedby="help-regime.type">
-        <option value="fiat">Fiat</option>
-        <option value="bitcoin">Bitcoin</option>
-        <option value="hybrid">Hybrid</option>
-      </select>
-    </label>
-    <label>
-      Preset
-      <select onchange={(event) => applyPreset((event.target as HTMLSelectElement).value)}>
-        <option value="neutral">Neutral</option>
-        <option value="no-ai">No AI</option>
-        <option value="fast-adoption">Fast adoption</option>
-        <option value="austrian-leaning">Austrian-leaning</option>
-        <option value="keynesian-leaning">Keynesian-leaning</option>
-      </select>
-    </label>
     <button type="button" onclick={() => run('run')} disabled={busy}>Run</button>
     <button type="button" onclick={() => run('band')} disabled={busy}>Five-seed band</button>
     <button type="button" onclick={() => run('compare')} disabled={busy}>Compare fiat and bitcoin</button>
@@ -310,10 +293,20 @@
     {/if}
   {/if}
 
-  <section class="sliders">
-    <h2>Sliders</h2>
-    <p class="hint">Hover a name to read what that slider changes. The note also shows its unit, default, and whether the value is sourced, calibrated, or a guess.</p>
-    {#each sliders as slider (slider.id)}
+  <section class="parameters">
+    <h2>Parameters</h2>
+    <p class="hint">Hover a name to read what that parameter changes. The note also shows its unit, default, and whether the value is sourced, calibrated, or a guess.</p>
+    <label>
+      Preset
+      <select onchange={(event) => applyPreset((event.target as HTMLSelectElement).value)}>
+        <option value="neutral">Neutral</option>
+        <option value="no-ai">No AI</option>
+        <option value="fast-adoption">Fast adoption</option>
+        <option value="austrian-leaning">Austrian-leaning</option>
+        <option value="keynesian-leaning">Keynesian-leaning</option>
+      </select>
+    </label>
+    {#each parameters as slider (slider.id)}
       <label>
         <NameTip {slider} wide />
         {#if slider.kind === 'number'}
@@ -358,17 +351,17 @@
     padding: 1rem;
   }
   .controls label,
-  .sliders label {
+  .parameters label {
     position: relative;
   }
   .controls,
-  .sliders label {
+  .parameters label {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
   }
-  .sliders label {
+  .parameters label {
     border-bottom: 1px solid #ddd;
     padding: 0.4rem 0;
   }
@@ -378,7 +371,7 @@
     line-height: 1.45;
     margin: 0 0 0.4rem;
   }
-  .sliders input[type='range'] {
+  .parameters input[type='range'] {
     flex: 1 1 12rem;
   }
   button {
