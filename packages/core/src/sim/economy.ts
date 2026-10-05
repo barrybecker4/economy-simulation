@@ -1,0 +1,49 @@
+import type { Ledger } from '../ledger/ledger.js';
+import type { Rng } from '../rng/rng.js';
+import type { Parameters } from './parameters.js';
+import type { ActiveShock, Agent, Bank, Firm, ForcedShock, Household } from './types.js';
+
+/** Mutable economy stocks and flows shared across tick phases. */
+export interface Economy {
+  readonly params: Parameters;
+  readonly households: Household[];
+  readonly firms: Firm[];
+  readonly banks: Bank[];
+  readonly agents: Agent[];
+  readonly shockRng: Rng;
+  readonly priceHistory: number[];
+  readonly gdpHistory: number[];
+  readonly creditHistory: number[];
+  forcedShock: ForcedShock | null;
+  shock: ActiveShock | null;
+  ledger: Ledger | null;
+  ready: boolean;
+  aiFactor: number;
+  automatedShare: number;
+  agentVolume: number;
+  agentGoodsSpend: number;
+  wageBill: number;
+  taxRevenue: number;
+  agentTaxRevenue: number;
+  ubiOutlay: number;
+  wageLevel: number;
+  priceLevel: number;
+  productivity: number;
+  demandImpulse: number;
+  productivityImpulse: number;
+  creditImpulse: number;
+  policyRate: number;
+  realGdp: number;
+  consumptionSpend: number;
+  investmentSpend: number;
+  realInvestment: number;
+  defaultsThisTick: number;
+  cumulativeFailures: number;
+  boomLength: number;
+  bustLength: number;
+  sawBoom: boolean;
+  privateEquity: number;
+  govDeposits: number;
+  tick: number;
+  demandBase: number;
+}

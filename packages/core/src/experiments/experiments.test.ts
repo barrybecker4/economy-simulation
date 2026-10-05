@@ -41,6 +41,14 @@ describe('experiments', () => {
     expect(effects.every((effect) => Number.isFinite(effect.effect))).toBe(true);
   });
 
+  it('rejects an enum slider for Morris screening', () => {
+    expect(() => morrisScreen(['regime.type'], 1, 12)).toThrow(/number slider/);
+  });
+
+  it('rejects paired series of unequal length', () => {
+    expect(() => pairedDifference([1, 2], [1])).toThrow(/equal length/);
+  });
+
   it('writes all eight hypotheses', () => {
     const results = runHypotheses();
     expect(results.map((result) => result.id)).toEqual([

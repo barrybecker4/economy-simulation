@@ -35,9 +35,16 @@ describe('AI agents', () => {
       last(hard, 'aiShareOfTransactions'),
     );
     expect(last(easy, 'aiShareOfAgents')).toBeGreaterThan(0.2);
+    expect(last(easy, 'aiShareOfWealth')).toBeGreaterThan(0);
+    expect(last(easy, 'aiShareOfWealth')).toBeLessThanOrEqual(1);
     expect(Number.isFinite(last(easy, 'meanWellbeing'))).toBe(true);
     const money = series(bitcoin, 'moneySupply');
     expect((money[money.length - 1] ?? 0) % 1).not.toBe(0);
+  });
+
+  it('keeps AI wealth share at zero when autonomy is off', () => {
+    const plain = run({ ...scale, 'ai.agentAutonomyShareEnd': 0 });
+    expect(series(plain, 'aiShareOfWealth').every((value) => value === 0)).toBe(true);
   });
 });
 

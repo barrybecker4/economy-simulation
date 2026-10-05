@@ -1,6 +1,6 @@
 import { assertSliderValue, listSliders } from './registry.js';
 import { scenarioSchema, type ScenarioJson } from './schema.js';
-import { DEFAULT_SCENARIO_NAME, DEFAULT_TICKS, REGISTRY_VERSION } from './limits.js';
+import { DEFAULT_SCENARIO_NAME, DEFAULT_TICKS, MAX_TICKS, REGISTRY_VERSION } from './limits.js';
 
 export interface ScenarioOverrides {
   seed?: number;
@@ -37,8 +37,8 @@ export function resolveConfig(
     throw new Error('Seed must be a non-negative safe integer');
   }
   const ticks = overrides.ticks ?? input.ticks ?? DEFAULT_TICKS;
-  if (!Number.isSafeInteger(ticks) || ticks < 1) {
-    throw new Error('Ticks must be a positive integer');
+  if (!Number.isSafeInteger(ticks) || ticks < 1 || ticks > MAX_TICKS) {
+    throw new Error(`Ticks must be an integer between 1 and ${MAX_TICKS}`);
   }
   const sliders = defaultSliders();
   applySliders(sliders, input.sliders ?? {});

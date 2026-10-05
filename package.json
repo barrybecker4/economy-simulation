@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc -b && pnpm --filter @economy-simulation/app run typecheck",
+    "typecheck": "tsc -b && pnpm --filter @economy-simulation/core run typecheck && pnpm --filter @economy-simulation/app run typecheck",
     "test": "vitest run",
     "assumptions:check": "vitest run packages/core/src/config/assumptions.test.ts",
     "check": "pnpm run lint && pnpm run format:check && pnpm run typecheck && pnpm run test && pnpm run assumptions:check",

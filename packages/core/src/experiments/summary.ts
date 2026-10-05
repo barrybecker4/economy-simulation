@@ -20,9 +20,11 @@ export function summarize(values: readonly number[]): MetricSummary {
 }
 
 export function pairedDifference(left: readonly number[], right: readonly number[]): MetricSummary {
-  const count = Math.min(left.length, right.length);
+  if (left.length !== right.length) {
+    throw new Error('pairedDifference requires series of equal length');
+  }
   const gaps = Array.from(
-    { length: count },
+    { length: left.length },
     (_, index) => (right[index] ?? 0) - (left[index] ?? 0),
   );
   return summarize(gaps);

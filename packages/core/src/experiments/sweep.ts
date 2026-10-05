@@ -39,11 +39,7 @@ export function gitCommit(): string {
   if (cachedCommit !== null) {
     return cachedCommit;
   }
-  try {
-    cachedCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-  } catch {
-    cachedCommit = 'unknown';
-  }
+  cachedCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
   return cachedCommit;
 }
 

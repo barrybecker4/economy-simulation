@@ -110,4 +110,8 @@ describe('loadScenario', () => {
       }),
     ).toThrow(/automatableShareEnd/);
   });
+
+  it('rejects ticks above MAX_TICKS through overrides', () => {
+    expect(() => loadScenario({ seed: 1, ticks: 10 }, { ticks: 12_001 })).toThrow(/12_000|12000/);
+  });
 });

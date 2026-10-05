@@ -44,7 +44,7 @@ The ledger unit follows `regime.type`: fiat uses cents; bitcoin and hybrid use s
 
 Every tick stores one row. Series that nothing has set are null. `auditOk` is 1 when the end-of-tick audit passes and 0 otherwise. JSON output is deterministic for a seed and scenario. Hashes use a second form of that output in which object keys are sorted and every number is written in exponential form with 12 digits after the decimal point.
 
-`giniSkill` is the dispersion of skill. `realInvestment` is the sum of capital gaps installed that tick. Well-being is `log(max(real consumption, 0.01))` plus the housing-security term in the welfare section. AI shares and `tasksAutomated` stay at 0 when the automatable shares are equal and autonomy ends at 0.
+`giniSkill` is the dispersion of skill. `realInvestment` is the sum of capital gaps installed that tick. Well-being is `log(max(real consumption, 0.01))` plus the housing-security term in the welfare section. AI shares and `tasksAutomated` stay at 0 when the automatable shares are equal and autonomy ends at 0. Human wealth, income, and consumption series use households only. `aiShareOfWealth` is agent deposits divided by household deposits plus agent deposits, and 0 when that total is not positive.
 
 ## Agents
 

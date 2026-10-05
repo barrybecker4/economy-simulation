@@ -12,8 +12,8 @@ export function morrisScreen(ids: readonly string[], seed: number, ticks: number
   const base = endGdp(seed, ticks, {});
   const effects = ids.map((id) => {
     const slider = getSlider(id);
-    if (!slider || slider.kind !== 'number') {
-      return { id, effect: 0 };
+    if (slider.kind !== 'number') {
+      throw new Error(`${id} must be a number slider for Morris screening`);
     }
     const high = endGdp(seed, ticks, { [id]: slider.max });
     const span = slider.max - slider.min;

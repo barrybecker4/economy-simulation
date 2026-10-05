@@ -1,36 +1,16 @@
+import { bitcoinAmountsMatch, type MoneyUnit } from '../money/amount.js';
+import { auditAccounts } from './audit.js';
 import {
-  assertCentBalance,
-  assertPositiveCent,
-  assertPositiveSatoshi,
-  bitcoinAmountsMatch,
-  bitcoinImbalanceOk,
-  formatCanonicalNumber,
-  type MoneyUnit,
-} from '../money/amount.js';
+  addTotals,
+  applyLine,
+  assertPostingAmount,
+  compareAccountIds,
+  copyAccounts,
+  type Account,
+} from './posting.js';
+import type { AccountKind, AuditReport, EntrySide, PostingLine } from './types.js';
 
-export type AccountKind = 'asset' | 'liability' | 'equity';
-export type EntrySide = 'debit' | 'credit';
-
-export interface PostingLine {
-  accountId: string;
-  side: EntrySide;
-  amount: bigint | number;
-}
-
-export interface AuditReport {
-  unit: MoneyUnit;
-  ok: boolean;
-  assets: string;
-  liabilities: string;
-  equity: string;
-  imbalance: string;
-}
-
-interface Account {
-  id: string;
-  kind: AccountKind;
-  balance: bigint | number;
-}
+export type { AccountKind, AuditReport, EntrySide, PostingLine } from './types.js';
 
 /**
  * One monetary unit per ledger. Fiat balances are bigint cents.
@@ -64,20 +44,19 @@ export class Ledger {
       throw new Error('A transaction needs at least two lines');
     }
     const next = copyAccounts(this.accounts);
-    let debitTotal = this.zero();
-    let creditTotal = this.zero();
+    let debitTotal: bigint | number = this.unit === 'cent' ? 0n : 0;
+    let creditTotal: bigint | number = this.unit === 'cent' ? 0n : 0;
     for (const line of lines) {
       const account = next.get(line.accountId);
       if (!account) {
         throw new Error(`Unknown account ${line.accountId}`);
       }
-      this.assertAmount(line.amount);
-      debitTotal = this.addTotals(debitTotal, line.side === 'debit' ? line.amount : this.zero());
-      creditTotal = this.addTotals(creditTotal, line.side === 'credit' ? line.amount : this.zero());
-      const updated = applyLine(account, line.side, line.amount);
-      next.set(account.id, updated);
+      assertPostingAmount(this.unit, line.amount);
+      debitTotal = addTotals(debitTotal, line.side === 'debit' ? line.amount : this.zero());
+      creditTotal = addTotals(creditTotal, line.side === 'credit' ? line.amount : this.zero());
+      next.set(account.id, applyLine(account, line.side, line.amount));
     }
-    this.assertTotalsMatch(debitTotal, creditTotal);
+    assertTotalsMatch(debitTotal, creditTotal);
     this.accounts = next;
   }
 
@@ -129,64 +108,7 @@ export class Ledger {
   }
 
   audit(): AuditReport {
-    if (this.unit === 'cent') {
-      return this.auditCents();
-    }
-    return this.auditSatoshis();
-  }
-
-  private auditCents(): AuditReport {
-    let assets = 0n;
-    let liabilities = 0n;
-    let equity = 0n;
-    for (const account of this.accounts.values()) {
-      if (typeof account.balance !== 'bigint') {
-        throw new Error(`Account ${account.id} is not a cent balance`);
-      }
-      if (account.kind === 'asset') {
-        assets += account.balance;
-      } else if (account.kind === 'liability') {
-        liabilities += account.balance;
-      } else {
-        equity += account.balance;
-      }
-    }
-    const imbalance = assets - liabilities - equity;
-    return {
-      unit: 'cent',
-      ok: imbalance === 0n,
-      assets: assets.toString(),
-      liabilities: liabilities.toString(),
-      equity: equity.toString(),
-      imbalance: imbalance.toString(),
-    };
-  }
-
-  private auditSatoshis(): AuditReport {
-    let assets = 0;
-    let liabilities = 0;
-    let equity = 0;
-    for (const account of this.accounts.values()) {
-      if (typeof account.balance !== 'number') {
-        throw new Error(`Account ${account.id} is not a satoshi balance`);
-      }
-      if (account.kind === 'asset') {
-        assets += account.balance;
-      } else if (account.kind === 'liability') {
-        liabilities += account.balance;
-      } else {
-        equity += account.balance;
-      }
-    }
-    const imbalance = assets - liabilities - equity;
-    return {
-      unit: 'satoshi',
-      ok: bitcoinImbalanceOk(assets, liabilities, equity),
-      assets: formatCanonicalNumber(assets),
-      liabilities: formatCanonicalNumber(liabilities),
-      equity: formatCanonicalNumber(equity),
-      imbalance: formatCanonicalNumber(imbalance),
-    };
+    return auditAccounts(this.unit, this.accounts.values());
   }
 
   private requireAccount(id: string): Account {
@@ -204,113 +126,24 @@ export class Ledger {
     }
   }
 
-  private assertAmount(amount: bigint | number): void {
-    if (this.unit === 'cent') {
-      if (typeof amount !== 'bigint') {
-        throw new Error('Fiat amounts must be bigint cents');
-      }
-      assertPositiveCent(amount);
-      return;
-    }
-    if (typeof amount !== 'number') {
-      throw new Error('Bitcoin amounts must be numbers of satoshis');
-    }
-    assertPositiveSatoshi(amount);
-  }
-
   private zero(): bigint | number {
     return this.unit === 'cent' ? 0n : 0;
   }
-
-  private addTotals(total: bigint | number, amount: bigint | number): bigint | number {
-    if (typeof total === 'bigint' && typeof amount === 'bigint') {
-      return total + amount;
-    }
-    if (typeof total === 'number' && typeof amount === 'number') {
-      return total + amount;
-    }
-    throw new Error('Mixed fiat and bitcoin amounts');
-  }
-
-  private assertTotalsMatch(debit: bigint | number, credit: bigint | number): void {
-    if (typeof debit === 'bigint' && typeof credit === 'bigint') {
-      if (debit !== credit) {
-        throw new Error('Debits must equal credits');
-      }
-      return;
-    }
-    if (
-      typeof debit === 'number' &&
-      typeof credit === 'number' &&
-      bitcoinAmountsMatch(debit, credit)
-    ) {
-      return;
-    }
-    throw new Error('Debits must equal credits');
-  }
 }
 
-function copyAccounts(accounts: Map<string, Account>): Map<string, Account> {
-  const copy = new Map<string, Account>();
-  for (const [id, account] of accounts) {
-    copy.set(id, { ...account });
-  }
-  return copy;
-}
-
-function applyLine(account: Account, side: EntrySide, amount: bigint | number): Account {
-  const increase =
-    (account.kind === 'asset' && side === 'debit') ||
-    (account.kind !== 'asset' && side === 'credit');
-  if (typeof account.balance === 'bigint' && typeof amount === 'bigint') {
-    const next = increase ? account.balance + amount : account.balance - amount;
-    if (account.kind === 'asset' && next < 0n) {
-      throw new Error(`Account ${account.id} has insufficient balance`);
+function assertTotalsMatch(debit: bigint | number, credit: bigint | number): void {
+  if (typeof debit === 'bigint' && typeof credit === 'bigint') {
+    if (debit !== credit) {
+      throw new Error('Debits must equal credits');
     }
-    assertCentBalance(next);
-    return { ...account, balance: next };
+    return;
   }
-  if (typeof account.balance === 'number' && typeof amount === 'number') {
-    const next = increase ? account.balance + amount : account.balance - amount;
-    if (!Number.isFinite(next)) {
-      throw new Error(`Account ${account.id} balance is not finite`);
-    }
-    if (account.kind === 'asset' && next < -1e-9) {
-      throw new Error(`Account ${account.id} has insufficient balance`);
-    }
-    if (account.kind === 'asset' && next < 0) {
-      return { ...account, balance: 0 };
-    }
-    return { ...account, balance: next };
+  if (
+    typeof debit === 'number' &&
+    typeof credit === 'number' &&
+    bitcoinAmountsMatch(debit, credit)
+  ) {
+    return;
   }
-  throw new Error('Mixed fiat and bitcoin amounts');
-}
-
-function compareAccountIds(left: string, right: string): number {
-  const leftNumeric = /^\d+$/.test(left);
-  const rightNumeric = /^\d+$/.test(right);
-  if (leftNumeric && rightNumeric) {
-    const leftValue = BigInt(left);
-    const rightValue = BigInt(right);
-    if (leftValue < rightValue) {
-      return -1;
-    }
-    if (leftValue > rightValue) {
-      return 1;
-    }
-    return 0;
-  }
-  if (leftNumeric) {
-    return -1;
-  }
-  if (rightNumeric) {
-    return 1;
-  }
-  if (left < right) {
-    return -1;
-  }
-  if (left > right) {
-    return 1;
-  }
-  return 0;
+  throw new Error('Debits must equal credits');
 }

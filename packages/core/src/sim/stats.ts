@@ -49,53 +49,39 @@ export function median(values: readonly number[]): number {
   return sorted[mid] ?? 0;
 }
 
-export function stdev(values: readonly number[]): number {
-  if (values.length < 2) {
+/**
+ * Share of total held by the richest (`'top'`) or poorest (`'bottom'`) fraction.
+ * Negative values count as zero in the total.
+ */
+export function tailShare(
+  values: readonly number[],
+  fraction: number,
+  end: 'top' | 'bottom',
+): number {
+  if (values.length === 0) {
     return 0;
   }
-  const center = mean(values);
-  let acc = 0;
-  for (const value of values) {
-    const delta = value - center;
-    acc += delta * delta;
+  const sorted = [...values].sort((left, right) => left - right);
+  const count = Math.max(1, Math.floor(sorted.length * fraction));
+  let total = 0;
+  let slice = 0;
+  for (let index = 0; index < sorted.length; index += 1) {
+    const value = Math.max(0, sorted[index] ?? 0);
+    total += value;
+    const inSlice = end === 'top' ? index >= sorted.length - count : index < count;
+    if (inSlice) {
+      slice += value;
+    }
   }
-  return Math.sqrt(acc / (values.length - 1));
+  return total === 0 ? 0 : slice / total;
 }
 
 export function topShare(values: readonly number[], fraction: number): number {
-  if (values.length === 0) {
-    return 0;
-  }
-  const sorted = [...values].sort((left, right) => left - right);
-  const count = Math.max(1, Math.floor(sorted.length * fraction));
-  let total = 0;
-  let top = 0;
-  for (let index = 0; index < sorted.length; index += 1) {
-    const value = Math.max(0, sorted[index] ?? 0);
-    total += value;
-    if (index >= sorted.length - count) {
-      top += value;
-    }
-  }
-  return total === 0 ? 0 : top / total;
+  return tailShare(values, fraction, 'top');
 }
 
 export function bottomShare(values: readonly number[], fraction: number): number {
-  if (values.length === 0) {
-    return 0;
-  }
-  const sorted = [...values].sort((left, right) => left - right);
-  const count = Math.max(1, Math.floor(sorted.length * fraction));
-  let total = 0;
-  let bottom = 0;
-  for (let index = 0; index < sorted.length; index += 1) {
-    const value = Math.max(0, sorted[index] ?? 0);
-    total += value;
-    if (index < count) {
-      bottom += value;
-    }
-  }
-  return total === 0 ? 0 : bottom / total;
+  return tailShare(values, fraction, 'bottom');
 }
 
 export function monthlyFromAnnual(rate: number): number {
