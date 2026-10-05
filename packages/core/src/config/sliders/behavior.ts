@@ -10,7 +10,7 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0.04,
     0.01,
     0.15,
-    'How impatient households are, on average, as an annual discount rate. Each household draws a rate around this mean, and the draw is kept between 1 and 15 percent a year. Spending depends on whether a household is more or less impatient than this mean, so raising the mean does not raise average spending. In the fiat regime the same number is the neutral real interest rate: the policy rate starts from this value plus inflation. A higher mean lifts the fiat policy rate even when inflation is on target.',
+    'How impatient households are, on average, as an annual discount rate. Each household draws a rate around this mean, and the draw is kept between 1 and 15 percent a year. Spending depends on whether a household is more or less impatient than this mean, so raising the mean does not raise average spending. Inflation above the regime path can still raise average spending through household.inflationTimePreference. In the fiat regime the same number is the neutral real interest rate: the policy rate starts from this value plus inflation. A higher mean lifts the fiat policy rate even when inflation is on target.',
   ),
   numberSlider(
     'household.timePreferenceStd',
@@ -21,6 +21,16 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0,
     0.08,
     'How widely patience differs across households. Each household draws a normal rate around the mean time preference, then the draw is kept between 1 and 15 percent a year. A household above the mean spends a larger share of smoothed income; one below the mean saves more. A wider spread fans consumption and deposit balances apart. At zero, every household has the mean rate and no patience draw is used.',
+  ),
+  numberSlider(
+    'household.inflationTimePreference',
+    'Inflation time-preference response',
+    'behavior',
+    'coefficient',
+    0.1,
+    0,
+    0.5,
+    'How strongly inflation above the regime normal path raises the goods spending share. The gap is year-over-year inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.',
   ),
   numberSlider(
     'household.skillSigma',

@@ -5,6 +5,7 @@ import { listSliders } from './registry.js';
 const EXPECTED_IDS = [
   'household.timePreferenceMean',
   'household.timePreferenceStd',
+  'household.inflationTimePreference',
   'household.skillSigma',
   'household.trustInBanks',
   'household.realReturnSensitivity',

@@ -131,9 +131,14 @@ export function savingsRoom(economy: Economy): number {
 }
 
 export function priceTrend(economy: Economy): number {
+  return monthlyFromAnnual(normalInflation(economy));
+}
+
+/** Annual inflation the regime price path aims for. */
+export function normalInflation(economy: Economy): number {
   return economy.params.regime === 'fiat'
-    ? monthlyFromAnnual(economy.params.inflationTarget)
-    : monthlyFromAnnual(-economy.params.prodGrowth);
+    ? economy.params.inflationTarget
+    : -economy.params.prodGrowth;
 }
 
 export function inflation(economy: Economy): number {

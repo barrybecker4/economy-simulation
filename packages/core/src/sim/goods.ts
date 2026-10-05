@@ -1,9 +1,9 @@
 import { INVENTORY_MONTHS, MAX_MONTHLY_PRICE_MOVE, WEALTH_MPC } from './rules.js';
 import { clamp } from './stats.js';
 import type { Economy } from './economy.js';
-import { firmCapacity, inflation, moneyAmount, pay, priceTrend } from './helpers.js';
+import { firmCapacity, inflation, moneyAmount, normalInflation, pay, priceTrend } from './helpers.js';
 import { buyFromFirms } from './shop.js';
-import { discretionaryAfterRealReturn, subsistenceShare } from './spending.js';
+import { discretionaryAfterRealReturn, goodsSpendingShare, subsistenceShare } from './spending.js';
 
 export function onGoods(economy: Economy): void {
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
@@ -14,14 +14,18 @@ export function onGoods(economy: Economy): void {
     economy.demandBase += household.smoothed;
   }
   const floorShare = subsistenceShare();
-  const realReturn = economy.depositRate - inflation(economy);
+  const inflationRate = inflation(economy);
+  const inflationGap = inflationRate - normalInflation(economy);
+  const realReturn = economy.depositRate - inflationRate;
   const demandFactor = 1 + economy.demandImpulse + economy.fiscalBoost;
   for (const household of economy.households) {
-    const mpc = clamp(
-      1 - economy.params.spendShare + household.timePref - economy.params.timePrefMean,
-      0.35,
-      0.95,
-    );
+    const mpc = goodsSpendingShare({
+      governmentShare: economy.params.spendShare,
+      timePref: household.timePref,
+      timePrefMean: economy.params.timePrefMean,
+      inflationGap,
+      inflationSensitivity: economy.params.inflationTimePreference,
+    });
     const buffer = household.income * 48;
     const extra = Math.max(0, household.deposit - buffer) * WEALTH_MPC;
     const uncut = household.smoothed * mpc * demandFactor + extra;
@@ -94,7 +98,14 @@ function shopAgents(economy: Economy): void {
   if (economy.agents.length === 0 || economy.firms.length === 0) {
     return;
   }
-  const mpc = clamp(1 - economy.params.spendShare, 0.35, 0.95);
+  const inflationGap = inflation(economy) - normalInflation(economy);
+  const mpc = goodsSpendingShare({
+    governmentShare: economy.params.spendShare,
+    timePref: economy.params.timePrefMean,
+    timePrefMean: economy.params.timePrefMean,
+    inflationGap,
+    inflationSensitivity: economy.params.inflationTimePreference,
+  });
   for (const agent of economy.agents) {
     const taxReserve = moneyAmount(economy, economy.params.taxRate * agent.income);
     const buffer = agent.income * 48;

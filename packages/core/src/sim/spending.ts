@@ -7,6 +7,29 @@ export function subsistenceShare(): number {
 }
 
 /**
+ * Household goods spending share of smoothed income. Structural impatience is
+ * time preference relative to the mean. Inflation above the regime's normal
+ * path adds sensitivity times that gap; sensitivity 0 is the prior rule.
+ */
+export function goodsSpendingShare(input: {
+  governmentShare: number;
+  timePref: number;
+  timePrefMean: number;
+  inflationGap: number;
+  inflationSensitivity: number;
+}): number {
+  return clamp(
+    1 -
+      input.governmentShare +
+      input.timePref -
+      input.timePrefMean +
+      input.inflationSensitivity * input.inflationGap,
+    0.35,
+    0.95,
+  );
+}
+
+/**
  * Apply real-return sensitivity only to the discretionary remainder above the
  * food and housing floor. Sensitivity 0 leaves the uncut budget unchanged.
  */

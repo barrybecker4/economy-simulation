@@ -153,6 +153,7 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | ----------- | -------------------------------------- | --------------- | ---------------------------- |
 | Behavior    | household.timePreferenceMean (annual)  | 0.04            | 0.01 to 0.15                 |
 | Behavior    | household.timePreferenceStd            | 0.02            | 0 to 0.08                    |
+| Behavior    | household.inflationTimePreference      | 0.1             | 0 to 0.5                     |
 | Behavior    | household.skillSigma                   | 0.5             | 0.1 to 1.2                   |
 | Behavior    | household.trustInBanks                 | 0.9             | 0 to 1                       |
 | Behavior    | firm.markup                            | 0.2             | 0.05 to 0.6                  |
@@ -489,6 +490,21 @@ Acceptance:
 - Length 0 matches steady fiat and bitcoin from Phase 14.
 - A positive length conserves the ledger at conversion ticks, puts base money on the bitcoin schedule afterward, and raises wealth Gini when holder concentration is higher.
 - A methods note compares 120-month runs across steady fiat, steady bitcoin, and the transition, with seed bands and no composite ranking.
+
+### Phase 16: Inflation raises impatience a little
+
+Goal: goods spending rises slightly when inflation is above the regime's normal path, while the time-preference slider and the fiat policy rate stay fixed.
+
+1. `household.inflationTimePreference` defaults to 0.1. The goods spending share rises by this coefficient times (year-over-year inflation minus normal inflation).
+2. Normal inflation is the inflation target under fiat and minus `productivity.baseGrowth` under bitcoin and hybrid. At sensitivity 0 the spending share ignores inflation.
+3. Household draws of time preference and the fiat policy rate still use `household.timePreferenceMean` alone. AI agents shop at the mean plus the same common addend.
+
+Acceptance:
+
+- Sensitivity 0 matches Phase 15 spending for the same seeds.
+- When measured inflation equals normal inflation, the addend is zero.
+- A positive inflation gap raises the spending share by sensitivity times the gap.
+- The fiat policy rate rule still uses `household.timePreferenceMean` alone.
 
 ## Validation
 

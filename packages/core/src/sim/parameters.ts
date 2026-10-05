@@ -20,6 +20,7 @@ export interface Parameters {
   reserveRequirement: number;
   capitalRatio: number;
   timePrefMean: number;
+  inflationTimePreference: number;
   prodGrowth: number;
   categoryGrowth: CategoryProductivity;
   housingSupplyGrowth: number;
@@ -81,6 +82,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     reserveRequirement: slider(config, 'bank.reserveRequirement'),
     capitalRatio: slider(config, 'bank.capitalRatio'),
     timePrefMean: slider(config, 'household.timePreferenceMean'),
+    inflationTimePreference: slider(config, 'household.inflationTimePreference'),
     prodGrowth: slider(config, 'productivity.baseGrowth'),
     categoryGrowth: {
       food: slider(config, 'goods.foodProductivity'),

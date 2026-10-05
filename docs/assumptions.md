@@ -402,6 +402,17 @@ Registry version: 3.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Fraction of the AI slice of monthly nominal GDP paid equally to every household. The AI slice is the AI share of output times price times real GDP. The grant starts at zero when no AI capacity is adopted and rises with that share, so it phases in along the adoption curve rather than as a fixed stipend. At 0.25 with an AI share of 0.36, about 9 percent of that month’s nominal GDP is paid out. Tax, including tax on AI agents, is collected first. If the treasury cannot cover the grant, it issues bonds to the first bank. Households only receive the grant. Agents do not. At 0 the grant is off even while AI is adopted.
 
+## household.inflationTimePreference
+
+- Label: Inflation time-preference response
+- Group: behavior
+- Unit: coefficient
+- Default: 0.1
+- Range: 0 to 0.5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly inflation above the regime normal path raises the goods spending share. The gap is year-over-year inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.
+
 ## household.realReturnSensitivity
 
 - Label: Real-return spending sensitivity
@@ -433,7 +444,7 @@ Registry version: 3.
 - Range: 0.01 to 0.15
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How impatient households are, on average, as an annual discount rate. Each household draws a rate around this mean, and the draw is kept between 1 and 15 percent a year. Spending depends on whether a household is more or less impatient than this mean, so raising the mean does not raise average spending. In the fiat regime the same number is the neutral real interest rate: the policy rate starts from this value plus inflation. A higher mean lifts the fiat policy rate even when inflation is on target.
+- Description: How impatient households are, on average, as an annual discount rate. Each household draws a rate around this mean, and the draw is kept between 1 and 15 percent a year. Spending depends on whether a household is more or less impatient than this mean, so raising the mean does not raise average spending. Inflation above the regime path can still raise average spending through household.inflationTimePreference. In the fiat regime the same number is the neutral real interest rate: the policy rate starts from this value plus inflation. A higher mean lifts the fiat policy rate even when inflation is on target.
 
 ## household.timePreferenceStd
 
