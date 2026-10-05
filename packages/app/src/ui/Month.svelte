@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FLOW_NODES, maxFlowAmount, strokeWidth, type MonthFlows } from '../session/flows.js';
+  import { FLOW_NODES, maxFlowAmount, strokeWidth, type FlowEdge, type MonthFlows } from '../session/flows.js';
   import type { MonthCensus } from '../session/census.js';
   import { monthStart } from '../chart/time.js';
 
@@ -7,11 +7,13 @@
     ticks,
     monthIndex = $bindable(0),
     flows,
+    baselineFlows = null,
     census,
   }: {
     ticks: number[];
     monthIndex: number;
     flows: MonthFlows;
+    baselineFlows?: MonthFlows | null;
     census: MonthCensus;
   } = $props();
 
@@ -32,8 +34,29 @@
   const opened = new Date();
   const last = $derived(Math.max(0, ticks.length - 1));
   const label = $derived(monthName(monthIndex));
-  const peak = $derived(maxFlowAmount(flows.edges));
+  const paired = $derived(baselineFlows !== null);
   const nodes = Object.fromEntries(FLOW_NODES.map((node) => [node.id, node]));
+
+  const variantPeak = $derived(maxFlowAmount(flows.edges));
+  const baselinePeak = $derived(
+    baselineFlows === null ? 0 : maxFlowAmount(baselineFlows.edges),
+  );
+  const sharedPeak = $derived(
+    paired && baselineFlows !== null && baselineFlows.unit === flows.unit
+      ? Math.max(variantPeak, baselinePeak)
+      : null,
+  );
+  const variantScale = $derived(sharedPeak ?? variantPeak);
+  const baselineScale = $derived(sharedPeak ?? baselinePeak);
+  const variantEdges = $derived(activeEdges(flows.edges));
+  const baselineEdges = $derived(
+    baselineFlows === null ? [] : activeEdges(baselineFlows.edges),
+  );
+
+  let tipText = $state('');
+  let tipX = $state(0);
+  let tipY = $state(0);
+  let tipOpen = $state(false);
 
   function monthName(index: number): string {
     const date = monthStart(opened, ticks[index] ?? index);
@@ -58,7 +81,13 @@
     return `${(share * 100).toFixed(1)}%`;
   }
 
-  const activeEdges = $derived(flows.edges.filter((edge) => edge.amount > 0));
+  function activeEdges(edges: readonly FlowEdge[]): FlowEdge[] {
+    return edges.filter((edge) => edge.amount > 0);
+  }
+
+  function edgeCaption(edge: FlowEdge, unit: string): string {
+    return `${nodeLabel(edge.from)} → ${nodeLabel(edge.to)} · ${edge.label}: ${formatMoney(edge.amount)} ${unit}`;
+  }
 
   /** Quadratic curve from the rim of the payer to the rim of the payee, with a bend so parallel flows stay apart. */
   function edgePath(fromId: string, toId: string, bend: number): string {
@@ -82,19 +111,53 @@
     return `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`;
   }
 
-  function edgeBend(edge: (typeof activeEdges)[number]): number {
-    const siblings = activeEdges.filter(
-      (other) => other.from === edge.from && other.to === edge.to,
-    );
-    if (siblings.length <= 1) {
+  function edgeBend(edge: FlowEdge, siblings: readonly FlowEdge[]): number {
+    const group = siblings.filter((other) => other.from === edge.from && other.to === edge.to);
+    if (group.length <= 1) {
       return 24;
     }
-    const rank = siblings.indexOf(edge);
-    return 12 + (rank - (siblings.length - 1) / 2) * 28;
+    const rank = group.indexOf(edge);
+    return 12 + (rank - (group.length - 1) / 2) * 28;
   }
 
   function nodeLabel(id: string): string {
     return FLOW_NODES.find((node) => node.id === id)?.label ?? id;
+  }
+
+  function showTip(text: string, clientX: number, clientY: number): void {
+    tipText = text;
+    tipX = clientX;
+    tipY = clientY;
+    tipOpen = true;
+  }
+
+  function moveTip(clientX: number, clientY: number): void {
+    tipX = clientX;
+    tipY = clientY;
+  }
+
+  function hideTip(): void {
+    tipOpen = false;
+  }
+
+  function onEdgePointerEnter(event: PointerEvent, text: string): void {
+    showTip(text, event.clientX, event.clientY);
+  }
+
+  function onEdgePointerMove(event: PointerEvent): void {
+    if (!tipOpen) {
+      return;
+    }
+    moveTip(event.clientX, event.clientY);
+  }
+
+  function onEdgeFocus(event: FocusEvent, text: string): void {
+    const target = event.currentTarget;
+    if (!(target instanceof Element)) {
+      return;
+    }
+    const box = target.getBoundingClientRect();
+    showTip(text, box.left + box.width / 2, box.top);
   }
 </script>
 
@@ -115,54 +178,151 @@
   </label>
 
   <div class="panel">
-    <h3>Who paid whom ({flows.unit})</h3>
-    <svg viewBox="0 0 400 400" role="img" aria-label="Directed payment flows for the selected month">
-      <defs>
-        {#each activeEdges as edge, index (edge.from + edge.to + edge.label)}
-          <marker
-            id="flow-arrow-{index}"
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="8"
-            markerHeight="8"
-            markerUnits="userSpaceOnUse"
-            orient="auto-start-reverse"
+    <h3>Who paid whom{#if !paired} ({flows.unit}){/if}</h3>
+    <div class="graphs" class:paired>
+      {#if baselineFlows}
+        <div class="graph">
+          <h4>Baseline ({baselineFlows.unit})</h4>
+          <svg
+            viewBox="0 0 400 400"
+            role="img"
+            aria-label="Baseline directed payment flows for the selected month"
           >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill={edge.color} />
-          </marker>
-        {/each}
-      </defs>
-      {#each activeEdges as edge, index (edge.from + edge.to + edge.label)}
-        <path
-          d={edgePath(edge.from, edge.to, edgeBend(edge))}
-          fill="none"
-          stroke={edge.color}
-          stroke-width={strokeWidth(edge.amount, peak)}
-          stroke-linecap="round"
-          opacity="0.9"
-          marker-end="url(#flow-arrow-{index})"
+            <defs>
+              {#each baselineEdges as edge, index (edge.from + edge.to + edge.label)}
+                <marker
+                  id="flow-arrow-baseline-{index}"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="8"
+                  markerHeight="8"
+                  markerUnits="userSpaceOnUse"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill={edge.color} />
+                </marker>
+              {/each}
+            </defs>
+            {#each baselineEdges as edge, index (edge.from + edge.to + edge.label)}
+              {@const caption = edgeCaption(edge, baselineFlows.unit)}
+              {@const path = edgePath(edge.from, edge.to, edgeBend(edge, baselineEdges))}
+              {@const width = strokeWidth(edge.amount, baselineScale)}
+              <g
+                role="button"
+                tabindex="0"
+                aria-label={caption}
+                onpointerenter={(event) => onEdgePointerEnter(event, caption)}
+                onpointermove={onEdgePointerMove}
+                onpointerleave={hideTip}
+                onfocus={(event) => onEdgeFocus(event, caption)}
+                onblur={hideTip}
+              >
+                <path
+                  d={path}
+                  fill="none"
+                  stroke="transparent"
+                  stroke-width={Math.max(width + 10, 14)}
+                  stroke-linecap="round"
+                />
+                <path
+                  d={path}
+                  fill="none"
+                  stroke={edge.color}
+                  stroke-width={width}
+                  stroke-linecap="round"
+                  opacity="0.9"
+                  marker-end="url(#flow-arrow-baseline-{index})"
+                  pointer-events="none"
+                />
+              </g>
+            {/each}
+            {#each FLOW_NODES as node (node.id)}
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r="28"
+                fill="#fafaf9"
+                stroke="#1c1917"
+                stroke-width="1.5"
+              />
+              <text x={node.x} y={node.y + 4} text-anchor="middle" font-size="11">{node.label}</text>
+            {/each}
+          </svg>
+        </div>
+      {/if}
+      <div class="graph">
+        {#if paired}
+          <h4>Variant ({flows.unit})</h4>
+        {/if}
+        <svg
+          viewBox="0 0 400 400"
+          role="img"
+          aria-label="{paired ? 'Variant ' : ''}Directed payment flows for the selected month"
         >
-          <title
-            >{nodeLabel(edge.from)} → {nodeLabel(edge.to)}: {edge.label}
-            {formatMoney(edge.amount)}
-            {flows.unit}</title
-          >
-        </path>
-      {/each}
-      {#each FLOW_NODES as node (node.id)}
-        <circle cx={node.x} cy={node.y} r="28" fill="#fafaf9" stroke="#1c1917" stroke-width="1.5" />
-        <text x={node.x} y={node.y + 4} text-anchor="middle" font-size="11">{node.label}</text>
-      {/each}
-    </svg>
-    <ul class="legend">
-      {#each flows.edges as edge (edge.from + edge.to + edge.label)}
-        <li style:--swatch={edge.color}>
-          {nodeLabel(edge.from)} → {nodeLabel(edge.to)} · {edge.label}: {formatMoney(edge.amount)}
-          {flows.unit}
-        </li>
-      {/each}
-    </ul>
+          <defs>
+            {#each variantEdges as edge, index (edge.from + edge.to + edge.label)}
+              <marker
+                id="flow-arrow-variant-{index}"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="8"
+                markerHeight="8"
+                markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill={edge.color} />
+              </marker>
+            {/each}
+          </defs>
+          {#each variantEdges as edge, index (edge.from + edge.to + edge.label)}
+            {@const caption = edgeCaption(edge, flows.unit)}
+            {@const path = edgePath(edge.from, edge.to, edgeBend(edge, variantEdges))}
+            {@const width = strokeWidth(edge.amount, variantScale)}
+            <g
+              role="button"
+              tabindex="0"
+              aria-label={caption}
+              onpointerenter={(event) => onEdgePointerEnter(event, caption)}
+              onpointermove={onEdgePointerMove}
+              onpointerleave={hideTip}
+              onfocus={(event) => onEdgeFocus(event, caption)}
+              onblur={hideTip}
+            >
+              <path
+                d={path}
+                fill="none"
+                stroke="transparent"
+                stroke-width={Math.max(width + 10, 14)}
+                stroke-linecap="round"
+              />
+              <path
+                d={path}
+                fill="none"
+                stroke={edge.color}
+                stroke-width={width}
+                stroke-linecap="round"
+                opacity="0.9"
+                marker-end="url(#flow-arrow-variant-{index})"
+                pointer-events="none"
+              />
+            </g>
+          {/each}
+          {#each FLOW_NODES as node (node.id)}
+            <circle
+              cx={node.x}
+              cy={node.y}
+              r="28"
+              fill="#fafaf9"
+              stroke="#1c1917"
+              stroke-width="1.5"
+            />
+            <text x={node.x} y={node.y + 4} text-anchor="middle" font-size="11">{node.label}</text>
+          {/each}
+        </svg>
+      </div>
+    </div>
   </div>
 
   <div class="panel">
@@ -217,6 +377,12 @@
   </div>
 </section>
 
+{#if tipOpen}
+  <div class="edge-tip" style:left="{tipX}px" style:top="{tipY}px" role="tooltip">
+    {tipText}
+  </div>
+{/if}
+
 <style>
   .month {
     display: grid;
@@ -241,11 +407,36 @@
     font-weight: 600;
     margin: 0 0 0.6rem;
   }
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.45rem;
+  }
+  .graphs {
+    display: grid;
+    gap: 1rem;
+  }
+  .graphs.paired {
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+  .graph {
+    min-width: 0;
+  }
   svg {
     display: block;
     height: auto;
     max-width: 28rem;
     width: 100%;
+  }
+  .graphs.paired svg {
+    max-width: none;
+  }
+  g[tabindex] {
+    cursor: help;
+    outline: none;
+  }
+  g[tabindex]:focus-visible {
+    filter: drop-shadow(0 0 2px #1c1917);
   }
   .stack {
     border-radius: 0.25rem;
@@ -283,5 +474,21 @@
     color: #44403c;
     line-height: 1.45;
     margin: 0;
+  }
+  .edge-tip {
+    background: #1c1917;
+    border-radius: 0.35rem;
+    color: #fafaf9;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.82rem;
+    left: 0;
+    line-height: 1.35;
+    max-width: min(22rem, calc(100vw - 1.5rem));
+    padding: 0.4rem 0.55rem;
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    transform: translate(12px, 12px);
+    z-index: 50;
   }
 </style>

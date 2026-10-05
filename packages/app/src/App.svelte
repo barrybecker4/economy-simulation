@@ -80,6 +80,11 @@
   const householdCount = $derived(numericOverride('scale.households', 1000));
   const ownership = $derived(numericOverride('ai.ownershipConcentration', 0.5));
   const flows = $derived(result === null ? null : monthFlows(result, chartRegime, monthIndex));
+  const baselineFlows = $derived(
+    overlayBaseline === null
+      ? null
+      : monthFlows(overlayBaseline.result, overlayBaseline.regime, monthIndex),
+  );
   const census = $derived(
     result === null ? null : monthCensus(result, monthIndex, householdCount, ownership),
   );
@@ -340,7 +345,7 @@
           lines={chart.lines}
         />
       {/each}
-      <Month bind:monthIndex ticks={result.ticks} {flows} {census} />
+      <Month bind:monthIndex ticks={result.ticks} {flows} {baselineFlows} {census} />
     {/if}
   {/if}
 
