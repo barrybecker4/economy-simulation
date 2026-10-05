@@ -53,7 +53,7 @@
   const caption = $derived(label ?? slider?.label ?? '');
   const tipId = $derived(slider?.id ?? id ?? 'note');
 
-  const SHOW_MS = 40;
+  const SHOW_MS = 500;
   const HIDE_MS = 200;
 
   let nameEl: HTMLSpanElement | undefined = $state();
