@@ -56,6 +56,7 @@ describe('chartViews', () => {
       'flows',
     ]);
     expect(fiat.find((view) => view.key === 'prices')?.unit).toBe('cents');
+    expect(fiat.find((view) => view.key === 'tax')?.unit).toBe('cents');
     expect(bitcoin.find((view) => view.key === 'ubi')?.unit).toBe('satoshis');
     expect(fiat.find((view) => view.key === 'output')?.group).toBe('Output');
     expect(fiat.find((view) => view.key === 'shocks')?.lines.map((line) => line.label)).toEqual([
@@ -90,6 +91,57 @@ describe('chartViews', () => {
     expect(views[pricesAt + 1]?.key).toBe('cpi-band');
     expect(views[pricesAt + 1]?.unit).toBe('satoshis');
     expect(views[pricesAt + 1]?.lines.map((line) => line.label)).toEqual(['5th', 'Median', '95th']);
+  });
+
+  it('shows fiat money charts in dollars when a point is above 1000 cents', () => {
+    const cents = [500, 250_000];
+    const dollars = [5, 2_500];
+    const views = chartViews({ kind: 'run', ticks, series: series(cents) }, 'fiat');
+    for (const key of ['prices', 'ubi', 'tax', 'ai-spend', 'living', 'money', 'flows']) {
+      const view = views.find((item) => item.key === key);
+      expect(view?.unit).toBe('dollars');
+      expect(view?.lines[0]?.values).toEqual(dollars);
+    }
+    expect(views.find((view) => view.key === 'tax')?.lines[1]?.values).toEqual(dollars);
+    expect(views.find((view) => view.key === 'labor')?.unit).toBe('share');
+    expect(views.find((view) => view.key === 'labor')?.lines[0]?.values).toEqual(cents);
+    expect(views.find((view) => view.key === 'output')?.unit).toBe('real units');
+    expect(views.find((view) => view.key === 'wellbeing')?.unit).toBe('log points');
+  });
+
+  it('keeps money charts in cents at 1000 and in satoshis under bitcoin', () => {
+    const atCap = chartViews({ kind: 'run', ticks, series: series([0, 1_000]) }, 'fiat');
+    const capped = atCap.find((view) => view.key === 'ubi');
+    expect(capped?.unit).toBe('cents');
+    expect(capped?.lines[0]?.values).toEqual([0, 1_000]);
+
+    const justOver = chartViews({ kind: 'run', ticks, series: series([0, 1_100]) }, 'fiat');
+    const grant = justOver.find((view) => view.key === 'ubi');
+    expect(grant?.unit).toBe('dollars');
+    expect(grant?.lines[0]?.values).toEqual([0, 11]);
+
+    const bitcoin = chartViews({ kind: 'run', ticks, series: series([0, 250_000]) }, 'bitcoin');
+    const ubi = bitcoin.find((view) => view.key === 'ubi');
+    expect(ubi?.unit).toBe('satoshis');
+    expect(ubi?.lines[0]?.values).toEqual([0, 250_000]);
+  });
+
+  it('scales a fiat CPI band to dollars and leaves the two-regime chart in its own units', () => {
+    const wide = chartViews(
+      { kind: 'band', ticks, series: {}, bands: bands([200, 20_000]) },
+      'fiat',
+    );
+    const band = wide.find((view) => view.key === 'cpi-band');
+    expect(band?.unit).toBe('dollars');
+    expect(band?.lines.find((line) => line.label === 'Median')?.values).toEqual([2, 200]);
+
+    const compared = series([500, 250_000]);
+    compared.priceLevelBitcoin = [8, 9];
+    const views = chartViews({ kind: 'compare', ticks, series: compared }, 'fiat');
+    expect(views[0]?.unit).toBe('');
+    expect(views[0]?.lines[0]?.values).toEqual([500, 250_000]);
+    expect(views.find((view) => view.key === 'prices')?.unit).toBe('dollars');
+    expect(views.find((view) => view.key === 'prices')?.lines[0]?.values).toEqual([5, 2_500]);
   });
 
   it('rejects a run with no ticks, a missing series, or a short series', () => {

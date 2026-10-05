@@ -274,15 +274,47 @@ export function chartViews(result: RunSuccess, regime: string): ChartView[] {
   return views;
 }
 
+/** Cents in one dollar. Display only; ledger amounts stay in cents. */
+const CENTS_PER_DOLLAR = 100;
+/** Fiat money charts stay in cents at this level and switch to dollars above it. */
+const CENT_DISPLAY_MAX = 1_000;
+
 function viewFromSpec(spec: ChartSpec, result: RunSuccess, regime: string): ChartView {
+  const scaled = scaleCents(
+    unitText(spec.unit, regime),
+    spec.lines.map((line) => lineOf(result, line)),
+  );
   return {
     key: spec.key,
     title: spec.title,
     group: spec.group,
-    unit: unitText(spec.unit, regime),
+    unit: scaled.unit,
     description: spec.description,
-    lines: spec.lines.map((line) => lineOf(result, line)),
+    lines: scaled.lines,
   };
+}
+
+function scaleCents(unit: string, lines: ChartLine[]): { unit: string; lines: ChartLine[] } {
+  if (unit !== 'cents' || peakAbs(lines) <= CENT_DISPLAY_MAX) {
+    return { unit, lines };
+  }
+  return { unit: 'dollars', lines: lines.map(asDollars) };
+}
+
+function peakAbs(lines: readonly ChartLine[]): number {
+  let peak = 0;
+  for (const line of lines) {
+    for (const value of line.values) {
+      if (Number.isFinite(value)) {
+        peak = Math.max(peak, Math.abs(value));
+      }
+    }
+  }
+  return peak;
+}
+
+function asDollars(line: ChartLine): ChartLine {
+  return { ...line, values: line.values.map((value) => value / CENTS_PER_DOLLAR) };
 }
 
 function unitText(unit: ChartSpec['unit'], regime: string): string {
@@ -348,17 +380,18 @@ function cpiBandView(result: BandRunResult, regime: string): ChartView {
   if (band === undefined) {
     throw new Error('Missing band priceLevel');
   }
+  const scaled = scaleCents(moneyUnit(regime), [
+    checkedLine(result.ticks, '5th', band.low, '#99b'),
+    checkedLine(result.ticks, 'Median', band.mid, '#246'),
+    checkedLine(result.ticks, '95th', band.high, '#99b'),
+  ]);
   return {
     key: 'cpi-band',
     title: 'CPI band',
     group: 'Prices',
-    unit: moneyUnit(regime),
+    unit: scaled.unit,
     description: 'Median CPI across five seeds, with the 5th and 95th percentiles.',
-    lines: [
-      checkedLine(result.ticks, '5th', band.low, '#99b'),
-      checkedLine(result.ticks, 'Median', band.mid, '#246'),
-      checkedLine(result.ticks, '95th', band.high, '#99b'),
-    ],
+    lines: scaled.lines,
   };
 }
 
