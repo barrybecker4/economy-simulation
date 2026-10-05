@@ -25,7 +25,10 @@ describe('AI productivity', () => {
     expect(series(low, 'realGdp')).toEqual(series(high, 'realGdp'));
     expect(series(low, 'priceLevel')).toEqual(series(high, 'priceLevel'));
     expect(series(low, 'laborShare')).toEqual(series(high, 'laborShare'));
+    expect(series(low, 'unemployment')).toEqual(series(high, 'unemployment'));
     expect(series(low, 'aiShareOfOutput').every((value) => value === 0)).toBe(true);
+    expect(series(low, 'ubiOutlay').every((value) => value === 0)).toBe(true);
+    expect(series(high, 'ubiOutlay').every((value) => value === 0)).toBe(true);
   });
 
   it('raises productivity per human and lowers the labor share when adoption is fast', () => {
@@ -49,6 +52,116 @@ describe('AI productivity', () => {
       );
       expect(last(fast, 'laborShare'), regime).toBeLessThan(last(quiet, 'laborShare'));
     }
+  });
+
+  it('raises unemployment without cutting real GDP when adoption is fast', () => {
+    for (const regime of ['fiat', 'bitcoin'] as const) {
+      const quiet = run({
+        ...scale,
+        'regime.type': regime,
+        'ai.automatableShareStart': 0.3,
+        'ai.automatableShareEnd': 0.3,
+      });
+      const fast = run({
+        ...scale,
+        'regime.type': regime,
+        'ai.adoptionMidpointYear': 3,
+        'ai.adoptionSteepness': 1.2,
+        'ai.physicalTaskShare': 0.1,
+      });
+      expect(last(fast, 'unemployment'), regime).toBeGreaterThan(last(quiet, 'unemployment'));
+      expect(last(fast, 'naturalUnemployment'), regime).toBeGreaterThan(
+        last(quiet, 'naturalUnemployment'),
+      );
+      expect(last(fast, 'realGdp'), regime).toBeGreaterThan(last(quiet, 'realGdp'));
+    }
+  });
+
+  it('moves wages and the fiat policy rate less for a given unemployment gap once AI has grown', () => {
+    const quiet = run({
+      ...scale,
+      'ai.automatableShareStart': 0.3,
+      'ai.automatableShareEnd': 0.3,
+      'shock.frequency': 0,
+      'wage.nominalRigidity': 0,
+      'centralBank.outputWeight': 1.5,
+    });
+    const fast = run({
+      ...scale,
+      'ai.adoptionMidpointYear': 3,
+      'ai.adoptionSteepness': 1.2,
+      'ai.physicalTaskShare': 0.1,
+      'shock.frequency': 0,
+      'wage.nominalRigidity': 0,
+      'centralBank.outputWeight': 1.5,
+    });
+    const quietGap = last(quiet, 'naturalUnemployment') - last(quiet, 'unemployment');
+    const fastGap = last(fast, 'naturalUnemployment') - last(fast, 'unemployment');
+    const quietWage = last(quiet, 'realWage');
+    const fastWage = last(fast, 'realWage');
+    const quietRate = last(quiet, 'interestRate');
+    const fastRate = last(fast, 'interestRate');
+    expect(Math.abs(fastGap)).toBeLessThan(0.05);
+    expect(Math.abs(quietGap)).toBeLessThan(0.05);
+    expect(last(fast, 'unemployment')).toBeGreaterThan(last(quiet, 'unemployment') + 0.1);
+    expect(Math.abs(fastRate - quietRate)).toBeLessThan(0.05);
+    expect(fastWage).toBeGreaterThan(quietWage * 0.5);
+  });
+
+  it('pays a GDP-proportional grant that grows with the AI share of output', () => {
+    const quiet = run({
+      ...scale,
+      'ai.automatableShareStart': 0.3,
+      'ai.automatableShareEnd': 0.3,
+    });
+    const off = run({
+      ...scale,
+      'ai.adoptionMidpointYear': 3,
+      'ai.adoptionSteepness': 1.2,
+      'ai.physicalTaskShare': 0.1,
+      'government.ubiShare': 0,
+    });
+    const on = run({
+      ...scale,
+      'ai.adoptionMidpointYear': 3,
+      'ai.adoptionSteepness': 1.2,
+      'ai.physicalTaskShare': 0.1,
+    });
+    expect(series(quiet, 'ubiOutlay').every((value) => value === 0)).toBe(true);
+    expect(series(off, 'ubiOutlay').every((value) => value === 0)).toBe(true);
+    expect(last(on, 'ubiOutlay')).toBeGreaterThan(0);
+    const early = series(on, 'ubiOutlay')[24] ?? 0;
+    const late = last(on, 'ubiOutlay');
+    expect(late).toBeGreaterThan(early);
+    const aiShare = last(on, 'aiShareOfOutput');
+    const nominalGdp = last(on, 'priceLevel') * last(on, 'realGdp');
+    expect(late).toBeCloseTo(0.25 * aiShare * nominalGdp, -1);
+    expect(last(on, 'meanRealConsumption')).toBeGreaterThan(last(off, 'meanRealConsumption'));
+  });
+
+  it('taxes and shops agents when autonomy is on', () => {
+    const none = run({
+      ...scale,
+      'ai.adoptionMidpointYear': 3,
+      'ai.adoptionSteepness': 1.2,
+      'ai.physicalTaskShare': 0.1,
+      'ai.agentAutonomyShareEnd': 0,
+    });
+    const agents = run({
+      ...scale,
+      'ai.adoptionMidpointYear': 3,
+      'ai.adoptionSteepness': 1.2,
+      'ai.physicalTaskShare': 0.1,
+      'ai.agentAutonomyShareEnd': 0.6,
+      'ai.paymentFrictionFiat': 0,
+    });
+    expect(last(none, 'aiShareOfAgents')).toBe(0);
+    expect(last(agents, 'aiShareOfAgents')).toBeGreaterThan(0);
+    expect(last(agents, 'agentTaxRevenue')).toBeGreaterThan(0);
+    expect(last(none, 'agentTaxRevenue')).toBe(0);
+    expect(last(agents, 'taxRevenue')).toBeGreaterThanOrEqual(last(agents, 'agentTaxRevenue'));
+    expect(Math.max(...series(agents, 'agentGoodsSpend'))).toBeGreaterThan(0);
+    expect(Math.max(...series(none, 'agentGoodsSpend'))).toBe(0);
   });
 
   it('delivers less growth when more tasks stay physical', () => {

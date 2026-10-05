@@ -16,6 +16,7 @@ const EXPECTED_IDS = [
   'shock.size',
   'tax.incomeRate',
   'government.spendingShareOfGDP',
+  'government.ubiShare',
   'centralBank.inflationTarget',
   'centralBank.inflationWeight',
   'centralBank.outputWeight',

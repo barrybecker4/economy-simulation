@@ -52,19 +52,21 @@ Each household draws a skill from a lognormal distribution with slider `househol
 
 ## Production
 
-A firm produces with Cobb–Douglas technology. Capacity is
+A firm produces with Cobb–Douglas technology. Let `L*` be the headcount the firm would have at 94 percent of households, and `L_hat = L* × humanWeight`. Capacity is
 
 ```text
-Y = A_firm * A * (1 + productivity impulse) * K^α * L^(1−α)
+Y = A_firm * A * (1 + productivity impulse) * K^α * (L*)^(1−α) * aiFactor * (L / L_hat)^((1−α) × humanWeight)
 ```
+
+When `humanWeight` is 1 this is the ordinary `K^α L^(1−α)` rule. When the firm is staffed at the AI-scaled hiring target, `L / L_hat` is 1, so fewer human workers do not cut output. A further shortfall still cuts capacity, with an elasticity that shrinks as humans become a smaller share of output.
 
 `A_firm` is a lognormal draw around 1, clamped to [0.8, 1.25]. `A` is economy-wide productivity and grows at `productivity.baseGrowth`. α is `production.alpha`. Capital starts equal to employment and depreciates at 0.5 percent a month. Real GDP is the sum of capacities, not inventory restocking. If inventories are away from one month of capacity, the firm also builds or sheds stock, up to half of capacity, and that adjustment is not counted as GDP.
 
 ## Labor market
 
-Each month 2 percent of employed workers separate. Firms then hire until employment reaches 94 percent of households, scaled by the demand impulse and clamped to [0.85, 1.15] times that target. A searcher applies to at most `labor.maxApplications` firms. The 6 percent gap is the natural rate the wage rule leans toward.
+Each month 2 percent of employed workers separate. Let `humanWeight = 1 / aiFactor`. Firms then hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse and clamped to [0.85, 1.15] times that target. A searcher applies to at most `labor.maxApplications` firms. The natural unemployment rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when `aiFactor` is 1 and rises as AI capacity grows.
 
-The money wage grows at the monthly inflation target plus monthly productivity growth. A tighter labor market adds a further term, and a slacker market subtracts one. `wage.nominalRigidity` shrinks that gap, and it shrinks a negative gap by the square of the remaining flexibility, so wages are stickier downward. The contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the worker's skill.
+The money wage grows at the monthly inflation target plus monthly productivity growth. Tightness is `(natural unemployment − unemployment) × humanWeight`. A positive tightness adds a further wage term and a negative one subtracts. `wage.nominalRigidity` shrinks that gap, and it shrinks a negative gap by the square of the remaining flexibility, so wages are stickier downward. The contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the worker's skill.
 
 ## Goods and relative prices
 
@@ -92,17 +94,27 @@ When expected deflation is positive and `deflation.sensitivity` is positive, a s
 
 ## Government and central bank
 
-The income tax rate is `tax.incomeRate`. Revenue lands in the treasury's deposit. The central bank sets
+The income tax rate is `tax.incomeRate`. Households and AI agents both pay it from deposits. Revenue lands in the treasury's deposit.
+
+After tax is collected, the treasury pays a household grant
 
 ```text
-policy rate = max(0, time preference + inflation + inflationWeight * (inflation − target) + outputWeight * (natural unemployment − unemployment))
+grant pool = government.ubiShare × AI share of output × price × real GDP
+```
+
+where the AI share of output is `1 − humanWeight` once compute is adopted, and zero otherwise. The pool is split equally across households, added to deposits, and counted in income after wages so it enters smoothed income and is taxable next month. Tax is the first source of funds. If the treasury deposit cannot cover the grant, it issues bonds to the first bank. Agents do not receive the grant. See [ADR 0003](adr/0003-ubi-and-agent-tax.md).
+
+The central bank sets
+
+```text
+policy rate = max(0, time preference + inflation + inflationWeight * (inflation − target) + outputWeight * (natural unemployment − unemployment) * humanWeight)
 ```
 
 If bank reserves are below `bank.reserveRequirement` times deposits, the central bank issues the gap to the first bank. That accommodation is a fiat rule. Bitcoin and hybrid do not create reserves to meet the requirement. The hybrid lender of last resort is described under regimes.
 
 ## Welfare
 
-Real wealth and real income divide nominal stocks by the CPI. Real consumption is goods bought. The Gini of wealth, income, and skill uses the standard sorted-share formula. Negative wealth is shifted before the Gini so the measure stays defined. The consumption floor share is the fraction of households below one quarter of median real consumption. Housing security for a household is its real income divided by median real income and by `1 + housing/CPI`, clamped to [0, 1]. Well-being is the log of real consumption, floored at 0.01, plus `welfare.housingSecurityWeight` times that household's housing security. A composite of inequality, median wealth, well-being, and stability is computed only when the user sets one of those weights away from zero. The weights are assumptions. Human metrics ignore AI agents.
+Real wealth and real income divide nominal stocks by the CPI. Real consumption is goods bought by households. The Gini of wealth, income, and skill uses the standard sorted-share formula. Negative wealth is shifted before the Gini so the measure stays defined. The consumption floor share is the fraction of households below one quarter of median real consumption. Housing security for a household is its real income divided by median real income and by `1 + housing/CPI`, clamped to [0, 1]. Well-being is the log of real consumption, floored at 0.01, plus `welfare.housingSecurityWeight` times that household's housing security. A composite of inequality, median wealth, well-being, and stability is computed only when the user sets one of those weights away from zero. The stability term is `clamp(1 − unemployment + naturalUnemployment − 0.06, 0, 1)`, so resting at a rising natural rate scores like full employment. The weights are assumptions. Human metrics ignore AI agents. Labor share is the wage bill over nominal GDP.
 
 ## Regimes
 
@@ -110,11 +122,11 @@ Fiat keeps the central-bank rule above. The price and wage trends follow the inf
 
 ## AI productivity
 
-The automatable share follows a logistic from `ai.automatableShareStart` to `ai.automatableShareEnd`. The midpoint is `ai.adoptionMidpointYear` and the slope is `ai.adoptionSteepness`. When the two shares are equal the share does not move and AI does not change production, hiring, or ownership. Compute cost starts at the wage and falls at `ai.computeCostDeclineRate`. Firms adopt only once that cost is below the wage. Adopted tasks are the gain in the automatable share times `1 − ai.physicalTaskShare`. Capacity is multiplied by `1 + adopted`. A displaced worker, one whose skill is below the automated share while adoption is underway, makes only one job application a month. Profit shares use `skill` raised to `1.5 + ownershipConcentration * (AI factor − 1)`, so the AI capital income is more concentrated. Capacity is `Y` from the production section times the AI factor.
+The automatable share follows a logistic from `ai.automatableShareStart` to `ai.automatableShareEnd`. The midpoint is `ai.adoptionMidpointYear` and the slope is `ai.adoptionSteepness`. When the two shares are equal the share does not move and AI does not change production, hiring, or ownership. Compute cost starts at the wage and falls at `ai.computeCostDeclineRate`. Firms adopt only once that cost is below the wage. Adopted tasks are the gain in the automatable share times `1 − ai.physicalTaskShare`. The AI factor is `1 + adopted`, and `humanWeight = 1 / aiFactor`. Capacity follows the production section. Hiring, wages, and the fiat policy rate scale with `humanWeight` as in the labor and government sections. A displaced worker, one whose skill is below the automated share while adoption is underway, makes only one job application a month. Profit shares use `skill` raised to `1.5 + ownershipConcentration * (AI factor − 1)`, so the AI capital income is more concentrated.
 
 ## AI agents
 
-The autonomous share rises linearly from zero to `ai.agentAutonomyShareEnd` over five years. An agent has an owning household, a deposit in the regime's unit, and a service price of 4 percent of the wage. It sells one unit of compute to a firm when that price times one plus payment friction is below 4.2 percent of the wage. Friction is `ai.paymentFrictionFiat` in the fiat regime and `ai.paymentFrictionBitcoin` otherwise. The fee is paid into bank equity. The agent keeps 1 percent of the wage for compute and sweeps the rest to its owner. Human well-being, income, and wealth use households only. When the autonomy share ends at zero, no agents are created and the rest of the economy is unchanged.
+The autonomous share rises linearly from zero to `ai.agentAutonomyShareEnd` over five years. An agent has an owning household, a deposit in the regime's unit, an income, a smoothed income, and a service price of 4 percent of the wage. It sells one unit of compute to a firm when that price times one plus payment friction is below 4.2 percent of the wage. Friction is `ai.paymentFrictionFiat` in the fiat regime and `ai.paymentFrictionBitcoin` otherwise. The fee is paid into bank equity. The agent then shops with the household budget rule at mean time preference, reserving enough deposit to pay income tax. It pays `tax.incomeRate` on its income. After tax it keeps 1 percent of the wage for compute and sweeps the residual to its owner. Agent purchases count in goods demand and in the AI transaction share. Human well-being, income, and wealth use households only. When the autonomy share ends at zero, no agents are created and the rest of the economy is unchanged.
 
 ## Shocks
 

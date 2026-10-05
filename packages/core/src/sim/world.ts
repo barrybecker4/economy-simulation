@@ -56,6 +56,8 @@ interface Agent {
   id: number;
   owner: number;
   deposit: number;
+  income: number;
+  smoothed: number;
 }
 
 interface Bank {
@@ -117,8 +119,14 @@ export class World {
   private readonly autonomyEnd: number;
   private readonly frictionFiat: number;
   private readonly frictionBitcoin: number;
+  private readonly ubiShare: number;
   private readonly agents: Agent[] = [];
   private agentVolume = 0;
+  private agentGoodsSpend = 0;
+  private wageBill = 0;
+  private taxRevenue = 0;
+  private agentTaxRevenue = 0;
+  private ubiOutlay = 0;
   private readonly shockFrequency: number;
   private readonly shockSize: number;
   private readonly shockRng: Rng;
@@ -197,6 +205,7 @@ export class World {
     this.autonomyEnd = slider(config, 'ai.agentAutonomyShareEnd');
     this.frictionFiat = slider(config, 'ai.paymentFrictionFiat');
     this.frictionBitcoin = slider(config, 'ai.paymentFrictionBitcoin');
+    this.ubiShare = slider(config, 'government.ubiShare');
     this.automatedShare = this.autoStart;
     this.shockFrequency = slider(config, 'shock.frequency');
     this.shockSize = slider(config, 'shock.size');
@@ -377,12 +386,14 @@ export class World {
         this.separate(household);
       }
     }
+    const humanWeight = this.humanWeight();
     const target = Math.round(
       this.households.length *
         (1 - NATURAL_UNEMPLOYMENT) *
+        humanWeight *
         clamp(1 + this.demandImpulse, 0.85, 1.1),
     );
-    const perFirm = Math.max(1, Math.ceil(target / this.firms.length));
+    const perFirm = Math.max(1, Math.ceil(Math.max(target, 1) / this.firms.length));
     let employed = this.employedCount();
     for (const household of this.households) {
       if (employed >= target) {
@@ -405,7 +416,8 @@ export class World {
       }
     }
     const unemployment = 1 - this.employedCount() / this.households.length;
-    const tightness = NATURAL_UNEMPLOYMENT - unemployment;
+    const natural = this.naturalUnemployment();
+    const tightness = (natural - unemployment) * humanWeight;
     const monthlyInflation = this.priceTrend();
     const monthlyProd = monthlyFromAnnual(this.prodGrowth);
     const trend = monthlyInflation + monthlyProd;
@@ -416,6 +428,19 @@ export class World {
     for (const firm of this.firms) {
       firm.wage = this.wageLevel * firm.productivity;
     }
+  }
+
+  private humanWeight(): number {
+    return 1 / Math.max(this.aiFactor, 1);
+  }
+
+  private naturalUnemployment(): number {
+    return 1 - (1 - NATURAL_UNEMPLOYMENT) * this.humanWeight();
+  }
+
+  private referenceWorkersPerFirm(): number {
+    const reference = Math.round(this.households.length * (1 - NATURAL_UNEMPLOYMENT));
+    return Math.max(1, Math.ceil(reference / Math.max(this.firms.length, 1)));
   }
 
   private onPopulation(): void {
@@ -455,7 +480,7 @@ export class World {
     const owners = Math.max(1, Math.round(this.households.length * (1 - this.ownership)));
     while (this.agents.length < target) {
       const id = this.agents.length;
-      this.agents.push({ id, owner: id % owners, deposit: 0 });
+      this.agents.push({ id, owner: id % owners, deposit: 0, income: 0, smoothed: 0 });
     }
   }
 
@@ -468,27 +493,80 @@ export class World {
     const friction = this.regime === 'fiat' ? this.frictionFiat : this.frictionBitcoin;
     const ask = this.wageLevel * 0.04 * (1 + friction);
     if (ask >= this.wageLevel * 0.042) {
+      for (const agent of this.agents) {
+        agent.income = 0;
+      }
       return;
     }
     for (const agent of this.agents) {
       const firm = this.firms[agent.id % this.firms.length];
       const bank = firm ? this.banks[firm.bank] : undefined;
       if (!firm || !bank || firm.deposit < ask) {
+        agent.income = 0;
         continue;
       }
       const bill = this.unit === 'cent' ? Math.round(ask) : ask;
       if (bill <= 0 || firm.deposit < bill) {
+        agent.income = 0;
         continue;
       }
       const fee = this.unit === 'cent' ? Math.round(bill * friction) : bill * friction;
+      const net = bill - fee;
       firm.deposit -= bill;
-      agent.deposit += bill - fee;
+      agent.deposit += net;
+      agent.income = net;
       if (fee > 0) {
         bank.equity += fee;
         this.privateEquity -= fee;
       }
       this.agentVolume += bill;
     }
+  }
+
+  private shopAgents(): void {
+    this.agentGoodsSpend = 0;
+    if (this.agents.length === 0 || this.firms.length === 0) {
+      return;
+    }
+    const mpc = clamp(1 - this.spendShare, 0.35, 0.95);
+    for (const agent of this.agents) {
+      const taxReserve =
+        this.unit === 'cent' ? Math.round(this.taxRate * agent.income) : this.taxRate * agent.income;
+      const buffer = agent.income * 48;
+      const extra = Math.max(0, agent.deposit - buffer) * WEALTH_MPC;
+      const budget = agent.smoothed * mpc * (1 + this.demandImpulse) + extra;
+      let left = Math.max(
+        0,
+        Math.min(Math.max(0, agent.deposit - taxReserve), Math.round(budget)),
+      );
+      let spent = 0;
+      if (left > 0) {
+        const start = agent.id % this.firms.length;
+        for (let attempt = 0; attempt < this.sampleSize && left > 0; attempt += 1) {
+          const seller = this.firms[(start + attempt) % this.firms.length];
+          if (!seller || seller.inventory <= 0 || seller.price <= 0) {
+            continue;
+          }
+          const units = Math.min(seller.inventory, left / seller.price);
+          const bill = Math.min(left, Math.round(units * seller.price));
+          if (bill <= 0) {
+            continue;
+          }
+          const taken = bill / seller.price;
+          agent.deposit -= bill;
+          seller.deposit += bill;
+          seller.inventory -= taken;
+          seller.salesUnits += taken;
+          left -= bill;
+          spent += bill;
+        }
+      }
+      this.agentGoodsSpend += spent;
+      this.consumptionSpend += spent;
+    }
+  }
+
+  private sweepAgents(): void {
     const retain = this.wageLevel * 0.01;
     for (const agent of this.agents) {
       const sweep = agent.deposit - retain;
@@ -559,6 +637,8 @@ export class World {
       household.realConsumption = bought;
       this.consumptionSpend += spent;
     }
+    this.tradeAgents();
+    this.shopAgents();
     let output = 0;
     let weightedPrice = 0;
     for (const firm of this.firms) {
@@ -596,7 +676,6 @@ export class World {
     this.priceLevel = output > 0 ? weightedPrice / output : this.priceLevel;
     this.priceHistory.push(this.priceLevel);
     this.gdpHistory.push(this.realGdp);
-    this.tradeAgents();
   }
 
   private onCredit(): void {
@@ -659,21 +738,55 @@ export class World {
 
   private onGovernment(): void {
     let tax = 0;
+    let agentTax = 0;
     for (const household of this.households) {
       const bill = Math.round(this.taxRate * household.income);
       const paid = Math.min(household.deposit, bill);
       household.deposit -= paid;
       tax += paid;
     }
+    for (const agent of this.agents) {
+      const bill =
+        this.unit === 'cent' ? Math.round(this.taxRate * agent.income) : this.taxRate * agent.income;
+      const paid = Math.min(agent.deposit, bill);
+      agent.deposit -= paid;
+      tax += paid;
+      agentTax += paid;
+    }
     this.govDeposits += tax;
+    this.taxRevenue = tax;
+    this.agentTaxRevenue = agentTax;
+
+    const aiShare = this.aiFactor > 1 ? 1 - this.humanWeight() : 0;
+    const nominalGdp = this.priceLevel * this.realGdp;
+    const grantPool = Math.max(0, Math.round(this.ubiShare * aiShare * nominalGdp));
+    const grants = new Array<number>(this.households.length).fill(0);
+    this.ubiOutlay = 0;
+    if (grantPool > 0 && this.households.length > 0) {
+      if (this.govDeposits < grantPool) {
+        this.issueBonds(grantPool - Math.max(0, this.govDeposits));
+      }
+      let left = grantPool;
+      for (let index = 0; index < this.households.length; index += 1) {
+        const household = this.households[index];
+        if (!household) {
+          continue;
+        }
+        const share =
+          index === this.households.length - 1
+            ? left
+            : Math.floor(grantPool / this.households.length);
+        left -= share;
+        grants[index] = share;
+        household.deposit += share;
+        this.ubiOutlay += share;
+      }
+      this.govDeposits -= this.ubiOutlay;
+    }
+
     const purchases = Math.max(0, Math.round(this.spendShare * this.demandBase));
     if (this.govDeposits < purchases) {
-      const issue = purchases - Math.max(0, this.govDeposits);
-      this.govDeposits += issue;
-      const buyer = this.banks[0];
-      if (buyer) {
-        buyer.bonds += issue;
-      }
+      this.issueBonds(purchases - Math.max(0, this.govDeposits));
     }
     let remaining = purchases;
     const byStock = [...this.firms].sort((left, right) => right.inventory - left.inventory);
@@ -693,16 +806,33 @@ export class World {
     }
     this.distributeIncome();
     this.redistributeToUnemployed();
+    for (let index = 0; index < this.households.length; index += 1) {
+      const household = this.households[index];
+      const grant = grants[index] ?? 0;
+      if (household && grant > 0) {
+        household.income += grant;
+      }
+    }
+    this.sweepAgents();
     for (const household of this.households) {
       household.smoothed = Math.round(0.9 * household.smoothed + 0.1 * household.income);
     }
+    for (const agent of this.agents) {
+      agent.smoothed = 0.9 * agent.smoothed + 0.1 * agent.income;
+    }
     if (this.govDeposits < 0) {
-      const issue = -this.govDeposits;
-      this.govDeposits += issue;
-      const buyer = this.banks[0];
-      if (buyer) {
-        buyer.bonds += issue;
-      }
+      this.issueBonds(-this.govDeposits);
+    }
+  }
+
+  private issueBonds(amount: number): void {
+    if (amount <= 0) {
+      return;
+    }
+    this.govDeposits += amount;
+    const buyer = this.banks[0];
+    if (buyer) {
+      buyer.bonds += amount;
     }
   }
 
@@ -725,7 +855,7 @@ export class World {
     }
     const inflation = this.inflation();
     const unemployment = 1 - this.employedCount() / this.households.length;
-    const gap = NATURAL_UNEMPLOYMENT - unemployment;
+    const gap = (this.naturalUnemployment() - unemployment) * this.humanWeight();
     this.policyRate = Math.max(
       0,
       this.timePrefMean +
@@ -774,7 +904,6 @@ export class World {
     const skills = this.households.map((household) => household.skill);
     const employed = this.employedCount();
     const unemployment = 1 - employed / this.households.length;
-    const wageBill = this.households.reduce((sum, household) => sum + household.income, 0);
     const nominalOutput = this.priceLevel * this.realGdp;
     const loans = this.totalLoans();
     const deposits = this.totalDeposits();
@@ -824,8 +953,13 @@ export class World {
     metrics.set('boomLength', this.boomLength);
     metrics.set('bustLength', this.bustLength);
     metrics.set('unemployment', unemployment);
+    metrics.set('naturalUnemployment', this.naturalUnemployment());
     metrics.set('realWage', this.priceLevel > 0 ? this.wageLevel / this.priceLevel : 0);
-    metrics.set('laborShare', nominalOutput > 0 ? wageBill / nominalOutput : 0);
+    metrics.set('laborShare', nominalOutput > 0 ? this.wageBill / nominalOutput : 0);
+    metrics.set('taxRevenue', this.taxRevenue);
+    metrics.set('agentTaxRevenue', this.agentTaxRevenue);
+    metrics.set('ubiOutlay', this.ubiOutlay);
+    metrics.set('agentGoodsSpend', this.agentGoodsSpend);
     metrics.set('giniWealth', gini(wealth));
     metrics.set('giniIncome', gini(incomes));
     metrics.set('giniSkill', gini(skills));
@@ -848,7 +982,8 @@ export class World {
     metrics.set('aiShareOfAgents', population > 0 ? this.agents.length / population : 0);
     metrics.set('aiShareOfWealth', 0);
     const activity = this.consumptionSpend + this.agentVolume;
-    metrics.set('aiShareOfTransactions', activity > 0 ? this.agentVolume / activity : 0);
+    const agentActivity = this.agentVolume + this.agentGoodsSpend;
+    metrics.set('aiShareOfTransactions', activity > 0 ? agentActivity / activity : 0);
     metrics.set('aiShareOfOutput', this.aiFactor > 1 ? 1 - 1 / this.aiFactor : 0);
     metrics.set('tasksAutomated', this.automatedShare);
     this.defaultsThisTick = 0;
@@ -1028,6 +1163,7 @@ export class World {
       profitPool += available - spent;
       firm.deposit -= available;
     }
+    this.wageBill = wagePaid.reduce((sum, amount) => sum + amount, 0);
     const concentration = 1.5 + (this.aiFactor > 1 ? this.ownership * (this.aiFactor - 1) : 0);
     const weights = this.households.map((household) => household.skill ** concentration);
     let weightSum = 0;
@@ -1054,7 +1190,12 @@ export class World {
 
   private capacity(firm: Firm): number {
     const labor = firm.workers.length;
-    if (labor === 0 || firm.capital <= 0) {
+    const laborStar = this.referenceWorkersPerFirm();
+    const humanWeight = this.humanWeight();
+    const laborHat = Math.max(1e-9, laborStar * humanWeight);
+    const staffing =
+      labor <= 0 ? 0 : (labor / laborHat) ** ((1 - this.alpha) * humanWeight);
+    if (firm.capital <= 0) {
       return 0;
     }
     return (
@@ -1062,8 +1203,9 @@ export class World {
       this.productivity *
       (1 + this.productivityImpulse) *
       firm.capital ** this.alpha *
-      labor ** (1 - this.alpha) *
-      this.aiFactor
+      laborStar ** (1 - this.alpha) *
+      this.aiFactor *
+      staffing
     );
   }
 

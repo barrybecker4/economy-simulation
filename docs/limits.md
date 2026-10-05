@@ -8,6 +8,6 @@ There is no market for firm shares. When expected deflation is strong, the model
 
 Well-being is the log of human real consumption plus a housing-security term. A single composite index appears only when a welfare weight is moved off zero. Those weights are assumptions. The default weights are zero, so the index is off.
 
-Population growth is a slider and is not used. Housing demand grows with productivity and is cut by the deflation penalty. Unemployment is pulled toward 6 percent by the vacancy rule, so a shock that would raise unemployment in a search model may not do so here. The hypothesis runner records that outcome instead of forcing the claim.
+Population growth is a slider and is not used. Housing demand grows with productivity and is cut by the deflation penalty. Unemployment is pulled toward a natural rate that starts at 6 percent and rises with the AI share of output, because the hiring target shrinks with the human share. A shock that would raise unemployment in a search model may move it less here once that natural rate has risen. The hypothesis runner records that outcome instead of forcing the claim. The household UBI grant is a share of the AI slice of nominal GDP; it is an assumption, and a high share can expand public debt through bond finance.
 
 Development runs of 1,000 households finish in about a second in Node, a little over the one-second target. Sweeps in the CLI run in this process at a small scale. A 50-seed development sweep is a manual command, not part of the default test suite.

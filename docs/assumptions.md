@@ -180,7 +180,7 @@ Registry version: 2.
 - Range: 0 to 1.5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How hard the fiat policy rate reacts when unemployment is away from 6 percent. The rule adds this weight times (6 percent minus the unemployment rate). A slack labor market cuts the rate and a tight one raises it. At 0.5, unemployment one point below 6 percent adds half a point to the policy rate. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
+- Description: How hard the fiat policy rate reacts when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity. The rule adds this weight times (natural unemployment minus the unemployment rate) times the human share of output. A slack labor market cuts the rate and a tight one raises it. At 0.5 with no AI, unemployment one point below the natural rate adds half a point to the policy rate. Late in adoption the same point gap moves the rate less. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
 
 ## deflation.sensitivity
 
@@ -336,6 +336,17 @@ Registry version: 2.
 - Source: Set so public purchases are a fifth of the income base and the goods market clears. Not a country estimate.
 - Description: Share of household smoothed income that the government buys from firms. It shops first at the firms holding the most inventory. Households spend what remains: their spending share of income starts at one minus this value, then tilts with how impatient they are relative to the mean. Raising this share shifts purchases from households to the government. If tax revenue does not cover the bill, the treasury issues bonds. It is a closed-economy purchase share, set so the goods market can clear, not an estimate for a particular country.
 
+## government.ubiShare
+
+- Label: UBI share of AI GDP
+- Group: policy
+- Unit: share
+- Default: 0.25
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Fraction of the AI slice of monthly nominal GDP paid equally to every household. The AI slice is the AI share of output times price times real GDP. The grant starts at zero when no AI capacity is adopted and rises with that share, so it phases in along the adoption curve rather than as a fixed stipend. At 0.25 with an AI share of 0.36, about 9 percent of that month’s nominal GDP is paid out. Tax, including tax on AI agents, is collected first. If the treasury cannot cover the grant, it issues bonds to the first bank. Households only receive the grant. Agents do not. At 0 the grant is off even while AI is adopted.
+
 ## household.skillSigma
 
 - Label: Skill dispersion
@@ -389,7 +400,7 @@ Registry version: 2.
 - Range: 1 to 8
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How many firms an unemployed household can ask for work in one month. The run rounds this to a whole number. Hiring fills openings until employment is near 94 percent of households, with a small tilt when a demand shock is on. A searcher walks a short list of firms and takes the first one that still has room. A household displaced by automation is limited to one application even when this slider is higher. More applications make it easier to find a firm that is still hiring. The vacancy rule still pulls unemployment toward 6 percent. This slider only limits how wide the search is.
+- Description: How many firms an unemployed household can ask for work in one month. The run rounds this to a whole number. Hiring fills openings until employment is near 94 percent of households times the human share of output, with a small tilt when a demand shock is on. That target rises the natural unemployment rate as AI capacity grows. A searcher walks a short list of firms and takes the first one that still has room. A household displaced by automation is limited to one application even when this slider is higher. More applications make it easier to find a firm that is still hiring. This slider only limits how wide the search is.
 
 ## population.growth
 
@@ -499,7 +510,7 @@ Registry version: 2.
 - Range: 0 to 0.5
 - Status: calibrated
 - Source: Set equal to the spending share so the treasury starts near balance.
-- Description: Share of household income paid to the treasury each month. The household pays from its deposit, up to the balance it has. Revenue lands in the government deposit. The default matches the spending share so the treasury starts near balance. If taxes do not cover government purchases, the treasury issues bonds and the first bank holds them. Changing the tax rate does not by itself change how much the government buys.
+- Description: Share of household and AI-agent income paid to the treasury each month. Each payer pays from its deposit, up to the balance it has. Revenue lands in the government deposit and is the first source of funds for the household UBI grant and for government purchases. The default matches the spending share so the treasury starts near balance when the grant is off. If taxes do not cover the grant or purchases, the treasury issues bonds and the first bank holds them. Changing the tax rate does not by itself change how much the government buys.
 
 ## wage.nominalRigidity
 
@@ -510,7 +521,7 @@ Registry version: 2.
 - Range: 0 to 0.95
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How sticky the money wage is when unemployment is away from its 6 percent resting point. Wages still follow monthly inflation and productivity growth. An extra gap opens when the labor market is tight or slack, and this rigidity shrinks that gap. Upward pressure is multiplied by one minus the rigidity. Downward pressure is multiplied by the square of that remainder, so cuts pass through less than raises. At 0.7, a tight market passes through 30 percent of the upward gap and 9 percent of a downward gap. At 0, the gap passes through in full. The monthly wage change is still capped.
+- Description: How sticky the money wage is when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity, because the hiring target shrinks with the human share of output. Wages still follow monthly inflation and productivity growth. An extra gap opens when the labor market is tight or slack relative to that natural rate, the gap is scaled by the human share of output, and this rigidity shrinks it further. Upward pressure is multiplied by one minus the rigidity. Downward pressure is multiplied by the square of that remainder, so cuts pass through less than raises. At 0.7, a tight market passes through 30 percent of the upward gap and 9 percent of a downward gap. At 0, the gap passes through in full. The monthly wage change is still capped.
 
 ## welfare.housingSecurityWeight
 
@@ -554,7 +565,7 @@ Registry version: 2.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Weight on labor-market stability in the optional composite index. The term is this weight times (1 minus unemployment) at the last tick, so lower unemployment scores higher. The index is computed in the page after the run. The weight does not change hiring. The index stays off while every composite weight is zero.
+- Description: Weight on labor-market stability in the optional composite index. The term is this weight times a score of slack relative to the natural unemployment rate, shifted so a 6 percent natural rate still scores as one minus unemployment. As AI raises the natural rate, resting at that rate scores like full employment rather than a collapse. The index is computed in the page after the run. The weight does not change hiring. The index stays off while every composite weight is zero.
 
 ## welfare.weightWellbeing
 

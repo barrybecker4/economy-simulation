@@ -164,6 +164,7 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | Environment | shock.size                             | 0.05            | 0 to 0.3                     |
 | Policy      | tax.incomeRate                         | 0.2             | 0 to 0.5                     |
 | Policy      | government.spendingShareOfGDP          | 0.2             | 0 to 0.5                     |
+| Policy      | government.ubiShare                    | 0.25            | 0 to 1                       |
 | Policy      | centralBank.inflationTarget            | 0.02            | 0 to 0.06                    |
 | Policy      | centralBank.inflationWeight            | 1.5             | 1 to 3                       |
 | Policy      | centralBank.outputWeight               | 0.5             | 0 to 1.5                     |
@@ -264,7 +265,7 @@ Goal: a stable single-good fiat economy with human agents, firms, one commercial
 Acceptance:
 
 - The ledger audit passes at every tick.
-- With default sliders and no shocks, unemployment stays between 3 and 12 percent, inflation stays within 2 points of the target, and no variable grows without bound over 600 ticks.
+- With the automatable start and end shares equal and no shocks, unemployment stays between 3 and 12 percent. With default sliders and no shocks, final unemployment sits above 6 percent as AI raises the natural rate, inflation stays within 2 points of the target, and no variable grows without bound over 600 ticks.
 - The stylized-facts tests pass for fiat.
 - Development-size runs meet the performance target.
 
@@ -324,20 +325,21 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 Acceptance:
 
 - Setting `ai.automatableShareEnd` equal to `ai.automatableShareStart` matches Phase 4 for the same seeds.
-- In the fast-adoption preset, productivity per human rises and the labor share falls in both regimes.
+- In the fast-adoption preset, productivity per human rises, the labor share falls, and unemployment rises without cutting real GDP, in both regimes.
 - Raising `ai.physicalTaskShare` lowers the growth benefit of AI (monotonicity).
+- The household grant is zero when the AI share of output is zero or `government.ubiShare` is zero, and positive under fast adoption.
 - The ledger audit passes in all regimes with AI enabled.
 
 ### Phase 6: AI agents as economic actors
 
 Goal: channel 3. An increasing share of the agent population transacts on its own account.
 
-1. AI agents have an owner, a balance in the regime's unit, a compute budget, and a service price. They sell services to firms and to other agents and pay for compute and data.
+1. AI agents have an owner, a balance in the regime's unit, a compute budget, and a service price. They sell services to firms, buy goods, and pay income tax.
 2. The autonomy share grows toward `ai.agentAutonomyShareEnd`.
 3. Each agent transaction pays the regime's friction slider. The fee goes to banks under fiat and to the network under bitcoin.
 4. An agent-to-agent market discovers a price for services.
 5. Outputs: AI transaction share, payment volume, fee revenue, and the share of GDP that is agent-to-agent trade.
-6. Earnings sweep to human owners each tick, with a retained share for compute.
+6. After tax and shopping, earnings above a retained compute share sweep to human owners each tick.
 7. Write the channel 3 section of `docs/model.md`. List which assumptions are guesses.
 
 Acceptance:
@@ -345,6 +347,7 @@ Acceptance:
 - An autonomy share of zero matches Phase 5 for the same seeds.
 - Money is conserved on agent-to-agent trades, including fractional satoshi fees.
 - Lower friction raises the AI transaction share (monotonicity).
+- With autonomy above zero, agents pay income tax and buy goods.
 - A high end share, at least half of agents, still meets the development performance target.
 
 Out of scope: AI agents whose goals differ from their owners, and a market for firm shares.

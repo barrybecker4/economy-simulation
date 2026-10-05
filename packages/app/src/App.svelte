@@ -156,7 +156,7 @@
     {
       name: 'Keynesian-leaning',
       detail:
-        'Stays on fiat. Government spending rises from 20 percent to 35 percent of the income base. Household spending starts from what remains, so that share starts at 65 percent instead of 80 percent. The income tax stays at 20 percent, and the treasury issues bonds for the shortfall. The inflation weight rises from 1.5 to 2.5, and the output weight rises from 0.5 to 1.2. Those weights apply only under fiat: the policy rate reacts harder when inflation misses its target and when unemployment is away from 6 percent. The bank capital ratio stays at 8 percent.',
+        'Stays on fiat. Government spending rises from 20 percent to 35 percent of the income base. Household spending starts from what remains, so that share starts at 65 percent instead of 80 percent. The income tax stays at 20 percent, and the treasury issues bonds for the shortfall. The inflation weight rises from 1.5 to 2.5, and the output weight rises from 0.5 to 1.2. Those weights apply only under fiat: the policy rate reacts harder when inflation misses its target and when unemployment is away from the natural rate. The bank capital ratio stays at 8 percent.',
     },
   ];
 
@@ -206,7 +206,11 @@
       inequality * (1 - lastOf('giniWealth')) +
       wealth * lastOf('medianRealWealth') +
       wellbeing * lastOf('meanWellbeing') +
-      stability * (1 - lastOf('unemployment'))
+      stability *
+        Math.min(
+          1,
+          Math.max(0, 1 - lastOf('unemployment') + lastOf('naturalUnemployment') - 0.06),
+        )
     );
   });
 
@@ -379,8 +383,10 @@
     {@const recreation = line('priceRecreation', 'Recreation', '#4d7c0f')}
     {@const electronics = line('priceElectronics', 'Electronics', '#db2777')}
     {@const unemployment = line('unemployment', 'Unemployment', '#b45309')}
+    {@const naturalU = line('naturalUnemployment', 'Natural unemployment', '#92400e')}
     {@const interest = line('interestRate', 'Policy rate', '#1d4ed8')}
     {@const credit = line('creditToGdp', 'Credit to GDP', '#7c3aed')}
+    {@const ubi = line('ubiOutlay', 'UBI outlay', '#047857')}
     {@const tasks = line('tasksAutomated', 'Tasks automated', '#0f766e')}
     {@const agents = line('aiShareOfAgents', 'AI agents', '#a21caf')}
     {@const aiOutput = line('aiShareOfOutput', 'AI share of output', '#c2410c')}
@@ -402,13 +408,22 @@
         lines={[cpi, food, housing, energy, apparel, transport, medical, education, recreation, electronics]}
       />
     {/if}
-    {#if unemployment && interest}
+    {#if unemployment && naturalU && interest}
       <Chart
         title="Labor and interest"
         unit="share"
-        description="Unemployment is the share of households without a job. The policy rate is the annual interest rate: under fiat it follows inflation and unemployment, and under bitcoin or hybrid it moves with the gap between loans and savings. A five-seed band draws each median."
+        description="Unemployment is the share of households without a job. Natural unemployment rises as AI shrinks the hiring target. The policy rate is the annual interest rate: under fiat it follows inflation and the gap from that natural rate, scaled by the human share of output, and under bitcoin or hybrid it moves with the gap between loans and savings. A five-seed band draws each median."
         ticks={result.ticks}
-        lines={[unemployment, interest]}
+        lines={[unemployment, naturalU, interest]}
+      />
+    {/if}
+    {#if ubi}
+      <Chart
+        title="Household grant"
+        unit={result.kind === 'compare' ? 'cents' : moneyUnit(chartRegime)}
+        description="Monthly UBI outlay. The pool is the UBI share slider times the AI share of output times nominal GDP, split equally across households. It starts at zero when AI capacity is not adopted."
+        ticks={result.ticks}
+        lines={[ubi]}
       />
     {/if}
     {#if credit}
