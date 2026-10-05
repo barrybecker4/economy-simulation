@@ -91,6 +91,34 @@
     overrides[slider.id] = Number(raw);
   }
 
+  const presetNotes = [
+    {
+      name: 'Neutral',
+      detail:
+        'Fiat, and every parameter at its default. The automatable share still rises from 10 percent to 90 percent. Government spending and the income tax are both 20 percent of the income base, so the treasury starts near balance. The bank capital ratio is 8 percent, and deflation sensitivity is 1.',
+    },
+    {
+      name: 'No AI',
+      detail:
+        'Fiat. The initial and final automatable shares are both 30 percent, instead of 10 percent rising to 90 percent. Equal shares freeze the adoption curve: firms do not take up AI in production, and hiring and ownership stay on the path with no AI productivity effect. The midpoint year and the steepness do nothing while the shares are equal. Autonomous agents are unchanged, so their count still rises from zero to half the number of households over five years.',
+    },
+    {
+      name: 'Fast adoption',
+      detail:
+        'Fiat. The adoption midpoint moves from year 15 to year 5, and steepness rises from 0.4 to 1.2 per year, so the climb from a 10 percent automatable share to 90 percent happens earlier and in a tighter window. The physical-task share falls from 30 percent to 10 percent. Extra capacity is the gain in the automatable share times one minus that share, so more of the same gain becomes output. Agents, spending, and the regime stay at their defaults.',
+    },
+    {
+      name: 'Austrian-leaning',
+      detail:
+        'Switches the regime to bitcoin. Bitcoin does not grow the money stock with the economy, so the price trend is minus baseline productivity growth, and new loans cannot exceed unused savings. The bank capital ratio rises from 8 percent to 16 percent, which leaves less room to lend from the same equity. Government spending falls from 20 percent to 10 percent of the income base, while the income tax stays at 20 percent, so the treasury takes in more than it spends. Deflation sensitivity rises from 1 to 2. Under bitcoin, prices tend to fall, and that higher sensitivity cuts credit and housing demand more strongly until the penalty reaches its cap of 0.9. Wage rigidity, time preference, and trust in banks stay at their defaults.',
+    },
+    {
+      name: 'Keynesian-leaning',
+      detail:
+        'Stays on fiat. Government spending rises from 20 percent to 35 percent of the income base. Household spending starts from what remains, so that share starts at 65 percent instead of 80 percent. The income tax stays at 20 percent, and the treasury issues bonds for the shortfall. The inflation weight rises from 1.5 to 2.5, and the output weight rises from 0.5 to 1.2. Those weights apply only under fiat: the policy rate reacts harder when inflation misses its target and when unemployment is away from 6 percent. The bank capital ratio stays at 8 percent.',
+    },
+  ];
+
   function applyPreset(name: string): void {
     overrides = {};
     regime = 'fiat';
@@ -202,6 +230,26 @@
   <section class="controls">
     <label>Seed <input type="number" min="0" bind:value={seed} /></label>
     <label>Months <input type="number" min="12" max="1200" bind:value={ticks} /></label>
+    <label>
+      <NameTip
+        id="preset"
+        label="Preset"
+        kicker="Preset"
+        intro="Choosing a preset clears every parameter change and leaves Seed and Months as they are. It then sets only the values below. Anything not named returns to its default."
+        items={presetNotes}
+      />
+      <select
+        aria-labelledby="label-preset"
+        aria-describedby="help-preset"
+        onchange={(event) => applyPreset((event.target as HTMLSelectElement).value)}
+      >
+        <option value="neutral">Neutral</option>
+        <option value="no-ai">No AI</option>
+        <option value="fast-adoption">Fast adoption</option>
+        <option value="austrian-leaning">Austrian-leaning</option>
+        <option value="keynesian-leaning">Keynesian-leaning</option>
+      </select>
+    </label>
     <button type="button" onclick={() => run('run')} disabled={busy}>Run</button>
     <button type="button" onclick={() => run('band')} disabled={busy}>Five-seed band</button>
     <button type="button" onclick={() => run('compare')} disabled={busy}>Compare fiat and bitcoin</button>
@@ -296,16 +344,6 @@
   <section class="parameters">
     <h2>Parameters</h2>
     <p class="hint">Hover a name to read what that parameter changes. The note also shows its unit, default, and whether the value is sourced, calibrated, or a guess.</p>
-    <label>
-      Preset
-      <select onchange={(event) => applyPreset((event.target as HTMLSelectElement).value)}>
-        <option value="neutral">Neutral</option>
-        <option value="no-ai">No AI</option>
-        <option value="fast-adoption">Fast adoption</option>
-        <option value="austrian-leaning">Austrian-leaning</option>
-        <option value="keynesian-leaning">Keynesian-leaning</option>
-      </select>
-    </label>
     {#each parameters as slider (slider.id)}
       <label>
         <NameTip {slider} wide />

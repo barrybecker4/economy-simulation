@@ -31,20 +31,33 @@
     label,
     described = true,
     wide = false,
+    id,
+    kicker,
+    intro,
+    items,
   }: {
-    slider: Slider;
+    slider?: Slider;
     label?: string;
     described?: boolean;
     wide?: boolean;
+    id?: string;
+    kicker?: string;
+    intro?: string;
+    items?: readonly { name: string; detail: string }[];
   } = $props();
 
-  const caption = $derived(label ?? slider.label);
+  const caption = $derived(label ?? slider?.label ?? '');
+  const tipId = $derived(slider?.id ?? id ?? 'note');
   const bounds = $derived(
-    slider.kind === 'number' ? `${slider.min} to ${slider.max}` : slider.options.join(', '),
+    slider === undefined
+      ? ''
+      : slider.kind === 'number'
+        ? `${slider.min} to ${slider.max}`
+        : slider.options.join(', '),
   );
 
   const SHOW_MS = 40;
-  const HIDE_MS = 90;
+  const HIDE_MS = 200;
 
   let nameEl: HTMLSpanElement | undefined = $state();
   let tipEl: HTMLDivElement | undefined = $state();
@@ -154,10 +167,16 @@
     const onMove = (): void => {
       void layout();
     };
-    window.addEventListener('scroll', onMove, true);
+    const onScroll = (event: Event): void => {
+      if (event.target instanceof Node && tipEl?.contains(event.target)) {
+        return;
+      }
+      onMove();
+    };
+    window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onMove);
     return () => {
-      window.removeEventListener('scroll', onMove, true);
+      window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', onMove);
     };
   });
@@ -165,18 +184,39 @@
   onMount(() => {
     listenForPointerModality();
     const row = nameEl?.closest('label');
-    if (!row) {
+    const tip = tipEl;
+    if (!row || !tip) {
       return;
     }
+    const staying = (event: MouseEvent): boolean => {
+      const next = event.relatedTarget;
+      return next instanceof Node && (row.contains(next) || tip.contains(next));
+    };
+    const onRowLeave = (event: MouseEvent): void => {
+      if (staying(event)) {
+        return;
+      }
+      scheduleHide();
+    };
+    const onTipLeave = (event: MouseEvent): void => {
+      if (staying(event)) {
+        return;
+      }
+      scheduleHide();
+    };
     row.addEventListener('mouseenter', scheduleShow);
-    row.addEventListener('mouseleave', scheduleHide);
+    row.addEventListener('mouseleave', onRowLeave);
+    tip.addEventListener('mouseenter', scheduleShow);
+    tip.addEventListener('mouseleave', onTipLeave);
     row.addEventListener('focusin', onFocusIn);
     row.addEventListener('focusout', onFocusOut);
     return () => {
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
       row.removeEventListener('mouseenter', scheduleShow);
-      row.removeEventListener('mouseleave', scheduleHide);
+      row.removeEventListener('mouseleave', onRowLeave);
+      tip.removeEventListener('mouseenter', scheduleShow);
+      tip.removeEventListener('mouseleave', onTipLeave);
       row.removeEventListener('focusin', onFocusIn);
       row.removeEventListener('focusout', onFocusOut);
     };
@@ -204,7 +244,7 @@
 <span
   class="name"
   class:wide
-  id={described ? `label-${slider.id}` : undefined}
+  id={described ? `label-${tipId}` : undefined}
   bind:this={nameEl}>{caption}</span
 >
 <div
@@ -214,7 +254,7 @@
   class:placed
   class:above={placement === 'above'}
   class:side={placement === 'side'}
-  id={described ? `help-${slider.id}` : undefined}
+  id={described ? `help-${tipId}` : undefined}
   role={described ? 'tooltip' : undefined}
   aria-hidden={described ? undefined : 'true'}
   style:top="{top}px"
@@ -223,17 +263,36 @@
   style:--max="{maxHeight}px"
 >
   <div class="body">
-    <p class="kicker">{groups[slider.group]}</p>
-    <p class="copy">{slider.description}</p>
-    <ul class="meta">
-      <li><span>Unit</span> {slider.unit}</li>
-      <li><span>Default</span> {slider.default}</li>
-      <li><span>{slider.kind === 'number' ? 'Range' : 'Options'}</span> {bounds}</li>
-    </ul>
-    <p class="source">
-      <span class="badge {slider.status}">{statuses[slider.status]}</span>
-      {slider.source}
-    </p>
+    {#if slider}
+      <p class="kicker">{groups[slider.group]}</p>
+      <p class="copy">{slider.description}</p>
+      <ul class="meta">
+        <li><span>Unit</span> {slider.unit}</li>
+        <li><span>Default</span> {slider.default}</li>
+        <li><span>{slider.kind === 'number' ? 'Range' : 'Options'}</span> {bounds}</li>
+      </ul>
+      <p class="source">
+        <span class="badge {slider.status}">{statuses[slider.status]}</span>
+        {slider.source}
+      </p>
+    {:else}
+      {#if kicker}
+        <p class="kicker">{kicker}</p>
+      {/if}
+      {#if intro}
+        <p class="copy">{intro}</p>
+      {/if}
+      {#if items}
+        <dl class="choices">
+          {#each items as item (item.name)}
+            <div>
+              <dt>{item.name}</dt>
+              <dd>{item.detail}</dd>
+            </div>
+          {/each}
+        </dl>
+      {/if}
+    {/if}
   </div>
 </div>
 
@@ -283,7 +342,7 @@
   }
   .tip.open.placed {
     opacity: 1;
-    pointer-events: none;
+    pointer-events: auto;
     animation: tip-in 90ms ease-out;
   }
   .tip.open.above.placed {
@@ -291,7 +350,28 @@
   }
   .tip.open.side.placed {
     animation-name: tip-in-side;
-    pointer-events: auto;
+  }
+  .tip.open.placed::after {
+    content: '';
+    position: absolute;
+  }
+  .tip.open.placed:not(.above):not(.side)::after {
+    left: 0;
+    right: 0;
+    top: -16px;
+    height: 16px;
+  }
+  .tip.open.above.placed::after {
+    left: 0;
+    right: 0;
+    bottom: -16px;
+    height: 16px;
+  }
+  .tip.open.side.placed::after {
+    top: 0;
+    bottom: 0;
+    left: -16px;
+    width: 16px;
   }
   .tip.open::before {
     content: '';
@@ -322,6 +402,7 @@
   .body {
     max-height: var(--max, 24rem);
     overflow: auto;
+    overscroll-behavior: contain;
     padding: 0.85rem 1rem 0.95rem;
     border-radius: 12px;
   }
@@ -363,6 +444,23 @@
     margin: 0;
     color: #44403c;
     font-size: 0.84rem;
+    line-height: 1.45;
+  }
+  .choices {
+    margin: 0.75rem 0 0;
+    padding: 0.7rem 0 0;
+    border-top: 1px solid #f0e6d8;
+  }
+  .choices div + div {
+    margin-top: 0.75rem;
+  }
+  .choices dt {
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  .choices dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.92rem;
     line-height: 1.45;
   }
   .badge {
