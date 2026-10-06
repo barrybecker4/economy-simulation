@@ -522,6 +522,7 @@ Acceptance:
 - Equal automatable shares still ignore bullishness and robotics.
 - With robotics delayed, a higher physical-task share still lowers the gain. After a finished ramp that gap shrinks sharply.
 - The ledger audit passes at bullishness 2 with the default ramp.
+- A 1,200-month run at bullishness 1.5 keeps the ledger finite. Profit-share weights stay finite when `skill` raised to the ownership exponent overflows.
 
 ## Validation
 

@@ -1,4 +1,4 @@
-import { splitEqual, splitProportional } from './allocate.js';
+import { powerWeights, splitEqual, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { pay } from './helpers.js';
 
@@ -69,7 +69,10 @@ export function distributeIncome(economy: Economy): void {
   economy.wageBill = wagePaid.reduce((sum, amount) => sum + amount, 0);
   const concentration =
     1.5 + (economy.aiFactor > 1 ? economy.params.ownership * (economy.aiFactor - 1) : 0);
-  const weights = economy.households.map((household) => household.skill ** concentration);
+  const weights = powerWeights(
+    economy.households.map((household) => household.skill),
+    concentration,
+  );
   const profits = splitProportional(profitPool, weights);
   economy.profitPaid = profits.reduce((sum, value) => sum + value, 0);
   for (let index = 0; index < economy.households.length; index += 1) {

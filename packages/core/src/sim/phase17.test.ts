@@ -191,6 +191,20 @@ describe('phase 17 AI bullishness and robotics', () => {
     });
     expect(result.audit.ok).toBe(true);
   });
+
+  it('finishes 1200 months at high bullishness with a finite ledger', () => {
+    const result = simulate(
+      loadScenario({
+        name: 'high-bullishness',
+        seed: 1,
+        ticks: 1200,
+        sliders: { 'ai.bullishness': 1.5 },
+      }),
+    );
+    expect(result.audit.ok).toBe(true);
+    const gdp = result.metrics.series.realGdp;
+    expect(gdp.every((value) => value !== null && Number.isFinite(value))).toBe(true);
+  }, 30_000);
 });
 
 function run(
