@@ -37,7 +37,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Welfare',
     unit: 'log',
     description:
-      'Mean and median human well-being. The level is the natural log of real consumption, floored at 0.01, plus a housing-security term. AI agents are not included. A five-seed band draws the median.',
+      'Mean and median human well-being. The level is the natural log of real consumption, floored at 0.01, plus a housing-security term. AI agents are not included. More than one seed draws the median.',
     lines: [
       { id: 'meanWellbeing', label: 'Mean well-being', color: '#0b6' },
       { id: 'medianWellbeing', label: 'Median well-being', color: '#064' },
@@ -49,7 +49,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Prices',
     unit: 'money',
     description:
-      'CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. A five-seed band draws each median.',
+      'CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. More than one seed draws each median.',
     lines: [
       { id: 'priceLevel', label: 'CPI', color: '#1e3a8a' },
       { id: 'priceFood', label: 'Food and bev', color: '#9a3412' },
@@ -69,7 +69,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Labor',
     unit: 'share',
     description:
-      'Unemployment is the share of households without a job. Natural unemployment rises as AI shrinks the hiring target. The policy rate is the annual interest rate: under fiat it follows inflation and the gap from that natural rate, scaled by the human share of output, and under bitcoin or hybrid it moves with the gap between loans and savings. A five-seed band draws each median.',
+      'Unemployment is the share of households without a job. Natural unemployment rises as AI shrinks the hiring target. The policy rate is the annual interest rate: under fiat it follows inflation and the gap from that natural rate, scaled by the human share of output, and under bitcoin or hybrid it moves with the gap between loans and savings. More than one seed draws each median.',
     lines: [
       { id: 'unemployment', label: 'Unemployment', color: '#b45309' },
       { id: 'naturalUnemployment', label: 'Natural unemployment', color: '#92400e' },
@@ -91,7 +91,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Public accounts',
     unit: 'money',
     description:
-      'Income tax collected from households and from AI agents. A five-seed band draws each median.',
+      'Income tax collected from households and from AI agents. More than one seed draws each median.',
     lines: [
       { id: 'taxRevenue', label: 'Total tax', color: '#0f766e' },
       { id: 'agentTaxRevenue', label: 'Agent tax', color: '#a21caf' },
@@ -103,7 +103,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Credit',
     unit: 'share',
     description:
-      "Private credit relative to annualized nominal GDP: firm and household loans divided by twelve times this month's nominal output. Government bonds are not in this ratio. A five-seed band draws the median.",
+      "Private credit relative to annualized nominal GDP: firm and household loans divided by twelve times this month's nominal output. Government bonds are not in this ratio. More than one seed draws the median.",
     lines: [{ id: 'creditToGdp', label: 'Credit to GDP', color: '#7c3aed' }],
   },
   {
@@ -112,7 +112,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'AI',
     unit: 'share',
     description:
-      'Tasks automated is the share of tasks software can do. AI agents is autonomous agents divided by households plus agents. AI share of output is the fraction of capacity from the AI multiplier. AI wealth is agent deposits over household plus agent deposits. AI transactions is agent compute sales plus agent goods over household goods plus compute sales. With equal start and end automatable shares that share stays at zero. A five-seed band draws each median.',
+      'Tasks automated is the share of tasks software can do. AI agents is autonomous agents divided by households plus agents. AI share of output is the fraction of capacity from the AI multiplier. AI wealth is agent deposits over household plus agent deposits. AI transactions is agent compute sales plus agent goods over household goods plus compute sales. With equal start and end automatable shares that share stays at zero. More than one seed draws each median.',
     lines: [
       { id: 'tasksAutomated', label: 'Tasks automated', color: '#0f766e' },
       { id: 'aiShareOfAgents', label: 'AI agents', color: '#a21caf' },
@@ -127,7 +127,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'AI',
     unit: 'money',
     description:
-      'Goods bought by autonomous AI agents that month. A five-seed band draws the median.',
+      'Goods bought by autonomous AI agents that month. More than one seed draws the median.',
     lines: [{ id: 'agentGoodsSpend', label: 'Agent goods', color: '#be123c' }],
   },
   {
@@ -136,7 +136,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Output',
     unit: 'output',
     description:
-      'Real GDP is the sum of firm capacities. Productivity per human is real GDP divided by employed households. Real investment is capital gaps installed that month. A five-seed band draws each median.',
+      'Real GDP is the sum of firm capacities. Productivity per human is real GDP divided by employed households. Real investment is capital gaps installed that month. More than one seed draws each median.',
     lines: [
       { id: 'realGdp', label: 'Real GDP', color: '#1e3a8a' },
       { id: 'productivityPerHuman', label: 'Productivity per human', color: '#0f766e' },
@@ -149,7 +149,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Living standards',
     unit: 'money',
     description:
-      'Real wage is the money wage divided by CPI. Mean and median real income and real consumption use households only. A five-seed band draws each median.',
+      'Real wage is the money wage divided by CPI. Mean and median real income and real consumption use households only. More than one seed draws each median.',
     lines: [
       { id: 'realWage', label: 'Real wage', color: '#1d4ed8' },
       { id: 'meanRealIncome', label: 'Mean real income', color: '#0f766e' },
@@ -164,7 +164,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Inequality',
     unit: 'share',
     description:
-      'Gini of household wealth, income, and consumption. Top-decile and bottom-quintile wealth shares, and the share of households below one quarter of median real consumption. A five-seed band draws each median.',
+      'Gini of household wealth, income, and consumption. Top-decile and bottom-quintile wealth shares, and the share of households below one quarter of median real consumption. More than one seed draws each median.',
     lines: [
       { id: 'giniWealth', label: 'Wealth Gini', color: '#7c3aed' },
       { id: 'giniIncome', label: 'Income Gini', color: '#1d4ed8' },
@@ -180,7 +180,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Money',
     unit: 'share',
     description:
-      'Twelve-month CPI inflation, velocity of deposits through consumption and investment, and loans relative to the savings stock. A five-seed band draws each median.',
+      'Twelve-month CPI inflation, velocity of deposits through consumption and investment, and loans relative to the savings stock. More than one seed draws each median.',
     lines: [
       { id: 'inflation', label: 'Inflation', color: '#be123c' },
       { id: 'velocity', label: 'Velocity', color: '#1d4ed8' },
@@ -193,7 +193,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Money',
     unit: 'money',
     description:
-      'Money supply is household, firm, agent, and government deposits. Base money is bank reserves. A five-seed band draws each median.',
+      'Money supply is household, firm, agent, and government deposits. Base money is bank reserves. More than one seed draws each median.',
     lines: [
       { id: 'moneySupply', label: 'Money supply', color: '#1e3a8a' },
       { id: 'baseMoney', label: 'Base money', color: '#0f766e' },
@@ -205,7 +205,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Shocks',
     unit: 'share',
     description:
-      'Demand, credit, and productivity impulses. A positive spell is the twelve-month expansion; a negative spell is the contraction. Zero when no shock is active. A five-seed band draws each median.',
+      'Demand, credit, and productivity impulses. A positive spell is the twelve-month expansion; a negative spell is the contraction. Zero when no shock is active. More than one seed draws each median.',
     lines: [
       { id: 'demandImpulse', label: 'Demand', color: '#b45309' },
       { id: 'creditImpulse', label: 'Credit', color: '#7c3aed' },
@@ -218,7 +218,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'This month',
     unit: 'money',
     description:
-      'Who paid whom that month: household and agent goods, government purchases, wages, profits, tax, the household grant, AI compute sales and fees, sweeps to owners, interest, new loans, and loan repayment. A five-seed band draws each median.',
+      'Who paid whom that month: household and agent goods, government purchases, wages, profits, tax, the household grant, AI compute sales and fees, sweeps to owners, interest, new loans, and loan repayment. More than one seed draws each median.',
     lines: [
       { id: 'householdGoodsSpend', label: 'Household goods', color: '#1e3a8a' },
       { id: 'agentGoodsSpend', label: 'Agent goods', color: '#be123c' },

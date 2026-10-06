@@ -20,6 +20,7 @@ import {
   promoteBaseline,
   resetDiffToBaseline,
   setSeed,
+  setSeeds,
   setTicks,
   type ComparisonSession,
 } from './compare.js';
@@ -163,7 +164,7 @@ function finishedRun(): RunSuccess {
 }
 
 function posted(session: ComparisonSession, result: RunSuccess): ComparisonSession {
-  const prepared = prepareRun(session, sliders, 'run');
+  const prepared = prepareRun(session, sliders);
   if (prepared.blocked) {
     throw new Error('expected a run to start');
   }
@@ -199,7 +200,7 @@ describe('comparison session', () => {
     expect(canPromoteBaseline(update.session)).toBe(false);
   });
 
-  it('refuses to pin anything other than a single run', () => {
+  it('refuses to pin when there is no result', () => {
     const session = openComparisonSession({
       seed: 1,
       ticks: 24,
@@ -209,6 +210,68 @@ describe('comparison session', () => {
     const update = pinBaseline(session, sliders);
     expect(update.session).toBe(session);
     expect(update.status).toBeUndefined();
+  });
+
+  it('pins a multi-seed band and still allows multi-seed variants', () => {
+    const band: RunSuccess = {
+      kind: 'band',
+      ticks: [0, 1],
+      series: {},
+      bands: {},
+    };
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        seeds: 5,
+        regime: 'fiat',
+        overrides: { 'scale.households': 500 },
+      }),
+      band,
+    );
+    session = pinBaseline(session, sliders).session;
+    expect(session.seeds).toBe(5);
+    expect(canPinBaseline(session)).toBe(true);
+    session = editSlider(session, getSlider('scale.households'), '2000');
+    expect(setSeeds(session, 3).seeds).toBe(3);
+    const prepared = prepareRun(setSeeds(session, 5), sliders);
+    expect(prepared.blocked).toBe(false);
+    if (prepared.blocked) {
+      return;
+    }
+    expect(
+      sliderValue(
+        getSlider('scale.households'),
+        prepared.session.regime,
+        prepared.session.overrides,
+      ),
+    ).toBe(500);
+  });
+
+  it('snaps a variant run while pinned', () => {
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: { 'scale.households': 500 },
+      }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    session = editSlider(session, getSlider('scale.households'), '2000');
+    const prepared = prepareRun(session, sliders);
+    expect(prepared.blocked).toBe(false);
+    if (prepared.blocked) {
+      return;
+    }
+    expect(
+      sliderValue(
+        getSlider('scale.households'),
+        prepared.session.regime,
+        prepared.session.overrides,
+      ),
+    ).toBe(500);
   });
 
   it('keeps frame sliders fixed and still accepts other edits', () => {
@@ -221,33 +284,6 @@ describe('comparison session', () => {
     expect(frozen).toBe(session);
     const edited = editSlider(session, getSlider('government.ubiShare'), '0.4');
     expect(edited.overrides['government.ubiShare']).toBe(0.4);
-  });
-
-  it('blocks preview runs while pinned and snaps a variant run', () => {
-    let session = posted(
-      openComparisonSession({
-        seed: 1,
-        ticks: 24,
-        regime: 'fiat',
-        overrides: { 'scale.households': 500 },
-      }),
-      finishedRun(),
-    );
-    session = pinBaseline(session, sliders).session;
-    session = editSlider(session, getSlider('scale.households'), '2000');
-    expect(prepareRun(session, sliders, 'band').blocked).toBe(true);
-    const prepared = prepareRun(session, sliders, 'run');
-    expect(prepared.blocked).toBe(false);
-    if (prepared.blocked) {
-      return;
-    }
-    expect(
-      sliderValue(
-        getSlider('scale.households'),
-        prepared.session.regime,
-        prepared.session.overrides,
-      ),
-    ).toBe(500);
   });
 
   it('overlays a later run and reads census counts from each side', () => {
@@ -265,7 +301,7 @@ describe('comparison session', () => {
     session = pinBaseline(session, sliders).session;
     session = editSlider(session, getSlider('ai.ownershipConcentration'), '0.9');
     session = editRegime(session, 'bitcoin');
-    const prepared = prepareRun(session, sliders, 'run');
+    const prepared = prepareRun(session, sliders);
     if (prepared.blocked) {
       throw new Error('expected a variant run');
     }

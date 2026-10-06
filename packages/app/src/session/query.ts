@@ -1,15 +1,17 @@
 import { assertSliderValue, getSlider } from '../../../core/src/config/registry.js';
+import { assertSeedCount, MAX_SEEDS, MIN_SEEDS } from './run.js';
 import { defaultRegime } from './sliders.js';
 
 export interface PageState {
   seed: number;
   ticks: number;
+  seeds: number;
   regime: string;
   overrides: Record<string, number | string>;
 }
 
 export function defaultPage(): PageState {
-  return { seed: 1, ticks: 120, regime: defaultRegime(), overrides: {} };
+  return { seed: 1, ticks: 120, seeds: 1, regime: defaultRegime(), overrides: {} };
 }
 
 export function parsePageState(search: string, defaults: PageState = defaultPage()): PageState {
@@ -27,6 +29,7 @@ export function parsePageState(search: string, defaults: PageState = defaultPage
       defaults.ticks,
       (value) => value > 0,
     ),
+    seeds: readSeeds(params.get('seeds'), defaults.seeds),
     regime: readRegime(params.get('regime'), defaults.regime),
     overrides: readOverrides(params),
   };
@@ -36,6 +39,9 @@ export function pageSearch(state: PageState): string {
   const params = new URLSearchParams();
   params.set('seed', String(state.seed));
   params.set('ticks', String(state.ticks));
+  if (state.seeds !== 1) {
+    params.set('seeds', String(state.seeds));
+  }
   params.set('regime', state.regime);
   for (const id of Object.keys(state.overrides).sort()) {
     params.set(id, String(overrideAt(state.overrides, id)));
@@ -57,7 +63,7 @@ function singleParams(search: string): Map<string, string> {
 function readOverrides(params: Map<string, string>): Record<string, number | string> {
   const overrides: Record<string, number | string> = {};
   for (const [key, raw] of params) {
-    if (key === 'seed' || key === 'ticks' || key === 'regime') {
+    if (key === 'seed' || key === 'ticks' || key === 'seeds' || key === 'regime') {
       continue;
     }
     if (key === 'regime.type') {
@@ -102,6 +108,18 @@ function readInteger(
   if (raw.trim() === '' || !Number.isSafeInteger(value) || !accept(value)) {
     throw new Error(invalid);
   }
+  return value;
+}
+
+function readSeeds(raw: string | undefined, fallback: number): number {
+  if (raw === undefined) {
+    return fallback;
+  }
+  const value = Number(raw);
+  if (raw.trim() === '' || !Number.isSafeInteger(value)) {
+    throw new Error(`Seeds must be an integer from ${MIN_SEEDS} to ${MAX_SEEDS}`);
+  }
+  assertSeedCount(value);
   return value;
 }
 

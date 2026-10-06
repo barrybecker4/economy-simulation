@@ -50,7 +50,7 @@ export function chartViews(
   if (result.ticks.length === 0) {
     throw new Error('Run has no ticks');
   }
-  if (baseline !== null && result.kind === 'run' && baseline.result.kind === 'run') {
+  if (baseline !== null) {
     return pairedViews(result, regime, baseline);
   }
   const views = CHART_PANELS.map((spec) => viewFromSpec(spec, result, regime));
@@ -198,7 +198,7 @@ function cpiBandView(result: BandRunResult, regime: string): ChartView {
     title: 'CPI band',
     group: 'Prices',
     unit: scaled.unit,
-    description: 'Median CPI across five seeds, with the 5th and 95th percentiles.',
+    description: 'Median CPI across these seeds, with the 5th and 95th percentiles.',
     lines: scaled.lines,
   };
 }

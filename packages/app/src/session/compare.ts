@@ -1,8 +1,8 @@
 import { getSlider, type Slider } from '../../../core/src/config/registry.js';
 import { applyCategory } from './presets.js';
-import { readyLabel } from './run.js';
+import { assertSeedCount, MAX_SEEDS, MIN_SEEDS, readyLabel } from './run.js';
 import { parameterSliders, sliderValue, writeSlider } from './sliders.js';
-import type { RunKind, RunSuccess } from '../worker/protocol.js';
+import type { RunSuccess } from '../worker/protocol.js';
 
 export interface CompareSide {
   regime: string;
@@ -99,6 +99,7 @@ const CENSUS_OWNERSHIP_FALLBACK = 0.5;
 export interface ComparisonSession {
   seed: number;
   ticks: number;
+  seeds: number;
   regime: string;
   overrides: Record<string, number | string>;
   shownRegime: string;
@@ -142,13 +143,17 @@ export interface PreparedRun {
 export function openComparisonSession(input: {
   seed: number;
   ticks: number;
+  seeds?: number;
   regime: string;
   overrides: Record<string, number | string>;
 }): ComparisonSession {
+  const seeds = input.seeds ?? 1;
+  assertSeedCount(seeds);
   const overrides = { ...input.overrides };
   return {
     seed: input.seed,
     ticks: input.ticks,
+    seeds,
     regime: input.regime,
     overrides,
     shownRegime: input.regime,
@@ -161,11 +166,18 @@ export function openComparisonSession(input: {
 }
 
 export function setSeed(session: ComparisonSession, seed: number): ComparisonSession {
-  return retarget(session, seed, session.ticks);
+  return retarget(session, seed, session.ticks, session.seeds);
 }
 
 export function setTicks(session: ComparisonSession, ticks: number): ComparisonSession {
-  return retarget(session, session.seed, ticks);
+  return retarget(session, session.seed, ticks, session.seeds);
+}
+
+export function setSeeds(session: ComparisonSession, seeds: number): ComparisonSession {
+  if (!Number.isSafeInteger(seeds) || seeds < MIN_SEEDS || seeds > MAX_SEEDS) {
+    return session;
+  }
+  return retarget(session, session.seed, session.ticks, seeds);
 }
 
 export function editSlider(
@@ -212,7 +224,7 @@ export function pinBaseline(session: ComparisonSession, sliders: readonly Slider
 }
 
 export function clearBaseline(session: ComparisonSession): SessionUpdate {
-  const status = session.result === null ? IDLE_STATUS : readyLabel(session.result.kind);
+  const status = session.result === null ? IDLE_STATUS : readyLabel();
   return { session: { ...session, pin: null }, status };
 }
 
@@ -227,14 +239,7 @@ export function promoteBaseline(
   return { session: snap(session, sliders, pinned), status: PROMOTE_STATUS };
 }
 
-export function prepareRun(
-  session: ComparisonSession,
-  sliders: readonly Slider[],
-  kind: RunKind,
-): PreparedRun {
-  if (session.pin !== null && kind !== 'run') {
-    return { blocked: true, session };
-  }
+export function prepareRun(session: ComparisonSession, sliders: readonly Slider[]): PreparedRun {
   if (session.pin === null) {
     return { blocked: false, session };
   }
@@ -264,16 +269,11 @@ export function noteFailure(session: ComparisonSession): ComparisonSession {
 }
 
 export function canPinBaseline(session: ComparisonSession): boolean {
-  return session.result?.kind === 'run';
+  return session.result !== null;
 }
 
 export function canPromoteBaseline(session: ComparisonSession): boolean {
-  return (
-    session.pin !== null &&
-    session.result !== null &&
-    session.result !== session.pin.result &&
-    session.result.kind === 'run'
-  );
+  return session.pin !== null && session.result !== null && session.result !== session.pin.result;
 }
 
 export function isPinned(session: ComparisonSession): boolean {
@@ -304,19 +304,29 @@ export function comparisonBundle(session: ComparisonSession): ComparisonBundle {
   };
 }
 
-function retarget(session: ComparisonSession, seed: number, ticks: number): ComparisonSession {
+function retarget(
+  session: ComparisonSession,
+  seed: number,
+  ticks: number,
+  seeds: number,
+): ComparisonSession {
   const pin =
     session.pin !== null && (seed !== session.pin.seed || ticks !== session.pin.ticks)
       ? null
       : session.pin;
-  if (seed === session.seed && ticks === session.ticks && pin === session.pin) {
+  if (
+    seed === session.seed &&
+    ticks === session.ticks &&
+    seeds === session.seeds &&
+    pin === session.pin
+  ) {
     return session;
   }
-  return { ...session, seed, ticks, pin };
+  return { ...session, seed, ticks, seeds, pin };
 }
 
 function capture(session: ComparisonSession): PinnedBaseline | null {
-  if (session.result === null || session.result.kind !== 'run') {
+  if (session.result === null) {
     return null;
   }
   return {
@@ -355,13 +365,7 @@ function pinSide(pin: PinnedBaseline): CompareSide {
 function baselineView(session: ComparisonSession): ComparisonSide | null {
   const pin = session.pin;
   const result = session.result;
-  if (
-    pin === null ||
-    result === null ||
-    result === pin.result ||
-    result.kind !== 'run' ||
-    pin.result.kind !== 'run'
-  ) {
+  if (pin === null || result === null || result === pin.result) {
     return null;
   }
   return {

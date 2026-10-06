@@ -10,10 +10,17 @@ describe('parsePageState', () => {
     const state = {
       seed: 4,
       ticks: 36,
+      seeds: 5,
       regime: 'bitcoin',
       overrides: { 'firm.markup': 0.4, 'bitcoin.lendingModel': 'fullReserve' },
     };
     expect(parsePageState(`?${pageSearch(state)}`)).toEqual(state);
+  });
+
+  it('omits the default seed count from the query string', () => {
+    expect(pageSearch({ ...defaultPage(), seed: 2, ticks: 24 })).toBe(
+      'seed=2&ticks=24&regime=fiat',
+    );
   });
 
   it('drops an override that restates the default', () => {
@@ -21,9 +28,11 @@ describe('parsePageState', () => {
     expect(state.overrides).toEqual({});
   });
 
-  it('rejects a bad seed, tick count, regime, number, option, duplicate, or unknown key', () => {
+  it('rejects a bad seed, tick count, seed count, regime, number, option, duplicate, or unknown key', () => {
     expect(() => parsePageState('?seed=-1')).toThrow(/Seed/);
     expect(() => parsePageState('?ticks=0')).toThrow(/Ticks/);
+    expect(() => parsePageState('?seeds=0')).toThrow(/Seed count/);
+    expect(() => parsePageState('?seeds=21')).toThrow(/Seed count/);
     expect(() => parsePageState('?regime=gold')).toThrow(/regime.type/);
     expect(() => parsePageState('?firm.markup=nope')).toThrow(/finite number/);
     expect(() => parsePageState('?firm.markup=9')).toThrow(/between/);

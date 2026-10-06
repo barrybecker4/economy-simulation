@@ -12,7 +12,7 @@ export function requireSeries(series: Record<string, number[]>, id: string): num
   return values;
 }
 
-/** Median of a five-seed band, otherwise the single series. */
+/** Median of a multi-seed band, otherwise the single series. */
 export function readSeries(result: RunSuccess, id: string): number[] {
   if (result.kind === 'band') {
     return bandMid(result, id);

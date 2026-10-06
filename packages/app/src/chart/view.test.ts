@@ -189,16 +189,32 @@ describe('chartViews', () => {
     expect(prices?.lines[1]?.values).toEqual([8, 9]);
   });
 
-  it('ignores a baseline for a band', () => {
+  it('overlays a baseline on a band using medians', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([1, 2]) };
     const band = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'fiat', {
       result: baseline,
       regime: 'fiat',
     });
-    expect(band[0]?.lines.map((line) => line.label)).toEqual([
+    expect(band.find((view) => view.key === 'cpi-band')).toBeUndefined();
+    const wellbeing = band[0];
+    expect(wellbeing?.lines.map((line) => line.label)).toEqual([
+      'Mean well-being',
       'Mean well-being',
       'Median well-being',
+      'Median well-being',
     ]);
+    expect(wellbeing?.lines[0]?.values).toEqual([1, 2]);
+    expect(wellbeing?.lines[1]?.values).toEqual([3, 4]);
+    expect(wellbeing?.lines[1]?.dash).toEqual(VARIANT_DASH);
+  });
+
+  it('overlays two bands without a CPI percentile chart', () => {
+    const baseline = { kind: 'band' as const, ticks, series: {}, bands: bands([1, 2]) };
+    const variant = { kind: 'band' as const, ticks, series: {}, bands: bands([3, 4]) };
+    const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
+    expect(views.find((view) => view.key === 'cpi-band')).toBeUndefined();
+    expect(views[0]?.lines[0]?.values).toEqual([1, 2]);
+    expect(views[0]?.lines[1]?.values).toEqual([3, 4]);
   });
 
   it('rejects a run with no ticks, a missing series, or a short series', () => {

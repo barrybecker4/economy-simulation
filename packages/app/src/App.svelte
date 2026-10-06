@@ -29,6 +29,7 @@
     promoteBaseline,
     resetDiffToBaseline,
     setSeed,
+    setSeeds,
     setTicks,
   } from './session/compare.js';
   import { monthCensus } from './session/census.js';
@@ -51,7 +52,6 @@
   import {
     formatWorkerError,
     percentComplete,
-    type RunKind,
     type RunSuccess,
     type WorkerMessage,
   } from './worker/protocol.js';
@@ -154,10 +154,11 @@
     busy = false;
     session = noteResult(session, message);
     monthIndex = Math.max(0, message.ticks.length - 1);
-    status = readyLabel(message.kind);
+    status = readyLabel();
     const search = pageSearch({
       seed: session.seed,
       ticks: session.ticks,
+      seeds: session.seeds,
       regime: session.regime,
       overrides: session.overrides,
     });
@@ -186,8 +187,8 @@
     }
   }
 
-  function run(kind: RunKind): void {
-    const prepared = prepareRun(session, sliders, kind);
+  function run(): void {
+    const prepared = prepareRun(session, sliders);
     if (prepared.blocked) {
       return;
     }
@@ -195,9 +196,9 @@
     let request;
     try {
       request = runRequest(
-        kind,
         session.seed,
         session.ticks,
+        session.seeds,
         resolvedSliders(sliders, session.regime, session.overrides),
       );
     } catch (err) {
@@ -208,7 +209,7 @@
     progressCompleted = 0;
     progressTotal = tickBudget(request);
     busy = true;
-    status = activityLabel(kind);
+    status = activityLabel(session.seeds);
     worker.postMessage(request);
   }
 
@@ -267,6 +268,7 @@
   <Controls
     bind:seed={() => session.seed, (seed) => (session = setSeed(session, seed))}
     bind:ticks={() => session.ticks, (ticks) => (session = setTicks(session, ticks))}
+    bind:seeds={() => session.seeds, (seeds) => (session = setSeeds(session, seeds))}
     {busy}
     {pinned}
     {canPin}
