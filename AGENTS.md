@@ -1,6 +1,10 @@
 # Working agreements
 
-Read [docs/PLAN.md](docs/PLAN.md) and [docs/model.md](docs/model.md) before changing simulation behavior. [docs/adr/](docs/adr/) records decisions that override the original design notes.
+## Overview
+
+An agent-based economy simulator that shows which assumptions a conclusion depends on. TypeScript, pnpm workspaces, Vitest, and Zod. `packages/core` is the simulation, `packages/cli` runs it, and `packages/app` is the Svelte application.
+
+Read [docs/PLAN.md](docs/PLAN.md) and [docs/model.md](docs/model.md) before changing simulation behavior. Decisions that override the original design notes are recorded in `docs/adr/`.
 
 ## Phase discipline
 
@@ -12,12 +16,12 @@ Read [docs/PLAN.md](docs/PLAN.md) and [docs/model.md](docs/model.md) before chan
 
 - Write tests first for ledger, accounting, and regime logic.
 - Fiat money is integer cents. Bitcoin money is a floating-point number of satoshis and may be a fraction of a satoshi. Ratios, rates, and productivity may be floating point.
-- Do not call `Math.random` or `Date.now` in `packages/core`. Pass the seeded RNG explicitly. Iterate agents by numeric id.
+- Pass the seeded RNG into `packages/core` explicitly, and iterate agents by numeric id. That package stays free of Math.random and Date.now.
 - Every movement of money or debt goes through the double-entry ledger.
 - Keep every tunable number in the slider registry. No unexplained constants in agent code.
 - Agents decide in `decide()` and act through the ledger and markets. They do not modify other agents directly.
 - Keep functions small.
-- Do not add a dependency without noting why.
+- Record why when adding a dependency.
 
 ## Layout
 
@@ -38,4 +42,4 @@ Default role labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for
 
 ### Domain docs
 
-Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: the glossary and ADRs live at the repo root. See `docs/agents/domain.md`.
