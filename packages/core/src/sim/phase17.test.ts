@@ -88,6 +88,7 @@ describe('phase 17 AI bullishness and robotics', () => {
   it('keeps productivity rising after adoption when bullishness is two', () => {
     const bounded = run({
       ...small,
+      'labor.wageElasticity': 0,
       'ai.bullishness': 1,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.5,
@@ -98,6 +99,7 @@ describe('phase 17 AI bullishness and robotics', () => {
     });
     const unbounded = run({
       ...small,
+      'labor.wageElasticity': 0,
       'ai.bullishness': 2,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.5,

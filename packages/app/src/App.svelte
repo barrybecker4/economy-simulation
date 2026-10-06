@@ -28,6 +28,7 @@
     prepareRun,
     promoteBaseline,
     resetDiffToBaseline,
+    resetToDefaults,
     setSeed,
     setSeeds,
     setTicks,
@@ -236,6 +237,12 @@
     applyUpdate(promoteBaseline(session, sliders));
   }
 
+  function commitReset(): void {
+    applyUpdate(resetToDefaults());
+    monthIndex = 0;
+    history.replaceState(null, '', `?${pageSearch(defaultPage())}`);
+  }
+
   function resetDiff(id: string): void {
     session = resetDiffToBaseline(session, id);
   }
@@ -288,6 +295,7 @@
     onPin={commitPin}
     onClear={commitClear}
     onPromote={commitPromote}
+    onReset={commitReset}
   />
   <Ledger sliders={changed} {note} value={valueOf} />
 

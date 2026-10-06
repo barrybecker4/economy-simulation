@@ -561,11 +561,11 @@ Registry version: 3.
 - Label: Wage elasticity of hiring
 - Group: behavior
 - Unit: coefficient
-- Default: 0
+- Default: 0.5
 - Range: 0 to 3
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.
+- Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.
 
 ## population.growth
 

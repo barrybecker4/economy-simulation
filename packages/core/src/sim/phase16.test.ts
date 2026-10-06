@@ -23,6 +23,7 @@ describe('phase 16 inflation time preference', () => {
   it('raises goods spending more when the inflation response is on and inflation is above target', () => {
     const off = run({
       ...small,
+      'labor.wageElasticity': 0,
       'household.inflationTimePreference': 0,
       'prices.trendWeight': 0,
       ticks: 36,
@@ -30,6 +31,7 @@ describe('phase 16 inflation time preference', () => {
     });
     const on = run({
       ...small,
+      'labor.wageElasticity': 0,
       'household.inflationTimePreference': 0.5,
       'prices.trendWeight': 0,
       ticks: 36,

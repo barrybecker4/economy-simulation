@@ -14,6 +14,7 @@
     onPin,
     onClear,
     onPromote,
+    onReset,
   }: {
     seed: number;
     ticks: number;
@@ -26,6 +27,7 @@
     onPin: () => void;
     onClear: () => void;
     onPromote: () => void;
+    onReset: () => void;
   } = $props();
 </script>
 
@@ -95,6 +97,19 @@
       </button>
     </NameTip>
   {/if}
+  <NameTip
+    id="reset-defaults"
+    intro="Restores seed, months, seed count, regime, and every slider to their defaults, drops a pinned baseline, and clears the current charts."
+  >
+    <button
+      type="button"
+      aria-describedby="help-reset-defaults"
+      onclick={onReset}
+      disabled={busy}
+    >
+      Reset to defaults
+    </button>
+  </NameTip>
 </section>
 
 <style>

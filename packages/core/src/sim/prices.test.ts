@@ -56,7 +56,7 @@ describe('relative prices', () => {
   });
 
   it('holds the CPI near target while electronics and housing move apart', () => {
-    const result = run({ 'shock.frequency': 0 });
+    const result = run({ 'shock.frequency': 0, 'labor.wageElasticity': 0 });
     const inflation = series(result, 'inflation');
     const late = inflation.slice(24);
     expect(Math.max(...late.map((value) => Math.abs(value - 0.02)))).toBeLessThanOrEqual(0.02);

@@ -1,5 +1,6 @@
 import { getSlider, type Slider } from '../../../core/src/config/registry.js';
 import { applyCategory } from './presets.js';
+import { defaultPage } from './query.js';
 import { assertSeedCount, MAX_SEEDS, MIN_SEEDS, readyLabel } from './run.js';
 import { parameterSliders, sliderValue, writeSlider } from './sliders.js';
 import type { RunSuccess } from '../worker/protocol.js';
@@ -228,6 +229,10 @@ export function pinBaseline(session: ComparisonSession, sliders: readonly Slider
 export function clearBaseline(session: ComparisonSession): SessionUpdate {
   const status = session.result === null ? IDLE_STATUS : readyLabel();
   return { session: { ...session, pin: null }, status };
+}
+
+export function resetToDefaults(): SessionUpdate {
+  return { session: openComparisonSession(defaultPage()), status: IDLE_STATUS };
 }
 
 export function promoteBaseline(

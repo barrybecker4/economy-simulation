@@ -428,7 +428,7 @@ Out of scope: household credit, wage-driven hiring, fiscal monetization, and a t
 
 Goal: sticky money wages can raise unemployment when prices fall.
 
-1. `labor.wageElasticity` scales the hiring quota when the real wage is high or low relative to productivity. At 0 the quota is unchanged.
+1. `labor.wageElasticity` scales the hiring quota when the real wage is high or low relative to productivity. The default is 0.5. At 0 the quota is unchanged.
 
 Acceptance:
 

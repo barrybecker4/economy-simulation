@@ -19,11 +19,13 @@ import {
   prepareRun,
   promoteBaseline,
   resetDiffToBaseline,
+  resetToDefaults,
   setSeed,
   setSeeds,
   setTicks,
   type ComparisonSession,
 } from './compare.js';
+import { defaultPage } from './query.js';
 import { sliderValue } from './sliders.js';
 import type { RunSuccess } from '../worker/protocol.js';
 
@@ -391,5 +393,29 @@ describe('comparison session', () => {
     expect(session.pin).not.toBeNull();
     expect(comparisonBundle(session).variant).toBeNull();
     expect(clearBaseline(session).status).toBe('Set the parameters and run.');
+  });
+
+  it('resets seed, months, seed count, regime, and sliders to page defaults', () => {
+    let session = posted(
+      openComparisonSession({
+        seed: 9,
+        ticks: 36,
+        seeds: 3,
+        regime: 'bitcoin',
+        overrides: { 'firm.markup': 0.4, 'government.ubiShare': 0.3 },
+      }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    const update = resetToDefaults();
+    const page = defaultPage();
+    expect(update.status).toBe('Set the parameters and run.');
+    expect(update.session.seed).toBe(page.seed);
+    expect(update.session.ticks).toBe(page.ticks);
+    expect(update.session.seeds).toBe(page.seeds);
+    expect(update.session.regime).toBe(page.regime);
+    expect(update.session.overrides).toEqual({});
+    expect(update.session.result).toBeNull();
+    expect(update.session.pin).toBeNull();
   });
 });

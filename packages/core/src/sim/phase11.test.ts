@@ -22,12 +22,18 @@ describe('phase 11 wage-driven hiring', () => {
     );
   });
 
-  it('matches phase 10 when elasticity is 0', () => {
-    const baseline = run({ ...small });
-    const tagged = run({ ...small, 'labor.wageElasticity': 0 });
-    expect(baseline.audit.ok && tagged.audit.ok).toBe(true);
-    expect(series(baseline, 'unemployment')).toEqual(series(tagged, 'unemployment'));
-    expect(series(baseline, 'realGdp')).toEqual(series(tagged, 'realGdp'));
+  it('raises unemployment above the zero-elasticity path at the default', () => {
+    const quiet = {
+      ...small,
+      'ai.automatableShareStart': 0.3,
+      'ai.automatableShareEnd': 0.3,
+    };
+    const frozen = run({ ...quiet, 'labor.wageElasticity': 0, ticks: 120 });
+    const responsive = run({ ...quiet, ticks: 120 });
+    expect(frozen.audit.ok && responsive.audit.ok).toBe(true);
+    const frozenEnd = series(frozen, 'unemployment').at(-1) ?? 0;
+    const responsiveEnd = series(responsive, 'unemployment').at(-1) ?? 0;
+    expect(responsiveEnd).toBeGreaterThan(frozenEnd);
   });
 
   it('raises unemployment under deflation when wages are sticky and elasticity is high', () => {
