@@ -9,7 +9,11 @@
     compositeWeights,
     levelsFrom,
   } from './session/composite.js';
-  import { compareDiffs } from './session/compare.js';
+  import {
+    alignComparisonFrame,
+    compareDiffs,
+    comparisonFrame,
+  } from './session/compare.js';
   import { monthCensus } from './session/census.js';
   import { monthFlows } from './session/flows.js';
   import { applyCategory, matchingCategories } from './session/presets.js';
@@ -43,6 +47,9 @@
     seed: number;
     ticks: number;
   }
+
+  const FRAME_STATUS =
+    'Baseline pinned. Edit parameters and run a variant. Scale, scoring, population growth, and trust in banks stay at the baseline.';
 
   const sliders = listSliders();
   const parameters = parameterSliders(sliders);
@@ -192,9 +199,22 @@
     return trimmed;
   }
 
+  function snapToPin(current: Pin): void {
+    const aligned = alignComparisonFrame(
+      sliders,
+      { regime, overrides },
+      { regime: current.regime, overrides: current.overrides },
+    );
+    regime = aligned.regime;
+    overrides = aligned.overrides;
+  }
+
   function run(kind: RunKind): void {
     if (pin !== null && kind !== 'run') {
       return;
+    }
+    if (pin !== null) {
+      snapToPin(pin);
     }
     let request;
     try {
@@ -216,14 +236,16 @@
     if (result === null || result.kind !== 'run') {
       return;
     }
-    pin = {
+    const next: Pin = {
       result,
       regime: chartRegime,
       overrides: { ...resultOverrides },
       seed,
       ticks,
     };
-    status = 'Baseline pinned. Edit parameters and run a variant.';
+    pin = next;
+    snapToPin(next);
+    status = FRAME_STATUS;
   }
 
   function clearBaseline(): void {
@@ -235,14 +257,16 @@
     if (result === null || result.kind !== 'run') {
       return;
     }
-    pin = {
+    const next: Pin = {
       result,
       regime: chartRegime,
       overrides: { ...resultOverrides },
       seed,
       ticks,
     };
-    status = 'Variant is now the baseline.';
+    pin = next;
+    snapToPin(next);
+    status = 'Variant is now the baseline. Scale, scoring, population growth, and trust in banks stay at the baseline.';
   }
 
   function resetDiff(id: string): void {
@@ -267,6 +291,9 @@
   }
 
   function onSlider(slider: Slider, raw: string): void {
+    if (pin !== null && comparisonFrame(slider.id)) {
+      return;
+    }
     const next = writeSlider(slider, raw, regime, overrides);
     regime = next.regime;
     overrides = next.overrides;
@@ -353,6 +380,7 @@
     {parameters}
     {regime}
     {categories}
+    {pinned}
     value={valueOf}
     onRegime={onRegime}
     onCategory={applyCategoryChoice}

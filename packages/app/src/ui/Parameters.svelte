@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Slider, SliderGroup } from '../../../core/src/config/registry.js';
   import { categoryForGroup, type PresetCategory } from '../../../core/src/config/presets.js';
+  import { comparisonFrame } from '../session/compare.js';
   import NameTip from '../tip/NameTip.svelte';
   import { GROUP_ORDER, groupLabel } from '../tip/labels.js';
   import { categoryTipItems } from '../session/presets.js';
@@ -10,6 +11,7 @@
     parameters,
     regime,
     categories,
+    pinned,
     value,
     onRegime,
     onCategory,
@@ -18,6 +20,7 @@
     parameters: readonly Slider[];
     regime: string;
     categories: Readonly<Record<string, string | null>>;
+    pinned: boolean;
     value: (slider: Slider) => number | string;
     onRegime: (value: string) => void;
     onCategory: (categoryId: string, optionId: string) => void;
@@ -27,15 +30,34 @@
   const groups = $derived(groupedParameters(parameters));
   let openGroups = $state<Record<string, boolean>>({});
 
+  const FRAME_HINT = 'Held at the baseline for this comparison.';
+
   function rawValue(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
   function groupNote(group: SliderGroup): string | null {
+    if (pinned && (group === 'scale' || group === 'welfare')) {
+      return FRAME_HINT;
+    }
     if (group === 'centralBank') {
       return 'Bitcoin and hybrid ignore these sliders.';
     }
     return null;
+  }
+
+  function rowFrozen(slider: Slider): boolean {
+    return pinned && comparisonFrame(slider.id);
+  }
+
+  function rowHint(slider: Slider): string | null {
+    if (!rowFrozen(slider)) {
+      return null;
+    }
+    if (slider.group === 'scale' || slider.group === 'welfare') {
+      return null;
+    }
+    return FRAME_HINT;
   }
 
   function chooseCategory(categoryId: string, event: Event): void {
@@ -155,7 +177,9 @@
           {/if}
           {#each block.sliders as slider (slider.id)}
             {#if slider.id !== 'regime.type'}
-              <label>
+              {@const frozen = rowFrozen(slider)}
+              {@const hint = rowHint(slider)}
+              <label class:frozen>
                 <NameTip {slider} wide />
                 {#if slider.kind === 'number'}
                   <input
@@ -164,6 +188,7 @@
                     max={slider.max}
                     step={sliderStep(slider)}
                     value={Number(value(slider))}
+                    disabled={frozen}
                     aria-labelledby="label-{slider.id}"
                     aria-describedby="help-{slider.id}"
                     oninput={(event) => onSlider(slider, rawValue(event))}
@@ -172,6 +197,7 @@
                 {:else}
                   <select
                     value={String(value(slider))}
+                    disabled={frozen}
                     aria-labelledby="label-{slider.id}"
                     aria-describedby="help-{slider.id}"
                     onchange={(event) => onSlider(slider, rawValue(event))}
@@ -180,6 +206,9 @@
                       <option value={option}>{option}</option>
                     {/each}
                   </select>
+                {/if}
+                {#if hint}
+                  <span class="row-hint">{hint}</span>
                 {/if}
               </label>
             {/if}
@@ -238,6 +267,16 @@
     align-items: center;
     border-bottom: 1px solid #eee;
     padding: 0.4rem 0;
+  }
+  .body label.frozen {
+    opacity: 0.55;
+  }
+  .row-hint {
+    color: #57534e;
+    flex: 1 1 100%;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0;
   }
   .hint {
     color: #57534e;
