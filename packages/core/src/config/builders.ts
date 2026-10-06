@@ -11,8 +11,7 @@ export type SliderGroup =
   | 'background'
   | 'behavior'
   | 'goods'
-  | 'scale'
-  | 'welfare';
+  | 'scale';
 
 export type SliderStatus = 'sourced' | 'calibrated' | 'guess';
 

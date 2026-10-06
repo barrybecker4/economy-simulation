@@ -98,7 +98,7 @@
   {:else}
     <NameTip
       id="pin-baseline"
-      intro="Freezes the current run as a baseline, including a multi-seed median. Later runs overlay on the same charts. Edit parameters for the variant only. Scale, scoring, population growth, and trust in banks stay at the baseline."
+      intro="Freezes the current run as a baseline, including a multi-seed median. Later runs overlay on the same charts. Edit parameters for the variant only. Scale, population growth, and trust in banks stay at the baseline."
     >
       <button
         type="button"

@@ -36,7 +36,7 @@
   }
 
   function groupNote(group: SliderGroup): string | null {
-    if (pinned && (group === 'scale' || group === 'welfare')) {
+    if (pinned && group === 'scale') {
       return FRAME_HINT;
     }
     if (group === 'centralBank') {
@@ -53,7 +53,7 @@
     if (!rowFrozen(slider)) {
       return null;
     }
-    if (slider.group === 'scale' || slider.group === 'welfare') {
+    if (slider.group === 'scale') {
       return null;
     }
     return FRAME_HINT;

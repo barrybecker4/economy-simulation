@@ -129,11 +129,11 @@ Every tick records level and distribution. Human metrics use human agents only. 
 - Inequality: Gini of wealth, income, and consumption; top-decile wealth share; bottom-quintile wealth share.
 - Wealth and income: mean and median real wealth; mean and median real income.
 - Consumption: mean and median real consumption; share of humans below a consumption floor.
-- Well-being: log real consumption plus a housing-security score. Security is lowest when unhoused, higher when renting or waiting in a cooperative, higher as rent-to-own vests, and highest when the home is owned. Report mean, median, and the consumption-floor share. The housing weight is a slider.
+- Well-being: log real consumption plus 0.5 times a housing-security score. Security is lowest when unhoused, higher when renting or waiting in a cooperative, higher as rent-to-own vests, and highest when the home is owned. Report mean, median, and the consumption-floor share.
 - Composition: AI share of agents, wealth, output, and transactions.
 - Stability: unemployment, defaults, bank failures, credit relative to GDP, boom and bust length.
 
-The default comparison shows these side by side. A composite index is optional. Its weights are sliders with status guess. Changing a weight changes the ranking and does not change the simulated economy.
+The default comparison shows these side by side. There is no composite index.
 
 Other outputs recorded every tick: real GDP and growth, productivity per human, price level and category prices, inflation, interest rates, money supply, velocity, labor share, share of tasks automated.
 
@@ -183,7 +183,6 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | Goods       | goods.educationProductivity (annual)   | 0.001           | 0 to 0.3                     |
 | Goods       | goods.recreationProductivity (annual)  | 0.03            | 0 to 0.3                     |
 | Contracts   | deflation.sensitivity                  | 1               | 0 to 5                       |
-| Welfare     | welfare.housingSecurityWeight          | 0.5             | 0 to 2                       |
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
 | AI          | ai.automatableShareEnd                 | 0.9             | 0.3 to 1                     |
 | AI          | ai.adoptionMidpointYear                | 15              | 3 to 40                      |
@@ -195,7 +194,7 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | AI          | ai.paymentFrictionFiat                 | 0.02            | 0 to 0.1                     |
 | AI          | ai.paymentFrictionBitcoin              | 0.005           | 0 to 0.1                     |
 
-Welfare composite weights, all defaulting to 0 so the index stays off until a user opts in, are sliders with status guess: `welfare.weightInequality`, `welfare.weightMedianWealth`, `welfare.weightWellbeing`, `welfare.weightStability`, each from 0 to 1.
+Housing security enters well-being at a fixed weight of 0.5. It is not a slider.
 
 ### Hypotheses
 
@@ -320,8 +319,8 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 3. AI capital ownership across humans, concentrated by `ai.ownershipConcentration`.
 4. Displaced workers search less effectively when their skills match automated tasks.
 5. Outputs: labor share, AI share of output, share of tasks automated, Gini, top decile.
-6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme. 
-  AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling together.
+6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme.
+   AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling together.
 7. Write the channel 1 and 2 sections of `docs/model.md`.
 
 Acceptance:
@@ -377,28 +376,27 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 
 1. Run the simulation in a Web Worker and stream results so the page stays responsive.
 2. Slider panel generated from the registry, grouped, with a tooltip for description, source, and status.
-3. Regime toggle and a pinned-baseline overlay of the same seed: 
-  freeze a run (one seed or a multi-seed median), edit the variant, 
-  and draw both on each chart with a solid baseline and a dashed variant in the same color. 
-  While a baseline is pinned, scale, scoring, population growth, and trust in banks stay at the baseline values. 
-  The legend lists each series once. Hovering that item highlights the baseline and the variant together. 
-  A pinned pair also draws the month payment diagram as baseline beside variant, with edge amounts on hover instead of a legend, 
-  and stacks the variant wealth-by-fifth and job-mix bars directly under the baseline bars. 
-  Those legends read the baseline share, then the variant. Under each comparison chart, 
-  a caption states how the variant differs at the last month, mentions the rest of the path only when a strict majority of months disagrees, 
-  and calls the change an improvement or worse only for well-being, unemployment, inequality, living standards, real GDP, 
-  and productivity per human. When a money chart's baseline and variant use different units, 
-  dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does not score that pair.
-4. Charts with uPlot for the welfare dashboard and category prices. 
-  The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed. 
-  Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median, and CPI also shows the 5th to the 95th percentile when no baseline is overlaid. 
-  Shaded bands and vertical rules mark demand, credit, and productivity shocks and a fiat-to-bitcoin transition; 
-  the cursor legend names the event under the pointer.
-5. The composite welfare index stays off until the user moves a weight.
-6. Shareable links encode the resolved configuration.
-7. Assumption ledger: sliders that differ from the default, with guesses flagged.
-8. Orthogonal category selectors on each collapsible parameter group (central bank, public finance, credit, AI bullishness), each rewriting only its owned sliders. Groups start collapsed so the presets are visible first.
-9. Keyboard-operable controls and chart descriptions.
+3. Regime toggle and a pinned-baseline overlay of the same seed:
+   freeze a run (one seed or a multi-seed median), edit the variant,
+   and draw both on each chart with a solid baseline and a dashed variant in the same color.
+   While a baseline is pinned, scale, population growth, and trust in banks stay at the baseline values.
+   The legend lists each series once. Hovering that item highlights the baseline and the variant together.
+   A pinned pair also draws the month payment diagram as baseline beside variant, with edge amounts on hover instead of a legend,
+   and stacks the variant wealth-by-fifth and job-mix bars directly under the baseline bars.
+   Those legends read the baseline share, then the variant. Under each comparison chart,
+   a caption states how the variant differs at the last month, mentions the rest of the path only when a strict majority of months disagrees,
+   and calls the change an improvement or worse only for well-being, unemployment, inequality, living standards, real GDP,
+   and productivity per human. When a money chart's baseline and variant use different units,
+   dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does not score that pair.
+4. Charts with uPlot for the welfare dashboard and category prices.
+   The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed.
+   Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median, and CPI also shows the 5th to the 95th percentile when no baseline is overlaid.
+   Shaded bands and vertical rules mark demand, credit, and productivity shocks and a fiat-to-bitcoin transition;
+   the cursor legend names the event under the pointer.
+5. Shareable links encode the resolved configuration.
+6. Assumption ledger: sliders that differ from the default, with guesses flagged.
+7. Orthogonal category selectors on each collapsible parameter group (central bank, public finance, credit, AI bullishness), each rewriting only its owned sliders. Groups start collapsed so the presets are visible first.
+8. Keyboard-operable controls and chart descriptions.
 
 Acceptance:
 
@@ -411,7 +409,7 @@ Acceptance:
 Goal: make the model credible enough to share.
 
 1. For each slider, record a source, a calibrated target, or the label guess. Guesses are marked in the application.
-2. Finish `docs/model.md`, including every equation, and write a one-page limits note: a few goods rather than every product, no international trade, no firm-share exchange, and welfare weights are assumptions.
+2. Finish `docs/model.md`, including every equation, and write a one-page limits note: a few goods rather than every product, no international trade, no firm-share exchange, and well-being adds housing security at a fixed weight of 0.5.
 3. A methods note for each hypothesis.
 4. A gallery of example scenarios.
 5. Deploy to Cloudflare Pages from GitHub Actions on each merge to `master`.
@@ -505,7 +503,7 @@ Acceptance:
 
 - Length 0 matches steady fiat and bitcoin from Phase 14.
 - A positive length conserves the ledger at conversion ticks, puts base money on the bitcoin schedule afterward, and raises wealth Gini when holder concentration is higher.
-- A methods note compares 120-month runs across steady fiat, steady bitcoin, and the transition, with seed bands and no composite ranking.
+- A methods note compares 120-month runs across steady fiat, steady bitcoin, and the transition, with seed bands.
 
 ### Phase 16: Inflation raises impatience a little
 

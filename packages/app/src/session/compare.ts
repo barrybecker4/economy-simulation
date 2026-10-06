@@ -17,16 +17,11 @@ export interface CompareDiff {
   variant: number | string;
 }
 
-/** Scale, scoring, and inert assumptions held fixed while a baseline is pinned. */
+/** Scale and inert assumptions held fixed while a baseline is pinned. */
 const COMPARISON_FRAME = new Set([
   'scale.households',
   'scale.firms',
   'scale.banks',
-  'welfare.housingSecurityWeight',
-  'welfare.weightInequality',
-  'welfare.weightMedianWealth',
-  'welfare.weightWellbeing',
-  'welfare.weightStability',
   'population.growth',
   'household.trustInBanks',
 ]);
@@ -37,7 +32,7 @@ export function comparisonFrame(id: string): boolean {
 
 /**
  * Rewrites only comparison-frame sliders on the live side to the baseline's
- * resolved values, so a variant cannot change the size or scoring of the run.
+ * resolved values, so a variant cannot change the size of the run.
  */
 export function alignComparisonFrame(
   sliders: readonly Slider[],
@@ -88,10 +83,10 @@ export function compareDiffs(
 export const IDLE_STATUS = 'Set the parameters and run.';
 
 const FRAME_STATUS =
-  'Baseline pinned. Edit parameters and run a variant. Scale, scoring, population growth, and trust in banks stay at the baseline.';
+  'Baseline pinned. Edit parameters and run a variant. Scale, population growth, and trust in banks stay at the baseline.';
 
 const PROMOTE_STATUS =
-  'Variant is now the baseline. Scale, scoring, population growth, and trust in banks stay at the baseline.';
+  'Variant is now the baseline. Scale, population growth, and trust in banks stay at the baseline.';
 
 /** Census falls back here only when a resolved slider is not a finite number. */
 const CENSUS_HOUSEHOLDS_FALLBACK = 1000;

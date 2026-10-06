@@ -6,7 +6,6 @@ import { GOODS_SLIDERS } from './sliders/goods.js';
 import { MACRO_SLIDERS } from './sliders/macro.js';
 import { MARKET_SLIDERS } from './sliders/markets.js';
 import { SCALE_SLIDERS } from './sliders/scale.js';
-import { WELFARE_SLIDERS } from './sliders/welfare.js';
 
 export type { EnumSlider, NumberSlider, Slider, SliderGroup, SliderStatus } from './builders.js';
 
@@ -14,7 +13,6 @@ const RAW_SLIDERS: readonly Slider[] = [
   ...BEHAVIOR_SLIDERS,
   ...MACRO_SLIDERS,
   ...GOODS_SLIDERS,
-  ...WELFARE_SLIDERS,
   ...AI_SLIDERS,
   ...SCALE_SLIDERS,
   ...MARKET_SLIDERS,

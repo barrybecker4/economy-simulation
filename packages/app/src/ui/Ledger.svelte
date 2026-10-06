@@ -3,11 +3,9 @@
 
   let {
     sliders,
-    note,
     value,
   }: {
     sliders: readonly Slider[];
-    note: string;
     value: (slider: Slider) => number | string;
   } = $props();
 </script>
@@ -27,6 +25,5 @@
         </li>
       {/each}
     </ul>
-  {/if}
-  <p>{note}</p>
+    {/if}
 </section>

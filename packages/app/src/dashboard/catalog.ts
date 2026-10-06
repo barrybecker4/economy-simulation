@@ -39,7 +39,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Welfare',
     unit: 'log',
     description:
-      'Mean and median human well-being. The level is the natural log of real consumption, floored at 0.01, plus a housing-security term. AI agents are not included. More than one seed draws the median.',
+      'Mean and median human well-being. For each household the level is the natural log of real consumption, floored at 0.01, plus 0.5 times housing security. Security is real income relative to the median, divided by one plus the housing price relative to the CPI, and kept between 0 and 1. AI agents are not included. More than one seed draws the median.',
     lines: [
       { id: 'meanWellbeing', label: 'Mean well-being', color: '#0b6', better: 'higher' },
       { id: 'medianWellbeing', label: 'Median well-being', color: '#064', better: 'higher' },
@@ -141,7 +141,12 @@ export const CHART_PANELS: readonly ChartPanel[] = [
       'Real GDP is the sum of firm capacities. Productivity per human is real GDP divided by employed households. Real investment is capital gaps installed that month. More than one seed draws each median.',
     lines: [
       { id: 'realGdp', label: 'Real GDP', color: '#1e3a8a', better: 'higher' },
-      { id: 'productivityPerHuman', label: 'Productivity per human', color: '#0f766e', better: 'higher' },
+      {
+        id: 'productivityPerHuman',
+        label: 'Productivity per human',
+        color: '#0f766e',
+        better: 'higher',
+      },
       { id: 'realInvestment', label: 'Real investment', color: '#a16207' },
     ],
   },
@@ -297,16 +302,7 @@ export const CENSUS_OWNERS = {
   aiShareOfAgents: 'aiShareOfAgents',
 } as const satisfies Record<string, MetricId>;
 
-/** Series the composite index reads. Median real wealth is not drawn as its own chart line. */
-export const COMPOSITE_METRICS = {
-  giniWealth: 'giniWealth',
-  medianRealWealth: 'medianRealWealth',
-  meanWellbeing: 'meanWellbeing',
-  unemployment: 'unemployment',
-  naturalUnemployment: 'naturalUnemployment',
-} as const satisfies Record<string, MetricId>;
-
-/** Metric ids the worker copies. Charts, flows, census, and the composite index read only these. */
+/** Metric ids the worker copies. Charts, flows, and census read only these. */
 export function dashboardMetricIds(): readonly MetricId[] {
   const ids: MetricId[] = [];
   const seen = new Set<string>();
@@ -332,9 +328,6 @@ export function dashboardMetricIds(): readonly MetricId[] {
     add(slice.id);
   }
   for (const id of Object.values(CENSUS_OWNERS)) {
-    add(id);
-  }
-  for (const id of Object.values(COMPOSITE_METRICS)) {
     add(id);
   }
   return ids;

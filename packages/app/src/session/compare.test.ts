@@ -35,17 +35,12 @@ const FRAME_IDS = [
   'scale.households',
   'scale.firms',
   'scale.banks',
-  'welfare.housingSecurityWeight',
-  'welfare.weightInequality',
-  'welfare.weightMedianWealth',
-  'welfare.weightWellbeing',
-  'welfare.weightStability',
   'population.growth',
   'household.trustInBanks',
 ] as const;
 
 describe('comparisonFrame', () => {
-  it('marks scale, scoring, and inert assumptions', () => {
+  it('marks scale and inert assumptions', () => {
     for (const id of FRAME_IDS) {
       expect(comparisonFrame(id)).toBe(true);
     }
@@ -60,7 +55,6 @@ describe('alignComparisonFrame', () => {
       regime: 'fiat' as const,
       overrides: {
         'scale.households': 500,
-        'welfare.weightWellbeing': 0.4,
         'population.growth': 0.01,
         'government.ubiShare': 0.1,
       },
@@ -70,7 +64,6 @@ describe('alignComparisonFrame', () => {
       overrides: {
         'scale.households': 2000,
         'scale.firms': 200,
-        'welfare.weightWellbeing': 0.9,
         'population.growth': -0.005,
         'household.trustInBanks': 0.2,
         'government.ubiShare': 0.4,
@@ -85,9 +78,6 @@ describe('alignComparisonFrame', () => {
     expect(sliderValue(getSlider('scale.firms'), aligned.regime, aligned.overrides)).toBe(
       getSlider('scale.firms').default,
     );
-    expect(
-      sliderValue(getSlider('welfare.weightWellbeing'), aligned.regime, aligned.overrides),
-    ).toBe(0.4);
     expect(sliderValue(getSlider('population.growth'), aligned.regime, aligned.overrides)).toBe(
       0.01,
     );

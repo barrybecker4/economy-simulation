@@ -3,6 +3,9 @@ import type { Economy } from './economy.js';
 import { deflationPenalty, employedCount } from './helpers.js';
 import { clamp, distributionOf, mean, median } from './stats.js';
 
+/** Housing security, in [0, 1], adds at most this much to log real consumption. */
+export const HOUSING_SECURITY_WEIGHT = 0.5;
+
 export interface HouseholdMeasures {
   categories: BasketSplit;
   housingSecurity: number;
@@ -24,7 +27,7 @@ export function measureHouseholds(economy: Economy): HouseholdMeasures {
   const consumption = economy.households.map((household) => household.realConsumption);
   const categories = categoryPrices(economy);
   const securities = housingSecurities(economy, incomes, categories);
-  const wellbeing = wellbeingOf(consumption, securities, economy.params.housingWeight);
+  const wellbeing = wellbeingOf(consumption, securities);
   const consumptionStats = distributionOf(consumption);
   const wellbeingStats = distributionOf(wellbeing);
   return {
@@ -125,13 +128,10 @@ function housingSecurities(
   return incomes.map((income) => clamp(income / price / typical / (1 + relativeHousing), 0, 1));
 }
 
-function wellbeingOf(
-  consumption: readonly number[],
-  securities: readonly number[],
-  housingWeight: number,
-): number[] {
+function wellbeingOf(consumption: readonly number[], securities: readonly number[]): number[] {
   return consumption.map(
-    (value, index) => Math.log(Math.max(value, 0.01)) + housingWeight * (securities[index] ?? 0),
+    (value, index) =>
+      Math.log(Math.max(value, 0.01)) + HOUSING_SECURITY_WEIGHT * (securities[index] ?? 0),
   );
 }
 

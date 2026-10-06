@@ -13,7 +13,7 @@ A later single run compared with a baseline.
 _Avoid_: Treatment, scenario
 
 **Comparison frame**:
-The assumptions a variant keeps at the baseline: scale, scoring weights, population growth, and trust in banks.
+The assumptions a variant keeps at the baseline: scale, population growth, and trust in banks.
 _Avoid_: Locked sliders, frozen parameters
 
 ## Events

@@ -3,13 +3,6 @@
   import Chart from './chart/Chart.svelte';
   import { chartViews } from './chart/view.js';
   import {
-    compositeEnabled,
-    compositeIndex,
-    compositeNote,
-    compositeWeights,
-    levelsFrom,
-  } from './session/composite.js';
-  import {
     canPinBaseline,
     canPromoteBaseline,
     clearBaseline,
@@ -74,9 +67,6 @@
   const bundle = $derived(comparisonBundle(session));
   const progressPercent = $derived(percentComplete(progressCompleted, progressTotal));
   const changed = $derived(changedSliders(sliders, session.regime, session.overrides));
-  const weights = $derived(compositeWeights(session.regime, session.overrides));
-  const composite = $derived(shownComposite(result, weights));
-  const note = $derived(compositeNote(compositeEnabled(weights), composite));
   const views = $derived(
     bundle.variant === null
       ? []
@@ -153,16 +143,6 @@
       return;
     }
     showResult(message);
-  }
-
-  function shownComposite(
-    current: RunSuccess | null,
-    currentWeights: ReturnType<typeof compositeWeights>,
-  ): number | null {
-    if (current?.kind !== 'run' || !compositeEnabled(currentWeights)) {
-      return null;
-    }
-    return compositeIndex(currentWeights, levelsFrom(current.series));
   }
 
   function showResult(message: RunSuccess): void {
@@ -302,7 +282,7 @@
     onReset={commitReset}
   />
   <p class="next" aria-live="polite">{hint}</p>
-  <Ledger sliders={changed} {note} value={valueOf} />
+  <Ledger sliders={changed} value={valueOf} />
 
   {#if pinned}
     <Compare {diffs} onReset={resetDiff} />

@@ -52,4 +52,4 @@ The fiat run uses default category growth, so electronics should end below the r
 
 ## Transition comparison
 
-`pnpm sim transition --out transition.json` runs the Phase 15 comparison. Steady fiat, steady bitcoin, and a 12-month transition each use the same seeds for 120 months with tenure choice on. The report gives median real consumption, real wealth, unemployment, debt service, and tenure shares, with the 5th and 95th percentiles across seeds. It does not rank the paths with the composite welfare index.
+`pnpm sim transition --out transition.json` runs the Phase 15 comparison. Steady fiat, steady bitcoin, and a 12-month transition each use the same seeds for 120 months with tenure choice on. The report gives median real consumption, real wealth, unemployment, debt service, and tenure shares, with the 5th and 95th percentiles across seeds.

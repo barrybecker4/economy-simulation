@@ -14,8 +14,10 @@ The original design note stored money as integer cents or integer satoshis, trea
 - Humans and AI agents are one population. The AI share is an assumption and may become most of the economy. Well-being uses human agents only.
 - After the single-good baseline, the CPI is split into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. Productivity and housing supply move those prices apart. Headline inflation is their expenditure-weighted average.
 - Expected deflation reduces lending, borrowing, and speculation in proportion to its strength. Firms can shift from tradeable stock to profit-sharing. Housing can shift from nominal mortgages to bitcoin-collateralized loans, targeted savings cooperatives, or rent-to-own.
-- Outcome quality is a dashboard: inequality, mean and median real wealth, mean and median real consumption, and well-being. A single index exists only when the user sets weights, and those weights are assumptions.
+- Outcome quality is a dashboard: inequality, mean and median real wealth, mean and median real consumption, and well-being. Well-being is the log of real consumption plus 0.5 times housing security. There is no composite index.
 
 ## Consequences
 
 `docs/PLAN.md` follows this ADR where it differs from the original design note. Firm-share markets, multiple countries, and AI agents with goals different from their owners stay out of the first release.
+
+The optional composite and its weights were removed. They ranked nothing: the page showed one sentence in the assumption ledger, and the charts already compare each series on its own. Housing security stays in the well-being definition at 0.5.

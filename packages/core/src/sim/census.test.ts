@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
-import { jobShares, ownerWealthShare } from './census.js';
+import { jobShares, measureHouseholds, ownerWealthShare } from './census.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 
@@ -19,6 +19,20 @@ describe('household census', () => {
     assign(economy, 3, [7, 8, 9, 10, 11]);
 
     expect(jobShares(economy)).toEqual({ unemployed: 0.4, small: 0.1, large: 0.5 });
+  });
+
+  it('adds half a housing-security point to the log of real consumption', () => {
+    const economy = economyWith(20, 4);
+    for (const household of economy.households) {
+      household.realConsumption = Math.E;
+      household.income = 100;
+    }
+
+    const measured = measureHouseholds(economy);
+
+    expect(measured.housingSecurity).toBeCloseTo(0.5);
+    expect(measured.wellbeingMean).toBeCloseTo(1.25);
+    expect(measured.wellbeingMedian).toBeCloseTo(1.25);
   });
 
   it('reports no owner-wealth share until an agent exists', () => {

@@ -12,7 +12,6 @@ export const GROUP_ORDER: readonly SliderGroup[] = [
   'behavior',
   'goods',
   'scale',
-  'welfare',
 ];
 
 const GROUPS: Record<SliderGroup, string> = {
@@ -27,7 +26,6 @@ const GROUPS: Record<SliderGroup, string> = {
   behavior: 'Households and firms',
   goods: 'Relative prices',
   scale: 'Scale',
-  welfare: 'Scoring',
 };
 
 const STATUSES: Record<SliderStatus, string> = {

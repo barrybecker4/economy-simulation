@@ -5,7 +5,6 @@ import {
   CENSUS_OWNERS,
   CENSUS_WEALTH,
   CHART_PANELS,
-  COMPOSITE_METRICS,
   dashboardMetricIds,
   FLOW_EDGES,
 } from './catalog.js';
@@ -41,7 +40,6 @@ const PREVIOUS_WORKER_SERIES = [
   'topDecileWealthShare',
   'bottomQuintileWealthShare',
   'consumptionFloorShare',
-  'medianRealWealth',
   'realGdp',
   'productivityPerHuman',
   'realInvestment',
@@ -82,14 +80,13 @@ const PREVIOUS_WORKER_SERIES = [
 ];
 
 describe('dashboard catalog', () => {
-  it('sends each chart, flow, census, and composite series once', () => {
+  it('sends each chart, flow, and census series once', () => {
     const declared = [
       ...CHART_PANELS.flatMap((panel) => panel.lines.map((line) => line.id)),
       ...FLOW_EDGES.map((edge) => edge.id),
       ...CENSUS_WEALTH.map((slice) => slice.id),
       ...CENSUS_JOBS.map((slice) => slice.id),
       ...Object.values(CENSUS_OWNERS),
-      ...Object.values(COMPOSITE_METRICS),
     ];
     const sent = dashboardMetricIds();
     expect(sent).toEqual(CHART_METRICS);
