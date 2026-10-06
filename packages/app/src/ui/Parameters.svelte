@@ -1,10 +1,9 @@
 <script lang="ts">
   import type { Slider, SliderGroup } from '../../../core/src/config/registry.js';
-  import { categoryForGroup, type PresetCategory } from '../../../core/src/config/presets.js';
   import { comparisonFrame } from '../session/compare.js';
   import NameTip from '../tip/NameTip.svelte';
   import { GROUP_ORDER, groupLabel } from '../tip/labels.js';
-  import { categoryTipItems } from '../session/presets.js';
+  import { categoryForGroup, categoryTipItems, type PresetCategory } from '../session/presets.js';
   import { sliderStep } from '../session/sliders.js';
 
   let {

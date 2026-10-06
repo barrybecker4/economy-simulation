@@ -7,8 +7,7 @@
   import uPlot from 'uplot';
   import 'uplot/dist/uPlot.min.css';
   import { chartAnchorVisible, chartTipWidth, placeChartTip, type Viewport } from '../tip/place.js';
-  import { chartKey } from './key.js';
-  import { plotData, plotOptions } from './options.js';
+  import { buildPlot } from './options.js';
   import { monthAxisLabel } from './time.js';
   import type { ChartLine } from './view.js';
 
@@ -111,13 +110,13 @@
       return;
     }
     const width = host.clientWidth;
-    const key = chartKey(width, ticks, lines);
-    if (plot !== undefined && key === drawnKey) {
+    const built = buildPlot(width, ticks, lines, opened);
+    if (plot !== undefined && built.key === drawnKey) {
       return;
     }
-    drawnKey = key;
+    drawnKey = built.key;
     plot?.destroy();
-    plot = new uPlot(plotOptions(width, lines), plotData(ticks, lines, opened), host);
+    plot = new uPlot(built.options, built.data, host);
   }
 
   function watchSize(target: HTMLDivElement): () => void {

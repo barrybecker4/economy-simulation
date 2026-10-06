@@ -22,6 +22,43 @@ interface FocusedSeries extends uPlot.Series {
 /** Chart surface color. The variant dash is outlined in this so it reads against a same-color solid line. */
 const CHART_SURFACE = '#fff';
 
+export interface PlottableLine extends PlotLine {
+  values: readonly number[];
+}
+
+/** One plot: identity, uPlot options, and aligned data, including paired-legend behavior. */
+export function buildPlot(
+  width: number,
+  ticks: readonly number[],
+  lines: readonly PlottableLine[],
+  origin: Date,
+): { key: string; options: ReturnType<typeof plotOptions>; data: uPlot.AlignedData } {
+  return {
+    key: chartKey(width, ticks, lines),
+    options: plotOptions(width, lines),
+    data: plotData(ticks, lines, origin),
+  };
+}
+
+function chartKey(
+  width: number,
+  ticks: readonly number[],
+  lines: readonly PlottableLine[],
+): string {
+  return JSON.stringify([
+    width,
+    ticks,
+    lines.map((line) => [
+      line.label,
+      line.color,
+      line.dash ?? null,
+      line.omitLegend === true,
+      line.pair ?? null,
+      line.values,
+    ]),
+  ]);
+}
+
 export function plotOptions(width: number, lines: readonly PlotLine[]) {
   const samples = lines.flatMap((line) => line.values ?? []);
   const axisLabels = yAxisSplits(samples).map(formatAxisNumber);
@@ -36,7 +73,9 @@ export function plotOptions(width: number, lines: readonly PlotLine[]) {
         label: line.label,
         stroke: line.color,
         ...(paired ? { points: { show: false } } : {}),
-        ...(line.dash !== undefined ? { dash: line.dash.map((segment) => segment * canvasScale()) } : {}),
+        ...(line.dash !== undefined
+          ? { dash: line.dash.map((segment) => segment * canvasScale()) }
+          : {}),
         value: legendValue(lines, index),
       })),
     ],
@@ -234,12 +273,12 @@ function pointText(value: unknown): string {
 
 export function plotData(
   ticks: readonly number[],
-  lines: readonly { values: number[] }[],
+  lines: readonly { values: readonly number[] }[],
   origin: Date,
 ): uPlot.AlignedData {
   const data: uPlot.AlignedData = [monthAxisSeconds(ticks, origin)];
   for (const line of lines) {
-    data.push(line.values);
+    data.push([...line.values]);
   }
   return data;
 }

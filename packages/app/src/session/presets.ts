@@ -1,11 +1,12 @@
 import {
   applyCategoryOption,
+  categoryForGroup,
   matchingCategoryOption,
   PRESET_CATEGORIES,
   type PresetCategory,
 } from '../../../core/src/config/presets.js';
 
-export { PRESET_CATEGORIES };
+export { categoryForGroup, PRESET_CATEGORIES };
 export type { PresetCategory };
 
 export function applyCategory(

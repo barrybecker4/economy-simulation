@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { applyCategory, matchingCategories, PRESET_CATEGORIES } from './presets.js';
+import {
+  applyCategory,
+  categoryForGroup,
+  matchingCategories,
+  PRESET_CATEGORIES,
+} from './presets.js';
 import { assertSliderValue } from '../../../core/src/config/registry.js';
 
 describe('presets', () => {
@@ -29,6 +34,14 @@ describe('presets', () => {
     const match = matchingCategories(next.overrides);
     expect(match.aiBullishness).toBe('high');
     expect(match.credit).toBe('moderate');
+  });
+
+  it('finds the category hosted by a panel group', () => {
+    for (const category of PRESET_CATEGORIES) {
+      expect(categoryForGroup(category.group)?.id).toBe(category.id);
+    }
+    expect(categoryForGroup('regime')).toBeUndefined();
+    expect(categoryForGroup('scale')).toBeUndefined();
   });
 
   it('reads Custom when an owned slider leaves every option', () => {
