@@ -25,3 +25,17 @@ Read [docs/PLAN.md](docs/PLAN.md) and [docs/model.md](docs/model.md) before chan
 - `packages/cli`: runs and, later, sweeps.
 - `packages/app`: Svelte application. A placeholder until the web phase.
 - `scenarios/`: named presets. Empty until a later phase adds them.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default role labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
