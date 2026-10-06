@@ -27,10 +27,9 @@ export const FLOW_NODES = [
 
 export function monthFlows(result: RunSuccess, regime: string, monthIndex: number): MonthFlows {
   const index = clampIndex(monthIndex, result.ticks.length);
-  const displayed = result.kind === 'compare' ? 'fiat' : regime;
   return {
     monthIndex: index,
-    unit: moneyUnit(displayed),
+    unit: moneyUnit(regime),
     edges: FLOW_EDGES.map((spec) => ({
       from: spec.from,
       to: spec.to,

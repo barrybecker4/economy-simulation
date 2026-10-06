@@ -46,23 +46,10 @@
       Five-seed band
     </button>
   </NameTip>
-  <NameTip
-    id="compare"
-    intro="Same seed and sliders as Run, twice: once as fiat and once as bitcoin. The first chart compares those two CPIs, fiat in cents and bitcoin in satoshis. The charts under it are the fiat run only. Disabled while a baseline is pinned."
-  >
-    <button
-      type="button"
-      aria-describedby="help-compare"
-      onclick={() => onRun('compare')}
-      disabled={busy || pinned}
-    >
-      Compare fiat and bitcoin
-    </button>
-  </NameTip>
   {#if pinned}
     <NameTip
       id="clear-baseline"
-      intro="Drops the pinned baseline so charts follow the live run alone. Five-seed band and regime compare become available again."
+      intro="Drops the pinned baseline so charts follow the live run alone. Five-seed band becomes available again."
     >
       <button type="button" aria-describedby="help-clear-baseline" onclick={onClear} disabled={busy}>
         Clear baseline

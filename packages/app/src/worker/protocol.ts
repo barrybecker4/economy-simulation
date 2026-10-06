@@ -1,6 +1,6 @@
 /** Shared request and response shapes for the simulation worker. */
 
-export type RunKind = 'run' | 'band' | 'compare';
+export type RunKind = 'run' | 'band';
 
 interface RunFields {
   seed: number;
@@ -17,11 +17,7 @@ export interface BandRunRequest extends RunFields {
   seeds: readonly number[];
 }
 
-export interface CompareRunRequest extends RunFields {
-  kind: 'compare';
-}
-
-export type RunRequest = SingleRunRequest | BandRunRequest | CompareRunRequest;
+export type RunRequest = SingleRunRequest | BandRunRequest;
 
 export interface PercentileBand {
   low: number[];
@@ -43,11 +39,7 @@ export interface BandRunResult extends SuccessFields {
   bands: Record<string, PercentileBand>;
 }
 
-export interface CompareRunResult extends SuccessFields {
-  kind: 'compare';
-}
-
-export type RunSuccess = SingleRunResult | BandRunResult | CompareRunResult;
+export type RunSuccess = SingleRunResult | BandRunResult;
 
 export interface RunError {
   kind: 'error';

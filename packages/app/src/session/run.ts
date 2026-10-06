@@ -30,9 +30,6 @@ export function runRequest(
   if (kind === 'band') {
     return { kind: 'band', seed, ticks, sliders, seeds: bandSeeds(seed) };
   }
-  if (kind === 'compare') {
-    return { kind: 'compare', seed, ticks, sliders };
-  }
   return { kind: 'run', seed, ticks, sliders };
 }
 
@@ -40,18 +37,12 @@ export function activityLabel(kind: RunKind): string {
   if (kind === 'band') {
     return 'Running five seeds…';
   }
-  if (kind === 'compare') {
-    return 'Comparing regimes…';
-  }
   return 'Running…';
 }
 
 export function readyLabel(kind: RunKind): string {
   if (kind === 'band') {
     return 'Band ready.';
-  }
-  if (kind === 'compare') {
-    return 'Comparison ready.';
   }
   return 'Run ready.';
 }

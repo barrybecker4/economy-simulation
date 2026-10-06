@@ -13,9 +13,6 @@ export function runCount(request: RunRequest): number {
     }
     return request.seeds.length;
   }
-  if (request.kind === 'compare') {
-    return 2;
-  }
   return 1;
 }
 

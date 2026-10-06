@@ -2,7 +2,7 @@ import type { MetricsTable } from '../../../core/src/metrics/metrics.js';
 import { loadScenario } from '../../../core/src/config/load.js';
 import { simulate } from '../../../core/src/sim/simulate.js';
 import { tickBudget } from './budget.js';
-import type { CompareRunRequest, PercentileBand, RunRequest, RunSuccess } from './protocol.js';
+import type { PercentileBand, RunRequest, RunSuccess } from './protocol.js';
 import { seriesBand } from './quantile.js';
 import { CHART_METRICS, finiteMetric, requireSeries } from './series.js';
 
@@ -18,9 +18,6 @@ export function handleRequest(
   const clock = new RunClock(request.ticks, tickBudget(request), onTick);
   if (request.kind === 'band') {
     return bandOf(request.seeds.map((seed) => clock.run(seed, request.sliders)));
-  }
-  if (request.kind === 'compare') {
-    return compareOf(clock, request);
   }
   return { kind: 'run', ...clock.run(request.seed, request.sliders) };
 }
@@ -99,24 +96,4 @@ function bandOf(runs: readonly ChartRun[]): RunSuccess {
     bands[id] = seriesBand(runs.map((run) => requireSeries(run.series, id)));
   }
   return { kind: 'band', ticks: first.ticks, series: {}, bands };
-}
-
-function compareOf(clock: RunClock, request: CompareRunRequest): RunSuccess {
-  const fiat = clock.run(request.seed, withRegime(request.sliders, 'fiat'));
-  const bitcoin = clock.run(request.seed, withRegime(request.sliders, 'bitcoin'));
-  return {
-    kind: 'compare',
-    ticks: fiat.ticks,
-    series: {
-      ...fiat.series,
-      priceLevelBitcoin: requireSeries(bitcoin.series, 'priceLevel'),
-    },
-  };
-}
-
-function withRegime(
-  sliders: Record<string, number | string>,
-  regime: string,
-): Record<string, number | string> {
-  return { ...sliders, 'regime.type': regime };
 }

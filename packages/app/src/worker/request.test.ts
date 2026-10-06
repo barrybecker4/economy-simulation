@@ -30,15 +30,7 @@ describe('handleRequest', () => {
     expect(result.series.priceGeneral).toBeUndefined();
   });
 
-  it('adds the bitcoin price level when comparing regimes', () => {
-    const result = handleRequest({ kind: 'compare', seed: 1, ticks: 1, sliders: small });
-    expect(result.kind).toBe('compare');
-    expect(result.series.priceLevel).toHaveLength(1);
-    expect(result.series.priceLevelBitcoin).toHaveLength(1);
-    expect(result.series.meanWellbeingBitcoin).toBeUndefined();
-  });
-
-  it('reports every tick of a run, a band, and a comparison', () => {
+  it('reports every tick of a run and a band', () => {
     const updates: Array<[number, number]> = [];
     const record = (completed: number, total: number): void => {
       updates.push([completed, total]);
@@ -52,13 +44,6 @@ describe('handleRequest', () => {
 
     updates.length = 0;
     handleRequest({ kind: 'band', seed: 1, ticks: 1, seeds: [1, 2], sliders: small }, record);
-    expect(updates).toEqual([
-      [1, 2],
-      [2, 2],
-    ]);
-
-    updates.length = 0;
-    handleRequest({ kind: 'compare', seed: 1, ticks: 1, sliders: small }, record);
     expect(updates).toEqual([
       [1, 2],
       [2, 2],

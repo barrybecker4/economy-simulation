@@ -70,20 +70,6 @@ describe('chartViews', () => {
     ]);
   });
 
-  it('puts the two-regime CPI first and keeps the other charts in fiat cents', () => {
-    const compared = series([1, 2]);
-    compared.priceLevelBitcoin = [8, 9];
-    const views = chartViews({ kind: 'compare', ticks, series: compared }, 'bitcoin');
-    expect(views[0]?.key).toBe('regimes');
-    expect(views[0]?.unit).toBe('');
-    expect(views[0]?.note).toMatch(/fiat run only/);
-    expect(views[0]?.lines.map((line) => line.values)).toEqual([
-      [1, 2],
-      [8, 9],
-    ]);
-    expect(views.find((view) => view.key === 'prices')?.unit).toBe('cents');
-  });
-
   it('draws band medians and a CPI percentile chart', () => {
     const views = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'hybrid');
     expect(views[0]?.lines[0]?.values).toEqual([3, 4]);
@@ -126,7 +112,7 @@ describe('chartViews', () => {
     expect(ubi?.lines[0]?.values).toEqual([0, 250_000]);
   });
 
-  it('scales a fiat CPI band to dollars and leaves the two-regime chart in its own units', () => {
+  it('scales a fiat CPI band to dollars', () => {
     const wide = chartViews(
       { kind: 'band', ticks, series: {}, bands: bands([200, 20_000]) },
       'fiat',
@@ -134,14 +120,6 @@ describe('chartViews', () => {
     const band = wide.find((view) => view.key === 'cpi-band');
     expect(band?.unit).toBe('dollars');
     expect(band?.lines.find((line) => line.label === 'Median')?.values).toEqual([2, 200]);
-
-    const compared = series([500, 250_000]);
-    compared.priceLevelBitcoin = [8, 9];
-    const views = chartViews({ kind: 'compare', ticks, series: compared }, 'fiat');
-    expect(views[0]?.unit).toBe('');
-    expect(views[0]?.lines[0]?.values).toEqual([500, 250_000]);
-    expect(views.find((view) => view.key === 'prices')?.unit).toBe('dollars');
-    expect(views.find((view) => view.key === 'prices')?.lines[0]?.values).toEqual([5, 2_500]);
   });
 
   it('overlays a solid baseline and a dashed variant in the same color', () => {
@@ -211,7 +189,7 @@ describe('chartViews', () => {
     expect(prices?.lines[1]?.values).toEqual([8, 9]);
   });
 
-  it('ignores a baseline for band and regime-compare results', () => {
+  it('ignores a baseline for a band', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([1, 2]) };
     const band = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'fiat', {
       result: baseline,
@@ -221,14 +199,6 @@ describe('chartViews', () => {
       'Mean well-being',
       'Median well-being',
     ]);
-    const compared = series([1, 2]);
-    compared.priceLevelBitcoin = [8, 9];
-    const views = chartViews({ kind: 'compare', ticks, series: compared }, 'fiat', {
-      result: baseline,
-      regime: 'fiat',
-    });
-    expect(views[0]?.key).toBe('regimes');
-    expect(views.find((view) => view.key === 'prices')?.lines).toHaveLength(10);
   });
 
   it('rejects a run with no ticks, a missing series, or a short series', () => {
@@ -239,10 +209,6 @@ describe('chartViews', () => {
     short.meanWellbeing = [1];
     expect(() => chartViews({ kind: 'run', ticks, series: short }, 'fiat')).toThrow(
       /Mean well-being/,
-    );
-    const compared = series([1, 2]);
-    expect(() => chartViews({ kind: 'compare', ticks, series: compared }, 'fiat')).toThrow(
-      /priceLevelBitcoin/,
     );
   });
 });

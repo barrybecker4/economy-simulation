@@ -1,6 +1,6 @@
 import { CHART_PANELS, type ChartLineSpec, type ChartPanel } from '../dashboard/catalog.js';
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
-import { readSeries, requireSeries } from '../worker/series.js';
+import { readSeries } from '../worker/series.js';
 
 export interface ChartLine {
   label: string;
@@ -53,15 +53,11 @@ export function chartViews(
   if (baseline !== null && result.kind === 'run' && baseline.result.kind === 'run') {
     return pairedViews(result, regime, baseline);
   }
-  const displayed = result.kind === 'compare' ? 'fiat' : regime;
-  const views = CHART_PANELS.map((spec) => viewFromSpec(spec, result, displayed));
-  if (result.kind === 'compare') {
-    return [compareView(result), ...views];
-  }
+  const views = CHART_PANELS.map((spec) => viewFromSpec(spec, result, regime));
   if (result.kind === 'band') {
     const withBand = [...views];
     const pricesAt = withBand.findIndex((view) => view.key === 'prices');
-    withBand.splice(pricesAt + 1, 0, cpiBandView(result, displayed));
+    withBand.splice(pricesAt + 1, 0, cpiBandView(result, regime));
     return withBand;
   }
   return views;
@@ -185,32 +181,6 @@ function unitText(unit: ChartPanel['unit'], regime: string): string {
 
 function lineOf(result: RunSuccess, spec: ChartLineSpec): ChartLine {
   return checkedLine(result.ticks, spec.label, readSeries(result, spec.id), spec.color);
-}
-
-function compareView(result: RunSuccess): ChartView {
-  return {
-    key: 'regimes',
-    title: 'Same seed, two regimes',
-    group: 'Compare',
-    unit: '',
-    note: 'The first chart compares this seed under fiat and under bitcoin. The charts below it are the fiat run only.',
-    description:
-      'CPI for this seed under fiat, in cents, and under bitcoin, in satoshis. The two lines use different units, so compare their shapes, not their heights. Every other slider stays as set. The charts below are the fiat run only.',
-    lines: [
-      checkedLine(
-        result.ticks,
-        'Fiat CPI (cents)',
-        requireSeries(result.series, 'priceLevel'),
-        '#246',
-      ),
-      checkedLine(
-        result.ticks,
-        'Bitcoin CPI (satoshis)',
-        requireSeries(result.series, 'priceLevelBitcoin'),
-        '#a60',
-      ),
-    ],
-  };
 }
 
 function cpiBandView(result: BandRunResult, regime: string): ChartView {

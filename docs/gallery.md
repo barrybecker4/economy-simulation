@@ -19,4 +19,4 @@ Compare two regimes of one preset:
 pnpm sim compare --scenario scenarios/presets/neutral.json --seed 1 --left fiat --right bitcoin --out compare.json
 ```
 
-The browser places each category preset at the top of its collapsible parameter group (central bank, public finance, credit, AI bullishness), with the regime control on the monetary-regime group. Compare fiat and bitcoin uses the sliders on the page and the seed in the seed box.
+The browser places each category preset at the top of its collapsible parameter group (central bank, public finance, credit, AI bullishness), with the regime control on the monetary-regime group. Pin a run as the baseline, then run a variant to overlay both on the charts.
