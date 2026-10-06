@@ -1,28 +1,10 @@
-import type { EntrySide } from '../ledger/ledger.js';
-import { Ledger } from '../ledger/ledger.js';
 import type { Economy } from './economy.js';
-import { equityFor, loansAt, moneyAmount, totalDeposits, totalLoans } from './helpers.js';
-import { clamp } from './stats.js';
 import type { Bank, Firm, Household } from './types.js';
 
 /** Household, firm, or agent cash balance. */
 export interface DepositAccount {
   deposit: number;
 }
-
-const ACCOUNTS: { id: string; kind: 'asset' | 'liability' | 'equity' }[] = [
-  { id: 'deposits', kind: 'asset' },
-  { id: 'bank-deposits', kind: 'liability' },
-  { id: 'bank-loans', kind: 'asset' },
-  { id: 'borrower-loans', kind: 'liability' },
-  { id: 'reserves', kind: 'asset' },
-  { id: 'cb-base', kind: 'liability' },
-  { id: 'bonds', kind: 'asset' },
-  { id: 'gov-bonds', kind: 'liability' },
-  { id: 'vault', kind: 'asset' },
-  { id: 'bank-equity', kind: 'equity' },
-  { id: 'private-equity', kind: 'equity' },
-];
 
 export function creditDeposit(account: DepositAccount, amount: number): void {
   account.deposit += amount;
@@ -139,9 +121,12 @@ export function writeOffFirmLoan(
   economy.privateEquity += loss;
 }
 
-export function payCashForHome(household: Household, economy: Economy, price: number): void {
+/**
+ * The house is not a ledger account. The deposit leaves the banking system.
+ * Vault cash and bank equity stay put, so the private-equity residual does not move.
+ */
+export function payCashForHome(household: Household, price: number): void {
   household.deposit -= price;
-  economy.privateEquity += price;
 }
 
 export function payDepositInterest(
@@ -172,102 +157,4 @@ export function clearBonds(bank: Bank): void {
 export function resetFailedFirmAccounts(firm: Firm, deposit: number): void {
   firm.loan = 0;
   firm.deposit = deposit;
-}
-
-export function issueBonds(economy: Economy, amount: number): void {
-  if (amount <= 0) {
-    return;
-  }
-  economy.govDeposits += amount;
-  const purchaseShare =
-    economy.params.regime === 'fiat' ? clamp(economy.params.bondPurchaseShare, 0, 1) : 0;
-  const monetized = moneyAmount(economy, amount * purchaseShare);
-  const bankShare = amount - monetized;
-  const buyer = economy.banks[0];
-  if (buyer && bankShare > 0) {
-    buyer.bonds += bankShare;
-  }
-  if (buyer && monetized > 0) {
-    buyer.bonds += monetized;
-    buyer.reserves += monetized;
-  }
-}
-
-export function capitalizeBanks(economy: Economy): void {
-  const deposits = totalDeposits(economy);
-  for (const bank of economy.banks) {
-    const equity = equityFor(economy, loansAt(economy, bank.id));
-    bank.vault = equity;
-    bank.equity = equity;
-    bank.reserves = Math.round(
-      economy.params.reserveRequirement * (deposits / economy.banks.length),
-    );
-  }
-  economy.privateEquity = 0;
-}
-
-export function ensureOpen(economy: Economy, ledger: Ledger): void {
-  if (economy.ready) {
-    return;
-  }
-  economy.ledger = ledger;
-  for (const account of ACCOUNTS) {
-    ledger.open(account.id, account.kind);
-  }
-  economy.ready = true;
-  postStocks(economy, ledger);
-}
-
-export function postStocks(economy: Economy, ledger: Ledger): void {
-  const deposits = totalDeposits(economy);
-  const loans = totalLoans(economy);
-  const reserves = economy.banks.reduce((sum, bank) => sum + bank.reserves, 0);
-  const bonds = economy.banks.reduce((sum, bank) => sum + bank.bonds, 0);
-  const vault = economy.banks.reduce((sum, bank) => sum + bank.vault, 0);
-  const equity = economy.banks.reduce((sum, bank) => sum + bank.equity, 0);
-  // Vault cash equals bank equity plus this residual. Re-seat it each post so
-  // floating-point interest and fees cannot unbalance the stock journal.
-  economy.privateEquity = vault - equity;
-  const targets = new Map<string, number>([
-    ['deposits', deposits],
-    ['bank-deposits', deposits],
-    ['bank-loans', loans],
-    ['borrower-loans', loans],
-    ['reserves', reserves],
-    ['cb-base', reserves],
-    ['bonds', bonds],
-    ['gov-bonds', bonds],
-    ['vault', vault],
-    ['bank-equity', equity],
-    ['private-equity', economy.privateEquity],
-  ]);
-  const lines: { accountId: string; side: EntrySide; amount: bigint | number }[] = [];
-  for (const account of ACCOUNTS) {
-    const raw = targets.get(account.id) ?? 0;
-    const target = ledger.unit === 'cent' ? Math.round(raw) : raw;
-    const current = Number(ledger.balance(account.id));
-    const delta = target - current;
-    if (delta === 0 || Math.abs(delta) < 1e-9) {
-      continue;
-    }
-    const increase = delta > 0;
-    const side: EntrySide =
-      account.kind === 'asset' ? (increase ? 'debit' : 'credit') : increase ? 'credit' : 'debit';
-    const amount = ledger.unit === 'cent' ? BigInt(Math.abs(Math.round(delta))) : Math.abs(delta);
-    lines.push({ accountId: account.id, side, amount });
-  }
-  postBalancedStockLines(ledger, lines);
-}
-
-/** Post stock lines, rejecting a one-sided journal. */
-export function postBalancedStockLines(
-  ledger: Ledger,
-  lines: readonly { accountId: string; side: EntrySide; amount: bigint | number }[],
-): void {
-  if (lines.length === 1) {
-    throw new Error('Stock journal moved only one account; a balanced change needs at least two');
-  }
-  if (lines.length >= 2) {
-    ledger.post(lines);
-  }
 }

@@ -31,9 +31,7 @@ export interface Firm {
   workers: number[];
   deposit: number;
   loan: number;
-  salesUnits: number;
   output: number;
-  investment: number;
   negTicks: number;
 }
 

@@ -1,7 +1,7 @@
 import { INVENTORY_MONTHS, MONTHLY_DEPRECIATION } from './rules.js';
 import { clamp } from './stats.js';
 import type { Economy } from './economy.js';
-import { firmCapacity } from './helpers.js';
+import { firmCapacity } from './capacity.js';
 
 export function onProduction(economy: Economy): void {
   for (const firm of economy.firms) {

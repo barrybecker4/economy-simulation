@@ -86,6 +86,36 @@ function usableWeights(weights: readonly number[]): number[] {
  * Split `total` into `count` equal integer parts.
  * The last part takes whatever remains so the parts always sum to `total`.
  */
+/**
+ * Split `total` in proportion to finite, non-negative weights.
+ * The last part is the residual, so the parts sum to `total`.
+ */
+export function splitResidual(total: number, weights: readonly number[]): number[] {
+  const count = weights.length;
+  if (count === 0) {
+    return [];
+  }
+  let weightSum = 0;
+  for (const weight of weights) {
+    if (!Number.isFinite(weight) || weight < 0) {
+      throw new Error('Split weights must be finite and non-negative');
+    }
+    weightSum += weight;
+  }
+  if (!(weightSum > 0)) {
+    throw new Error('Split weights must sum to a positive number');
+  }
+  const parts = new Array<number>(count);
+  let assigned = 0;
+  for (let index = 0; index < count - 1; index += 1) {
+    const share = (total * (weights[index] ?? 0)) / weightSum;
+    parts[index] = share;
+    assigned += share;
+  }
+  parts[count - 1] = total - assigned;
+  return parts;
+}
+
 export function splitEqual(total: number, count: number): number[] {
   if (count <= 0) {
     return [];

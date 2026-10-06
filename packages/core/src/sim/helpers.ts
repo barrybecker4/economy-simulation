@@ -21,115 +21,25 @@ export function employedCount(economy: Economy): number {
   return economy.households.reduce((sum, household) => sum + (household.employer >= 0 ? 1 : 0), 0);
 }
 
+export function unemploymentRate(economy: Economy): number {
+  if (economy.households.length === 0) {
+    throw new Error('Unemployment needs at least one household');
+  }
+  return 1 - employedCount(economy) / economy.households.length;
+}
+
+/** Unemployment above the natural rate. Zero when the market is tighter than that. */
+export function unemploymentGap(economy: Economy): number {
+  return Math.max(0, unemploymentRate(economy) - naturalUnemployment(economy));
+}
+
+/** Signed labor-market gap, scaled by how much human labor still matters. */
+export function outputGap(economy: Economy): number {
+  return (naturalUnemployment(economy) - unemploymentRate(economy)) * humanWeight(economy);
+}
+
 export function pay(household: Household, firm: Firm): number {
   return Math.max(1, Math.round(firm.wage * household.skill));
-}
-
-export function firmCapacity(economy: Economy, firm: Firm): number {
-  return productionCapacity({
-    firmProductivity: firm.productivity,
-    productivity: economy.productivity,
-    productivityImpulse: economy.productivityImpulse,
-    capital: firm.capital,
-    alpha: economy.params.alpha,
-    labor: firm.workers.length,
-    laborStar: referenceWorkersPerFirm(economy),
-    aiFactor: economy.aiFactor,
-    humanWeight: humanWeight(economy),
-  });
-}
-
-/** Cobb–Douglas capacity with AI-scaled staffing. */
-export function productionCapacity(input: {
-  firmProductivity: number;
-  productivity: number;
-  productivityImpulse: number;
-  capital: number;
-  alpha: number;
-  labor: number;
-  laborStar: number;
-  aiFactor: number;
-  humanWeight: number;
-}): number {
-  const weight = Math.min(1, Math.max(input.humanWeight, 1e-9));
-  const laborHat = Math.max(1e-9, input.laborStar * weight);
-  const staffing = input.labor <= 0 ? 0 : (input.labor / laborHat) ** ((1 - input.alpha) * weight);
-  if (input.capital <= 0) {
-    return 0;
-  }
-  return (
-    input.firmProductivity *
-    input.productivity *
-    (1 + input.productivityImpulse) *
-    input.capital ** input.alpha *
-    input.laborStar ** (1 - input.alpha) *
-    input.aiFactor *
-    staffing
-  );
-}
-
-export function totalDeposits(economy: Economy): number {
-  let total = economy.govDeposits;
-  for (const household of economy.households) {
-    total += household.deposit;
-  }
-  for (const firm of economy.firms) {
-    total += firm.deposit;
-  }
-  for (const agent of economy.agents) {
-    total += agent.deposit;
-  }
-  return total;
-}
-
-export function totalLoans(economy: Economy): number {
-  let total = 0;
-  for (const firm of economy.firms) {
-    total += firm.loan;
-  }
-  for (const household of economy.households) {
-    total += household.mortgage + household.consumerLoan;
-  }
-  return total;
-}
-
-export function loansAt(economy: Economy, bankId: number): number {
-  let total = 0;
-  for (const firm of economy.firms) {
-    if (firm.bank === bankId) {
-      total += firm.loan;
-    }
-  }
-  for (const household of economy.households) {
-    if (household.bank === bankId) {
-      total += household.mortgage + household.consumerLoan;
-    }
-  }
-  return total;
-}
-
-export function equityFor(economy: Economy, loans: number): number {
-  const ratio = economy.params.capitalRatio / Math.max(0.01, 1 - economy.params.capitalRatio);
-  return Math.max(1, Math.round(1.5 * ratio * Math.max(loans, 1)));
-}
-
-export function lendingRoom(economy: Economy, bankId: number, bankEquity: number): number {
-  const loans = loansAt(economy, bankId);
-  const cap = bankEquity / Math.max(economy.params.capitalRatio, 0.01);
-  return Math.max(0, cap - loans) * (1 + Math.max(0, economy.creditImpulse));
-}
-
-export function savingsStock(economy: Economy): number {
-  const fraction = economy.params.lendingModel === 'fullReserve' ? 0.1 : 0.25;
-  let total = 0;
-  for (const household of economy.households) {
-    total += Math.max(0, household.deposit) * fraction;
-  }
-  return total;
-}
-
-export function savingsRoom(economy: Economy): number {
-  return Math.max(0, savingsStock(economy) - totalLoans(economy));
 }
 
 export function priceTrend(economy: Economy): number {

@@ -1,4 +1,3 @@
-import type { Ledger } from '../ledger/ledger.js';
 import type { Rng } from '../rng/rng.js';
 import type { Parameters } from './parameters.js';
 import type { ActiveShock, Agent, Bank, Firm, ForcedShock, Household } from './types.js';
@@ -16,7 +15,6 @@ export interface Economy {
   readonly creditHistory: number[];
   forcedShock: ForcedShock | null;
   shock: ActiveShock | null;
-  ledger: Ledger | null;
   ready: boolean;
   aiFactor: number;
   displacementFactor: number;

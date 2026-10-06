@@ -2,7 +2,8 @@ import type { TickContext } from '../engine/engine.js';
 import { CREDIT_WRITEOFF, SHOCK_PHASE_MONTHS } from './rules.js';
 import { monthlyFromAnnual } from './stats.js';
 import type { Economy } from './economy.js';
-import { ensureOpen, writeOffFirmLoan } from './money.js';
+import { writeOffFirmLoan } from './money.js';
+import { ensureOpen } from './stocks.js';
 
 export function onShocks(economy: Economy, ctx: TickContext): void {
   ensureOpen(economy, ctx.ledger);

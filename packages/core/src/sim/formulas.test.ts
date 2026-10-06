@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { productionCapacity } from './capacity.js';
 import { taylorRate } from './central-bank.js';
-import { deflationPenaltyFrom, productionCapacity } from './helpers.js';
-import { wageGrowth } from './labor.js';
+import { hurdleInvestment } from './credit.js';
+import { deflationPenaltyFrom } from './helpers.js';
+import { hiringScale, wageGrowth } from './labor.js';
+import { monthlyPriceMove } from './pricing.js';
 import { automationShare, roboticsProgress, taskGain } from './population.js';
 import { AI_INTERNET_TASK_GAIN } from './rules.js';
-import { goodsSpendingShare } from './spending.js';
+import { goodsBudget, goodsSpendingShare } from './spending.js';
 
 describe('pure economy formulas', () => {
   it('reduces to ordinary Cobb–Douglas when AI factor is one', () => {
@@ -86,5 +89,55 @@ describe('pure economy formulas', () => {
         outputGap: 0,
       }),
     ).toBeCloseTo(0.04 + 0.12 + 1.5 * 0.1, 12);
+  });
+
+  it('scales hiring down when the real wage is above its cost reference', () => {
+    expect(hiringScale({ realWage: 2, referenceRealWage: 1, elasticity: 0 })).toBe(1);
+    expect(hiringScale({ realWage: 1.1, referenceRealWage: 1, elasticity: 1 })).toBeCloseTo(
+      0.9,
+      12,
+    );
+  });
+
+  it('moves a price with the trend when cost and demand are neutral', () => {
+    expect(
+      monthlyPriceMove({
+        price: 100,
+        unitCost: 100,
+        markup: 0,
+        pressure: 1,
+        priceSpeed: 1,
+        trend: 0.01,
+        excessDemand: 0,
+        trendWeight: 1,
+        demandImpulse: 0,
+        productivityImpulse: 0,
+      }),
+    ).toBeCloseTo(0.01, 12);
+  });
+
+  it('records the uninstalled three quarters as profit-sharing finance', () => {
+    expect(hurdleInvestment(100, true)).toEqual({
+      installed: 100,
+      loanPath: 100,
+      profitSharing: 0,
+    });
+    expect(hurdleInvestment(100, false)).toEqual({ installed: 25, loanPath: 0, profitSharing: 75 });
+    expect(hurdleInvestment(0, false)).toEqual({ installed: 0, loanPath: 0, profitSharing: 0 });
+  });
+
+  it('cuts only the discretionary goods budget when the real return is positive', () => {
+    const input = {
+      smoothed: 100,
+      income: 0,
+      deposit: 0,
+      spendingShare: 0.8,
+      demandFactor: 1,
+      realReturn: 0.1,
+      realReturnSensitivity: 0,
+      floorShare: 0.5,
+    };
+    expect(goodsBudget(input)).toBeCloseTo(80, 12);
+    expect(goodsBudget({ ...input, realReturnSensitivity: 5 })).toBeCloseTo(60, 12);
   });
 });

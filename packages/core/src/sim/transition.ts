@@ -1,6 +1,8 @@
+import { powerWeights, splitResidual } from './allocate.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import { clearBonds, setConsumerLoan, setDeposit, setFirmLoan, setMortgage } from './money.js';
+import type { Household } from './types.js';
 
 /**
  * One-shot rebase at the end of the transition window: haircut nominal debts,
@@ -51,25 +53,44 @@ function applyDebtHaircut(economy: Economy): void {
 }
 
 function redistributeDeposits(economy: Economy): void {
-  const concentration = economy.params.holderConcentration;
+  const total = positiveDeposits(economy);
+  if (total <= 0 || economy.households.length === 0) {
+    return;
+  }
+  const weights = powerWeights(
+    economy.households.map((household) => household.skill),
+    1 + 4 * economy.params.holderConcentration,
+  );
+  const parts = splitResidual(total, weights);
+  let assigned = 0;
+  const last = economy.households.length - 1;
+  for (let index = 0; index < last; index += 1) {
+    const amount = roundedShare(economy, parts[index]);
+    setDeposit(requireHousehold(economy, index), amount);
+    assigned += amount;
+  }
+  setDeposit(requireHousehold(economy, last), total - assigned);
+}
+
+function roundedShare(economy: Economy, share: number | undefined): number {
+  if (share === undefined || !Number.isFinite(share)) {
+    throw new Error('Deposit reassignment is missing a household share');
+  }
+  return moneyAmount(economy, share);
+}
+
+function requireHousehold(economy: Economy, index: number): Household {
+  const household = economy.households[index];
+  if (!household) {
+    throw new Error('Deposit reassignment is missing a household');
+  }
+  return household;
+}
+
+function positiveDeposits(economy: Economy): number {
   let total = 0;
   for (const household of economy.households) {
     total += Math.max(0, household.deposit);
   }
-  if (total <= 0 || economy.households.length === 0) {
-    return;
-  }
-  const weights = economy.households.map((household) => household.skill ** (1 + 4 * concentration));
-  const weightSum = weights.reduce((sum, value) => sum + value, 0);
-  if (weightSum <= 0) {
-    return;
-  }
-  for (let index = 0; index < economy.households.length; index += 1) {
-    const household = economy.households[index];
-    const weight = weights[index] ?? 0;
-    if (!household) {
-      continue;
-    }
-    setDeposit(household, moneyAmount(economy, (total * weight) / weightSum));
-  }
+  return total;
 }

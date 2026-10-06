@@ -7,7 +7,9 @@ import {
   repayMortgage,
   setMortgage,
 } from './money.js';
-import { deflationPenalty, inflation, lendingRoom, moneyAmount, savingsRoom } from './helpers.js';
+import { bankCreditRoom } from './banking.js';
+import { deflationPenalty, inflation, moneyAmount } from './helpers.js';
+import { CONSUMER_LOAN_REPAY, HOME_PRICE_MONTHS, MONTHLY_RENT_RATE } from './rules.js';
 import type { Household, Tenure } from './types.js';
 
 export function expectedMortgageBurden(
@@ -51,8 +53,8 @@ export function onContractChoice(economy: Economy): void {
   for (const household of economy.households) {
     serviceDebts(economy, household);
     const income = Math.max(household.income, household.smoothed, 1);
-    const homePrice = moneyAmount(economy, income * 48);
-    const rentBurden = homePrice * 0.004 * termMonths;
+    const homePrice = moneyAmount(economy, income * HOME_PRICE_MONTHS);
+    const rentBurden = homePrice * MONTHLY_RENT_RATE * termMonths;
     const maxLoan = moneyAmount(economy, homePrice * ltv);
     const mortgageBurden = expectedMortgageBurden(maxLoan, expectedDeflation, termYears);
     const ownedBurden = homePrice;
@@ -67,7 +69,7 @@ export function onContractChoice(economy: Economy): void {
     if (choice === 'owned' && household.tenure !== 'owned') {
       const price = Math.min(homePrice, household.deposit);
       if (price > 0 && household.deposit >= price) {
-        payCashForHome(household, economy, price);
+        payCashForHome(household, price);
         setMortgage(household, 0);
         household.mortgagePayment = 0;
         household.tenure = 'owned';
@@ -79,7 +81,7 @@ export function onContractChoice(economy: Economy): void {
       household.tenure !== 'mortgage' &&
       household.tenure !== 'owned'
     ) {
-      const room = householdLoanRoom(economy, household.bank);
+      const room = bankCreditRoom(economy, household.bank);
       const principal = Math.min(maxLoan, Math.max(0, room));
       if (principal > 0) {
         drawMortgage(household, principal);
@@ -99,7 +101,7 @@ export function onContractChoice(economy: Economy): void {
     const creditCap = moneyAmount(economy, income * economy.params.consumerCreditLimit);
     const headroom = Math.max(0, creditCap - household.consumerLoan);
     const borrowFactor = Math.max(0, 1 - penalty);
-    const room = householdLoanRoom(economy, household.bank);
+    const room = bankCreditRoom(economy, household.bank);
     const borrowed = moneyAmount(economy, Math.min(headroom, Math.max(0, room)) * borrowFactor);
     if (borrowed > 0) {
       drawConsumerLoan(household, borrowed);
@@ -126,23 +128,11 @@ function serviceDebts(economy: Economy, household: Household): void {
     const pay = Math.min(
       household.consumerLoan,
       household.deposit,
-      moneyAmount(economy, household.consumerLoan * 0.05),
+      moneyAmount(economy, household.consumerLoan * CONSUMER_LOAN_REPAY),
     );
     if (pay > 0) {
       repayConsumerLoan(household, pay);
       economy.loanRepaid += pay;
     }
   }
-}
-
-function householdLoanRoom(economy: Economy, bankId: number): number {
-  const bank = economy.banks[bankId];
-  if (!bank || bank.failed) {
-    return 0;
-  }
-  const room =
-    economy.params.regime === 'fiat'
-      ? lendingRoom(economy, bankId, bank.equity)
-      : Math.min(lendingRoom(economy, bankId, bank.equity), savingsRoom(economy));
-  return Math.max(0, room);
 }
