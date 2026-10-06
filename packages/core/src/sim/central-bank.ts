@@ -1,4 +1,5 @@
 import type { Economy } from './economy.js';
+import { addReserves, injectBankCapital, payDepositInterest as creditDepositInterest } from './money.js';
 import {
   employedCount,
   humanWeight,
@@ -39,9 +40,7 @@ export function onCentralBank(economy: Economy): void {
       for (const bank of economy.banks) {
         if (bank.equity < 0) {
           const injection = -bank.equity + 1;
-          bank.equity += injection;
-          bank.vault += injection;
-          bank.reserves += injection;
+          injectBankCapital(bank, injection);
         }
       }
     }
@@ -67,7 +66,7 @@ export function onCentralBank(economy: Economy): void {
     const add = required - reserves;
     const bank = economy.banks[0];
     if (bank) {
-      bank.reserves += add;
+      addReserves(bank, add);
     }
   }
   payDepositInterest(economy);
@@ -87,8 +86,6 @@ function payDepositInterest(economy: Economy): void {
     if (interest <= 0 || bank.equity < interest) {
       continue;
     }
-    bank.equity -= interest;
-    household.deposit += interest;
-    economy.privateEquity += interest;
+    creditDepositInterest(bank, household, economy, interest);
   }
 }

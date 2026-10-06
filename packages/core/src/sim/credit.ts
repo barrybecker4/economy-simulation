@@ -1,3 +1,4 @@
+import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import { LOAN_SPREAD } from './rules.js';
 import type { Economy } from './economy.js';
 import {
@@ -39,15 +40,12 @@ export function onCredit(economy: Economy): void {
       const rawRepay = firm.loan * penalty * 0.02;
       const repay = Math.min(firm.loan, firm.deposit, moneyAmount(economy, rawRepay));
       if (repay > 0) {
-        firm.loan -= repay;
-        firm.deposit -= repay;
+        repayFirmLoan(firm, repay);
         economy.loanRepaid += repay;
       }
     }
     if (interest > 0 && firm.deposit >= interest && bank && !bank.failed) {
-      firm.deposit -= interest;
-      bank.equity += interest;
-      economy.privateEquity -= interest;
+      payFirmInterest(firm, bank, economy, interest);
       economy.interestPaid += interest;
     }
     const desired = Math.max(1, firm.workers.length * (1 + Math.max(0, economy.creditImpulse)));
@@ -73,8 +71,7 @@ export function onCredit(economy: Economy): void {
             Math.max(0, Math.round(room)),
           );
           if (borrowed > 0) {
-            firm.loan += borrowed;
-            firm.deposit += borrowed;
+            drawFirmLoan(firm, borrowed);
             economy.newBorrowing += borrowed;
             economy.loanFinance += borrowed;
           }
@@ -98,8 +95,7 @@ export function onCredit(economy: Economy): void {
       const target = equityFor(economy, loansAt(economy, bank.id));
       if (bank.equity > target) {
         const dividend = Math.round(bank.equity - target);
-        bank.equity -= dividend;
-        economy.privateEquity += dividend;
+        releaseBankEquity(bank, economy, dividend);
       }
     }
   }

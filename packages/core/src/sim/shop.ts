@@ -1,3 +1,4 @@
+import { creditDeposit } from './money.js';
 import type { Firm } from './types.js';
 
 export interface ShopResult {
@@ -7,7 +8,7 @@ export interface ShopResult {
 
 /**
  * Walk `sampleSize` firms from `start` and buy while budget remains.
- * Mutates firm inventory, deposits, and salesUnits.
+ * Credits the seller's deposit, reduces inventory, and records the sale.
  */
 export function buyFromFirms(
   firms: readonly Firm[],
@@ -32,7 +33,7 @@ export function buyFromFirms(
       continue;
     }
     const taken = bill / seller.price;
-    seller.deposit += bill;
+    creditDeposit(seller, bill);
     seller.inventory -= taken;
     seller.salesUnits += taken;
     left -= bill;

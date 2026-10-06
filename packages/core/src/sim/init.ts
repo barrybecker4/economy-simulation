@@ -1,6 +1,6 @@
 import { Rng } from '../rng/rng.js';
 import { splitProportional } from './allocate.js';
-import { capitalizeBanks } from './bookkeeping.js';
+import { capitalizeBanks, creditDeposit, setDeposit, setFirmLoan } from './money.js';
 import type { Economy } from './economy.js';
 import { redistributeToUnemployed } from './government.js';
 import { employ, firmCapacity, pay, priceTrend } from './helpers.js';
@@ -147,11 +147,11 @@ export function createEconomy(
   for (const firm of economy.firms) {
     firm.capital = Math.max(1, firm.workers.length);
     firm.inventory = firmCapacity(economy, firm) * INVENTORY_MONTHS;
-    firm.loan = Math.round(0.5 * firm.capital * firm.price);
+    setFirmLoan(firm, Math.round(0.5 * firm.capital * firm.price));
     initialOutput += firmCapacity(economy, firm);
   }
   for (const household of economy.households) {
-    household.deposit = Math.round(household.skill ** 2 * INITIAL_WAGE * 36);
+    setDeposit(household, Math.round(household.skill ** 2 * INITIAL_WAGE * 36));
     household.income = 0;
   }
   for (const firm of economy.firms) {
@@ -168,7 +168,7 @@ export function createEconomy(
       const worker = item ? economy.households[item.id] : undefined;
       if (worker) {
         worker.income += share;
-        worker.deposit += share;
+        creditDeposit(worker, share);
       }
     }
   }

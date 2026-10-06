@@ -1,6 +1,15 @@
 import { powerWeights, splitEqual, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { employedCount, moneyAmount, naturalUnemployment, pay, savingsRoom } from './helpers.js';
+import {
+  creditDeposit,
+  creditTreasury,
+  debitDeposit,
+  debitTreasury,
+  issueBonds,
+  payFromTreasury,
+  transferDeposit,
+} from './money.js';
 import { clamp } from './stats.js';
 
 /**
@@ -45,17 +54,17 @@ function collectTax(economy: Economy): void {
   for (const household of economy.households) {
     const bill = Math.round(economy.params.taxRate * household.income);
     const paid = Math.min(household.deposit, bill);
-    household.deposit -= paid;
+    debitDeposit(household, paid);
     tax += paid;
   }
   for (const agent of economy.agents) {
     const bill = moneyAmount(economy, economy.params.taxRate * agent.income);
     const paid = Math.min(agent.deposit, bill);
-    agent.deposit -= paid;
+    debitDeposit(agent, paid);
     tax += paid;
     agentTax += paid;
   }
-  economy.govDeposits += tax;
+  creditTreasury(economy, tax);
   economy.taxRevenue = tax;
   economy.agentTaxRevenue = agentTax;
 }
@@ -80,10 +89,10 @@ function payUbi(economy: Economy): number[] {
       continue;
     }
     grants[index] = share;
-    household.deposit += share;
+    creditDeposit(household, share);
     economy.ubiOutlay += share;
   }
-  economy.govDeposits -= economy.ubiOutlay;
+  debitTreasury(economy, economy.ubiOutlay);
   return grants;
 }
 
@@ -121,31 +130,11 @@ function buyGoods(economy: Economy): void {
     if (bill <= 0) {
       continue;
     }
-    firm.deposit += bill;
+    payFromTreasury(firm, economy, bill);
     firm.inventory -= bill / firm.price;
-    economy.govDeposits -= bill;
     remaining -= bill;
   }
   economy.govGoodsSpend = purchases - remaining;
-}
-
-function issueBonds(economy: Economy, amount: number): void {
-  if (amount <= 0) {
-    return;
-  }
-  economy.govDeposits += amount;
-  const purchaseShare =
-    economy.params.regime === 'fiat' ? clamp(economy.params.bondPurchaseShare, 0, 1) : 0;
-  const monetized = moneyAmount(economy, amount * purchaseShare);
-  const bankShare = amount - monetized;
-  const buyer = economy.banks[0];
-  if (buyer && bankShare > 0) {
-    buyer.bonds += bankShare;
-  }
-  if (buyer && monetized > 0) {
-    buyer.bonds += monetized;
-    buyer.reserves += monetized;
-  }
 }
 
 function sweepAgents(economy: Economy): void {
@@ -160,8 +149,7 @@ function sweepAgents(economy: Economy): void {
     if (!owner) {
       continue;
     }
-    agent.deposit -= sweep;
-    owner.deposit += sweep;
+    transferDeposit(agent, owner, sweep);
     economy.agentSweep += sweep;
   }
 }
@@ -180,7 +168,7 @@ export function redistributeToUnemployed(economy: Economy): void {
     const cut =
       earned > 0 ? Math.min(household.income, Math.round((pool * household.income) / earned)) : 0;
     const paid = Math.min(household.deposit, cut);
-    household.deposit -= paid;
+    debitDeposit(household, paid);
     household.income -= paid;
     taken += paid;
   }
@@ -191,7 +179,7 @@ export function redistributeToUnemployed(economy: Economy): void {
     if (!household) {
       continue;
     }
-    household.deposit += share;
+    creditDeposit(household, share);
     household.income += share;
   }
 }
@@ -228,7 +216,7 @@ export function distributeIncome(economy: Economy): void {
       wagePaid[item.id] = (wagePaid[item.id] ?? 0) + share;
     }
     profitPool += available - parts.reduce((sum, value) => sum + value, 0);
-    firm.deposit -= available;
+    debitDeposit(firm, available);
   }
   economy.wageBill = wagePaid.reduce((sum, amount) => sum + amount, 0);
   const concentration =
@@ -246,7 +234,7 @@ export function distributeIncome(economy: Economy): void {
     }
     const share = profits[index] ?? 0;
     const wages = wagePaid[index] ?? 0;
-    household.deposit += wages + share;
+    creditDeposit(household, wages + share);
     household.income = wages + share;
   }
 }

@@ -1,4 +1,12 @@
 import type { Economy } from './economy.js';
+import {
+  drawConsumerLoan,
+  drawMortgage,
+  payCashForHome,
+  repayConsumerLoan,
+  repayMortgage,
+  setMortgage,
+} from './money.js';
 import { deflationPenalty, inflation, lendingRoom, moneyAmount, savingsRoom } from './helpers.js';
 import type { Household, Tenure } from './types.js';
 
@@ -59,9 +67,8 @@ export function onContractChoice(economy: Economy): void {
     if (choice === 'owned' && household.tenure !== 'owned') {
       const price = Math.min(homePrice, household.deposit);
       if (price > 0 && household.deposit >= price) {
-        household.deposit -= price;
-        economy.privateEquity += price;
-        household.mortgage = 0;
+        payCashForHome(household, economy, price);
+        setMortgage(household, 0);
         household.mortgagePayment = 0;
         household.tenure = 'owned';
       } else {
@@ -75,8 +82,7 @@ export function onContractChoice(economy: Economy): void {
       const room = householdLoanRoom(economy, household.bank);
       const principal = Math.min(maxLoan, Math.max(0, room));
       if (principal > 0) {
-        household.mortgage = principal;
-        household.deposit += principal;
+        drawMortgage(household, principal);
         household.mortgagePayment = moneyAmount(economy, principal / termMonths);
         household.tenure = 'mortgage';
         economy.newBorrowing += principal;
@@ -96,8 +102,7 @@ export function onContractChoice(economy: Economy): void {
     const room = householdLoanRoom(economy, household.bank);
     const borrowed = moneyAmount(economy, Math.min(headroom, Math.max(0, room)) * borrowFactor);
     if (borrowed > 0) {
-      household.consumerLoan += borrowed;
-      household.deposit += borrowed;
+      drawConsumerLoan(household, borrowed);
       economy.newConsumerBorrowing += borrowed;
       economy.newBorrowing += borrowed;
     }
@@ -108,11 +113,10 @@ function serviceDebts(economy: Economy, household: Household): void {
   if (household.mortgage > 0 && household.mortgagePayment > 0) {
     const pay = Math.min(household.mortgage, household.mortgagePayment, household.deposit);
     if (pay > 0) {
-      household.deposit -= pay;
-      household.mortgage -= pay;
+      repayMortgage(household, pay);
       economy.loanRepaid += pay;
       if (household.mortgage <= 0) {
-        household.mortgage = 0;
+        setMortgage(household, 0);
         household.mortgagePayment = 0;
         household.tenure = 'owned';
       }
@@ -125,8 +129,7 @@ function serviceDebts(economy: Economy, household: Household): void {
       moneyAmount(economy, household.consumerLoan * 0.05),
     );
     if (pay > 0) {
-      household.deposit -= pay;
-      household.consumerLoan -= pay;
+      repayConsumerLoan(household, pay);
       economy.loanRepaid += pay;
     }
   }

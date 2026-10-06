@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Ledger } from '../ledger/ledger.js';
-import { postBalancedStockLines } from './bookkeeping.js';
+import { postBalancedStockLines } from './money.js';
 
 describe('stock journal', () => {
   it('rejects a one-line stock posting', () => {

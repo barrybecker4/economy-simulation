@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import { createEconomy } from './init.js';
 import { distributeIncome } from './government.js';
+import { setDeposit } from './money.js';
 import { loadParameters } from './parameters.js';
 
 describe('profit shares under a large AI factor', () => {
@@ -20,7 +21,7 @@ describe('profit shares under a large AI factor', () => {
 
     const deposit = 1_000_000_000;
     for (const firm of economy.firms) {
-      firm.deposit = deposit;
+      setDeposit(firm, deposit);
     }
     distributeIncome(economy);
 

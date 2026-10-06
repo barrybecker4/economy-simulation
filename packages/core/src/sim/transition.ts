@@ -1,5 +1,6 @@
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
+import { clearBonds, setConsumerLoan, setDeposit, setFirmLoan, setMortgage } from './money.js';
 
 /**
  * One-shot rebase at the end of the transition window: haircut nominal debts,
@@ -18,7 +19,7 @@ export function onTransition(economy: Economy): void {
   applyDebtHaircut(economy);
   redistributeDeposits(economy);
   for (const bank of economy.banks) {
-    bank.bonds = 0;
+    clearBonds(bank);
   }
   economy.params.regime = 'bitcoin';
   economy.params.unit = 'satoshi';
@@ -33,13 +34,13 @@ function applyDebtHaircut(economy: Economy): void {
   }
   for (const firm of economy.firms) {
     const cut = moneyAmount(economy, firm.loan * haircut);
-    firm.loan = Math.max(0, firm.loan - cut);
+    setFirmLoan(firm, Math.max(0, firm.loan - cut));
   }
   for (const household of economy.households) {
     const mortgageCut = moneyAmount(economy, household.mortgage * haircut);
     const consumerCut = moneyAmount(economy, household.consumerLoan * haircut);
-    household.mortgage = Math.max(0, household.mortgage - mortgageCut);
-    household.consumerLoan = Math.max(0, household.consumerLoan - consumerCut);
+    setMortgage(household, Math.max(0, household.mortgage - mortgageCut));
+    setConsumerLoan(household, Math.max(0, household.consumerLoan - consumerCut));
     if (household.mortgage <= 0) {
       household.mortgagePayment = 0;
       if (household.tenure === 'mortgage') {
@@ -69,6 +70,6 @@ function redistributeDeposits(economy: Economy): void {
     if (!household) {
       continue;
     }
-    household.deposit = moneyAmount(economy, (total * weight) / weightSum);
+    setDeposit(household, moneyAmount(economy, (total * weight) / weightSum));
   }
 }

@@ -9,6 +9,7 @@ import {
   pay,
   priceTrend,
 } from './helpers.js';
+import { collectBankFee, creditDeposit, debitDeposit } from './money.js';
 import { buyFromFirms } from './shop.js';
 import { discretionaryAfterRealReturn, goodsSpendingShare, subsistenceShare } from './spending.js';
 
@@ -47,7 +48,7 @@ export function onGoods(economy: Economy): void {
     const start =
       economy.firms.length > 0 ? household.search.uniformInt(0, economy.firms.length - 1) : 0;
     const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
-    household.deposit -= spent;
+    debitDeposit(household, spent);
     household.consumption = spent;
     household.realConsumption = bought;
     economy.consumptionSpend += spent;
@@ -88,12 +89,11 @@ function tradeAgents(economy: Economy): void {
     }
     const fee = moneyAmount(economy, bill * friction);
     const net = bill - fee;
-    firm.deposit -= bill;
-    agent.deposit += net;
+    debitDeposit(firm, bill);
+    creditDeposit(agent, net);
     agent.income = net;
     if (fee > 0) {
-      bank.equity += fee;
-      economy.privateEquity -= fee;
+      collectBankFee(bank, economy, fee);
       economy.agentFees += fee;
     }
     economy.agentVolume += bill;
@@ -122,7 +122,7 @@ function shopAgents(economy: Economy): void {
     const left = Math.max(0, Math.min(Math.max(0, agent.deposit - taxReserve), Math.round(budget)));
     const start = agent.id % economy.firms.length;
     const { spent } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
-    agent.deposit -= spent;
+    debitDeposit(agent, spent);
     economy.agentGoodsSpend += spent;
     economy.consumptionSpend += spent;
   }

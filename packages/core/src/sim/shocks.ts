@@ -2,7 +2,7 @@ import type { TickContext } from '../engine/engine.js';
 import { CREDIT_WRITEOFF, SHOCK_PHASE_MONTHS } from './rules.js';
 import { monthlyFromAnnual } from './stats.js';
 import type { Economy } from './economy.js';
-import { ensureOpen } from './bookkeeping.js';
+import { ensureOpen, writeOffFirmLoan } from './money.js';
 
 export function onShocks(economy: Economy, ctx: TickContext): void {
   ensureOpen(economy, ctx.ledger);
@@ -65,12 +65,7 @@ function writeOffLoans(economy: Economy, fraction: number): void {
     if (loss <= 0) {
       continue;
     }
-    firm.loan -= loss;
-    const bank = economy.banks[firm.bank];
-    if (bank) {
-      bank.equity -= loss;
-    }
-    economy.privateEquity += loss;
+    writeOffFirmLoan(firm, economy.banks[firm.bank], economy, loss);
     economy.defaultsThisTick += loss;
   }
 }
