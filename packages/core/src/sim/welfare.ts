@@ -1,5 +1,6 @@
 import type { TickContext } from '../engine/engine.js';
-import { BASKET_METRICS, splitBasket } from './basket.js';
+import { splitBasket } from './basket.js';
+import { assembleMetrics, type MetricSnapshot, type TenureReading } from './assemble-metrics.js';
 import { clamp, distributionOf, mean, median } from './stats.js';
 import type { Economy } from './economy.js';
 import {
@@ -14,163 +15,105 @@ import {
 } from './helpers.js';
 
 export function onWelfare(economy: Economy, ctx: TickContext): void {
+  assembleMetrics(metricSnapshot(economy), ctx.metrics);
+  economy.defaultsThisTick = 0;
+}
+
+function metricSnapshot(economy: Economy): MetricSnapshot {
+  const welfare = measureWelfare(economy);
+  const reserves = economy.banks.reduce((sum, bank) => sum + bank.reserves, 0);
+  return {
+    realGdp: economy.realGdp,
+    growth: growth(economy),
+    employed: welfare.employed,
+    householdCount: economy.households.length,
+    agentCount: economy.agents.length,
+    priceLevel: economy.priceLevel,
+    categories: welfare.categories,
+    housingSecurity: welfare.housingSecurity,
+    inflation: inflation(economy),
+    interestRate: economy.policyRate,
+    deflationSensitivity: economy.params.deflationSensitivity,
+    deposits: totalDeposits(economy),
+    reserves,
+    loans: totalLoans(economy),
+    savings: savingsStock(economy),
+    tick: economy.tick,
+    prodGrowth: economy.params.prodGrowth,
+    housingSupplyGrowth: economy.params.housingSupplyGrowth,
+    tenureChoice: economy.params.tenureChoice,
+    tenure: economy.params.tenureChoice === 'on' ? readTenure(economy) : null,
+    investmentHurdle: economy.params.investmentHurdle,
+    loanFinance: economy.loanFinance,
+    profitSharingFinance: economy.profitSharingFinance,
+    consumptionSpend: economy.consumptionSpend,
+    investmentSpend: economy.investmentSpend,
+    agentGoodsSpend: economy.agentGoodsSpend,
+    govGoodsSpend: economy.govGoodsSpend,
+    agentVolume: economy.agentVolume,
+    agentFees: economy.agentFees,
+    agentSweep: economy.agentSweep,
+    interestPaid: economy.interestPaid,
+    newBorrowing: economy.newBorrowing,
+    loanRepaid: economy.loanRepaid,
+    taxRevenue: economy.taxRevenue,
+    agentTaxRevenue: economy.agentTaxRevenue,
+    ubiOutlay: economy.ubiOutlay,
+    wageBill: economy.wageBill,
+    profitPaid: economy.profitPaid,
+    wageLevel: economy.wageLevel,
+    demandImpulse: economy.demandImpulse,
+    creditImpulse: economy.creditImpulse,
+    productivityImpulse: economy.productivityImpulse,
+    realInvestment: economy.realInvestment,
+    defaultsThisTick: economy.defaultsThisTick,
+    cumulativeFailures: economy.cumulativeFailures,
+    boomLength: economy.boomLength,
+    bustLength: economy.bustLength,
+    nominalOutput: economy.priceLevel * economy.realGdp,
+    income: welfare.income,
+    wealth: welfare.wealth,
+    skill: welfare.skill,
+    consumption: welfare.consumption,
+    wellbeingMean: welfare.wellbeingMean,
+    wellbeingMedian: welfare.wellbeingMedian,
+    consumptionFloorShare: welfare.consumptionFloorShare,
+    jobs: jobShares(economy),
+    ownerWealthShare: ownerWealthShare(economy),
+    aiShareOfWealth: aiShareOfWealth(economy),
+    aiFactor: economy.aiFactor,
+    automatedShare: economy.automatedShare,
+    naturalUnemployment: naturalUnemployment(economy),
+  };
+}
+
+function measureWelfare(economy: Economy): {
+  categories: ReturnType<typeof splitBasket>;
+  housingSecurity: number;
+  employed: number;
+  income: ReturnType<typeof distributionOf>;
+  wealth: ReturnType<typeof distributionOf>;
+  skill: ReturnType<typeof distributionOf>;
+  consumption: ReturnType<typeof distributionOf>;
+  wellbeingMean: number;
+  wellbeingMedian: number;
+  consumptionFloorShare: number;
+} {
   const incomes = economy.households.map((household) => household.income);
   const consumption = economy.households.map((household) => household.realConsumption);
-  const wealth = economy.households.map((household) => household.deposit);
-  const skills = economy.households.map((household) => household.skill);
-  const employed = employedCount(economy);
-  const unemployment = 1 - employed / economy.households.length;
-  const nominalOutput = economy.priceLevel * economy.realGdp;
-  const loans = totalLoans(economy);
-  const deposits = totalDeposits(economy);
   const categories = categoryPrices(economy);
   const relativeHousing = categories.priceHousing / Math.max(economy.priceLevel, 1);
   const price = Math.max(economy.priceLevel, 1);
-  const incomeStats = distributionOf(incomes);
-  const typical = Math.max(incomeStats.median / price, 0.01);
-  const securities = incomes.map((income) =>
-    clamp(income / price / typical / (1 + relativeHousing), 0, 1),
+  const income = distributionOf(incomes);
+  const typical = Math.max(income.median / price, 0.01);
+  const securities = incomes.map((incomeValue) =>
+    clamp(incomeValue / price / typical / (1 + relativeHousing), 0, 1),
   );
   const wellbeing = consumption.map(
     (value, index) =>
       Math.log(Math.max(value, 0.01)) + economy.params.housingWeight * (securities[index] ?? 0),
   );
-  const wealthStats = distributionOf(wealth);
-  const skillStats = distributionOf(skills);
   const consumptionStats = distributionOf(consumption);
-  const wellbeingStats = distributionOf(wellbeing);
-  const metrics = ctx.metrics;
-  metrics.set('realGdp', economy.realGdp);
-  metrics.set('growth', growth(economy));
-  metrics.set('productivityPerHuman', employed > 0 ? economy.realGdp / employed : 0);
-  metrics.set('priceLevel', economy.priceLevel);
-  metrics.set('priceGeneral', categories.priceGeneral);
-  for (const id of BASKET_METRICS) {
-    metrics.set(id, categories[id]);
-  }
-  metrics.set('housingSecurity', mean(securities));
-  metrics.set('inflation', inflation(economy));
-  metrics.set('interestRate', economy.policyRate);
-  const penalty = deflationPenalty(economy);
-  const reserves = economy.banks.reduce((sum, bank) => sum + bank.reserves, 0);
-  const savings = savingsStock(economy);
-  metrics.set('moneySupply', deposits);
-  metrics.set('baseMoney', reserves);
-  metrics.set('loanToSavings', savings > 0 ? loans / savings : 0);
-  if (economy.params.tenureChoice === 'on') {
-    const count = Math.max(1, economy.households.length);
-    let mortgageCount = 0;
-    let rentCount = 0;
-    let ownedCount = 0;
-    let consumerCredit = 0;
-    const debtService: number[] = [];
-    for (const household of economy.households) {
-      if (household.tenure === 'mortgage') {
-        mortgageCount += 1;
-      } else if (household.tenure === 'owned') {
-        ownedCount += 1;
-      } else {
-        rentCount += 1;
-      }
-      consumerCredit += household.consumerLoan;
-      const income = Math.max(household.income, 1);
-      debtService.push((household.mortgagePayment + household.consumerLoan * 0.05) / income);
-    }
-    metrics.set('nonMortgageHousingShare', 1 - mortgageCount / count);
-    metrics.set('propertyTurnover', economy.tenureChanges / count);
-    metrics.set('mortgageShare', mortgageCount / count);
-    metrics.set('rentShare', rentCount / count);
-    metrics.set('ownedShare', ownedCount / count);
-    metrics.set(
-      'consumerCreditToGdp',
-      nominalOutput > 0 ? consumerCredit / (nominalOutput * 12) : 0,
-    );
-    metrics.set('newConsumerBorrowing', economy.newConsumerBorrowing);
-    metrics.set('medianDebtService', median(debtService));
-  } else {
-    metrics.set('nonMortgageHousingShare', 0.25 + 0.6 * penalty);
-    const years = economy.tick / 12;
-    const scarcity =
-      (1 + economy.params.prodGrowth) ** years / (1 + economy.params.housingSupplyGrowth) ** years;
-    metrics.set('propertyTurnover', (0.08 * (1 - penalty)) / Math.max(scarcity, 0.25));
-    metrics.set('mortgageShare', 0);
-    metrics.set('rentShare', 0);
-    metrics.set('ownedShare', 0);
-    metrics.set('consumerCreditToGdp', 0);
-    metrics.set('newConsumerBorrowing', 0);
-    metrics.set('medianDebtService', 0);
-  }
-  if (economy.params.investmentHurdle === 'on') {
-    const financed = economy.loanFinance + economy.profitSharingFinance;
-    metrics.set(
-      'profitSharingShare',
-      financed > 0 ? economy.profitSharingFinance / financed : 0.15 + 0.7 * penalty,
-    );
-  } else {
-    metrics.set('profitSharingShare', 0.15 + 0.7 * penalty);
-  }
-  metrics.set(
-    'velocity',
-    deposits > 0 ? (economy.consumptionSpend + economy.investmentSpend) / deposits : 0,
-  );
-  metrics.set('creditToGdp', nominalOutput > 0 ? loans / (nominalOutput * 12) : 0);
-  metrics.set('defaults', economy.defaultsThisTick);
-  metrics.set('bankFailures', economy.cumulativeFailures);
-  metrics.set('boomLength', economy.boomLength);
-  metrics.set('bustLength', economy.bustLength);
-  metrics.set('unemployment', unemployment);
-  metrics.set('naturalUnemployment', naturalUnemployment(economy));
-  metrics.set('realWage', economy.priceLevel > 0 ? economy.wageLevel / economy.priceLevel : 0);
-  metrics.set('laborShare', nominalOutput > 0 ? economy.wageBill / nominalOutput : 0);
-  metrics.set('taxRevenue', economy.taxRevenue);
-  metrics.set('agentTaxRevenue', economy.agentTaxRevenue);
-  metrics.set('ubiOutlay', economy.ubiOutlay);
-  metrics.set('wageBill', economy.wageBill);
-  metrics.set('profitPaid', economy.profitPaid);
-  metrics.set(
-    'householdGoodsSpend',
-    Math.max(0, economy.consumptionSpend - economy.agentGoodsSpend),
-  );
-  metrics.set('govGoodsSpend', economy.govGoodsSpend);
-  metrics.set('agentGoodsSpend', economy.agentGoodsSpend);
-  metrics.set('agentVolume', economy.agentVolume);
-  metrics.set('agentFees', economy.agentFees);
-  metrics.set('agentSweep', economy.agentSweep);
-  metrics.set('interestPaid', economy.interestPaid);
-  metrics.set('newBorrowing', economy.newBorrowing);
-  metrics.set('loanRepaid', economy.loanRepaid);
-  metrics.set('demandImpulse', economy.demandImpulse);
-  metrics.set('creditImpulse', economy.creditImpulse);
-  metrics.set('productivityImpulse', economy.productivityImpulse);
-  metrics.set('giniWealth', wealthStats.gini);
-  metrics.set('giniIncome', incomeStats.gini);
-  metrics.set('giniSkill', skillStats.gini);
-  metrics.set('giniConsumption', consumptionStats.gini);
-  metrics.set('realInvestment', economy.realInvestment);
-  metrics.set('topDecileWealthShare', wealthStats.topDecile);
-  metrics.set('bottomQuintileWealthShare', wealthStats.bottomQuintile);
-  metrics.set('wealthQuintile1', wealthStats.quintiles[0]);
-  metrics.set('wealthQuintile2', wealthStats.quintiles[1]);
-  metrics.set('wealthQuintile3', wealthStats.quintiles[2]);
-  metrics.set('wealthQuintile4', wealthStats.quintiles[3]);
-  metrics.set('wealthQuintile5', wealthStats.quintiles[4]);
-  const jobs = jobShares(economy);
-  metrics.set('jobUnemployedShare', jobs.unemployed);
-  metrics.set('jobSmallFirmShare', jobs.small);
-  metrics.set('jobLargeFirmShare', jobs.large);
-  metrics.set('ownerWealthShare', ownerWealthShare(economy));
-  metrics.set('meanRealWealth', economy.priceLevel > 0 ? wealthStats.mean / economy.priceLevel : 0);
-  metrics.set(
-    'medianRealWealth',
-    economy.priceLevel > 0 ? wealthStats.median / economy.priceLevel : 0,
-  );
-  metrics.set('meanRealIncome', economy.priceLevel > 0 ? incomeStats.mean / economy.priceLevel : 0);
-  metrics.set(
-    'medianRealIncome',
-    economy.priceLevel > 0 ? incomeStats.median / economy.priceLevel : 0,
-  );
-  metrics.set('meanRealConsumption', consumptionStats.mean);
-  metrics.set('medianRealConsumption', consumptionStats.median);
   const floor = consumptionStats.median * 0.25;
   let below = 0;
   for (const value of consumption) {
@@ -178,18 +121,48 @@ export function onWelfare(economy: Economy, ctx: TickContext): void {
       below += 1;
     }
   }
-  metrics.set('consumptionFloorShare', below / economy.households.length);
-  metrics.set('meanWellbeing', wellbeingStats.mean);
-  metrics.set('medianWellbeing', wellbeingStats.median);
-  const population = economy.households.length + economy.agents.length;
-  metrics.set('aiShareOfAgents', population > 0 ? economy.agents.length / population : 0);
-  metrics.set('aiShareOfWealth', aiShareOfWealth(economy));
-  const activity = economy.consumptionSpend + economy.agentVolume;
-  const agentActivity = economy.agentVolume + economy.agentGoodsSpend;
-  metrics.set('aiShareOfTransactions', activity > 0 ? agentActivity / activity : 0);
-  metrics.set('aiShareOfOutput', economy.aiFactor > 1 ? 1 - 1 / economy.aiFactor : 0);
-  metrics.set('tasksAutomated', economy.automatedShare);
-  economy.defaultsThisTick = 0;
+  const wellbeingStats = distributionOf(wellbeing);
+  return {
+    categories,
+    housingSecurity: mean(securities),
+    employed: employedCount(economy),
+    income,
+    wealth: distributionOf(economy.households.map((household) => household.deposit)),
+    skill: distributionOf(economy.households.map((household) => household.skill)),
+    consumption: consumptionStats,
+    wellbeingMean: wellbeingStats.mean,
+    wellbeingMedian: wellbeingStats.median,
+    consumptionFloorShare: below / economy.households.length,
+  };
+}
+
+function readTenure(economy: Economy): TenureReading {
+  let mortgageCount = 0;
+  let rentCount = 0;
+  let ownedCount = 0;
+  let consumerCredit = 0;
+  const debtService: number[] = [];
+  for (const household of economy.households) {
+    if (household.tenure === 'mortgage') {
+      mortgageCount += 1;
+    } else if (household.tenure === 'owned') {
+      ownedCount += 1;
+    } else {
+      rentCount += 1;
+    }
+    consumerCredit += household.consumerLoan;
+    const income = Math.max(household.income, 1);
+    debtService.push((household.mortgagePayment + household.consumerLoan * 0.05) / income);
+  }
+  return {
+    mortgageCount,
+    rentCount,
+    ownedCount,
+    tenureChanges: economy.tenureChanges,
+    consumerCredit,
+    medianDebtService: median(debtService),
+    newConsumerBorrowing: economy.newConsumerBorrowing,
+  };
 }
 
 /** Agent deposits over household deposits plus agent deposits. */
