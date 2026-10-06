@@ -180,7 +180,7 @@ describe('chartViews', () => {
     expect(ubi?.lines[1]?.dash).toEqual([...VARIANT_DASH]);
   });
 
-  it('annotates mixed money units on paired charts', () => {
+  it('draws mixed money on a left dollar axis and a right satoshi axis', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([500, 250_000]) };
     const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
     const views = chartViews(variant, 'bitcoin', {
@@ -191,7 +191,7 @@ describe('chartViews', () => {
     const prices = views.find((view) => view.key === 'prices');
     expect(prices?.unit).toBe('');
     expect(prices?.note).toBe(
-      'Solid lines are the baseline, in cents. Dashed lines are the variant, in satoshis.',
+      'Solid lines are the baseline, in dollars (left axis). Dashed lines are the variant, in satoshis (right axis).',
     );
     expect(prices?.caption).toBe(
       'The baseline and variant use different money units, so this chart does not score the variant.',
@@ -200,8 +200,53 @@ describe('chartViews', () => {
     expect(prices?.lines[1]?.label).toBe('CPI');
     expect(prices?.lines[0]?.omitLegend).toBe(true);
     expect(prices?.lines[1]?.omitLegend).toBeUndefined();
-    expect(prices?.lines[0]?.values).toEqual([500, 250_000]);
+    expect(prices?.lines[0]?.values).toEqual([5, 2_500]);
+    expect(prices?.lines[0]?.scale).toBe('y');
+    expect(prices?.lines[0]?.unit).toBe('dollars');
     expect(prices?.lines[1]?.values).toEqual([8, 9]);
+    expect(prices?.lines[1]?.scale).toBe('sats');
+    expect(prices?.lines[1]?.unit).toBe('satoshis');
+    expect(views.find((view) => view.key === 'labor')?.unit).toBe('share');
+    expect(views.find((view) => view.key === 'labor')?.lines[0]?.scale).toBeUndefined();
+  });
+
+  it('keeps a small fiat series in cents on the left when the variant is satoshis', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([100, 500]) };
+    const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
+    const views = chartViews(variant, 'hybrid', {
+      result: baseline,
+      regime: 'fiat',
+      transitionLength: 0,
+    });
+    const grant = views.find((view) => view.key === 'ubi');
+    expect(grant?.note).toBe(
+      'Solid lines are the baseline, in cents (left axis). Dashed lines are the variant, in satoshis (right axis).',
+    );
+    expect(grant?.lines[0]?.values).toEqual([100, 500]);
+    expect(grant?.lines[0]?.unit).toBe('cents');
+    expect(grant?.lines[0]?.scale).toBe('y');
+    expect(grant?.lines[1]?.values).toEqual([8, 9]);
+    expect(grant?.lines[1]?.scale).toBe('sats');
+  });
+
+  it('keeps dollars on the left when the baseline is satoshis', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([8, 9]) };
+    const variant = { kind: 'run' as const, ticks, series: series([500, 250_000]) };
+    const views = chartViews(variant, 'fiat', {
+      result: baseline,
+      regime: 'bitcoin',
+      transitionLength: 0,
+    });
+    const grant = views.find((view) => view.key === 'ubi');
+    expect(grant?.note).toBe(
+      'Solid lines are the baseline, in satoshis (right axis). Dashed lines are the variant, in dollars (left axis).',
+    );
+    expect(grant?.lines[0]?.values).toEqual([8, 9]);
+    expect(grant?.lines[0]?.scale).toBe('sats');
+    expect(grant?.lines[0]?.unit).toBe('satoshis');
+    expect(grant?.lines[1]?.values).toEqual([5, 2_500]);
+    expect(grant?.lines[1]?.scale).toBe('y');
+    expect(grant?.lines[1]?.unit).toBe('dollars');
   });
 
   it('captions a verdict series and a directional series under a baseline', () => {
@@ -219,15 +264,11 @@ describe('chartViews', () => {
     variantSeries.naturalUnemployment = [0.06, 0.06];
     variantSeries.interestRate = [0.04, 0.04];
     variantSeries.priceLevel = [100, 108];
-    const views = chartViews(
-      { kind: 'run', ticks, series: variantSeries },
-      'fiat',
-      {
-        result: { kind: 'run', ticks, series: baselineSeries },
-        regime: 'fiat',
-        transitionLength: 0,
-      },
-    );
+    const views = chartViews({ kind: 'run', ticks, series: variantSeries }, 'fiat', {
+      result: { kind: 'run', ticks, series: baselineSeries },
+      regime: 'fiat',
+      transitionLength: 0,
+    });
     expect(views.find((view) => view.key === 'wellbeing')?.caption).toBe(
       'Mean well-being ends higher (2 → 2.50). That is an improvement. Median well-being matches the baseline.',
     );

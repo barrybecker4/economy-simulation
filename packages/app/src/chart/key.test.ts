@@ -23,5 +23,6 @@ describe('buildPlot', () => {
     expect(drawnKey(640, ticks, [{ ...line, dash: [6, 4] }])).not.toBe(first);
     expect(drawnKey(640, ticks, [{ ...line, omitLegend: true }])).not.toBe(first);
     expect(drawnKey(640, ticks, [{ ...line, pair: 'cpi' }])).not.toBe(first);
+    expect(drawnKey(640, ticks, [{ ...line, scale: 'sats', unit: 'satoshis' }])).not.toBe(first);
   });
 });

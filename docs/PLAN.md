@@ -320,7 +320,8 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 3. AI capital ownership across humans, concentrated by `ai.ownershipConcentration`.
 4. Displaced workers search less effectively when their skills match automated tasks.
 5. Outputs: labor share, AI share of output, share of tasks automated, Gini, top decile.
-6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme. AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling together.
+6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme. 
+  AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling together.
 7. Write the channel 1 and 2 sections of `docs/model.md`.
 
 Acceptance:
@@ -376,8 +377,23 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 
 1. Run the simulation in a Web Worker and stream results so the page stays responsive.
 2. Slider panel generated from the registry, grouped, with a tooltip for description, source, and status.
-3. Regime toggle and a pinned-baseline overlay of the same seed: freeze a run (one seed or a multi-seed median), edit the variant, and draw both on each chart with a solid baseline and a dashed variant in the same color. While a baseline is pinned, scale, scoring, population growth, and trust in banks stay at the baseline values. The legend lists each series once. Hovering that item highlights the baseline and the variant together. A pinned pair also draws the month payment diagram as baseline beside variant, with edge amounts on hover instead of a legend, and stacks the variant wealth-by-fifth and job-mix bars directly under the baseline bars. Those legends read the baseline share, then the variant. Under each comparison chart, a caption states how the variant differs at the last month, mentions the rest of the path only when a strict majority of months disagrees, and calls the change an improvement or worse only for well-being, unemployment, inequality, living standards, real GDP, and productivity per human.
-4. Charts with uPlot for the welfare dashboard and category prices. The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed. Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median, and CPI also shows the 5th to the 95th percentile when no baseline is overlaid. Shaded bands and vertical rules mark demand, credit, and productivity shocks and a fiat-to-bitcoin transition; the cursor legend names the event under the pointer.
+3. Regime toggle and a pinned-baseline overlay of the same seed: 
+  freeze a run (one seed or a multi-seed median), edit the variant, 
+  and draw both on each chart with a solid baseline and a dashed variant in the same color. 
+  While a baseline is pinned, scale, scoring, population growth, and trust in banks stay at the baseline values. 
+  The legend lists each series once. Hovering that item highlights the baseline and the variant together. 
+  A pinned pair also draws the month payment diagram as baseline beside variant, with edge amounts on hover instead of a legend, 
+  and stacks the variant wealth-by-fifth and job-mix bars directly under the baseline bars. 
+  Those legends read the baseline share, then the variant. Under each comparison chart, 
+  a caption states how the variant differs at the last month, mentions the rest of the path only when a strict majority of months disagrees, 
+  and calls the change an improvement or worse only for well-being, unemployment, inequality, living standards, real GDP, 
+  and productivity per human. When a money chart's baseline and variant use different units, 
+  dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does not score that pair.
+4. Charts with uPlot for the welfare dashboard and category prices. 
+  The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed. 
+  Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median, and CPI also shows the 5th to the 95th percentile when no baseline is overlaid. 
+  Shaded bands and vertical rules mark demand, credit, and productivity shocks and a fiat-to-bitcoin transition; 
+  the cursor legend names the event under the pointer.
 5. The composite welfare index stays off until the user moves a weight.
 6. Shareable links encode the resolved configuration.
 7. Assumption ledger: sliders that differ from the default, with guesses flagged.

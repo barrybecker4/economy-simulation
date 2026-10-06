@@ -12,6 +12,9 @@ import {
 const CHART_HEIGHT = 240;
 const Y_AXIS_MIN = 52;
 const Y_AXIS_CHAR = 7;
+/** uPlot axis side for the right-hand scale. */
+const AXIS_RIGHT = 1 as const;
+const LEFT_SCALE = 'y';
 const BAND_ALPHA = 0.22;
 const HATCH_FILL_ALPHA = 0.12;
 const HATCH_LINE_ALPHA = 0.55;
@@ -24,6 +27,10 @@ export interface PlotLine {
   dash?: readonly number[];
   omitLegend?: boolean;
   pair?: string;
+  /** uPlot y-scale key. `y` is the left axis. Another key draws a right axis. */
+  scale?: string;
+  /** Unit drawn on that scale's axis, and in the legend when a pair disagrees. */
+  unit?: string;
 }
 
 interface FocusedSeries extends uPlot.Series {
@@ -68,6 +75,8 @@ function chartKey(
       line.dash ?? null,
       line.omitLegend === true,
       line.pair ?? null,
+      line.scale ?? null,
+      line.unit ?? null,
       line.values,
     ]),
     marks,
@@ -79,19 +88,24 @@ export function plotOptions(
   lines: readonly PlotLine[],
   marks: ChartMarks = emptyMarks(),
 ) {
-  const samples = lines.flatMap((line) => line.values ?? []);
-  const axisLabels = yAxisSplits(samples).map(formatAxisNumber);
   const paired = lines.some((line) => line.pair !== undefined);
   const marked = hasMarks(marks);
+  const rightScale = lines.find(
+    (line) => line.scale !== undefined && line.scale !== LEFT_SCALE,
+  )?.scale;
   return {
     width,
     height: CHART_HEIGHT,
-    scales: { x: { time: true } },
+    scales: {
+      x: { time: true },
+      ...(rightScale !== undefined ? { [rightScale]: {} } : {}),
+    },
     series: [
       { label: 'Month', value: monthLegendValue(marks) },
       ...lines.map((line, index) => ({
         label: line.label,
         stroke: line.color,
+        ...(line.scale !== undefined ? { scale: line.scale } : {}),
         ...(paired ? { points: { show: false } } : {}),
         ...(line.dash !== undefined
           ? { dash: line.dash.map((segment) => segment * canvasScale()) }
@@ -99,15 +113,49 @@ export function plotOptions(
         value: legendValue(lines, index),
       })),
     ],
-    axes: [
-      {},
-      {
-        size: yAxisSize(axisLabels),
-        values: (_u: uPlot, splits: number[]) => splits.map(formatAxisNumber),
-      },
-    ],
+    axes: yAxes(lines, rightScale),
     ...(paired || marked ? { hooks: plotHooks(lines, marks) } : {}),
   };
+}
+
+function yAxes(lines: readonly PlotLine[], rightScale: string | undefined) {
+  const axes = [
+    {},
+    {
+      scale: LEFT_SCALE,
+      size: yAxisSize(axisLabels(lines, LEFT_SCALE)),
+      values: (_u: uPlot, splits: number[]) => splits.map(formatAxisNumber),
+      ...(rightScale !== undefined ? { label: scaleUnit(lines, LEFT_SCALE) } : {}),
+    },
+  ];
+  if (rightScale === undefined) {
+    return axes;
+  }
+  return [
+    ...axes,
+    {
+      scale: rightScale,
+      side: AXIS_RIGHT,
+      size: yAxisSize(axisLabels(lines, rightScale)),
+      values: (_u: uPlot, splits: number[]) => splits.map(formatAxisNumber),
+      label: scaleUnit(lines, rightScale),
+      grid: { show: false },
+    },
+  ];
+}
+
+function axisLabels(lines: readonly PlotLine[], scale: string): string[] {
+  return yAxisSplits(samplesOn(lines, scale)).map(formatAxisNumber);
+}
+
+function samplesOn(lines: readonly PlotLine[], scale: string): number[] {
+  return lines
+    .filter((line) => (line.scale ?? LEFT_SCALE) === scale)
+    .flatMap((line) => line.values ?? []);
+}
+
+function scaleUnit(lines: readonly PlotLine[], scale: string): string {
+  return lines.find((line) => (line.scale ?? LEFT_SCALE) === scale)?.unit ?? '';
 }
 
 /** uPlot series indexes left out of the legend. Series 0 is the month axis. */
@@ -449,10 +497,7 @@ function rgba(hex: string, alpha: number): string {
     return hex;
   }
   const raw = match[1] ?? '';
-  const full =
-    raw.length === 3
-      ? [...raw].map((ch) => `${ch}${ch}`).join('')
-      : raw;
+  const full = raw.length === 3 ? [...raw].map((ch) => `${ch}${ch}`).join('') : raw;
   const r = Number.parseInt(full.slice(0, 2), 16);
   const g = Number.parseInt(full.slice(2, 4), 16);
   const b = Number.parseInt(full.slice(4, 6), 16);
@@ -498,7 +543,13 @@ function legendValue(
     if (baseline === -1) {
       return current;
     }
-    return `${pointText(self.data[baseline + 1]?.[idx])} → ${current}`;
+    const from = pointText(self.data[baseline + 1]?.[idx]);
+    const baselineUnit = lines[baseline]?.unit;
+    const variantUnit = lines[index]?.unit;
+    if (baselineUnit !== undefined && variantUnit !== undefined && baselineUnit !== variantUnit) {
+      return `${from} ${baselineUnit} → ${current} ${variantUnit}`;
+    }
+    return `${from} → ${current}`;
   };
 }
 

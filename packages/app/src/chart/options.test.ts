@@ -139,6 +139,53 @@ describe('plotOptions', () => {
     expect(single(plot, 2, 3, 0)).toBe('2');
   });
 
+  it('names each unit in the legend when a pair uses two money scales', () => {
+    const lines = [
+      {
+        label: 'UBI outlay',
+        color: '#047857',
+        omitLegend: true,
+        pair: 'ubiOutlay',
+        scale: 'y',
+        unit: 'dollars',
+        values: [5, 2_500],
+      },
+      {
+        label: 'UBI outlay',
+        color: '#047857',
+        dash: [8, 6],
+        pair: 'ubiOutlay',
+        scale: 'sats',
+        unit: 'satoshis',
+        values: [8, 9],
+      },
+    ];
+    const options = plotOptions(640, lines);
+    expect(options.series[1]?.scale).toBe('y');
+    expect(options.series[2]?.scale).toBe('sats');
+    expect(options.axes[1]).toMatchObject({ scale: 'y', label: 'dollars' });
+    expect(options.axes[2]).toMatchObject({
+      scale: 'sats',
+      side: 1,
+      label: 'satoshis',
+      grid: { show: false },
+    });
+    expect(options.scales).toMatchObject({ sats: {} });
+    const paired = options.series[2]?.value;
+    expect(typeof paired).toBe('function');
+    if (typeof paired !== 'function') {
+      return;
+    }
+    const plot = {
+      data: [
+        [0, 1],
+        [5, 2_500],
+        [8, 9],
+      ],
+    } as uPlot;
+    expect(paired(plot, 9, 2, 1)).toBe('2.5k dollars → 9 satoshis');
+  });
+
   it('hides the baseline legend row and highlights both lines on hover', () => {
     const lines = [
       { label: 'CPI', color: '#1e3a8a', omitLegend: true, pair: 'priceLevel' },

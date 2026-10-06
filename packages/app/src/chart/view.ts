@@ -2,13 +2,7 @@ import { CHART_PANELS, type ChartLineSpec, type ChartPanel } from '../dashboard/
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
 import { readSeries } from '../worker/series.js';
 import { comparisonCaption, type CaptionSeries } from './caption.js';
-import {
-  hasMarks,
-  MARKS_TIP,
-  mergeMarks,
-  runMarks,
-  type ChartMarks,
-} from './marks.js';
+import { hasMarks, MARKS_TIP, mergeMarks, runMarks, type ChartMarks } from './marks.js';
 
 export interface ChartLine {
   label: string;
@@ -20,6 +14,10 @@ export interface ChartLine {
   omitLegend?: boolean;
   /** Lines with the same id share one legend item and one hover highlight. */
   pair?: string;
+  /** uPlot y-scale key. `y` is the left axis. */
+  scale?: string;
+  /** Display unit for this line when a chart has two money axes. */
+  unit?: string;
 }
 
 export interface ChartView {
@@ -81,6 +79,9 @@ export function chartViews(
 const CENTS_PER_DOLLAR = 100;
 /** Fiat money charts stay in cents at this level and switch to dollars above it. */
 const CENT_DISPLAY_MAX = 1_000;
+/** Left y-scale. Satoshis use a separate right-hand scale. */
+const LEFT_SCALE = 'y';
+const SATOSHI_SCALE = 'sats';
 
 function pairedViews(
   variant: RunSuccess,
@@ -129,11 +130,13 @@ function pairedViewFromSpec(
   baseline: BaselineRun,
   marks: ChartMarks,
 ): ChartView {
-  const mixedMoney = spec.unit === 'money' && moneyUnit(regime) !== moneyUnit(baseline.regime);
-  const lines: ChartLine[] = [];
+  const baselineMoney = moneyUnit(baseline.regime);
+  const variantMoney = moneyUnit(regime);
+  const mixedMoney = spec.unit === 'money' && baselineMoney !== variantMoney;
+  const rows: MoneyLine[] = [];
   for (const line of spec.lines) {
-    lines.push(
-      checkedLine(
+    rows.push({
+      line: checkedLine(
         baseline.result.ticks,
         line.label,
         readSeries(baseline.result, line.id),
@@ -143,27 +146,20 @@ function pairedViewFromSpec(
           pair: line.id,
         },
       ),
-    );
-    lines.push(
-      checkedLine(variant.ticks, line.label, readSeries(variant, line.id), line.color, {
+      money: baselineMoney,
+    });
+    rows.push({
+      line: checkedLine(variant.ticks, line.label, readSeries(variant, line.id), line.color, {
         dash: VARIANT_DASH,
         pair: line.id,
       }),
-    );
+      money: variantMoney,
+    });
   }
   if (mixedMoney) {
-    return {
-      key: spec.key,
-      title: spec.title,
-      group: spec.group,
-      unit: '',
-      note: `Solid lines are the baseline, in ${moneyUnit(baseline.regime)}. Dashed lines are the variant, in ${moneyUnit(regime)}.`,
-      description: withMarksTip(spec.description, marks),
-      lines,
-      marks,
-      caption: comparisonCaption([], { mixedUnits: true }),
-    };
+    return mixedMoneyView(spec, rows, marks);
   }
+  const lines = rows.map((row) => row.line);
   const scaled = scaleCents(unitText(spec.unit, regime), lines);
   return {
     key: spec.key,
@@ -175,6 +171,51 @@ function pairedViewFromSpec(
     marks,
     caption: comparisonCaption(captionSeries(spec.lines, scaled.lines)),
   };
+}
+
+interface MoneyLine {
+  line: ChartLine;
+  money: string;
+}
+
+function mixedMoneyView(
+  spec: ChartPanel,
+  rows: readonly MoneyLine[],
+  marks: ChartMarks,
+): ChartView {
+  const fiatLines = rows.filter((row) => row.money === 'cents').map((row) => row.line);
+  const fiatUnit = peakAbs(fiatLines) > CENT_DISPLAY_MAX ? 'dollars' : 'cents';
+  const lines = rows.map((row) => placeMoneyLine(row, fiatUnit));
+  const baselineUnit = rows[0]?.money === 'cents' ? fiatUnit : 'satoshis';
+  const variantUnit = rows[1]?.money === 'cents' ? fiatUnit : 'satoshis';
+  return {
+    key: spec.key,
+    title: spec.title,
+    group: spec.group,
+    unit: '',
+    note: `Solid lines are the baseline, in ${baselineUnit} (${axisName(baselineUnit)} axis). Dashed lines are the variant, in ${variantUnit} (${axisName(variantUnit)} axis).`,
+    description: withMarksTip(spec.description, marks),
+    lines,
+    marks,
+    caption: comparisonCaption([], { mixedUnits: true }),
+  };
+}
+
+function placeMoneyLine(row: MoneyLine, fiatUnit: string): ChartLine {
+  const fiat = row.money === 'cents';
+  const line: ChartLine = {
+    ...row.line,
+    scale: fiat ? LEFT_SCALE : SATOSHI_SCALE,
+    unit: fiat ? fiatUnit : 'satoshis',
+  };
+  if (fiat && fiatUnit === 'dollars') {
+    line.values = row.line.values.map((value) => value / CENTS_PER_DOLLAR);
+  }
+  return line;
+}
+
+function axisName(unit: string): 'left' | 'right' {
+  return unit === 'satoshis' ? 'right' : 'left';
 }
 
 function captionSeries(
