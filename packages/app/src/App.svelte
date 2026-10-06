@@ -95,6 +95,16 @@
   const census = $derived(
     result === null ? null : monthCensus(result, monthIndex, householdCount, ownership),
   );
+  const baselineCensus = $derived(
+    pin === null || overlayBaseline === null
+      ? null
+      : monthCensus(
+          overlayBaseline.result,
+          monthIndex,
+          resolvedNumber(pin.regime, pin.overrides, 'scale.households', 1000),
+          resolvedNumber(pin.regime, pin.overrides, 'ai.ownershipConcentration', 0.5),
+        ),
+  );
   const diffs = $derived(
     pin === null
       ? []
@@ -130,6 +140,16 @@
 
   function numericOverride(id: string, fallback: number): number {
     const value = resolved[id];
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  }
+
+  function resolvedNumber(
+    regimeName: string,
+    sideOverrides: Readonly<Record<string, number | string>>,
+    id: string,
+    fallback: number,
+  ): number {
+    const value = sliderValue(getSlider(id), regimeName, sideOverrides);
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
   }
 
@@ -372,7 +392,14 @@
           lines={chart.lines}
         />
       {/each}
-      <Month bind:monthIndex ticks={result.ticks} {flows} {baselineFlows} {census} />
+      <Month
+        bind:monthIndex
+        ticks={result.ticks}
+        {flows}
+        {baselineFlows}
+        {census}
+        {baselineCensus}
+      />
     {/if}
   {/if}
 

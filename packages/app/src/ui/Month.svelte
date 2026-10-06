@@ -3,18 +3,26 @@
   import type { MonthCensus } from '../session/census.js';
   import { monthStart } from '../chart/time.js';
 
+  interface ShareSlice {
+    label: string;
+    share: number;
+    color: string;
+  }
+
   let {
     ticks,
     monthIndex = $bindable(0),
     flows,
     baselineFlows = null,
     census,
+    baselineCensus = null,
   }: {
     ticks: number[];
     monthIndex: number;
     flows: MonthFlows;
     baselineFlows?: MonthFlows | null;
     census: MonthCensus;
+    baselineCensus?: MonthCensus | null;
   } = $props();
 
   const MONTHS = [
@@ -79,6 +87,11 @@
 
   function formatShare(share: number): string {
     return `${(share * 100).toFixed(1)}%`;
+  }
+
+  function shareCaption(title: string, slices: readonly ShareSlice[]): string {
+    const parts = slices.map((slice) => `${slice.label} ${formatShare(slice.share)}`);
+    return `${title}. ${parts.join(', ')}.`;
   }
 
   function activeEdges(edges: readonly FlowEdge[]): FlowEdge[] {
@@ -327,27 +340,31 @@
 
   <div class="panel">
     <h3>Wealth by fifth</h3>
-    <div class="stack" role="img" aria-label="Household wealth quintile shares">
-      {#each census.wealth as slice (slice.label)}
-        <div
-          class="slice"
-          style:flex-grow={Math.max(slice.share, 0.001)}
-          style:background={slice.color}
-          title="{slice.label}: {formatShare(slice.share)}"
-        ></div>
-      {/each}
-    </div>
-    <ul class="legend">
-      {#each census.wealth as slice (slice.label)}
-        <li style:--swatch={slice.color}>{slice.label}: {formatShare(slice.share)}</li>
-      {/each}
-    </ul>
+    {#if baselineCensus}
+      {@render comparedShares(
+        baselineCensus.wealth,
+        census.wealth,
+        'household wealth quintile shares',
+      )}
+    {:else}
+      {@render shareStack(census.wealth, 'Household wealth quintile shares')}
+      {@render shareLegend(census.wealth)}
+    {/if}
   </div>
 
   <div class="panel">
     <h3>Jobs</h3>
-    <div class="stack" role="img" aria-label="Job mix shares">
-      {#each census.jobs as slice (slice.label)}
+    {#if baselineCensus}
+      {@render comparedShares(baselineCensus.jobs, census.jobs, 'job mix shares')}
+    {:else}
+      {@render shareStack(census.jobs, 'Job mix shares')}
+      {@render shareLegend(census.jobs)}
+    {/if}
+  </div>
+
+  {#snippet shareStack(slices: ShareSlice[], caption: string)}
+    <div class="stack" role="img" aria-label={caption}>
+      {#each slices as slice (slice.label)}
         <div
           class="slice"
           style:flex-grow={Math.max(slice.share, 0.001)}
@@ -356,12 +373,35 @@
         ></div>
       {/each}
     </div>
+  {/snippet}
+
+  {#snippet shareLegend(slices: ShareSlice[])}
     <ul class="legend">
-      {#each census.jobs as slice (slice.label)}
+      {#each slices as slice (slice.label)}
         <li style:--swatch={slice.color}>{slice.label}: {formatShare(slice.share)}</li>
       {/each}
     </ul>
-  </div>
+  {/snippet}
+
+  {#snippet comparedShares(baseline: ShareSlice[], variant: ShareSlice[], noun: string)}
+    <div class="compare-lines">
+      <div class="line">
+        <span class="line-label">Baseline</span>
+        {@render shareStack(baseline, shareCaption(`Baseline ${noun}`, baseline))}
+      </div>
+      <div class="line">
+        <span class="line-label">Variant</span>
+        {@render shareStack(variant, shareCaption(`Variant ${noun}`, variant))}
+      </div>
+    </div>
+    <ul class="legend paired">
+      {#each baseline as slice, index (slice.label)}
+        <li style:--swatch={slice.color}>
+          {slice.label}: {formatShare(slice.share)} → {formatShare(variant[index]?.share ?? 0)}
+        </li>
+      {/each}
+    </ul>
+  {/snippet}
 
   <div class="panel">
     <h3>AI agent owners</h3>
@@ -438,6 +478,21 @@
   g[tabindex]:focus-visible {
     filter: drop-shadow(0 0 2px #1c1917);
   }
+  .compare-lines {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .line {
+    align-items: center;
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+  }
+  .line-label {
+    color: #44403c;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
   .stack {
     border-radius: 0.25rem;
     display: flex;
@@ -457,6 +512,9 @@
     list-style: none;
     margin: 0.75rem 0 0;
     padding: 0;
+  }
+  .legend.paired {
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
   }
   .legend li {
     align-items: center;
