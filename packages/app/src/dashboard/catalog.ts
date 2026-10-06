@@ -4,6 +4,8 @@ export interface ChartLineSpec {
   id: MetricId;
   label: string;
   color: string;
+  /** When set, a pinned comparison captions this series as an improvement or worse. */
+  better?: 'higher' | 'lower';
 }
 
 export interface ChartPanel {
@@ -39,8 +41,8 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     description:
       'Mean and median human well-being. The level is the natural log of real consumption, floored at 0.01, plus a housing-security term. AI agents are not included. More than one seed draws the median.',
     lines: [
-      { id: 'meanWellbeing', label: 'Mean well-being', color: '#0b6' },
-      { id: 'medianWellbeing', label: 'Median well-being', color: '#064' },
+      { id: 'meanWellbeing', label: 'Mean well-being', color: '#0b6', better: 'higher' },
+      { id: 'medianWellbeing', label: 'Median well-being', color: '#064', better: 'higher' },
     ],
   },
   {
@@ -71,7 +73,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     description:
       'Unemployment is the share of households without a job. Natural unemployment rises as AI shrinks the hiring target. The policy rate is the annual interest rate: under fiat it follows inflation and the gap from that natural rate, scaled by the human share of output, and under bitcoin or hybrid it moves with the gap between loans and savings. More than one seed draws each median.',
     lines: [
-      { id: 'unemployment', label: 'Unemployment', color: '#b45309' },
+      { id: 'unemployment', label: 'Unemployment', color: '#b45309', better: 'lower' },
       { id: 'naturalUnemployment', label: 'Natural unemployment', color: '#92400e' },
       { id: 'interestRate', label: 'Policy rate', color: '#1d4ed8' },
     ],
@@ -138,8 +140,8 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     description:
       'Real GDP is the sum of firm capacities. Productivity per human is real GDP divided by employed households. Real investment is capital gaps installed that month. More than one seed draws each median.',
     lines: [
-      { id: 'realGdp', label: 'Real GDP', color: '#1e3a8a' },
-      { id: 'productivityPerHuman', label: 'Productivity per human', color: '#0f766e' },
+      { id: 'realGdp', label: 'Real GDP', color: '#1e3a8a', better: 'higher' },
+      { id: 'productivityPerHuman', label: 'Productivity per human', color: '#0f766e', better: 'higher' },
       { id: 'realInvestment', label: 'Real investment', color: '#a16207' },
     ],
   },
@@ -151,11 +153,21 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     description:
       'Real wage is the money wage divided by CPI. Mean and median real income and real consumption use households only. More than one seed draws each median.',
     lines: [
-      { id: 'realWage', label: 'Real wage', color: '#1d4ed8' },
-      { id: 'meanRealIncome', label: 'Mean real income', color: '#0f766e' },
-      { id: 'medianRealIncome', label: 'Median real income', color: '#065f46' },
-      { id: 'meanRealConsumption', label: 'Mean real consumption', color: '#9a3412' },
-      { id: 'medianRealConsumption', label: 'Median real consumption', color: '#7c2d12' },
+      { id: 'realWage', label: 'Real wage', color: '#1d4ed8', better: 'higher' },
+      { id: 'meanRealIncome', label: 'Mean real income', color: '#0f766e', better: 'higher' },
+      { id: 'medianRealIncome', label: 'Median real income', color: '#065f46', better: 'higher' },
+      {
+        id: 'meanRealConsumption',
+        label: 'Mean real consumption',
+        color: '#9a3412',
+        better: 'higher',
+      },
+      {
+        id: 'medianRealConsumption',
+        label: 'Median real consumption',
+        color: '#7c2d12',
+        better: 'higher',
+      },
     ],
   },
   {
@@ -166,12 +178,22 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     description:
       'Gini of household wealth, income, and consumption. Top-decile and bottom-quintile wealth shares, and the share of households below one quarter of median real consumption. More than one seed draws each median.',
     lines: [
-      { id: 'giniWealth', label: 'Wealth Gini', color: '#7c3aed' },
-      { id: 'giniIncome', label: 'Income Gini', color: '#1d4ed8' },
-      { id: 'giniConsumption', label: 'Consumption Gini', color: '#0f766e' },
-      { id: 'topDecileWealthShare', label: 'Top decile wealth', color: '#be123c' },
-      { id: 'bottomQuintileWealthShare', label: 'Bottom quintile wealth', color: '#a16207' },
-      { id: 'consumptionFloorShare', label: 'Consumption floor', color: '#57534e' },
+      { id: 'giniWealth', label: 'Wealth Gini', color: '#7c3aed', better: 'lower' },
+      { id: 'giniIncome', label: 'Income Gini', color: '#1d4ed8', better: 'lower' },
+      { id: 'giniConsumption', label: 'Consumption Gini', color: '#0f766e', better: 'lower' },
+      { id: 'topDecileWealthShare', label: 'Top decile wealth', color: '#be123c', better: 'lower' },
+      {
+        id: 'bottomQuintileWealthShare',
+        label: 'Bottom quintile wealth',
+        color: '#a16207',
+        better: 'higher',
+      },
+      {
+        id: 'consumptionFloorShare',
+        label: 'Consumption floor',
+        color: '#57534e',
+        better: 'lower',
+      },
     ],
   },
   {

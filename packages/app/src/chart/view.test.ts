@@ -193,12 +193,59 @@ describe('chartViews', () => {
     expect(prices?.note).toBe(
       'Solid lines are the baseline, in cents. Dashed lines are the variant, in satoshis.',
     );
+    expect(prices?.caption).toBe(
+      'The baseline and variant use different money units, so this chart does not score the variant.',
+    );
     expect(prices?.lines[0]?.label).toBe('CPI');
     expect(prices?.lines[1]?.label).toBe('CPI');
     expect(prices?.lines[0]?.omitLegend).toBe(true);
     expect(prices?.lines[1]?.omitLegend).toBeUndefined();
     expect(prices?.lines[0]?.values).toEqual([500, 250_000]);
     expect(prices?.lines[1]?.values).toEqual([8, 9]);
+  });
+
+  it('captions a verdict series and a directional series under a baseline', () => {
+    const baselineSeries = series([1, 2]);
+    baselineSeries.meanWellbeing = [1, 2];
+    baselineSeries.medianWellbeing = [1, 2];
+    baselineSeries.unemployment = [0.08, 0.08];
+    baselineSeries.naturalUnemployment = [0.06, 0.06];
+    baselineSeries.interestRate = [0.04, 0.04];
+    baselineSeries.priceLevel = [100, 100];
+    const variantSeries = series([1, 2]);
+    variantSeries.meanWellbeing = [1.5, 2.5];
+    variantSeries.medianWellbeing = [1, 2];
+    variantSeries.unemployment = [0.04, 0.04];
+    variantSeries.naturalUnemployment = [0.06, 0.06];
+    variantSeries.interestRate = [0.04, 0.04];
+    variantSeries.priceLevel = [100, 108];
+    const views = chartViews(
+      { kind: 'run', ticks, series: variantSeries },
+      'fiat',
+      {
+        result: { kind: 'run', ticks, series: baselineSeries },
+        regime: 'fiat',
+        transitionLength: 0,
+      },
+    );
+    expect(views.find((view) => view.key === 'wellbeing')?.caption).toBe(
+      'Mean well-being ends higher (2 → 2.50). That is an improvement. Median well-being matches the baseline.',
+    );
+    expect(views.find((view) => view.key === 'labor')?.caption).toBe(
+      'Unemployment ends lower (0.0800 → 0.0400). That is an improvement. Natural unemployment and Policy rate match the baseline.',
+    );
+    expect(views.find((view) => view.key === 'prices')?.caption).toMatch(
+      /^CPI ends higher \(100 → 108\)\./,
+    );
+    expect(views.find((view) => view.key === 'prices')?.caption).not.toMatch(/improvement|worse/);
+    expect(views.find((view) => view.key === 'credit')?.caption).toBe(
+      'Every series matches the baseline.',
+    );
+  });
+
+  it('omits captions when no baseline is pinned', () => {
+    const views = chartViews({ kind: 'run', ticks, series: series([1, 2]) }, 'fiat');
+    expect(views.every((view) => view.caption === undefined)).toBe(true);
   });
 
   it('overlays a baseline on a band using medians', () => {

@@ -1,6 +1,7 @@
 import { CHART_PANELS, type ChartLineSpec, type ChartPanel } from '../dashboard/catalog.js';
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
 import { readSeries } from '../worker/series.js';
+import { comparisonCaption, type CaptionSeries } from './caption.js';
 import {
   hasMarks,
   MARKS_TIP,
@@ -30,6 +31,8 @@ export interface ChartView {
   group: string;
   marks: ChartMarks;
   note?: string;
+  /** Under a pinned baseline: how the variant differs from the baseline. */
+  caption?: string;
 }
 
 export function moneyUnit(regime: string): string {
@@ -158,6 +161,7 @@ function pairedViewFromSpec(
       description: withMarksTip(spec.description, marks),
       lines,
       marks,
+      caption: comparisonCaption([], { mixedUnits: true }),
     };
   }
   const scaled = scaleCents(unitText(spec.unit, regime), lines);
@@ -169,7 +173,30 @@ function pairedViewFromSpec(
     description: withMarksTip(spec.description, marks),
     lines: scaled.lines,
     marks,
+    caption: comparisonCaption(captionSeries(spec.lines, scaled.lines)),
   };
+}
+
+function captionSeries(
+  specs: readonly ChartLineSpec[],
+  lines: readonly ChartLine[],
+): CaptionSeries[] {
+  return specs.map((spec) => {
+    const baseline = lines.find((line) => line.pair === spec.id && line.omitLegend === true);
+    const variant = lines.find((line) => line.pair === spec.id && line.omitLegend !== true);
+    if (baseline === undefined || variant === undefined) {
+      throw new Error(`Missing paired lines for ${spec.label}`);
+    }
+    const series: CaptionSeries = {
+      label: spec.label,
+      baseline: baseline.values,
+      variant: variant.values,
+    };
+    if (spec.better !== undefined) {
+      series.better = spec.better;
+    }
+    return series;
+  });
 }
 
 function withMarksTip(description: string, marks: ChartMarks): string {

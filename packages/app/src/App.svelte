@@ -310,6 +310,7 @@
         ticks={result.ticks}
         lines={chart.lines}
         marks={chart.marks}
+        caption={chart.caption}
       />
     {/each}
 
@@ -326,6 +327,7 @@
           ticks={result.ticks}
           lines={chart.lines}
           marks={chart.marks}
+          caption={chart.caption}
         />
       {/each}
       <Month

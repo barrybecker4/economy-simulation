@@ -20,9 +20,19 @@
     ticks: number[];
     lines: ChartLine[];
     marks?: ChartMarks;
+    /** Under a pinned baseline: how the variant differs from the baseline. */
+    caption?: string;
   }
 
-  let { title, unit = '', description, ticks, lines, marks = emptyMarks() }: Props = $props();
+  let {
+    title,
+    unit = '',
+    description,
+    ticks,
+    lines,
+    marks = emptyMarks(),
+    caption = '',
+  }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
   let drawnKey = '';
@@ -210,6 +220,9 @@
     </div>
   </div>
   <div bind:this={host}></div>
+  {#if caption}
+    <p class="caption">{caption}</p>
+  {/if}
 </figure>
 
 <style>
@@ -385,5 +398,11 @@
   }
   :global(.u-event-label) {
     white-space: nowrap;
+  }
+  .caption {
+    color: #44403c;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin: 0.35rem 0.15rem 0.15rem;
   }
 </style>
