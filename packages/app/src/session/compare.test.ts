@@ -1,7 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { getSlider, listSliders } from '../../../core/src/config/registry.js';
-import { alignComparisonFrame, compareDiffs, comparisonFrame } from './compare.js';
+import {
+  alignComparisonFrame,
+  canPinBaseline,
+  canPromoteBaseline,
+  clearBaseline,
+  comparisonBundle,
+  comparisonDiffs,
+  comparisonFrame,
+  compareDiffs,
+  editRegime,
+  editSlider,
+  noteFailure,
+  notePosted,
+  noteResult,
+  openComparisonSession,
+  pinBaseline,
+  prepareRun,
+  promoteBaseline,
+  resetDiffToBaseline,
+  setSeed,
+  setTicks,
+  type ComparisonSession,
+} from './compare.js';
 import { sliderValue } from './sliders.js';
+import type { RunSuccess } from '../worker/protocol.js';
 
 const sliders = listSliders();
 
@@ -59,13 +82,15 @@ describe('alignComparisonFrame', () => {
     expect(sliderValue(getSlider('scale.firms'), aligned.regime, aligned.overrides)).toBe(
       getSlider('scale.firms').default,
     );
-    expect(sliderValue(getSlider('welfare.weightWellbeing'), aligned.regime, aligned.overrides)).toBe(
-      0.4,
+    expect(
+      sliderValue(getSlider('welfare.weightWellbeing'), aligned.regime, aligned.overrides),
+    ).toBe(0.4);
+    expect(sliderValue(getSlider('population.growth'), aligned.regime, aligned.overrides)).toBe(
+      0.01,
     );
-    expect(sliderValue(getSlider('population.growth'), aligned.regime, aligned.overrides)).toBe(0.01);
-    expect(sliderValue(getSlider('household.trustInBanks'), aligned.regime, aligned.overrides)).toBe(
-      getSlider('household.trustInBanks').default,
-    );
+    expect(
+      sliderValue(getSlider('household.trustInBanks'), aligned.regime, aligned.overrides),
+    ).toBe(getSlider('household.trustInBanks').default);
     expect(aligned.overrides['government.ubiShare']).toBe(0.4);
     expect(aligned.overrides['ai.bullishness']).toBe(2);
   });
@@ -84,11 +109,7 @@ describe('alignComparisonFrame', () => {
 describe('compareDiffs', () => {
   it('returns only values that differ, including the regime', () => {
     expect(
-      compareDiffs(
-        sliders,
-        { regime: 'fiat', overrides: {} },
-        { regime: 'fiat', overrides: {} },
-      ),
+      compareDiffs(sliders, { regime: 'fiat', overrides: {} }, { regime: 'fiat', overrides: {} }),
     ).toEqual([]);
 
     const diffs = compareDiffs(
@@ -134,5 +155,203 @@ describe('compareDiffs', () => {
         { regime: 'fiat', overrides: { 'government.ubiShare': ubi.default } },
       ),
     ).toEqual([]);
+  });
+});
+
+function finishedRun(): RunSuccess {
+  return { kind: 'run', ticks: [0, 1], series: {} };
+}
+
+function posted(session: ComparisonSession, result: RunSuccess): ComparisonSession {
+  const prepared = prepareRun(session, sliders, 'run');
+  if (prepared.blocked) {
+    throw new Error('expected a run to start');
+  }
+  return noteResult(notePosted(prepared.session), result);
+}
+
+describe('comparison session', () => {
+  it('pins the shown run and snaps frame sliders to that baseline', () => {
+    const result = finishedRun();
+    let session = openComparisonSession({
+      seed: 3,
+      ticks: 24,
+      regime: 'fiat',
+      overrides: { 'scale.households': 500, 'government.ubiShare': 0.1 },
+    });
+    session = posted(session, result);
+    session = editSlider(session, getSlider('scale.households'), '2000');
+    session = editSlider(session, getSlider('government.ubiShare'), '0.4');
+    session = editRegime(session, 'bitcoin');
+
+    const update = pinBaseline(session, sliders);
+
+    expect(update.status).toMatch(/Baseline pinned/);
+    expect(update.session.pin?.result).toBe(result);
+    expect(update.session.pin?.regime).toBe('fiat');
+    expect(update.session.pin?.overrides['government.ubiShare']).toBe(0.1);
+    expect(update.session.regime).toBe('bitcoin');
+    expect(
+      sliderValue(getSlider('scale.households'), update.session.regime, update.session.overrides),
+    ).toBe(500);
+    expect(update.session.overrides['government.ubiShare']).toBe(0.4);
+    expect(canPinBaseline(update.session)).toBe(true);
+    expect(canPromoteBaseline(update.session)).toBe(false);
+  });
+
+  it('refuses to pin anything other than a single run', () => {
+    const session = openComparisonSession({
+      seed: 1,
+      ticks: 24,
+      regime: 'fiat',
+      overrides: {},
+    });
+    const update = pinBaseline(session, sliders);
+    expect(update.session).toBe(session);
+    expect(update.status).toBeUndefined();
+  });
+
+  it('keeps frame sliders fixed and still accepts other edits', () => {
+    let session = posted(
+      openComparisonSession({ seed: 1, ticks: 24, regime: 'fiat', overrides: {} }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    const frozen = editSlider(session, getSlider('scale.households'), '4000');
+    expect(frozen).toBe(session);
+    const edited = editSlider(session, getSlider('government.ubiShare'), '0.4');
+    expect(edited.overrides['government.ubiShare']).toBe(0.4);
+  });
+
+  it('blocks preview runs while pinned and snaps a variant run', () => {
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: { 'scale.households': 500 },
+      }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    session = editSlider(session, getSlider('scale.households'), '2000');
+    expect(prepareRun(session, sliders, 'band').blocked).toBe(true);
+    const prepared = prepareRun(session, sliders, 'run');
+    expect(prepared.blocked).toBe(false);
+    if (prepared.blocked) {
+      return;
+    }
+    expect(
+      sliderValue(
+        getSlider('scale.households'),
+        prepared.session.regime,
+        prepared.session.overrides,
+      ),
+    ).toBe(500);
+  });
+
+  it('overlays a later run and reads census counts from each side', () => {
+    const baseline = finishedRun();
+    const variant = finishedRun();
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: { 'scale.households': 500, 'ai.ownershipConcentration': 0.2 },
+      }),
+      baseline,
+    );
+    session = pinBaseline(session, sliders).session;
+    session = editSlider(session, getSlider('ai.ownershipConcentration'), '0.9');
+    session = editRegime(session, 'bitcoin');
+    const prepared = prepareRun(session, sliders, 'run');
+    if (prepared.blocked) {
+      throw new Error('expected a variant run');
+    }
+    session = noteResult(notePosted(prepared.session), variant);
+    session = editRegime(session, 'fiat');
+
+    const same = comparisonBundle(
+      pinBaseline(
+        posted(
+          openComparisonSession({ seed: 1, ticks: 24, regime: 'fiat', overrides: {} }),
+          baseline,
+        ),
+        sliders,
+      ).session,
+    );
+    expect(same.variant?.result).toBe(baseline);
+    expect(same.baseline).toBeNull();
+
+    const bundle = comparisonBundle(session);
+    expect(bundle.variant?.result).toBe(variant);
+    expect(bundle.variant?.regime).toBe('bitcoin');
+    expect(bundle.variant?.households).toBe(500);
+    expect(bundle.variant?.ownership).toBe(0.9);
+    expect(bundle.baseline?.result).toBe(baseline);
+    expect(bundle.baseline?.regime).toBe('fiat');
+    expect(bundle.baseline?.households).toBe(500);
+    expect(bundle.baseline?.ownership).toBe(0.2);
+    expect(canPromoteBaseline(session)).toBe(true);
+  });
+
+  it('clears the pin when the seed or month count leaves the baseline', () => {
+    let session = posted(
+      openComparisonSession({ seed: 4, ticks: 24, regime: 'fiat', overrides: {} }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    expect(setSeed(session, 4).pin).not.toBeNull();
+    expect(setSeed(session, 5).pin).toBeNull();
+    expect(setTicks(session, 36).pin).toBeNull();
+  });
+
+  it('promotes the variant and can reset one diff', () => {
+    let session = posted(
+      openComparisonSession({ seed: 1, ticks: 24, regime: 'fiat', overrides: {} }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    session = editSlider(session, getSlider('government.ubiShare'), '0.4');
+    expect(comparisonDiffs(session, sliders).map((diff) => diff.id)).toContain(
+      'government.ubiShare',
+    );
+    session = posted(session, finishedRun());
+    const promoted = promoteBaseline(session, sliders);
+    expect(promoted.status).toMatch(/Variant is now the baseline/);
+    expect(promoted.session.pin?.result).toBe(session.result);
+    const cleared = clearBaseline(promoted.session);
+    expect(cleared.session.pin).toBeNull();
+    expect(cleared.status).toBe('Run ready.');
+  });
+
+  it('resets a diff to the baseline value', () => {
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: { 'government.ubiShare': 0.1 },
+      }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    session = editSlider(session, getSlider('government.ubiShare'), '0.4');
+    session = resetDiffToBaseline(session, 'government.ubiShare');
+    expect(session.overrides['government.ubiShare']).toBe(0.1);
+  });
+
+  it('drops the shown result on failure and keeps the pin', () => {
+    let session = posted(
+      openComparisonSession({ seed: 1, ticks: 24, regime: 'fiat', overrides: {} }),
+      finishedRun(),
+    );
+    session = pinBaseline(session, sliders).session;
+    session = noteFailure(session);
+    expect(session.result).toBeNull();
+    expect(session.pin).not.toBeNull();
+    expect(comparisonBundle(session).variant).toBeNull();
+    expect(clearBaseline(session).status).toBe('Set the parameters and run.');
   });
 });

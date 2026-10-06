@@ -1,5 +1,8 @@
-import type { Slider } from '../../../core/src/config/registry.js';
+import { getSlider, type Slider } from '../../../core/src/config/registry.js';
+import { applyCategory } from './presets.js';
+import { readyLabel } from './run.js';
 import { parameterSliders, sliderValue, writeSlider } from './sliders.js';
+import type { RunKind, RunSuccess } from '../worker/protocol.js';
 
 export interface CompareSide {
   regime: string;
@@ -79,4 +82,311 @@ export function compareDiffs(
     });
   }
   return diffs;
+}
+
+export const IDLE_STATUS = 'Set the parameters and run.';
+
+const FRAME_STATUS =
+  'Baseline pinned. Edit parameters and run a variant. Scale, scoring, population growth, and trust in banks stay at the baseline.';
+
+const PROMOTE_STATUS =
+  'Variant is now the baseline. Scale, scoring, population growth, and trust in banks stay at the baseline.';
+
+/** Census falls back here only when a resolved slider is not a finite number. */
+const CENSUS_HOUSEHOLDS_FALLBACK = 1000;
+const CENSUS_OWNERSHIP_FALLBACK = 0.5;
+
+export interface ComparisonSession {
+  seed: number;
+  ticks: number;
+  regime: string;
+  overrides: Record<string, number | string>;
+  shownRegime: string;
+  shownOverrides: Record<string, number | string>;
+  pendingRegime: string;
+  pendingOverrides: Record<string, number | string>;
+  result: RunSuccess | null;
+  pin: PinnedBaseline | null;
+}
+
+interface PinnedBaseline {
+  result: RunSuccess;
+  regime: string;
+  overrides: Record<string, number | string>;
+  seed: number;
+  ticks: number;
+}
+
+export interface ComparisonSide {
+  result: RunSuccess;
+  regime: string;
+  households: number;
+  ownership: number;
+}
+
+export interface ComparisonBundle {
+  variant: ComparisonSide | null;
+  baseline: ComparisonSide | null;
+}
+
+export interface SessionUpdate {
+  session: ComparisonSession;
+  status?: string;
+}
+
+export interface PreparedRun {
+  blocked: boolean;
+  session: ComparisonSession;
+}
+
+export function openComparisonSession(input: {
+  seed: number;
+  ticks: number;
+  regime: string;
+  overrides: Record<string, number | string>;
+}): ComparisonSession {
+  const overrides = { ...input.overrides };
+  return {
+    seed: input.seed,
+    ticks: input.ticks,
+    regime: input.regime,
+    overrides,
+    shownRegime: input.regime,
+    shownOverrides: { ...overrides },
+    pendingRegime: input.regime,
+    pendingOverrides: { ...overrides },
+    result: null,
+    pin: null,
+  };
+}
+
+export function setSeed(session: ComparisonSession, seed: number): ComparisonSession {
+  return retarget(session, seed, session.ticks);
+}
+
+export function setTicks(session: ComparisonSession, ticks: number): ComparisonSession {
+  return retarget(session, session.seed, ticks);
+}
+
+export function editSlider(
+  session: ComparisonSession,
+  slider: Slider,
+  raw: string,
+): ComparisonSession {
+  if (session.pin !== null && comparisonFrame(slider.id)) {
+    return session;
+  }
+  return writeSide(session, writeSlider(slider, raw, session.regime, session.overrides));
+}
+
+export function editRegime(session: ComparisonSession, regime: string): ComparisonSession {
+  return { ...session, regime };
+}
+
+export function editCategory(
+  session: ComparisonSession,
+  categoryId: string,
+  optionId: string,
+): ComparisonSession {
+  return writeSide(session, applyCategory(categoryId, optionId, session.regime, session.overrides));
+}
+
+export function resetDiffToBaseline(session: ComparisonSession, id: string): ComparisonSession {
+  if (session.pin === null) {
+    return session;
+  }
+  const slider = getSlider(id);
+  const baselineValue = sliderValue(slider, session.pin.regime, session.pin.overrides);
+  return writeSide(
+    session,
+    writeSlider(slider, String(baselineValue), session.regime, session.overrides),
+  );
+}
+
+export function pinBaseline(session: ComparisonSession, sliders: readonly Slider[]): SessionUpdate {
+  const pinned = capture(session);
+  if (pinned === null) {
+    return { session };
+  }
+  return { session: snap(session, sliders, pinned), status: FRAME_STATUS };
+}
+
+export function clearBaseline(session: ComparisonSession): SessionUpdate {
+  const status = session.result === null ? IDLE_STATUS : readyLabel(session.result.kind);
+  return { session: { ...session, pin: null }, status };
+}
+
+export function promoteBaseline(
+  session: ComparisonSession,
+  sliders: readonly Slider[],
+): SessionUpdate {
+  const pinned = capture(session);
+  if (pinned === null) {
+    return { session };
+  }
+  return { session: snap(session, sliders, pinned), status: PROMOTE_STATUS };
+}
+
+export function prepareRun(
+  session: ComparisonSession,
+  sliders: readonly Slider[],
+  kind: RunKind,
+): PreparedRun {
+  if (session.pin !== null && kind !== 'run') {
+    return { blocked: true, session };
+  }
+  if (session.pin === null) {
+    return { blocked: false, session };
+  }
+  const aligned = alignComparisonFrame(sliders, liveSide(session), pinSide(session.pin));
+  return { blocked: false, session: writeSide(session, aligned) };
+}
+
+export function notePosted(session: ComparisonSession): ComparisonSession {
+  return {
+    ...session,
+    pendingRegime: session.regime,
+    pendingOverrides: { ...session.overrides },
+  };
+}
+
+export function noteResult(session: ComparisonSession, result: RunSuccess): ComparisonSession {
+  return {
+    ...session,
+    shownRegime: session.pendingRegime,
+    shownOverrides: { ...session.pendingOverrides },
+    result,
+  };
+}
+
+export function noteFailure(session: ComparisonSession): ComparisonSession {
+  return { ...session, result: null };
+}
+
+export function canPinBaseline(session: ComparisonSession): boolean {
+  return session.result?.kind === 'run';
+}
+
+export function canPromoteBaseline(session: ComparisonSession): boolean {
+  return (
+    session.pin !== null &&
+    session.result !== null &&
+    session.result !== session.pin.result &&
+    session.result.kind === 'run'
+  );
+}
+
+export function isPinned(session: ComparisonSession): boolean {
+  return session.pin !== null;
+}
+
+export function comparisonDiffs(
+  session: ComparisonSession,
+  sliders: readonly Slider[],
+): CompareDiff[] {
+  if (session.pin === null) {
+    return [];
+  }
+  return compareDiffs(sliders, pinSide(session.pin), liveSide(session));
+}
+
+export function comparisonBundle(session: ComparisonSession): ComparisonBundle {
+  if (session.result === null) {
+    return { variant: null, baseline: null };
+  }
+  return {
+    variant: {
+      result: session.result,
+      regime: session.shownRegime,
+      ...censusCounts(session.regime, session.overrides),
+    },
+    baseline: baselineView(session),
+  };
+}
+
+function retarget(session: ComparisonSession, seed: number, ticks: number): ComparisonSession {
+  const pin =
+    session.pin !== null && (seed !== session.pin.seed || ticks !== session.pin.ticks)
+      ? null
+      : session.pin;
+  if (seed === session.seed && ticks === session.ticks && pin === session.pin) {
+    return session;
+  }
+  return { ...session, seed, ticks, pin };
+}
+
+function capture(session: ComparisonSession): PinnedBaseline | null {
+  if (session.result === null || session.result.kind !== 'run') {
+    return null;
+  }
+  return {
+    result: session.result,
+    regime: session.shownRegime,
+    overrides: { ...session.shownOverrides },
+    seed: session.seed,
+    ticks: session.ticks,
+  };
+}
+
+function snap(
+  session: ComparisonSession,
+  sliders: readonly Slider[],
+  pin: PinnedBaseline,
+): ComparisonSession {
+  const aligned = alignComparisonFrame(sliders, liveSide(session), pinSide(pin));
+  return { ...writeSide(session, aligned), pin };
+}
+
+function writeSide(
+  session: ComparisonSession,
+  side: { regime: string; overrides: Record<string, number | string> },
+): ComparisonSession {
+  return { ...session, regime: side.regime, overrides: side.overrides };
+}
+
+function liveSide(session: ComparisonSession): CompareSide {
+  return { regime: session.regime, overrides: session.overrides };
+}
+
+function pinSide(pin: PinnedBaseline): CompareSide {
+  return { regime: pin.regime, overrides: pin.overrides };
+}
+
+function baselineView(session: ComparisonSession): ComparisonSide | null {
+  const pin = session.pin;
+  const result = session.result;
+  if (
+    pin === null ||
+    result === null ||
+    result === pin.result ||
+    result.kind !== 'run' ||
+    pin.result.kind !== 'run'
+  ) {
+    return null;
+  }
+  return {
+    result: pin.result,
+    regime: pin.regime,
+    ...censusCounts(pin.regime, pin.overrides),
+  };
+}
+
+function censusCounts(
+  regime: string,
+  overrides: Readonly<Record<string, number | string>>,
+): { households: number; ownership: number } {
+  return {
+    households: finiteNumber(
+      sliderValue(getSlider('scale.households'), regime, overrides),
+      CENSUS_HOUSEHOLDS_FALLBACK,
+    ),
+    ownership: finiteNumber(
+      sliderValue(getSlider('ai.ownershipConcentration'), regime, overrides),
+      CENSUS_OWNERSHIP_FALLBACK,
+    ),
+  };
+}
+
+function finiteNumber(value: number | string, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
