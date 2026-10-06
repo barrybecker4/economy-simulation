@@ -6,6 +6,7 @@ import {
   composeCategoryOptions,
   composeScenario,
   matchingCategoryOption,
+  optionById,
   PRESET_CATEGORIES,
   SCENARIO_COMPOSITIONS,
 } from './presets.js';
@@ -62,6 +63,23 @@ describe('preset categories', () => {
     });
     expect(overrides).toEqual({ 'firm.markup': 0.4 });
     expect(matchingCategoryOption('aiBullishness', overrides)).toBe('substantial');
+  });
+
+  it('monetizes half of new bonds and leaves the rate rule at its defaults', () => {
+    const option = optionById('centralBank', 'monetizing');
+    expect(option.values).toEqual({
+      'centralBank.inflationTarget': 0.02,
+      'centralBank.inflationWeight': 1.5,
+      'centralBank.outputWeight': 0.5,
+      'centralBank.bondPurchaseShare': 0.5,
+      'bank.reserveRequirement': 0.1,
+    });
+    expect(applyCategoryOption('centralBank', 'monetizing', {})).toEqual({
+      'centralBank.bondPurchaseShare': 0.5,
+    });
+    expect(matchingCategoryOption('centralBank', { 'centralBank.bondPurchaseShare': 0.5 })).toBe(
+      'monetizing',
+    );
   });
 
   it('reads Custom when an owned slider leaves every option', () => {

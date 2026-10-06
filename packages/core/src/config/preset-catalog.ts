@@ -35,7 +35,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
     id: 'centralBank',
     name: 'Central bank',
     detail:
-      'How hard the fiat policy rate reacts to inflation and unemployment. Bitcoin and hybrid ignore these settings.',
+      'How the fiat central bank sets the policy rate, and what share of new government bonds it pays for with new reserves. Bitcoin and hybrid ignore these settings.',
     group: 'centralBank',
     fiatOnly: true,
     owned: [
@@ -82,6 +82,19 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'centralBank.inflationWeight': 1.5,
           'centralBank.outputWeight': 1.2,
           'centralBank.bondPurchaseShare': 0,
+          'bank.reserveRequirement': 0.1,
+        },
+      },
+      {
+        id: 'monetizing',
+        name: 'Monetizing',
+        detail:
+          'Bond purchase share 0.5. Inflation target, inflation weight, output weight, and the reserve requirement stay at their defaults.',
+        values: {
+          'centralBank.inflationTarget': 0.02,
+          'centralBank.inflationWeight': 1.5,
+          'centralBank.outputWeight': 0.5,
+          'centralBank.bondPurchaseShare': 0.5,
           'bank.reserveRequirement': 0.1,
         },
       },
