@@ -77,7 +77,18 @@
   const views = $derived(
     bundle.variant === null
       ? []
-      : chartViews(bundle.variant.result, bundle.variant.regime, bundle.baseline),
+      : chartViews(
+          bundle.variant.result,
+          bundle.variant.regime,
+          bundle.baseline === null
+            ? null
+            : {
+                result: bundle.baseline.result,
+                regime: bundle.baseline.regime,
+                transitionLength: bundle.baseline.transitionLength,
+              },
+          bundle.variant.transitionLength,
+        ),
   );
   const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
   const monthViews = $derived(views.filter((view) => view.group === 'This month'));
@@ -298,6 +309,7 @@
         description={chart.description}
         ticks={result.ticks}
         lines={chart.lines}
+        marks={chart.marks}
       />
     {/each}
 
@@ -313,6 +325,7 @@
           description={chart.description}
           ticks={result.ticks}
           lines={chart.lines}
+          marks={chart.marks}
         />
       {/each}
       <Month

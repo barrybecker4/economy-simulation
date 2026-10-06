@@ -1,6 +1,13 @@
 import { CHART_PANELS, type ChartLineSpec, type ChartPanel } from '../dashboard/catalog.js';
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
 import { readSeries } from '../worker/series.js';
+import {
+  hasMarks,
+  MARKS_TIP,
+  mergeMarks,
+  runMarks,
+  type ChartMarks,
+} from './marks.js';
 
 export interface ChartLine {
   label: string;
@@ -21,6 +28,7 @@ export interface ChartView {
   description: string;
   lines: ChartLine[];
   group: string;
+  marks: ChartMarks;
   note?: string;
 }
 
@@ -40,24 +48,27 @@ export const VARIANT_DASH = [8, 6] as const;
 export interface BaselineRun {
   result: RunSuccess;
   regime: string;
+  transitionLength: number;
 }
 
 export function chartViews(
   result: RunSuccess,
   regime: string,
   baseline: BaselineRun | null = null,
+  transitionLength = 0,
 ): ChartView[] {
   if (result.ticks.length === 0) {
     throw new Error('Run has no ticks');
   }
   if (baseline !== null) {
-    return pairedViews(result, regime, baseline);
+    return pairedViews(result, regime, baseline, transitionLength);
   }
-  const views = CHART_PANELS.map((spec) => viewFromSpec(spec, result, regime));
+  const marks = runMarks(result, transitionLength, 'solo');
+  const views = CHART_PANELS.map((spec) => viewFromSpec(spec, result, regime, marks));
   if (result.kind === 'band') {
     const withBand = [...views];
     const pricesAt = withBand.findIndex((view) => view.key === 'prices');
-    withBand.splice(pricesAt + 1, 0, cpiBandView(result, regime));
+    withBand.splice(pricesAt + 1, 0, cpiBandView(result, regime, marks));
     return withBand;
   }
   return views;
@@ -68,17 +79,31 @@ const CENTS_PER_DOLLAR = 100;
 /** Fiat money charts stay in cents at this level and switch to dollars above it. */
 const CENT_DISPLAY_MAX = 1_000;
 
-function pairedViews(variant: RunSuccess, regime: string, baseline: BaselineRun): ChartView[] {
+function pairedViews(
+  variant: RunSuccess,
+  regime: string,
+  baseline: BaselineRun,
+  transitionLength: number,
+): ChartView[] {
   if (baseline.result.ticks.length === 0) {
     throw new Error('Baseline run has no ticks');
   }
   if (baseline.result.ticks.length !== variant.ticks.length) {
     throw new Error('Baseline and variant must share the same month count');
   }
-  return CHART_PANELS.map((spec) => pairedViewFromSpec(spec, variant, regime, baseline));
+  const marks = mergeMarks(
+    runMarks(baseline.result, baseline.transitionLength, 'baseline'),
+    runMarks(variant, transitionLength, 'variant'),
+  );
+  return CHART_PANELS.map((spec) => pairedViewFromSpec(spec, variant, regime, baseline, marks));
 }
 
-function viewFromSpec(spec: ChartPanel, result: RunSuccess, regime: string): ChartView {
+function viewFromSpec(
+  spec: ChartPanel,
+  result: RunSuccess,
+  regime: string,
+  marks: ChartMarks,
+): ChartView {
   const scaled = scaleCents(
     unitText(spec.unit, regime),
     spec.lines.map((line) => lineOf(result, line)),
@@ -88,8 +113,9 @@ function viewFromSpec(spec: ChartPanel, result: RunSuccess, regime: string): Cha
     title: spec.title,
     group: spec.group,
     unit: scaled.unit,
-    description: spec.description,
+    description: withMarksTip(spec.description, marks),
     lines: scaled.lines,
+    marks,
   };
 }
 
@@ -98,6 +124,7 @@ function pairedViewFromSpec(
   variant: RunSuccess,
   regime: string,
   baseline: BaselineRun,
+  marks: ChartMarks,
 ): ChartView {
   const mixedMoney = spec.unit === 'money' && moneyUnit(regime) !== moneyUnit(baseline.regime);
   const lines: ChartLine[] = [];
@@ -128,8 +155,9 @@ function pairedViewFromSpec(
       group: spec.group,
       unit: '',
       note: `Solid lines are the baseline, in ${moneyUnit(baseline.regime)}. Dashed lines are the variant, in ${moneyUnit(regime)}.`,
-      description: spec.description,
+      description: withMarksTip(spec.description, marks),
       lines,
+      marks,
     };
   }
   const scaled = scaleCents(unitText(spec.unit, regime), lines);
@@ -138,9 +166,17 @@ function pairedViewFromSpec(
     title: spec.title,
     group: spec.group,
     unit: scaled.unit,
-    description: spec.description,
+    description: withMarksTip(spec.description, marks),
     lines: scaled.lines,
+    marks,
   };
+}
+
+function withMarksTip(description: string, marks: ChartMarks): string {
+  if (!hasMarks(marks)) {
+    return description;
+  }
+  return `${description} ${MARKS_TIP}`;
 }
 
 function scaleCents(unit: string, lines: ChartLine[]): { unit: string; lines: ChartLine[] } {
@@ -183,7 +219,7 @@ function lineOf(result: RunSuccess, spec: ChartLineSpec): ChartLine {
   return checkedLine(result.ticks, spec.label, readSeries(result, spec.id), spec.color);
 }
 
-function cpiBandView(result: BandRunResult, regime: string): ChartView {
+function cpiBandView(result: BandRunResult, regime: string, marks: ChartMarks): ChartView {
   const band = result.bands.priceLevel;
   if (band === undefined) {
     throw new Error('Missing band priceLevel');
@@ -198,8 +234,12 @@ function cpiBandView(result: BandRunResult, regime: string): ChartView {
     title: 'CPI band',
     group: 'Prices',
     unit: scaled.unit,
-    description: 'Median CPI across these seeds, with the 5th and 95th percentiles.',
+    description: withMarksTip(
+      'Median CPI across these seeds, with the 5th and 95th percentiles.',
+      marks,
+    ),
     lines: scaled.lines,
+    marks,
   };
 }
 

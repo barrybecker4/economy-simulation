@@ -25,6 +25,32 @@ describe('plotOptions', () => {
     expect(options.series[1]?.stroke).toBe('#246');
   });
 
+  it('names the hovered event in the Month legend value', () => {
+    const marks = {
+      bands: [
+        {
+          kind: 'productivity-expansion' as const,
+          label: 'Productivity expansion',
+          color: '#0f766e',
+          start: 1,
+          end: 2,
+          style: 'solo' as const,
+        },
+      ],
+      rules: [],
+    };
+    const options = plotOptions(640, [{ label: 'CPI', color: '#246', values: [1, 2, 3] }], marks);
+    const monthValue = options.series[0]?.value;
+    expect(typeof monthValue).toBe('function');
+    if (typeof monthValue !== 'function') {
+      return;
+    }
+    const april = new Date(2031, 3, 1).getTime() / 1000;
+    expect(monthValue({} as uPlot, april, 0, null)).toBe('--');
+    expect(monthValue({} as uPlot, april, 0, 0)).toBe('Apr 2031');
+    expect(monthValue({} as uPlot, april, 0, 1)).toBe('Apr 2031 · Productivity expansion');
+  });
+
   it('dashes a variant line and leaves the baseline solid', () => {
     const options = plotOptions(640, [
       { label: 'CPI', color: '#1e3a8a', omitLegend: true, pair: 'priceLevel' },
@@ -194,6 +220,83 @@ describe('plotOptions', () => {
     const yAxis = options.axes[1];
     expect(yAxis?.size).toBeGreaterThan(48);
     expect(yAxis?.values?.(null as never, [0, 250_000, 1_200_000])).toEqual(['0', '250k', '1.2M']);
+  });
+
+  it('paints solid and hatched bands behind the series', () => {
+    const marks = {
+      bands: [
+        {
+          kind: 'demand-expansion' as const,
+          label: 'Demand expansion',
+          color: '#0f766e',
+          start: 0,
+          end: 1,
+          style: 'baseline' as const,
+        },
+        {
+          kind: 'credit-expansion' as const,
+          label: 'Credit expansion',
+          color: '#0f766e',
+          start: 0,
+          end: 0,
+          style: 'variant' as const,
+        },
+      ],
+      rules: [
+        {
+          kind: 'bitcoin-rebase' as const,
+          label: 'Bitcoin rebase',
+          color: '#64748b',
+          tick: 1,
+          style: 'variant' as const,
+        },
+      ],
+    };
+    const options = plotOptions(640, [{ label: 'CPI', color: '#246', values: [1, 2] }], marks);
+    const fills: string[] = [];
+    const strokes: { style: string; dash: string }[] = [];
+    let dash = '';
+    const ctx = {
+      save() {},
+      restore() {},
+      beginPath() {},
+      rect() {},
+      clip() {},
+      fillRect() {
+        fills.push(String(ctx.fillStyle));
+      },
+      moveTo() {},
+      lineTo() {},
+      setLineDash(segments: number[]) {
+        dash = segments.join(',');
+      },
+      stroke() {
+        strokes.push({ style: String(ctx.strokeStyle), dash });
+      },
+      fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 0,
+      lineJoin: '',
+      lineCap: '',
+      globalAlpha: 1,
+    };
+    const plot = {
+      ctx,
+      bbox: { left: 0, top: 0, width: 200, height: 100 },
+      data: [[0, 1]],
+      valToPos(value: number) {
+        return value * 100;
+      },
+      cursor: { idx: null },
+      root: {
+        querySelector: () => null,
+        querySelectorAll: () => [],
+      },
+    } as unknown as uPlot;
+    options.hooks?.drawClear?.[0]?.(plot);
+    expect(fills[0]).toMatch(/rgba\(15, 118, 110/);
+    expect(fills[1]).toMatch(/rgba\(15, 118, 110/);
+    expect(strokes.some((stroke) => stroke.dash === '4,3')).toBe(true);
   });
 });
 

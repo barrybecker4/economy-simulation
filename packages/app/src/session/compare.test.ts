@@ -325,10 +325,12 @@ describe('comparison session', () => {
     expect(bundle.variant?.regime).toBe('bitcoin');
     expect(bundle.variant?.households).toBe(500);
     expect(bundle.variant?.ownership).toBe(0.9);
+    expect(bundle.variant?.transitionLength).toBe(0);
     expect(bundle.baseline?.result).toBe(baseline);
     expect(bundle.baseline?.regime).toBe('fiat');
     expect(bundle.baseline?.households).toBe(500);
     expect(bundle.baseline?.ownership).toBe(0.2);
+    expect(bundle.baseline?.transitionLength).toBe(0);
     expect(canPromoteBaseline(session)).toBe(true);
   });
 

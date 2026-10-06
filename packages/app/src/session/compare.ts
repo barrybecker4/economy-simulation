@@ -123,6 +123,8 @@ export interface ComparisonSide {
   regime: string;
   households: number;
   ownership: number;
+  /** Resolved transition.lengthMonths for chart marks. */
+  transitionLength: number;
 }
 
 export interface ComparisonBundle {
@@ -378,7 +380,7 @@ function baselineView(session: ComparisonSession): ComparisonSide | null {
 function censusCounts(
   regime: string,
   overrides: Readonly<Record<string, number | string>>,
-): { households: number; ownership: number } {
+): { households: number; ownership: number; transitionLength: number } {
   return {
     households: finiteNumber(
       sliderValue(getSlider('scale.households'), regime, overrides),
@@ -387,6 +389,9 @@ function censusCounts(
     ownership: finiteNumber(
       sliderValue(getSlider('ai.ownershipConcentration'), regime, overrides),
       CENSUS_OWNERSHIP_FALLBACK,
+    ),
+    transitionLength: Math.round(
+      finiteNumber(sliderValue(getSlider('transition.lengthMonths'), regime, overrides), 0),
     ),
   };
 }

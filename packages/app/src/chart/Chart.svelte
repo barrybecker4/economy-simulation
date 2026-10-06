@@ -10,6 +10,7 @@
   import { buildPlot } from './options.js';
   import { monthAxisLabel } from './time.js';
   import type { ChartLine } from './view.js';
+  import { emptyMarks, type ChartMarks } from './marks.js';
 
   interface Props {
     title: string;
@@ -18,9 +19,10 @@
     description: string;
     ticks: number[];
     lines: ChartLine[];
+    marks?: ChartMarks;
   }
 
-  let { title, unit = '', description, ticks, lines }: Props = $props();
+  let { title, unit = '', description, ticks, lines, marks = emptyMarks() }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
   let drawnKey = '';
@@ -110,7 +112,7 @@
       return;
     }
     const width = host.clientWidth;
-    const built = buildPlot(width, ticks, lines, opened);
+    const built = buildPlot(width, ticks, lines, opened, marks);
     if (plot !== undefined && built.key === drawnKey) {
       return;
     }
@@ -145,6 +147,7 @@
   $effect(() => {
     ticks;
     lines;
+    marks;
     draw();
   });
 
@@ -350,5 +353,37 @@
     to {
       transform: translateY(0);
     }
+  }
+  :global(.u-event-legend:empty) {
+    display: none;
+  }
+  :global(.u-event-legend:not(:empty)) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid #e7e5e4;
+  }
+  :global(.u-event-row) {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #1c1917;
+  }
+  :global(.u-event-swatch) {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    box-sizing: border-box;
+    border: 1px solid;
+    border-radius: 2px;
+    flex: 0 0 auto;
+  }
+  :global(.u-event-label) {
+    white-space: nowrap;
   }
 </style>

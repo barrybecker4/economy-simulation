@@ -125,7 +125,11 @@ describe('chartViews', () => {
   it('overlays a solid baseline and a dashed variant in the same color', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([1, 2]) };
     const variant = { kind: 'run' as const, ticks, series: series([3, 4]) };
-    const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
+    const views = chartViews(variant, 'fiat', {
+      result: baseline,
+      regime: 'fiat',
+      transitionLength: 0,
+    });
     const prices = views.find((view) => view.key === 'prices');
     const legend = [
       'CPI',
@@ -159,7 +163,11 @@ describe('chartViews', () => {
   it('scales paired fiat money charts from the combined peak', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([100, 200]) };
     const variant = { kind: 'run' as const, ticks, series: series([500, 2_000]) };
-    const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
+    const views = chartViews(variant, 'fiat', {
+      result: baseline,
+      regime: 'fiat',
+      transitionLength: 0,
+    });
     const ubi = views.find((view) => view.key === 'ubi');
     expect(ubi?.unit).toBe('dollars');
     expect(ubi?.lines.map((line) => line.values)).toEqual([
@@ -175,7 +183,11 @@ describe('chartViews', () => {
   it('annotates mixed money units on paired charts', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([500, 250_000]) };
     const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
-    const views = chartViews(variant, 'bitcoin', { result: baseline, regime: 'fiat' });
+    const views = chartViews(variant, 'bitcoin', {
+      result: baseline,
+      regime: 'fiat',
+      transitionLength: 0,
+    });
     const prices = views.find((view) => view.key === 'prices');
     expect(prices?.unit).toBe('');
     expect(prices?.note).toBe(
@@ -194,6 +206,7 @@ describe('chartViews', () => {
     const band = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'fiat', {
       result: baseline,
       regime: 'fiat',
+      transitionLength: 0,
     });
     expect(band.find((view) => view.key === 'cpi-band')).toBeUndefined();
     const wellbeing = band[0];
@@ -211,7 +224,11 @@ describe('chartViews', () => {
   it('overlays two bands without a CPI percentile chart', () => {
     const baseline = { kind: 'band' as const, ticks, series: {}, bands: bands([1, 2]) };
     const variant = { kind: 'band' as const, ticks, series: {}, bands: bands([3, 4]) };
-    const views = chartViews(variant, 'fiat', { result: baseline, regime: 'fiat' });
+    const views = chartViews(variant, 'fiat', {
+      result: baseline,
+      regime: 'fiat',
+      transitionLength: 0,
+    });
     expect(views.find((view) => view.key === 'cpi-band')).toBeUndefined();
     expect(views[0]?.lines[0]?.values).toEqual([1, 2]);
     expect(views[0]?.lines[1]?.values).toEqual([3, 4]);
@@ -226,5 +243,34 @@ describe('chartViews', () => {
     expect(() => chartViews({ kind: 'run', ticks, series: short }, 'fiat')).toThrow(
       /Mean well-being/,
     );
+  });
+
+  it('attaches transition marks and a description tip', () => {
+    const values = series([1, 2]);
+    values.demandImpulse = [0, 0];
+    values.creditImpulse = [0, 0];
+    values.productivityImpulse = [0, 0];
+    const views = chartViews({ kind: 'run', ticks, series: values }, 'fiat', null, 2);
+    const prices = views.find((view) => view.key === 'prices');
+    expect(prices?.marks.bands).toEqual([
+      {
+        kind: 'fiat-transition',
+        label: 'Fiat transition',
+        color: '#64748b',
+        start: 0,
+        end: 1,
+        style: 'solo',
+      },
+    ]);
+    expect(prices?.marks.rules).toEqual([
+      {
+        kind: 'bitcoin-rebase',
+        label: 'Bitcoin rebase',
+        color: '#64748b',
+        tick: 1,
+        style: 'solo',
+      },
+    ]);
+    expect(prices?.description).toMatch(/Shaded bands mark shocks/);
   });
 });
