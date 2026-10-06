@@ -1,83 +1,8 @@
-import type { MetricId } from '../../../core/src/metrics/metrics.js';
+import { dashboardMetricIds } from '../dashboard/catalog.js';
+import type { BandRunResult, RunSuccess } from './protocol.js';
 
-/** Series the worker copies out of a run. Charts and the composite index read only these. */
-export const CHART_METRICS = [
-  'meanWellbeing',
-  'medianWellbeing',
-  'priceLevel',
-  'priceFood',
-  'priceHousing',
-  'priceEnergy',
-  'priceApparel',
-  'priceTransportation',
-  'priceMedical',
-  'priceEducation',
-  'priceRecreation',
-  'priceElectronics',
-  'unemployment',
-  'naturalUnemployment',
-  'interestRate',
-  'creditToGdp',
-  'ubiOutlay',
-  'tasksAutomated',
-  'aiShareOfAgents',
-  'aiShareOfOutput',
-  'aiShareOfWealth',
-  'aiShareOfTransactions',
-  'agentGoodsSpend',
-  'giniWealth',
-  'giniIncome',
-  'giniConsumption',
-  'topDecileWealthShare',
-  'bottomQuintileWealthShare',
-  'consumptionFloorShare',
-  'medianRealWealth',
-  'realGdp',
-  'productivityPerHuman',
-  'realInvestment',
-  'realWage',
-  'meanRealIncome',
-  'medianRealIncome',
-  'meanRealConsumption',
-  'medianRealConsumption',
-  'inflation',
-  'velocity',
-  'loanToSavings',
-  'moneySupply',
-  'baseMoney',
-  'taxRevenue',
-  'agentTaxRevenue',
-  'wageBill',
-  'profitPaid',
-  'householdGoodsSpend',
-  'govGoodsSpend',
-  'agentVolume',
-  'agentFees',
-  'agentSweep',
-  'interestPaid',
-  'newBorrowing',
-  'loanRepaid',
-  'demandImpulse',
-  'creditImpulse',
-  'productivityImpulse',
-  'wealthQuintile1',
-  'wealthQuintile2',
-  'wealthQuintile3',
-  'wealthQuintile4',
-  'wealthQuintile5',
-  'jobUnemployedShare',
-  'jobSmallFirmShare',
-  'jobLargeFirmShare',
-  'ownerWealthShare',
-] as const satisfies readonly MetricId[];
-
-const SENT = new Set<string>(CHART_METRICS);
-
-export function assertSent(id: string): void {
-  if (!SENT.has(id)) {
-    throw new Error(`Series ${id} is not included in the worker response`);
-  }
-}
+/** Series the worker copies out of a run. Derived from the dashboard catalog. */
+export const CHART_METRICS = dashboardMetricIds();
 
 export function requireSeries(series: Record<string, number[]>, id: string): number[] {
   const values = series[id];
@@ -85,6 +10,30 @@ export function requireSeries(series: Record<string, number[]>, id: string): num
     throw new Error(`Missing series ${id}`);
   }
   return values;
+}
+
+/** Median of a five-seed band, otherwise the single series. */
+export function readSeries(result: RunSuccess, id: string): number[] {
+  if (result.kind === 'band') {
+    return bandMid(result, id);
+  }
+  return requireSeries(result.series, id);
+}
+
+export function metricAt(result: RunSuccess, id: string, index: number): number {
+  const value = readSeries(result, id)[index];
+  if (value === undefined || !Number.isFinite(value)) {
+    throw new Error(`Missing ${id} at month ${index}`);
+  }
+  return value;
+}
+
+function bandMid(result: BandRunResult, id: string): number[] {
+  const band = result.bands[id];
+  if (band === undefined) {
+    throw new Error(`Missing band ${id}`);
+  }
+  return band.mid;
 }
 
 export function finiteMetric(values: readonly (number | null)[], id: string): number[] {

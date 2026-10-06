@@ -1,22 +1,10 @@
-import type { MetricId } from '../../../core/src/metrics/metrics.js';
 import { getSlider } from '../../../core/src/config/registry.js';
-import { assertSent, requireSeries } from '../worker/series.js';
+import { COMPOSITE_METRICS } from '../dashboard/catalog.js';
+import { requireSeries } from '../worker/series.js';
 import { sliderValue } from './sliders.js';
 
 /** A 6 percent natural rate scores as one minus unemployment. See docs/model.md. */
 export const NATURAL_RATE_ANCHOR = 0.06;
-
-const LEVEL_IDS = [
-  'giniWealth',
-  'medianRealWealth',
-  'meanWellbeing',
-  'unemployment',
-  'naturalUnemployment',
-] as const satisfies readonly MetricId[];
-
-for (const id of LEVEL_IDS) {
-  assertSent(id);
-}
 
 export interface CompositeWeights {
   inequality: number;
@@ -80,13 +68,25 @@ export function compositeWeights(
 
 export function levelsFrom(series: Record<string, number[]>): CompositeLevels {
   return {
-    giniWealth: lastSample(requireSeries(series, 'giniWealth'), 'giniWealth'),
-    medianRealWealth: lastSample(requireSeries(series, 'medianRealWealth'), 'medianRealWealth'),
-    meanWellbeing: lastSample(requireSeries(series, 'meanWellbeing'), 'meanWellbeing'),
-    unemployment: lastSample(requireSeries(series, 'unemployment'), 'unemployment'),
+    giniWealth: lastSample(
+      requireSeries(series, COMPOSITE_METRICS.giniWealth),
+      COMPOSITE_METRICS.giniWealth,
+    ),
+    medianRealWealth: lastSample(
+      requireSeries(series, COMPOSITE_METRICS.medianRealWealth),
+      COMPOSITE_METRICS.medianRealWealth,
+    ),
+    meanWellbeing: lastSample(
+      requireSeries(series, COMPOSITE_METRICS.meanWellbeing),
+      COMPOSITE_METRICS.meanWellbeing,
+    ),
+    unemployment: lastSample(
+      requireSeries(series, COMPOSITE_METRICS.unemployment),
+      COMPOSITE_METRICS.unemployment,
+    ),
     naturalUnemployment: lastSample(
-      requireSeries(series, 'naturalUnemployment'),
-      'naturalUnemployment',
+      requireSeries(series, COMPOSITE_METRICS.naturalUnemployment),
+      COMPOSITE_METRICS.naturalUnemployment,
     ),
   };
 }

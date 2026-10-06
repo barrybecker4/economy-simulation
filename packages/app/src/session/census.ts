@@ -1,6 +1,6 @@
-import type { MetricId } from '../../../core/src/metrics/metrics.js';
-import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
-import { assertSent, requireSeries } from '../worker/series.js';
+import { CENSUS_JOBS, CENSUS_OWNERS, CENSUS_WEALTH } from '../dashboard/catalog.js';
+import type { RunSuccess } from '../worker/protocol.js';
+import { metricAt } from '../worker/series.js';
 
 export interface WealthSlice {
   label: string;
@@ -29,39 +29,6 @@ export interface MonthCensus {
   owners: OwnerPicture;
 }
 
-const WEALTH_IDS = [
-  'wealthQuintile1',
-  'wealthQuintile2',
-  'wealthQuintile3',
-  'wealthQuintile4',
-  'wealthQuintile5',
-] as const satisfies readonly MetricId[];
-
-const WEALTH_COLORS = ['#fecaca', '#fca5a5', '#f87171', '#ef4444', '#b91c1c'] as const;
-const WEALTH_LABELS = [
-  'Poorest fifth',
-  'Second fifth',
-  'Middle fifth',
-  'Fourth fifth',
-  'Richest fifth',
-] as const;
-
-const JOB_SPECS = [
-  { id: 'jobUnemployedShare', label: 'Unemployed', color: '#a8a29e' },
-  { id: 'jobSmallFirmShare', label: 'Smaller firms', color: '#38bdf8' },
-  { id: 'jobLargeFirmShare', label: 'Larger firms', color: '#0369a1' },
-] as const satisfies readonly { id: MetricId; label: string; color: string }[];
-
-for (const id of WEALTH_IDS) {
-  assertSent(id);
-}
-for (const job of JOB_SPECS) {
-  assertSent(job.id);
-}
-assertSent('ownerWealthShare');
-assertSent('aiShareOfWealth');
-assertSent('aiShareOfAgents');
-
 export function monthCensus(
   result: RunSuccess,
   monthIndex: number,
@@ -69,24 +36,24 @@ export function monthCensus(
   ownershipConcentration: number,
 ): MonthCensus {
   const index = clampIndex(monthIndex, result.ticks.length);
-  const agentShare = valueAt(result, 'aiShareOfAgents', index);
+  const agentShare = metricAt(result, CENSUS_OWNERS.aiShareOfAgents, index);
   const agentCount = agentCountFromShare(agentShare, households);
   const owners = ownerCount(households, ownershipConcentration, agentCount);
   return {
     monthIndex: index,
-    wealth: WEALTH_IDS.map((id, quintile) => ({
-      label: WEALTH_LABELS[quintile] ?? `Quintile ${quintile + 1}`,
-      share: valueAt(result, id, index),
-      color: WEALTH_COLORS[quintile] ?? '#b91c1c',
+    wealth: CENSUS_WEALTH.map((slice) => ({
+      label: slice.label,
+      share: metricAt(result, slice.id, index),
+      color: slice.color,
     })),
-    jobs: JOB_SPECS.map((job) => ({
+    jobs: CENSUS_JOBS.map((job) => ({
       label: job.label,
-      share: valueAt(result, job.id, index),
+      share: metricAt(result, job.id, index),
       color: job.color,
     })),
     owners: {
-      ownerWealthShare: valueAt(result, 'ownerWealthShare', index),
-      aiShareOfWealth: valueAt(result, 'aiShareOfWealth', index),
+      ownerWealthShare: metricAt(result, CENSUS_OWNERS.ownerWealthShare, index),
+      aiShareOfWealth: metricAt(result, CENSUS_OWNERS.aiShareOfWealth, index),
       agentCount,
       ownerCount: owners,
       hasAgents: agentCount > 0,
@@ -115,23 +82,6 @@ export function ownerCount(
     return 0;
   }
   return Math.max(1, Math.round(households * (1 - ownershipConcentration)));
-}
-
-function valueAt(result: RunSuccess, id: MetricId, index: number): number {
-  const values = result.kind === 'band' ? bandMid(result, id) : requireSeries(result.series, id);
-  const value = values[index];
-  if (value === undefined || !Number.isFinite(value)) {
-    throw new Error(`Missing ${id} at month ${index}`);
-  }
-  return value;
-}
-
-function bandMid(result: BandRunResult, id: string): number[] {
-  const band = result.bands[id];
-  if (band === undefined) {
-    throw new Error(`Missing band ${id}`);
-  }
-  return band.mid;
 }
 
 function clampIndex(index: number, length: number): number {
