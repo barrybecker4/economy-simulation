@@ -53,12 +53,16 @@ The web app runs the same simulation in a worker. Presets, the assumption ledger
 pnpm --filter @economy-simulation/app dev
 ```
 
-A production build is static and needs no server:
+A production build is static. GitHub Pages can host it. There is no server to run.
 
 ```sh
 pnpm --filter @economy-simulation/app build
 pnpm --filter @economy-simulation/app preview
 ```
+
+The build writes `packages/app/dist`. Asset paths are relative to that directory, so the same files work at the root of a site or in a subdirectory. Copy the contents of `dist` into the website repository, including `assets/` and `favicon.svg` alongside `index.html`, then commit and push. Files placed in `economy/` are served at `https://example.github.io/economy/`.
+
+Open the page on the site, or use `preview`. The app is an ES module, so opening `index.html` as a file will not run it. A link keeps the seed and sliders in the query string. A query parameter whose name starts with `_` is ignored, including `_ijt`, which an editor adds when it opens the page.
 
 ## Dependencies added for the engine
 

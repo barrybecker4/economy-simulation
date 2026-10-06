@@ -28,6 +28,13 @@ describe('parsePageState', () => {
     expect(state.overrides).toEqual({});
   });
 
+  it('ignores a query parameter whose name starts with an underscore', () => {
+    expect(parsePageState('?_ijt=abc&firm.markup=0.4')).toEqual({
+      ...defaultPage(),
+      overrides: { 'firm.markup': 0.4 },
+    });
+  });
+
   it('rejects a bad seed, tick count, seed count, regime, number, option, duplicate, or unknown key', () => {
     expect(() => parsePageState('?seed=-1')).toThrow(/Seed/);
     expect(() => parsePageState('?ticks=0')).toThrow(/Ticks/);

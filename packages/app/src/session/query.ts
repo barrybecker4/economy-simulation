@@ -66,6 +66,10 @@ function readOverrides(params: Map<string, string>): Record<string, number | str
     if (key === 'seed' || key === 'ticks' || key === 'seeds' || key === 'regime') {
       continue;
     }
+    // Hosts add private parameters, such as the editor's _ijt cache buster.
+    if (key.startsWith('_')) {
+      continue;
+    }
     if (key === 'regime.type') {
       throw new Error('Set the regime with the regime parameter');
     }
