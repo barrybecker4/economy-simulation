@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import { createEconomy } from './init.js';
-import { distributeIncome } from './income.js';
+import { distributeIncome } from './government.js';
 import { loadParameters } from './parameters.js';
 
 describe('profit shares under a large AI factor', () => {

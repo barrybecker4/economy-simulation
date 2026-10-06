@@ -2,7 +2,7 @@ import { Rng } from '../rng/rng.js';
 import { splitProportional } from './allocate.js';
 import { capitalizeBanks } from './bookkeeping.js';
 import type { Economy } from './economy.js';
-import { redistributeToUnemployed } from './income.js';
+import { redistributeToUnemployed } from './government.js';
 import { employ, firmCapacity, pay, priceTrend } from './helpers.js';
 import type { Parameters } from './parameters.js';
 import { INITIAL_WAGE, INVENTORY_MONTHS, NATURAL_UNEMPLOYMENT } from './rules.js';
