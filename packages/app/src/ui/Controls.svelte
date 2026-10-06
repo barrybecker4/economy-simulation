@@ -32,8 +32,21 @@
 </script>
 
 <section class="controls">
-  <label>Seed <input type="number" min="0" bind:value={seed} /></label>
-  <label>Months <input type="number" min="12" max="1200" bind:value={ticks} /></label>
+  <NameTip id="seed" intro="Which random path the simulation draws. The same seed with the same settings repeats the same path.">
+    <label>
+      Seed
+      <input type="number" min="0" bind:value={seed} aria-describedby="help-seed" />
+    </label>
+  </NameTip>
+  <NameTip
+    id="months"
+    intro="How many months to simulate, from 12 to 1200. Charts and the month inspector cover that span."
+  >
+    <label>
+      Months
+      <input type="number" min="12" max="1200" bind:value={ticks} aria-describedby="help-months" />
+    </label>
+  </NameTip>
   <NameTip
     id="num-seeds"
     intro="How many consecutive seeds to run, starting at Seed. Charts show the median across those runs, which depends less on one random draw. With more than one seed and no baseline pinned, CPI also shows the 5th and 95th percentiles."

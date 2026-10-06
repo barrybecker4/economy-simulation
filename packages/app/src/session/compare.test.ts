@@ -336,6 +336,40 @@ describe('comparison session', () => {
     expect(canPromoteBaseline(session)).toBe(true);
   });
 
+  it('records the seed, months, and seed count that the charts belong to', () => {
+    let session = openComparisonSession({
+      seed: 3,
+      ticks: 48,
+      seeds: 2,
+      regime: 'fiat',
+      overrides: { 'government.ubiShare': 0.2 },
+    });
+    session = posted(session, finishedRun());
+    expect(session.shownSeed).toBe(3);
+    expect(session.shownTicks).toBe(48);
+    expect(session.shownSeeds).toBe(2);
+    expect(session.shownRegime).toBe('fiat');
+    expect(session.shownOverrides['government.ubiShare']).toBe(0.2);
+
+    session = setSeed(session, 9);
+    session = setTicks(session, 36);
+    session = setSeeds(session, 1);
+    session = editRegime(session, 'bitcoin');
+    session = editSlider(session, getSlider('government.ubiShare'), '0.5');
+    expect(session.shownSeed).toBe(3);
+    expect(session.shownTicks).toBe(48);
+    expect(session.shownSeeds).toBe(2);
+    expect(session.shownRegime).toBe('fiat');
+    expect(session.shownOverrides['government.ubiShare']).toBe(0.2);
+
+    session = posted(session, finishedRun());
+    expect(session.shownSeed).toBe(9);
+    expect(session.shownTicks).toBe(36);
+    expect(session.shownSeeds).toBe(1);
+    expect(session.shownRegime).toBe('bitcoin');
+    expect(session.shownOverrides['government.ubiShare']).toBe(0.5);
+  });
+
   it('clears the pin when the seed or month count leaves the baseline', () => {
     let session = posted(
       openComparisonSession({ seed: 4, ticks: 24, regime: 'fiat', overrides: {} }),

@@ -103,8 +103,14 @@ export interface ComparisonSession {
   seeds: number;
   regime: string;
   overrides: Record<string, number | string>;
+  shownSeed: number;
+  shownTicks: number;
+  shownSeeds: number;
   shownRegime: string;
   shownOverrides: Record<string, number | string>;
+  pendingSeed: number;
+  pendingTicks: number;
+  pendingSeeds: number;
   pendingRegime: string;
   pendingOverrides: Record<string, number | string>;
   result: RunSuccess | null;
@@ -159,8 +165,14 @@ export function openComparisonSession(input: {
     seeds,
     regime: input.regime,
     overrides,
+    shownSeed: input.seed,
+    shownTicks: input.ticks,
+    shownSeeds: seeds,
     shownRegime: input.regime,
     shownOverrides: { ...overrides },
+    pendingSeed: input.seed,
+    pendingTicks: input.ticks,
+    pendingSeeds: seeds,
     pendingRegime: input.regime,
     pendingOverrides: { ...overrides },
     result: null,
@@ -257,6 +269,9 @@ export function prepareRun(session: ComparisonSession, sliders: readonly Slider[
 export function notePosted(session: ComparisonSession): ComparisonSession {
   return {
     ...session,
+    pendingSeed: session.seed,
+    pendingTicks: session.ticks,
+    pendingSeeds: session.seeds,
     pendingRegime: session.regime,
     pendingOverrides: { ...session.overrides },
   };
@@ -265,6 +280,9 @@ export function notePosted(session: ComparisonSession): ComparisonSession {
 export function noteResult(session: ComparisonSession, result: RunSuccess): ComparisonSession {
   return {
     ...session,
+    shownSeed: session.pendingSeed,
+    shownTicks: session.pendingTicks,
+    shownSeeds: session.pendingSeeds,
     shownRegime: session.pendingRegime,
     shownOverrides: { ...session.pendingOverrides },
     result,

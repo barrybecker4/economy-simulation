@@ -44,8 +44,10 @@
     resolvedSliders,
     sliderValue,
   } from './session/sliders.js';
+  import { nextStep } from './session/guide.js';
   import Compare from './ui/Compare.svelte';
   import Controls from './ui/Controls.svelte';
+  import Guide from './ui/Guide.svelte';
   import Ledger from './ui/Ledger.svelte';
   import Month from './ui/Month.svelte';
   import Parameters from './ui/Parameters.svelte';
@@ -128,6 +130,7 @@
   const canPin = $derived(canPinBaseline(session));
   const canPromote = $derived(canPromoteBaseline(session));
   const pinned = $derived(isPinned(session));
+  const hint = $derived(nextStep(session));
 
   const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
   worker.onmessage = onWorkerMessage;
@@ -274,6 +277,7 @@
 <main aria-busy={busy}>
   <header>
     <h1>Economy simulation</h1>
+    <Guide />
     <p>{status}</p>
     {#if busy}
       <div class="progress">
@@ -297,6 +301,7 @@
     onPromote={commitPromote}
     onReset={commitReset}
   />
+  <p class="next" aria-live="polite">{hint}</p>
   <Ledger sliders={changed} {note} value={valueOf} />
 
   {#if pinned}
@@ -383,6 +388,12 @@
     font-size: 0.95rem;
     line-height: 1.45;
     margin: 0 0 0.4rem;
+  }
+  .next {
+    color: #44403c;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin: 0.65rem 0 0;
   }
   .progress {
     align-items: center;
