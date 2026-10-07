@@ -1,13 +1,17 @@
-import { bankCreditRoom, equityFor, loansAt } from './banking.js';
+import { bankCreditRoom, equityFor, loansAt, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
-import { deflationPenalty, inflation, moneyAmount } from './helpers.js';
+import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import {
   CREDIT_IMPULSE_DRAW,
   DEFLATION_REPAY_RATE,
+  ENDOGENOUS_DRAW,
+  ENDOGENOUS_LEVERAGE_START,
+  ENDOGENOUS_STRESS_LIMIT,
   LOAN_SPREAD,
   RETAINED_INVESTMENT_SHARE,
 } from './rules.js';
+import { clamp } from './stats.js';
 import type { Bank, Firm } from './types.js';
 
 /** True when expected capital return clears the real return on money plus the premium. */
@@ -37,13 +41,42 @@ export function hurdleInvestment(
   return { installed, loanPath: 0, profitSharing: gap - installed };
 }
 
+/** Next stress stock from leverage above the calm threshold and loan losses. */
+export function creditStressNext(input: {
+  stress: number;
+  leverage: number;
+  lossRate: number;
+}): number {
+  const pressure = input.lossRate + Math.max(0, input.leverage - ENDOGENOUS_LEVERAGE_START);
+  return clamp(0.9 * input.stress + pressure, 0, 2);
+}
+
+/** New borrowing while endogenous credit is calm, as a share of household deposits. */
+export function endogenousBorrowing(input: {
+  weight: number;
+  stress: number;
+  deposits: number;
+}): number {
+  if (input.weight <= 0 || input.stress > ENDOGENOUS_STRESS_LIMIT) {
+    return 0;
+  }
+  return input.weight * ENDOGENOUS_DRAW * Math.max(0, input.deposits);
+}
+
 export function onCredit(economy: Economy): void {
   economy.investmentSpend = 0;
   economy.realInvestment = 0;
   economy.interestPaid = 0;
   economy.loanFinance = 0;
   economy.profitSharingFinance = 0;
-  const realReturn = economy.depositRate - inflation(economy);
+  if (economy.params.endogenousWeight > 0) {
+    refreshCreditStress(economy);
+    repayStressedLoans(economy);
+    if (economy.tick > 0 && economy.tick % 12 === 0) {
+      drawEndogenousCredit(economy);
+    }
+  }
+  const realReturn = economy.depositRate - expectedInflation(economy);
   const expectedReturn = economy.params.prodGrowth + economy.params.markup * 0.25;
   for (const firm of economy.firms) {
     const bank = economy.banks[firm.bank];
@@ -51,6 +84,61 @@ export function onCredit(economy: Economy): void {
     payInterest(economy, firm, bank);
     invest(economy, firm, bank, expectedReturn, realReturn);
     payDividend(economy, bank);
+  }
+}
+
+function householdDeposits(economy: Economy): number {
+  return economy.households.reduce((sum, household) => sum + Math.max(0, household.deposit), 0);
+}
+
+function refreshCreditStress(economy: Economy): void {
+  const loans = totalLoans(economy);
+  const deposits = Math.max(1, householdDeposits(economy));
+  const lossRate = loans > 0 ? economy.defaultsThisTick / loans : 0;
+  economy.creditStress = creditStressNext({
+    stress: economy.creditStress,
+    leverage: loans / deposits,
+    lossRate,
+  });
+}
+
+function repayStressedLoans(economy: Economy): void {
+  if (economy.creditStress <= ENDOGENOUS_STRESS_LIMIT) {
+    return;
+  }
+  const fraction = clamp(economy.params.endogenousWeight * economy.creditStress, 0, 0.5);
+  for (const firm of economy.firms) {
+    const repay = Math.min(firm.loan, firm.deposit, moneyAmount(economy, firm.loan * fraction));
+    if (repay <= 0) {
+      continue;
+    }
+    repayFirmLoan(firm, repay);
+    economy.loanRepaid += repay;
+  }
+}
+
+function drawEndogenousCredit(economy: Economy): void {
+  const wanted = endogenousBorrowing({
+    weight: economy.params.endogenousWeight,
+    stress: economy.creditStress,
+    deposits: householdDeposits(economy),
+  });
+  if (wanted <= 0 || economy.firms.length === 0) {
+    return;
+  }
+  const share = wanted / economy.firms.length;
+  for (const firm of economy.firms) {
+    const bank = economy.banks[firm.bank];
+    if (!bank || bank.failed) {
+      continue;
+    }
+    const room = bankCreditRoom(economy, firm.bank);
+    const borrowed = Math.min(moneyAmount(economy, share), Math.max(0, Math.round(room)));
+    if (borrowed <= 0) {
+      continue;
+    }
+    drawFirmLoan(firm, borrowed);
+    economy.newBorrowing += borrowed;
   }
 }
 

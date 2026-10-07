@@ -123,6 +123,16 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'Minimum bank equity relative to loans. Lending room is equity divided by this ratio, minus loans already outstanding. A higher ratio leaves less room to lend from the same equity and a thicker cushion when loans are written off. A lower ratio does the opposite. Banks start with extra equity so they have room to lend. Equity at or below zero is recorded as a bank failure. The default is near the Basel III common-equity floor, applied here to every loan rather than to risk-weighted assets.',
   ),
   numberSlider(
+    'credit.endogenousWeight',
+    'Endogenous credit weight',
+    'credit',
+    'share',
+    0,
+    0,
+    1,
+    'How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed 2 percent of household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. At 0 the previous credit path is unchanged.',
+  ),
+  numberSlider(
     'bank.depositPassThrough',
     'Deposit rate pass-through',
     'credit',
@@ -151,6 +161,16 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     2,
     'How much government goods spending responds to unemployment. Under fiat, the spending share rises by this coefficient times the gap of unemployment above the natural rate, capped at 0.8. Under bitcoin or hybrid, spending cannot exceed tax deposits plus bonds banks can hold from unused savings, so the stabilizer cannot expand base money. At 0 the spending share stays at the government spending slider.',
+  ),
+  numberSlider(
+    'government.bondRate',
+    'Government bond rate',
+    'publicFinance',
+    '1/year',
+    0,
+    0,
+    0.12,
+    'Annual coupon on government bonds held by banks. Each month the treasury pays one twelfth of this rate times bonds outstanding. The payment leaves the treasury deposit and raises bank equity. If the treasury cannot cover it, the shortfall is financed like any other deficit. At 0 bonds pay no coupon and the previous fiscal path is unchanged.',
   ),
   numberSlider(
     'transition.lengthMonths',

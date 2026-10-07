@@ -71,3 +71,9 @@ export const SHOCK_PRICE_WEIGHT = 0.12;
 export const INVENTORY_PRESSURE_BAND = 0.02;
 /** Excess demand moves the price by at most this much before other terms. */
 export const EXCESS_DEMAND_CAP = 0.2;
+/** Share of household deposits borrowed each year while endogenous credit is calm. */
+export const ENDOGENOUS_DRAW = 0.12;
+/** Loan-to-deposit ratio above which endogenous credit stress starts to build. */
+export const ENDOGENOUS_LEVERAGE_START = 0.02;
+/** Stress above this stops new endogenous borrowing and starts repayment. */
+export const ENDOGENOUS_STRESS_LIMIT = 0.05;

@@ -30,7 +30,17 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0.1,
     0,
     0.5,
-    'How strongly inflation above the regime normal path raises the goods spending share. The gap is year-over-year inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.',
+    'How strongly inflation above the regime normal path raises the goods spending share. The gap is expected inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. Expected inflation is the trailing year-over-year rate unless expectations.anchorWeight pulls it toward that path. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.',
+  ),
+  numberSlider(
+    'expectations.anchorWeight',
+    'Inflation anchor',
+    'behavior',
+    'share',
+    0,
+    0,
+    1,
+    'How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price and wage trends keep the regime path at weight 0, and follow the expectation above 0. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.',
   ),
   numberSlider(
     'household.skillSigma',

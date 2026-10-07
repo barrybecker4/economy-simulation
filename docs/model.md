@@ -26,6 +26,10 @@ An empty ledger satisfies the identity. The phase 2 economy posts one sector jou
 
 One tick is one month. A scenario's `ticks` field sets the length of a run. The default is 600 ticks, which is 50 years. The maximum accepted value is 12,000 ticks, a guard against an accidental huge run, not an economic assumption. The core never reads the wall clock. The web charts place tick 0 on the first day of the month when the page is viewed, and each later tick on that day in a later month. The run itself still starts at month 0.
 
+## Expectations
+
+Expected inflation is `expectations.anchorWeight` times the regime path plus one minus that weight times trailing year-over-year inflation. The regime path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. At weight 0 the expectation is the trailing rate. Spending, the real return on money, the deflation penalty, housing tenure, and the fiat policy rate use the expectation. The recorded inflation series stays the trailing rate. Posted prices and wages follow the regime path at weight 0, and the expectation when the weight is positive.
+
 ## Randomness
 
 The seeded generator is sfc32. splitmix32 fills its four words from a FNV-1a mix of the seed and a stream id. The first 12 outputs are discarded so the first visible draw is mixed. That warmup is part of the stream definition.
@@ -92,7 +96,7 @@ After t years a category's unscaled price relative to baseline productivity is `
 
 Firms start with loans equal to half of capital times the initial price. Bank equity is 1.5 times the regulatory multiple `capitalRatio / (1 − capitalRatio)` of those loans, which leaves room to lend. The capital rule constrains loans. Reserves are created by the central bank and do not use that room. Lending room is `equity / capitalRatio − loans`, and a positive credit impulse widens it.
 
-Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The payment raises bank equity and lowers the private-equity residual. Equity above the target is paid out the other way, so interest does not quietly recapitalize a bank before a credit loss.
+When `credit.endogenousWeight` is above zero, stress rises with loan losses and with loans above 2 percent of household deposits, and decays otherwise. While stress is low, lending room is wider by `1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household deposits once a year, inside the wider room. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay. At weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The payment raises bank equity and lowers the private-equity residual. Equity above the target is paid out the other way, so interest does not quietly recapitalize a bank before a credit loss.
 
 Routine investment replaces a year of depreciation in the month whose tick is divisible by 12. During a credit expansion, firms also borrow and raise desired capital. When `firm.investmentHurdle` is on, a firm installs the full gap only if baseline productivity growth plus a quarter of the markup clears the real return on money (deposit rate minus inflation) plus `firm.hurdlePremium`. Otherwise it installs a quarter of the gap as a retained profit-sharing claim and records the rest as profit-sharing finance. The measured profit-sharing share is that finance over loan-path plus profit-sharing finance. When the hurdle is off, the share stays the deflation-penalty formula. A firm whose equity (deposits plus capital at the posted price, minus loans) stays negative for 6 months is replaced. Its loan is written off against bank equity.
 
@@ -111,6 +115,8 @@ grant pool = government.ubiShare × AI share of output × price × real GDP
 where the AI share of output is `1 − 1 / AI factor` once compute is adopted, and zero otherwise. The pool is split equally across households, added to deposits, and counted in income after wages so it enters smoothed income and is taxable next month. Tax is the first source of funds. If the treasury deposit cannot cover the grant, it issues bonds. Agents do not receive the grant. See [ADR 0003](adr/0003-ubi-and-agent-tax.md).
 
 Under fiat, `government.stabilizer` times the unemployment gap above the natural rate also becomes a fiscal demand boost for the next month’s household spending and hiring. Bitcoin and hybrid set that boost to zero.
+
+`government.bondRate` is the annual coupon on bank-held government bonds. The monthly payment leaves the treasury deposit and raises bank equity, with the private-equity residual falling by the same amount. A shortfall is financed by new bonds. At a rate of 0 no coupon is paid.
 
 The central bank sets
 

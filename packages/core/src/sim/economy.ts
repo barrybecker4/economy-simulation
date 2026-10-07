@@ -62,4 +62,6 @@ export interface Economy {
   profitSharingFinance: number;
   fiscalBoost: number;
   transitionDone: boolean;
+  /** Leverage and default pressure. Unused while endogenous credit weight is 0. */
+  creditStress: number;
 }

@@ -78,6 +78,7 @@ export function blankEconomy(
     profitSharingFinance: 0,
     fiscalBoost: 0,
     transitionDone: false,
+    creditStress: 0,
   };
 }
 

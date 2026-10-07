@@ -19,8 +19,11 @@ export interface Parameters {
   outputWeight: number;
   reserveRequirement: number;
   capitalRatio: number;
+  endogenousWeight: number;
+  bondRate: number;
   timePrefMean: number;
   inflationTimePreference: number;
+  anchorWeight: number;
   prodGrowth: number;
   categoryGrowth: CategoryProductivity;
   housingSupplyGrowth: number;
@@ -86,8 +89,11 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     outputWeight: slider(config, 'centralBank.outputWeight'),
     reserveRequirement: slider(config, 'bank.reserveRequirement'),
     capitalRatio: slider(config, 'bank.capitalRatio'),
+    endogenousWeight: slider(config, 'credit.endogenousWeight'),
+    bondRate: slider(config, 'government.bondRate'),
     timePrefMean: slider(config, 'household.timePreferenceMean'),
     inflationTimePreference: slider(config, 'household.inflationTimePreference'),
+    anchorWeight: slider(config, 'expectations.anchorWeight'),
     prodGrowth: slider(config, 'productivity.baseGrowth'),
     categoryGrowth: {
       food: slider(config, 'goods.foodProductivity'),

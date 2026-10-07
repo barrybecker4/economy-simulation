@@ -43,7 +43,25 @@ export function pay(household: Household, firm: Firm): number {
 }
 
 export function priceTrend(economy: Economy): number {
-  return monthlyFromAnnual(normalInflation(economy));
+  const annual =
+    economy.params.anchorWeight <= 0 ? normalInflation(economy) : expectedInflation(economy);
+  return monthlyFromAnnual(annual);
+}
+
+/** Trailing inflation pulled toward the regime path. Weight 0 is the trailing rate. */
+export function expectedInflationFrom(trailing: number, anchor: number, weight: number): number {
+  if (weight <= 0) {
+    return trailing;
+  }
+  return weight * anchor + (1 - weight) * trailing;
+}
+
+export function expectedInflation(economy: Economy): number {
+  return expectedInflationFrom(
+    inflation(economy),
+    normalInflation(economy),
+    economy.params.anchorWeight,
+  );
 }
 
 /** Annual inflation the regime price path aims for. */
@@ -62,7 +80,7 @@ export function growth(economy: Economy): number {
 }
 
 export function deflationPenalty(economy: Economy): number {
-  return deflationPenaltyFrom(economy.params.deflationSensitivity, inflation(economy));
+  return deflationPenaltyFrom(economy.params.deflationSensitivity, expectedInflation(economy));
 }
 
 export function deflationPenaltyFrom(sensitivity: number, inflationRate: number): number {

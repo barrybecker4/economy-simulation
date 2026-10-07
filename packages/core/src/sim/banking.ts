@@ -1,4 +1,5 @@
 import type { Economy } from './economy.js';
+import { clamp } from './stats.js';
 
 export function totalDeposits(economy: Economy): number {
   let total = economy.govDeposits;
@@ -48,7 +49,14 @@ export function equityFor(economy: Economy, loans: number): number {
 export function lendingRoom(economy: Economy, bankId: number, bankEquity: number): number {
   const loans = loansAt(economy, bankId);
   const cap = bankEquity / Math.max(economy.params.capitalRatio, 0.01);
-  return Math.max(0, cap - loans) * (1 + Math.max(0, economy.creditImpulse));
+  const base = Math.max(0, cap - loans) * (1 + Math.max(0, economy.creditImpulse));
+  if (economy.params.endogenousWeight <= 0) {
+    return base;
+  }
+  if (economy.creditStress <= 0.05) {
+    return base * (1 + economy.params.endogenousWeight * 4);
+  }
+  return base * clamp(1 - economy.creditStress, 0.05, 1);
 }
 
 export function savingsStock(economy: Economy): number {

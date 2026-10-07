@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 4.
+Registry version: 6.
 
 ## ai.adoptionMidpointYear
 
@@ -248,6 +248,17 @@ Registry version: 4.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How hard the fiat policy rate reacts when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity. The rule adds this weight times (natural unemployment minus the unemployment rate) times the human share of output. A slack labor market cuts the rate and a tight one raises it. At 0.5 with no AI, unemployment one point below the natural rate adds half a point to the policy rate. Late in adoption the same point gap moves the rate less. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
 
+## credit.endogenousWeight
+
+- Label: Endogenous credit weight
+- Group: credit
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed 2 percent of household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. At 0 the previous credit path is unchanged.
+
 ## deflation.sensitivity
 
 - Label: Deflation sensitivity
@@ -258,6 +269,17 @@ Registry version: 4.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise when tenure choice is off. When tenure choice is on, those housing shares are measured from household tenures instead. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.
+
+## expectations.anchorWeight
+
+- Label: Inflation anchor
+- Group: behavior
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price and wage trends keep the regime path at weight 0, and follow the expectation above 0. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.
 
 ## firm.hurdlePremium
 
@@ -413,6 +435,17 @@ Registry version: 4.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual productivity growth of transportation, used only to split the CPI. After t years the unscaled price relative to baseline productivity is ((1 + baseline productivity growth) / (1 + this rate)) raised to t. This category is about 14 percent of the basket. The shares follow the U.S. CPI-U for December 2024, with energy taken out of housing and transportation, electronics given a small share, and the listed categories rescaled so they sum to one. The basket is then scaled so the expenditure-weighted average equals the CPI. A higher rate makes this category cheaper relative to the CPI. It does not produce extra goods or open a separate shop. Set every category productivity and housing supply growth equal to baseline productivity to put every price on the CPI. The default is a little above baseline, so transportation cheapens slowly. Motor fuel is in energy, not here.
 
+## government.bondRate
+
+- Label: Government bond rate
+- Group: publicFinance
+- Unit: 1/year
+- Default: 0
+- Range: 0 to 0.12
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual coupon on government bonds held by banks. Each month the treasury pays one twelfth of this rate times bonds outstanding. The payment leaves the treasury deposit and raises bank equity. If the treasury cannot cover it, the shortfall is financed like any other deficit. At 0 bonds pay no coupon and the previous fiscal path is unchanged.
+
 ## government.spendingShareOfGDP
 
 - Label: Government spending share
@@ -455,7 +488,7 @@ Registry version: 4.
 - Range: 0 to 0.5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly inflation above the regime normal path raises the goods spending share. The gap is year-over-year inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.
+- Description: How strongly inflation above the regime normal path raises the goods spending share. The gap is expected inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. Expected inflation is the trailing year-over-year rate unless expectations.anchorWeight pulls it toward that path. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.
 
 ## household.realReturnSensitivity
 

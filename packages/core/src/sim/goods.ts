@@ -1,7 +1,7 @@
 import { tradeAgents, shopAgents, type GoodsMarket } from './agent-trade.js';
 import { firmCapacity } from './capacity.js';
 import type { Economy } from './economy.js';
-import { inflation, normalInflation, pay, priceTrend } from './helpers.js';
+import { expectedInflation, normalInflation, pay, priceTrend } from './helpers.js';
 import { debitDeposit } from './money.js';
 import { inventoryPressure, monthlyPriceMove } from './pricing.js';
 import { EXCESS_DEMAND_CAP } from './rules.js';
@@ -31,7 +31,7 @@ function demandBase(economy: Economy): number {
 }
 
 function goodsMarket(economy: Economy): GoodsMarket {
-  const inflationRate = inflation(economy);
+  const inflationRate = expectedInflation(economy);
   return {
     floorShare: subsistenceShare(),
     inflationGap: inflationRate - normalInflation(economy),

@@ -59,6 +59,13 @@ export function drawFirmLoan(firm: Firm, amount: number): void {
   firm.deposit += amount;
 }
 
+/** Coupon leaves the treasury and is booked as bank equity. */
+export function payBondCoupon(bank: Bank, economy: Economy, coupon: number): void {
+  economy.govDeposits -= coupon;
+  bank.equity += coupon;
+  economy.privateEquity -= coupon;
+}
+
 export function payFirmInterest(firm: Firm, bank: Bank, economy: Economy, interest: number): void {
   firm.deposit -= interest;
   bank.equity += interest;

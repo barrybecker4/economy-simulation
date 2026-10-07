@@ -553,6 +553,31 @@ Acceptance:
 - With demand weight 1, firm-level hiring ends the same contraction with higher unemployment than the economy-wide quota.
 - The ledger audit still passes.
 
+### Phase 19: Anchored expectations
+
+Goal: expected inflation can sit on the regime path instead of the last year of prices.
+
+1. `expectations.anchorWeight` defaults to 0. Expected inflation is that weight times the regime path plus the rest times trailing inflation. Spending, the real return, the deflation penalty, tenure choice, and the fiat policy rate use it. At 0 they keep using the trailing rate, and posted prices and wages keep the regime path.
+
+Acceptance:
+
+- Anchor weight 0 matches Phase 18 for the same seeds.
+- Under a demand-led price decline, a higher anchor weight ends with a higher price level than a purely trailing expectation.
+- The ledger audit still passes.
+
+### Phase 20: Endogenous credit and government debt service
+
+Goal: credit booms and busts can come from balance sheets, and government bonds pay a coupon.
+
+1. `credit.endogenousWeight` defaults to 0. Above 0, calm periods lend a share of household deposits and stress from leverage or defaults cuts lending and repays loans.
+2. `government.bondRate` defaults to 0. Above 0, the treasury pays that annual rate on bank-held bonds. The coupon goes through the ledger. At 0 no coupon is paid.
+
+Acceptance:
+
+- Both sliders at 0 match Phase 19 for the same seeds.
+- With the endogenous weight at 1 and no credit shock, credit rises and later falls.
+- A positive bond rate raises interest paid once the treasury has issued bonds, and the ledger audit passes.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

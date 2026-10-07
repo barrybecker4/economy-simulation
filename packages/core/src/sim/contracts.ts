@@ -8,7 +8,7 @@ import {
   setMortgage,
 } from './money.js';
 import { bankCreditRoom } from './banking.js';
-import { deflationPenalty, inflation, moneyAmount } from './helpers.js';
+import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
 import { CONSUMER_LOAN_REPAY, HOME_PRICE_MONTHS, MONTHLY_RENT_RATE } from './rules.js';
 import type { Household, Tenure } from './types.js';
 
@@ -46,7 +46,7 @@ export function onContractChoice(economy: Economy): void {
     return;
   }
   const penalty = deflationPenalty(economy);
-  const expectedDeflation = Math.max(0, -inflation(economy));
+  const expectedDeflation = Math.max(0, -expectedInflation(economy));
   const termYears = economy.params.mortgageTermYears;
   const termMonths = Math.max(12, Math.round(termYears * 12));
   const ltv = economy.params.mortgageLtv;

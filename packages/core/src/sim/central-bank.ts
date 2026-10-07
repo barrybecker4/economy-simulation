@@ -1,6 +1,6 @@
 import { savingsStock, totalDeposits, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
-import { inflation, moneyAmount, outputGap } from './helpers.js';
+import { expectedInflation, moneyAmount, outputGap } from './helpers.js';
 import {
   addReserves,
   injectBankCapital,
@@ -56,7 +56,7 @@ function supportInsolventBanks(economy: Economy): void {
 function setFiatPolicy(economy: Economy): void {
   economy.policyRate = taylorRate({
     timePrefMean: economy.params.timePrefMean,
-    inflation: inflation(economy),
+    inflation: expectedInflation(economy),
     inflationTarget: economy.params.inflationTarget,
     inflationWeight: economy.params.inflationWeight,
     outputWeight: economy.params.outputWeight,

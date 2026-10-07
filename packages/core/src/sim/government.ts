@@ -9,6 +9,7 @@ import {
   creditTreasury,
   debitDeposit,
   debitTreasury,
+  payBondCoupon,
   payFromTreasury,
   transferDeposit,
   type DepositAccount,
@@ -31,6 +32,7 @@ export function onGovernment(economy: Economy): void {
   addGrants(economy, grants);
   sweepAgents(economy);
   smoothIncomes(economy);
+  payBondInterest(economy);
   if (economy.govDeposits < 0) {
     issueBonds(economy, -economy.govDeposits);
   }
@@ -160,6 +162,24 @@ function fundShortfall(economy: Economy, amount: number): void {
   const shortfall = amount - Math.max(0, economy.govDeposits);
   if (shortfall > 0) {
     issueBonds(economy, shortfall);
+  }
+}
+
+function payBondInterest(economy: Economy): void {
+  if (economy.params.bondRate <= 0) {
+    return;
+  }
+  const monthly = economy.params.bondRate / 12;
+  for (const bank of economy.banks) {
+    if (bank.bonds <= 0) {
+      continue;
+    }
+    const coupon = moneyAmount(economy, bank.bonds * monthly);
+    if (coupon <= 0) {
+      continue;
+    }
+    payBondCoupon(bank, economy, coupon);
+    economy.interestPaid += coupon;
   }
 }
 

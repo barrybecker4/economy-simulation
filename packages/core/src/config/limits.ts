@@ -1,4 +1,4 @@
-export const REGISTRY_VERSION = 4;
+export const REGISTRY_VERSION = 6;
 export const DEFAULT_TICKS = 600;
 export const MAX_TICKS = 12_000;
 export const DEFAULT_SCENARIO_NAME = 'unnamed';
