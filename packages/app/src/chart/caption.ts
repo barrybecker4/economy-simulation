@@ -13,7 +13,7 @@ const REL_EPS = 1e-6;
 const ABS_EPS = 1e-9;
 
 const MIXED_UNITS =
-  'The baseline and variant use different money units, so this chart does not score the variant.';
+  'The baseline and scenario use different money units, so this chart does not score the scenario.';
 
 /** One paragraph comparing paired series when a baseline is pinned. */
 export function comparisonCaption(
@@ -125,7 +125,7 @@ function compareEnding(baseline: readonly number[], variant: readonly number[]):
 
 function majorityPath(baseline: readonly number[], variant: readonly number[]): CompareSide {
   if (baseline.length !== variant.length) {
-    throw new Error('Baseline and variant must share the same month count');
+    throw new Error('Baseline and scenario must share the same month count');
   }
   let higher = 0;
   let lower = 0;

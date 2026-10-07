@@ -29,7 +29,7 @@ export interface ChartView {
   group: string;
   marks: ChartMarks;
   note?: string;
-  /** Under a pinned baseline: how the variant differs from the baseline. */
+  /** Under a pinned baseline: how the scenario differs from the baseline. */
   caption?: string;
 }
 
@@ -43,7 +43,7 @@ export function moneyUnit(regime: string): string {
   throw new Error(`Unknown regime ${regime}`);
 }
 
-/** Dash pattern, in CSS pixels, for the variant line when a baseline is overlaid. */
+/** Dash pattern, in CSS pixels, for the scenario line when a baseline is overlaid. */
 export const VARIANT_DASH = [8, 6] as const;
 
 export interface BaselineRun {
@@ -93,7 +93,7 @@ function pairedViews(
     throw new Error('Baseline run has no ticks');
   }
   if (baseline.result.ticks.length !== variant.ticks.length) {
-    throw new Error('Baseline and variant must share the same month count');
+    throw new Error('Baseline and scenario must share the same month count');
   }
   const marks = mergeMarks(
     runMarks(baseline.result, baseline.transitionLength, 'baseline'),
@@ -193,7 +193,7 @@ function mixedMoneyView(
     title: spec.title,
     group: spec.group,
     unit: '',
-    note: `Solid lines are the baseline, in ${baselineUnit} (${axisName(baselineUnit)} axis). Dashed lines are the variant, in ${variantUnit} (${axisName(variantUnit)} axis).`,
+    note: `Solid lines are the baseline, in ${baselineUnit} (${axisName(baselineUnit)} axis). Dashed lines are the scenario, in ${variantUnit} (${axisName(variantUnit)} axis).`,
     description: withMarksTip(spec.description, marks),
     lines,
     marks,

@@ -32,7 +32,7 @@ export function comparisonFrame(id: string): boolean {
 
 /**
  * Rewrites only comparison-frame sliders on the live side to the baseline's
- * resolved values, so a variant cannot change the size of the run.
+ * resolved values, so a scenario cannot change the size of the run.
  */
 export function alignComparisonFrame(
   sliders: readonly Slider[],
@@ -57,7 +57,7 @@ export function alignComparisonFrame(
   return { regime, overrides };
 }
 
-/** Sliders whose resolved values differ between a pinned baseline and the live variant. */
+/** Sliders whose resolved values differ between a pinned baseline and the live scenario. */
 export function compareDiffs(
   sliders: readonly Slider[],
   baseline: CompareSide,
@@ -83,10 +83,10 @@ export function compareDiffs(
 export const IDLE_STATUS = 'Set the parameters and run.';
 
 const FRAME_STATUS =
-  'Baseline pinned. Edit parameters and run a variant. Scale, population growth, and trust in banks stay at the baseline.';
+  'Baseline pinned. Edit parameters and run a scenario. Scale, population growth, and trust in banks stay at the baseline.';
 
 const PROMOTE_STATUS =
-  'Variant is now the baseline. Scale, population growth, and trust in banks stay at the baseline.';
+  'Scenario is now the baseline. Scale, population growth, and trust in banks stay at the baseline.';
 
 /** Census falls back here only when a resolved slider is not a finite number. */
 const CENSUS_HOUSEHOLDS_FALLBACK = 1000;

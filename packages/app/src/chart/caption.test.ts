@@ -79,7 +79,7 @@ describe('comparisonCaption', () => {
     expect(
       comparisonCaption([series('CPI', [100, 200], [8, 9])], { mixedUnits: true }),
     ).toBe(
-      'The baseline and variant use different money units, so this chart does not score the variant.',
+      'The baseline and scenario use different money units, so this chart does not score the scenario.',
     );
   });
 

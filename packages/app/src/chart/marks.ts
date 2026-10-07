@@ -102,7 +102,7 @@ export function hasMarks(marks: ChartMarks): boolean {
   return marks.bands.length > 0 || marks.rules.length > 0;
 }
 
-/** Events active on a month, baseline then variant, bands before rules of the same style. */
+/** Events active on a month, baseline then scenario, bands before rules of the same style. */
 export function eventsAt(marks: ChartMarks, month: number): ChartEvent[] {
   const events: ChartEvent[] = [];
   for (const style of ['solo', 'baseline', 'variant'] as const) {

@@ -20,7 +20,7 @@
     ticks: number[];
     lines: ChartLine[];
     marks?: ChartMarks;
-    /** Under a pinned baseline: how the variant differs from the baseline. */
+    /** Under a pinned baseline: how the scenario differs from the baseline. */
     caption?: string;
   }
 

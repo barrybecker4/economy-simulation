@@ -83,7 +83,7 @@
     {#if canPromote}
       <NameTip
         id="promote-baseline"
-        intro="Replaces the pinned baseline with the current variant result and its settings."
+        intro="Replaces the pinned baseline with the current scenario result and its settings."
       >
         <button
           type="button"
@@ -91,14 +91,14 @@
           onclick={onPromote}
           disabled={busy}
         >
-          Use variant as baseline
+          Use scenario as baseline
         </button>
       </NameTip>
     {/if}
   {:else}
     <NameTip
       id="pin-baseline"
-      intro="Freezes the current run as a baseline, including a multi-seed median. Later runs overlay on the same charts. Edit parameters for the variant only. Scale, population growth, and trust in banks stay at the baseline."
+      intro="Freezes the current run as a baseline, including a multi-seed median. Later runs overlay on the same charts. Edit parameters for the scenario only. Scale, population growth, and trust in banks stay at the baseline."
     >
       <button
         type="button"

@@ -191,10 +191,10 @@ describe('chartViews', () => {
     const prices = views.find((view) => view.key === 'prices');
     expect(prices?.unit).toBe('');
     expect(prices?.note).toBe(
-      'Solid lines are the baseline, in dollars (left axis). Dashed lines are the variant, in satoshis (right axis).',
+      'Solid lines are the baseline, in dollars (left axis). Dashed lines are the scenario, in satoshis (right axis).',
     );
     expect(prices?.caption).toBe(
-      'The baseline and variant use different money units, so this chart does not score the variant.',
+      'The baseline and scenario use different money units, so this chart does not score the scenario.',
     );
     expect(prices?.lines[0]?.label).toBe('CPI');
     expect(prices?.lines[1]?.label).toBe('CPI');
@@ -210,7 +210,7 @@ describe('chartViews', () => {
     expect(views.find((view) => view.key === 'labor')?.lines[0]?.scale).toBeUndefined();
   });
 
-  it('keeps a small fiat series in cents on the left when the variant is satoshis', () => {
+  it('keeps a small fiat series in cents on the left when the scenario is satoshis', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([100, 500]) };
     const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
     const views = chartViews(variant, 'hybrid', {
@@ -220,7 +220,7 @@ describe('chartViews', () => {
     });
     const grant = views.find((view) => view.key === 'ubi');
     expect(grant?.note).toBe(
-      'Solid lines are the baseline, in cents (left axis). Dashed lines are the variant, in satoshis (right axis).',
+      'Solid lines are the baseline, in cents (left axis). Dashed lines are the scenario, in satoshis (right axis).',
     );
     expect(grant?.lines[0]?.values).toEqual([100, 500]);
     expect(grant?.lines[0]?.unit).toBe('cents');
@@ -239,7 +239,7 @@ describe('chartViews', () => {
     });
     const grant = views.find((view) => view.key === 'ubi');
     expect(grant?.note).toBe(
-      'Solid lines are the baseline, in satoshis (right axis). Dashed lines are the variant, in dollars (left axis).',
+      'Solid lines are the baseline, in satoshis (right axis). Dashed lines are the scenario, in dollars (left axis).',
     );
     expect(grant?.lines[0]?.values).toEqual([8, 9]);
     expect(grant?.lines[0]?.scale).toBe('sats');

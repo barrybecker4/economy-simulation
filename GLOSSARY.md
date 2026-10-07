@@ -4,16 +4,16 @@ A closed economy of households, firms, and banks, used to see which assumptions 
 
 ## Comparison
 
+**Scenario**:
+The assumptions for one run, and the path those assumptions produce once the run exists. With a baseline pinned, the scenario is the later run.
+_Avoid_: Variant, treatment
+
 **Baseline**:
-A finished single run held fixed so a later run can be compared with it.
+A scenario held fixed so a later scenario can be compared with it.
 _Avoid_: Control, snapshot
 
-**Variant**:
-A later single run compared with a baseline.
-_Avoid_: Treatment, scenario
-
 **Comparison frame**:
-The assumptions a variant keeps at the baseline: scale, population growth, and trust in banks.
+The assumptions a scenario keeps at the baseline: scale, population growth, and trust in banks.
 _Avoid_: Locked sliders, frozen parameters
 
 ## Events

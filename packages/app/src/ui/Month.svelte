@@ -266,12 +266,12 @@
       {/if}
       <div class="graph">
         {#if paired}
-          <h4>Variant ({flows.unit})</h4>
+          <h4>Scenario ({flows.unit})</h4>
         {/if}
         <svg
           viewBox="0 0 400 400"
           role="img"
-          aria-label="{paired ? 'Variant ' : ''}Directed payment flows for the selected month"
+          aria-label="{paired ? 'Scenario ' : ''}Directed payment flows for the selected month"
         >
           <defs>
             {#each variantEdges as edge, index (edge.from + edge.to + edge.label)}
@@ -390,8 +390,8 @@
         {@render shareStack(baseline, shareCaption(`Baseline ${noun}`, baseline))}
       </div>
       <div class="line">
-        <span class="line-label">Variant</span>
-        {@render shareStack(variant, shareCaption(`Variant ${noun}`, variant))}
+        <span class="line-label">Scenario</span>
+        {@render shareStack(variant, shareCaption(`Scenario ${noun}`, variant))}
       </div>
     </div>
     <ul class="legend paired">

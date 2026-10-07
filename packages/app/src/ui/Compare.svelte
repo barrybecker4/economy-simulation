@@ -13,11 +13,11 @@
 <section class="compare">
   <h2>Baseline comparison</h2>
   <p class="key">
-    Solid lines are the baseline and dashed lines are the variant. A legend value reads the baseline,
-    then the variant.
+    Solid lines are the baseline and dashed lines are the scenario. A legend value reads the baseline,
+    then the scenario.
   </p>
   {#if diffs.length === 0}
-    <p>Baseline and variant share every slider.</p>
+    <p>Baseline and scenario share every slider.</p>
   {:else}
     <ul>
       {#each diffs as diff (diff.id)}

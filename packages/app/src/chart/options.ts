@@ -38,7 +38,7 @@ interface FocusedSeries extends uPlot.Series {
   _paths?: { stroke?: Path2D | null } | null;
 }
 
-/** Chart surface color. The variant dash is outlined in this so it reads against a same-color solid line. */
+/** Chart surface color. The scenario dash is outlined in this so it reads against a same-color solid line. */
 const CHART_SURFACE = '#fff';
 
 export interface PlottableLine extends PlotLine {
@@ -346,7 +346,7 @@ function isStrokePath(path: unknown): path is Path2D {
   return typeof Path2D === 'function' && path instanceof Path2D;
 }
 
-/** Restroke each variant so its gaps show the chart surface instead of the solid baseline. */
+/** Restroke each scenario line so its gaps show the chart surface instead of the solid baseline. */
 function paintDashedLines(plot: uPlot, lines: readonly PlotLine[]): void {
   const scale = canvasScale();
   const ctx = plot.ctx;

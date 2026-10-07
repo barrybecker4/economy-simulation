@@ -383,7 +383,7 @@ describe('comparison session', () => {
     );
     session = posted(session, finishedRun());
     const promoted = promoteBaseline(session, sliders);
-    expect(promoted.status).toMatch(/Variant is now the baseline/);
+    expect(promoted.status).toMatch(/Scenario is now the baseline/);
     expect(promoted.session.pin?.result).toBe(session.result);
     const cleared = clearBaseline(promoted.session);
     expect(cleared.session.pin).toBeNull();
