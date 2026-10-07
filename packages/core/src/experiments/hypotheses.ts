@@ -1,4 +1,5 @@
 import { loadScenario } from '../config/load.js';
+import { BITCOIN_OPENING_SHARE } from '../sim/bitcoin-supply.js';
 import type { MetricId } from '../metrics/metrics.js';
 import { simulate } from '../sim/simulate.js';
 import type { SimulationResult } from '../engine/engine.js';
@@ -166,13 +167,14 @@ function h9(): HypothesisResult {
   const prefs = {
     ...base,
     'money.choiceSpeed': 0.2,
-    'money.bitcoinStart': 0.1,
     'money.bitcoinTrust': 2,
     'money.fiatLegalTender': 0,
   };
   const fromFiat = run({ ...prefs, 'regime.type': 'fiat' });
   const fromBitcoin = run({ ...prefs, 'regime.type': 'bitcoin' });
-  const moved = last(fromFiat, 'bitcoinShare') > 0.1 && last(fromBitcoin, 'bitcoinShare') > 0.1;
+  const moved =
+    last(fromFiat, 'bitcoinShare') > BITCOIN_OPENING_SHARE &&
+    last(fromBitcoin, 'bitcoinShare') > BITCOIN_OPENING_SHARE;
   return {
     id: 'H9',
     claim: 'Currency shares follow trust and legal tender, not only the opening regime label.',

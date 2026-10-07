@@ -4,6 +4,7 @@ import { firmCapacity } from './capacity.js';
 import type { Economy } from './economy.js';
 import { pay } from './helpers.js';
 import { creditDeposit, setDeposit, setFirmLoan } from './money.js';
+import { BITCOIN_OPENING_SHARE } from './bitcoin-supply.js';
 import { openingShares } from './monies.js';
 import type { Parameters } from './parameters.js';
 import { INITIAL_WAGE, INVENTORY_MONTHS } from './rules.js';
@@ -85,7 +86,7 @@ export function blankEconomy(
     housingPressure: 1,
     populationCredit: 0,
     moneyShares: openingShares({
-      bitcoin: params.bitcoinStart,
+      bitcoin: BITCOIN_OPENING_SHARE,
       stablecoin: params.stablecoinStart,
       cbdc: params.cbdcStart,
     }),

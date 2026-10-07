@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
+import { BITCOIN_OPENING_SHARE } from './bitcoin-supply.js';
 import { nextExchangeRate, nextMoneyShares, openingShares } from './monies.js';
 import { simulate } from './simulate.js';
 
@@ -19,7 +20,8 @@ describe('phase 24 money choice', () => {
     const neutral = run({ ...small, 'money.choiceSpeed': 0 });
     expect(prior.audit.ok && neutral.audit.ok).toBe(true);
     expect(series(neutral, 'realGdp')).toEqual(series(prior, 'realGdp'));
-    expect(last(neutral, 'fiatShare')).toBe(1);
+    expect(last(neutral, 'bitcoinShare')).toBeCloseTo(BITCOIN_OPENING_SHARE, 12);
+    expect(last(neutral, 'fiatShare')).toBeCloseTo(1 - BITCOIN_OPENING_SHARE, 12);
   });
 
   it('keeps fiat as the residual opening share', () => {
@@ -38,17 +40,14 @@ describe('phase 24 money choice', () => {
     const quiet = run({
       ...small,
       'money.choiceSpeed': 0.15,
-      'money.bitcoinStart': 0.05,
       'money.bitcoinTrust': 0,
       'money.fiatLegalTender': 1,
     });
     const trusted = run({
       ...small,
       'money.choiceSpeed': 0.15,
-      'money.bitcoinStart': 0.05,
       'money.bitcoinTrust': 2,
       'money.fiatLegalTender': 0,
-      'money.bitcoinIssuance': 0,
     });
     expect(quiet.audit.ok && trusted.audit.ok).toBe(true);
     expect(last(trusted, 'bitcoinShare')).toBeGreaterThan(last(quiet, 'bitcoinShare'));

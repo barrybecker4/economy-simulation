@@ -622,8 +622,8 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Opening shares are `money.bitcoinStart`, `money.stablecoinStart`, and `money.cbdcStart`. Fiat is the residual. All three default to 0, so the opening mix is all fiat.
-2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each digital share and with `money.bitcoinIssuance`.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
+2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each digital share. Bitcoin issuance is the halving schedule, not a slider.
 
 Acceptance:
 

@@ -76,12 +76,10 @@ export interface Parameters {
   debtHaircut: number;
   holderConcentration: number;
   choiceSpeed: number;
-  bitcoinStart: number;
   stablecoinStart: number;
   cbdcStart: number;
   fiatLegalTender: number;
   bitcoinTrust: number;
-  bitcoinIssuance: number;
 }
 
 export function loadParameters(config: ResolvedConfig): Parameters {
@@ -169,12 +167,10 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     debtHaircut: slider(config, 'transition.debtHaircut'),
     holderConcentration: slider(config, 'transition.holderConcentration'),
     choiceSpeed: slider(config, 'money.choiceSpeed'),
-    bitcoinStart: slider(config, 'money.bitcoinStart'),
     stablecoinStart: slider(config, 'money.stablecoinStart'),
     cbdcStart: slider(config, 'money.cbdcStart'),
     fiatLegalTender: slider(config, 'money.fiatLegalTender'),
     bitcoinTrust: slider(config, 'money.bitcoinTrust'),
-    bitcoinIssuance: slider(config, 'money.bitcoinIssuance'),
   };
 }
 

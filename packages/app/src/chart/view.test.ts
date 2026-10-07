@@ -343,7 +343,7 @@ describe('chartViews', () => {
     expect(prices?.marks.bands).toEqual([
       {
         kind: 'fiat-transition',
-        label: 'Fiat transition',
+        label: 'Fiat to bitcoin transition',
         color: '#64748b',
         start: 0,
         end: 1,

@@ -1,3 +1,4 @@
+import { bitcoinIssuanceRate } from './bitcoin-supply.js';
 import type { Economy } from './economy.js';
 import { clamp } from './stats.js';
 
@@ -97,7 +98,7 @@ export function updateMoneyChoice(economy: Economy): void {
   economy.bitcoinPrice = nextExchangeRate(
     economy.bitcoinPrice,
     economy.moneyShares.bitcoin,
-    economy.params.bitcoinIssuance,
+    bitcoinIssuanceRate(economy.tick),
   );
   economy.stablecoinPrice = nextExchangeRate(
     economy.stablecoinPrice,

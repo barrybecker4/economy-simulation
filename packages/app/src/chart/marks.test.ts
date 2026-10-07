@@ -111,7 +111,7 @@ describe('runMarks', () => {
     expect(marks.bands).toEqual([
       {
         kind: 'fiat-transition',
-        label: 'Fiat transition',
+        label: 'Fiat to bitcoin transition',
         color: '#64748b',
         start: 0,
         end: 5,
@@ -141,7 +141,7 @@ describe('runMarks', () => {
     expect(marks.bands).toEqual([
       {
         kind: 'fiat-transition',
-        label: 'Fiat transition',
+        label: 'Fiat to bitcoin transition',
         color: '#64748b',
         start: 0,
         end: 2,
@@ -163,7 +163,7 @@ describe('runMarks', () => {
     expect(marks.bands).toEqual([
       {
         kind: 'fiat-transition',
-        label: 'Fiat transition',
+        label: 'Fiat to bitcoin transition',
         color: '#64748b',
         start: 0,
         end: 2,
@@ -192,9 +192,9 @@ describe('eventsAt', () => {
     expect(eventsAt(merged, 3).map((event) => ({ label: event.label, style: event.style }))).toEqual(
       [
         { label: 'Demand expansion', style: 'baseline' },
-        { label: 'Fiat transition', style: 'baseline' },
+        { label: 'Fiat to bitcoin transition', style: 'baseline' },
         { label: 'Bitcoin rebase', style: 'baseline' },
-        { label: 'Fiat transition', style: 'variant' },
+        { label: 'Fiat to bitcoin transition', style: 'variant' },
         { label: 'Bitcoin rebase', style: 'variant' },
       ],
     );
@@ -209,7 +209,7 @@ describe('eventsAt', () => {
     const marks = runMarks(singleRun(impulses(zeros, credit, zeros)), 3);
     expect(eventsAt(marks, 2).map((event) => event.label)).toEqual([
       'Credit contraction',
-      'Fiat transition',
+      'Fiat to bitcoin transition',
       'Credit write-off',
       'Bitcoin rebase',
     ]);

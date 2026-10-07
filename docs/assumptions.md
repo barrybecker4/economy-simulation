@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 11.
+Registry version: 12.
 
 ## agent.marketDepth
 
@@ -666,28 +666,6 @@ Registry version: 11.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.
 
-## money.bitcoinIssuance
-
-- Label: Bitcoin issuance
-- Group: regime
-- Unit: share
-- Default: 0
-- Range: 0 to 0.2
-- Status: guess
-- Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: New bitcoin supply each month, as a share. The bitcoin exchange rate falls when issuance exceeds the bitcoin share and rises when the share is larger. At 0 issuance does not push the price down. Unused when money choice speed is 0.
-
-## money.bitcoinStart
-
-- Label: Opening bitcoin share
-- Group: regime
-- Unit: share
-- Default: 0
-- Range: 0 to 1
-- Status: guess
-- Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of money balances that start as bitcoin. Fiat takes whatever this share, the stablecoin start, and the CBDC start do not claim. At 0 the opening mix has no bitcoin unless the other starts are zero and this is the residual, which it is not.
-
 ## money.bitcoinTrust
 
 - Label: Bitcoin trust
@@ -719,7 +697,7 @@ Registry version: 11.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How fast currency shares move toward the monies people prefer. Shares of fiat, bitcoin, stablecoins, and CBDC start from the opening sliders. Each month they step toward the mix implied by legal tender, trust, payment friction, and the real return. At 0 the shares stay at the opening mix and the regime slider still selects the monetary rule, which reproduces the previous phase. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.
+- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.
 
 ## money.fiatLegalTender
 

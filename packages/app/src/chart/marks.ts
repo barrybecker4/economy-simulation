@@ -59,13 +59,13 @@ const LABELS: Record<MarkKind, string> = {
   'credit-contraction': 'Credit contraction',
   'credit-write-off': 'Credit write-off',
   'productivity-expansion': 'Productivity expansion',
-  'fiat-transition': 'Fiat transition',
+  'fiat-transition': 'Fiat to bitcoin transition',
   'bitcoin-rebase': 'Bitcoin rebase',
 };
 
 /** Sentence appended to a chart description when that chart has marks. */
 export const MARKS_TIP =
-  'Shaded bands mark shocks and a fiat transition. Hover a month to see the event name in the legend.';
+  'Shaded bands mark shocks and a fiat to bitcoin transition. Hover a month to see the event name in the legend.';
 
 export function emptyMarks(): ChartMarks {
   return { bands: [], rules: [] };
