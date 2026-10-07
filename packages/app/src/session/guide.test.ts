@@ -21,6 +21,7 @@ import {
   NEXT_RERUN,
   NEXT_RUN,
   nextStep,
+  runIsPrimary,
 } from './guide.js';
 import type { RunSuccess } from '../worker/protocol.js';
 
@@ -59,9 +60,34 @@ describe('GUIDE_STEPS', () => {
   it('has four short steps', () => {
     expect(GUIDE_STEPS).toHaveLength(4);
     expect(GUIDE_STEPS[0]).toMatch(/Press Run/);
+    expect(GUIDE_STEPS[0]).toMatch(/collapsed/);
     expect(GUIDE_STEPS[1]).toMatch(/Parameters/);
+    expect(GUIDE_STEPS[1]).toMatch(/sourced/);
     expect(GUIDE_STEPS[2]).toMatch(/Pin as baseline/);
     expect(GUIDE_STEPS[3]).toMatch(/address bar/);
+  });
+});
+
+describe('NEXT_RUN', () => {
+  it('does not say the charts appear below', () => {
+    expect(NEXT_RUN).toMatch(/Press Run/);
+    expect(NEXT_RUN).not.toMatch(/below/);
+  });
+});
+
+describe('runIsPrimary', () => {
+  it('is true before the first run and when settings differ', () => {
+    const fresh = openComparisonSession({
+      seed: 1,
+      ticks: 24,
+      regime: 'fiat',
+      overrides: {},
+    });
+    expect(runIsPrimary(fresh)).toBe(true);
+    let session = posted(fresh, finishedRun());
+    expect(runIsPrimary(session)).toBe(false);
+    session = editSlider(session, getSlider('government.ubiShare'), '0.4');
+    expect(runIsPrimary(session)).toBe(true);
   });
 });
 

@@ -104,10 +104,6 @@ import { controlRange, storePresented } from '../tip/labels.js';
 
 <section class="parameters">
   <h2>Parameters</h2>
-  <p class="hint">
-    Each group starts collapsed on its preset. Expand a group to adjust the sliders it owns. Hover a name for unit,
-    default, and whether the value is sourced, calibrated, or a guess.
-  </p>
   {#each groups as block (block.group)}
     <div class="block">
       <div class="header">
