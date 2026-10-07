@@ -35,6 +35,7 @@ export function buyFromFirms(
     const taken = bill / seller.price;
     creditDeposit(seller, bill);
     seller.inventory -= taken;
+    seller.sales += taken;
     left -= bill;
     spent += bill;
     bought += taken;

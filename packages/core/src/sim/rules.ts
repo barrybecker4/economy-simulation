@@ -9,6 +9,10 @@ export const MONTHLY_SEPARATION = 0.02;
 export const MONTHLY_DEPRECIATION = 0.005;
 /** How many months of sales firms want to hold as inventory. */
 export const INVENTORY_MONTHS = 1;
+/** Weight on previous expected sales. The rest is sales since the last labor step. */
+export const SALES_SMOOTHING = 0.8;
+/** Largest share of employed workers a firm-level hiring rule may shed in one month. */
+export const MONTHLY_FIRM_SHED = 0.05;
 /** Monthly spending out of deposit balances. */
 export const WEALTH_MPC = 0.02;
 /** Ticks of negative equity before a firm is replaced. */

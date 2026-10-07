@@ -53,6 +53,8 @@ export interface Parameters {
   realReturnSensitivity: number;
   trendWeight: number;
   wageElasticity: number;
+  demandWeight: number;
+  firmLevelHiring: 'off' | 'on';
   tenureChoice: 'off' | 'on';
   mortgageTermYears: number;
   mortgageLtv: number;
@@ -129,6 +131,8 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     realReturnSensitivity: slider(config, 'household.realReturnSensitivity'),
     trendWeight: slider(config, 'prices.trendWeight'),
     wageElasticity: slider(config, 'labor.wageElasticity'),
+    demandWeight: slider(config, 'production.demandWeight'),
+    firmLevelHiring: firmLevelHiringOf(config),
     tenureChoice: tenureChoiceOf(config),
     mortgageTermYears: slider(config, 'housing.mortgageTermYears'),
     mortgageLtv: slider(config, 'housing.mortgageLtv'),
@@ -142,6 +146,14 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     debtHaircut: slider(config, 'transition.debtHaircut'),
     holderConcentration: slider(config, 'transition.holderConcentration'),
   };
+}
+
+export function firmLevelHiringOf(config: ResolvedConfig): 'off' | 'on' {
+  const value = config.sliders['labor.firmLevelHiring'];
+  if (value === 'off' || value === 'on') {
+    return value;
+  }
+  throw new Error('labor.firmLevelHiring must be off or on');
 }
 
 export function tenureChoiceOf(config: ResolvedConfig): 'off' | 'on' {

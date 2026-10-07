@@ -68,7 +68,9 @@ const EXPECTED_IDS = [
   'scale.banks',
   'labor.maxApplications',
   'labor.wageElasticity',
+  'labor.firmLevelHiring',
   'production.alpha',
+  'production.demandWeight',
   'goods.sampleSize',
 ];
 

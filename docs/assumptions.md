@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 3.
+Registry version: 4.
 
 ## ai.adoptionMidpointYear
 
@@ -556,6 +556,17 @@ Registry version: 3.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Whether households choose rent, a nominal mortgage, or cash ownership. Off keeps the penalty formulas for non-mortgage housing and property turnover, and households hold no mortgages or consumer loans. On: each household picks the tenure with the lowest expected real burden. Expected deflation raises the mortgage burden, so fewer new mortgages are taken. Shelter stays inside the food and housing spending floor. Consumer loans fund only discretionary spending above that floor and fall as the deflation penalty rises, down to zero. Household loans count in total credit and the bank capital rule.
 
+## labor.firmLevelHiring
+
+- Label: Firm-level hiring
+- Group: behavior
+- Unit: switch
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, and the same wage elasticity scales that total. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.
+
 ## labor.maxApplications
 
 - Label: Job applications
@@ -610,6 +621,17 @@ Registry version: 3.
 - Status: sourced
 - Source: A capital elasticity near one third matches the usual Cobb–Douglas capital share.
 - Description: Exponent on capital in the Cobb–Douglas production function. Capacity is productivity times capital raised to this power times labor raised to one minus this power. A higher value means output responds more to capital and less to employment. Capital starts equal to employment at that firm and depreciates at 0.5 percent a month. The default near one third matches the usual capital share of income.
+
+## production.demandWeight
+
+- Label: Demand weight on output
+- Group: behavior
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How far monthly output follows recent sales instead of full capacity. At 0 every firm produces its capacity, and unsold goods pile into inventory. Above 0, desired output is smoothed sales plus the gap to one month of inventory, capped at capacity, and output is a mix of that quantity and full capacity. At 1, output equals desired sales. A demand shortfall then lowers real GDP in later months. The default of 0 reproduces capacity-determined output.
 
 ## productivity.baseGrowth
 

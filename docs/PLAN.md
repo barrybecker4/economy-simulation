@@ -539,6 +539,20 @@ Acceptance:
 - The ledger audit passes at bullishness 2 with the default ramp.
 - A 1,200-month run at bullishness 1.5 keeps the ledger finite. Profit-share weights stay finite when `skill` raised to the ownership exponent overflows.
 
+### Phase 18: Demand sets output and firms hire
+
+Goal: a demand shortfall lowers output and hours, not just inventory and bankruptcies.
+
+1. `production.demandWeight` defaults to 0. At 0 every firm produces capacity. Above 0, desired output is smoothed sales plus the inventory gap, capped at capacity, and output mixes that quantity with capacity.
+2. `labor.firmLevelHiring` defaults to `off`. Off keeps the economy-wide hiring quota. On, each firm posts vacancies from smoothed sales versus capacity, and sheds at most 5 percent of employed workers in a month.
+
+Acceptance:
+
+- Demand weight 0 and firm-level hiring off match Phase 17 for the same seeds.
+- Under a demand contraction, demand weight 1 ends that window with lower real GDP than demand weight 0.
+- With demand weight 1, firm-level hiring ends the same contraction with higher unemployment than the economy-wide quota.
+- The ledger audit still passes.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

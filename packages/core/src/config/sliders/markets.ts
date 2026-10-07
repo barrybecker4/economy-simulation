@@ -1,5 +1,5 @@
 import type { Slider } from '../builders.js';
-import { numberSlider } from '../builders.js';
+import { enumSlider, numberSlider } from '../builders.js';
 
 export const MARKET_SLIDERS: readonly Slider[] = [
   numberSlider(
@@ -22,6 +22,15 @@ export const MARKET_SLIDERS: readonly Slider[] = [
     3,
     'How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.',
   ),
+  enumSlider(
+    'labor.firmLevelHiring',
+    'Firm-level hiring',
+    'behavior',
+    'switch',
+    'off',
+    ['off', 'on'],
+    'Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, and the same wage elasticity scales that total. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.',
+  ),
   numberSlider(
     'production.alpha',
     'Capital elasticity',
@@ -31,6 +40,16 @@ export const MARKET_SLIDERS: readonly Slider[] = [
     0.2,
     0.5,
     'Exponent on capital in the Cobb–Douglas production function. Capacity is productivity times capital raised to this power times labor raised to one minus this power. A higher value means output responds more to capital and less to employment. Capital starts equal to employment at that firm and depreciates at 0.5 percent a month. The default near one third matches the usual capital share of income.',
+  ),
+  numberSlider(
+    'production.demandWeight',
+    'Demand weight on output',
+    'behavior',
+    'share',
+    0,
+    0,
+    1,
+    'How far monthly output follows recent sales instead of full capacity. At 0 every firm produces its capacity, and unsold goods pile into inventory. Above 0, desired output is smoothed sales plus the gap to one month of inventory, capped at capacity, and output is a mix of that quantity and full capacity. At 1, output equals desired sales. A demand shortfall then lowers real GDP in later months. The default of 0 reproduces capacity-determined output.',
   ),
   numberSlider(
     'goods.sampleSize',

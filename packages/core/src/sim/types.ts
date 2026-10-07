@@ -32,6 +32,10 @@ export interface Firm {
   deposit: number;
   loan: number;
   output: number;
+  /** Units sold since the last labor step, including government purchases. */
+  sales: number;
+  /** Smoothed unit sales used when demand sets output or firms set hiring. */
+  expectedSales: number;
   negTicks: number;
 }
 

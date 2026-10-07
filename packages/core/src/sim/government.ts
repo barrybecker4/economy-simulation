@@ -119,7 +119,9 @@ function buyFirmInventory(economy: Economy, firm: Firm, remaining: number): numb
     return remaining;
   }
   payFromTreasury(firm, economy, bill);
-  firm.inventory -= bill / firm.price;
+  const taken = bill / firm.price;
+  firm.inventory -= taken;
+  firm.sales += taken;
   return remaining - bill;
 }
 

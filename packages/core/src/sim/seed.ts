@@ -109,6 +109,7 @@ export function openFirmBooks(economy: Economy): number {
   for (const firm of economy.firms) {
     firm.capital = Math.max(1, firm.workers.length);
     firm.inventory = firmCapacity(economy, firm) * INVENTORY_MONTHS;
+    firm.expectedSales = firmCapacity(economy, firm);
     setFirmLoan(firm, Math.round(OPENING_LOAN_SHARE * firm.capital * firm.price));
     initialOutput += firmCapacity(economy, firm);
   }
@@ -156,6 +157,8 @@ function seedFirms(economy: Economy, init: Rng): void {
       deposit: 0,
       loan: 0,
       output: 0,
+      sales: 0,
+      expectedSales: 0,
       negTicks: 0,
     });
   }
