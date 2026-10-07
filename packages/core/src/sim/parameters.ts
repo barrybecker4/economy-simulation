@@ -61,6 +61,7 @@ export interface Parameters {
   wageElasticity: number;
   demandWeight: number;
   firmLevelHiring: 'off' | 'on';
+  equityMarket: 'off' | 'on';
   tenureChoice: 'off' | 'on';
   mortgageTermYears: number;
   mortgageLtv: number;
@@ -152,6 +153,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     wageElasticity: slider(config, 'labor.wageElasticity'),
     demandWeight: slider(config, 'production.demandWeight'),
     firmLevelHiring: firmLevelHiringOf(config),
+    equityMarket: equityMarketOf(config),
     tenureChoice: tenureChoiceOf(config),
     mortgageTermYears: slider(config, 'housing.mortgageTermYears'),
     mortgageLtv: slider(config, 'housing.mortgageLtv'),
@@ -172,6 +174,14 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     bitcoinTrust: slider(config, 'money.bitcoinTrust'),
     bitcoinIssuance: slider(config, 'money.bitcoinIssuance'),
   };
+}
+
+export function equityMarketOf(config: ResolvedConfig): 'off' | 'on' {
+  const value = config.sliders['equity.marketOn'];
+  if (value === 'off' || value === 'on') {
+    return value;
+  }
+  throw new Error('equity.marketOn must be off or on');
 }
 
 export function marketClearingOf(config: ResolvedConfig): 'off' | 'on' {

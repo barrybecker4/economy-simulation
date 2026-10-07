@@ -92,6 +92,7 @@ export function blankEconomy(
     bitcoinPrice: 1,
     stablecoinPrice: 1,
     cbdcPrice: 1,
+    equityClaims: [],
   };
 }
 

@@ -74,4 +74,6 @@ export interface Economy {
   bitcoinPrice: number;
   stablecoinPrice: number;
   cbdcPrice: number;
+  /** Capital claims counted in wealth when the equity market is on. */
+  equityClaims: number[];
 }

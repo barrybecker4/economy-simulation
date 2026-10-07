@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 9.
+Registry version: 10.
 
 ## ai.adoptionMidpointYear
 
@@ -280,6 +280,17 @@ Registry version: 9.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly expected deflation changes credit and housing. Expected deflation is zero when inflation is positive, and the absolute value of inflation when prices are falling. The penalty is this sensitivity times that rate, capped at 0.9. While it is positive, firms repay a slice of their loans each month, housing demand is scaled down by the penalty, and the reported profit-sharing and non-mortgage housing shares rise when tenure choice is off. When tenure choice is on, those housing shares are measured from household tenures instead. At zero, or whenever inflation is positive, the penalty is off, so a fiat run near the inflation target is unchanged.
+
+## equity.marketOn
+
+- Label: Equity market
+- Group: behavior
+- Unit: switch
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Whether household wealth includes a claim on firm capital. Off counts only deposits, which reproduces the previous wealth distribution. On, firm capital valued at the posted price is split across households with the same skill weights used for profits, including the extra concentration from AI ownership. Those claims are not traded and do not move deposits. They raise measured wealth and the wealth Gini when capital income is uneven.
 
 ## expectations.anchorWeight
 

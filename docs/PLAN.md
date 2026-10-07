@@ -644,6 +644,19 @@ Acceptance:
 - H9 is supported for the bundled settings.
 - Choice speed 0 still leaves H1–H8 on their previous regime rules.
 
+### Phase 26: AI capital and equity wealth
+
+Goal: capital income can show up as wealth, not only as a flow of profit.
+
+1. `equity.marketOn` defaults to `off`. Off counts only deposits.
+2. On: firm capital at posted prices is split by the profit weights, including the extra concentration from AI ownership. Wealth Gini uses deposits plus those claims. Capital share is profits over wages plus profits.
+
+Acceptance:
+
+- Equity market off matches Phase 25 wealth Gini for the same seeds.
+- Equity market on ends with a higher wealth Gini.
+- The ledger audit still passes. Claims do not move deposits.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

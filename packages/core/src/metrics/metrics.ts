@@ -38,6 +38,7 @@ export const METRIC_IDS = [
   'naturalUnemployment',
   'realWage',
   'laborShare',
+  'capitalShare',
   'taxRevenue',
   'agentTaxRevenue',
   'ubiOutlay',

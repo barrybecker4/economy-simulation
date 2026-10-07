@@ -128,7 +128,7 @@ policy rate = max(0, time preference + inflation + inflationWeight * (inflation 
 
 ## Welfare
 
-Real wealth and real income divide nominal stocks by the CPI. Real consumption is goods bought by households. The Gini of wealth, income, and skill uses the standard sorted-share formula. Negative wealth is shifted before the Gini so the measure stays defined. The consumption floor share is the fraction of households below one quarter of median real consumption. Housing security for a household is its real income divided by median real income and by `1 + housing/CPI`, clamped to [0, 1]. Well-being is the log of real consumption, floored at 0.01, plus 0.5 times that household's housing security. Human metrics ignore AI agents. Labor share is the wage bill over nominal GDP.
+When `equity.marketOn` is off, household wealth is deposits. When it is on, wealth adds a claim on firm capital valued at posted prices, split by the same skill weights as profits. The claims are not traded and do not move deposits. Capital share is profits divided by wages plus profits. Real wealth and real income divide nominal stocks by the CPI. Real consumption is goods bought by households. The Gini of wealth, income, and skill uses the standard sorted-share formula. Negative wealth is shifted before the Gini so the measure stays defined. The consumption floor share is the fraction of households below one quarter of median real consumption. Housing security for a household is its real income divided by median real income and by `1 + housing/CPI`, clamped to [0, 1]. Well-being is the log of real consumption, floored at 0.01, plus 0.5 times that household's housing security. Human metrics ignore AI agents. Labor share is the wage bill over nominal GDP.
 
 ## Regimes
 

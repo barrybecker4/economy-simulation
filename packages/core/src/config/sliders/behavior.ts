@@ -131,4 +131,13 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0.95,
     'How sticky the money wage is when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity, because the hiring target shrinks with the human share of output. Wages still follow monthly inflation and productivity growth. An extra gap opens when the labor market is tight or slack relative to that natural rate, the gap is scaled by the human share of output, and this rigidity shrinks it further. Upward pressure is multiplied by one minus the rigidity. Downward pressure is multiplied by the square of that remainder, so cuts pass through less than raises. At 0.7, a tight market passes through 30 percent of the upward gap and 9 percent of a downward gap. At 0, the gap passes through in full. The monthly wage change is still capped.',
   ),
+  enumSlider(
+    'equity.marketOn',
+    'Equity market',
+    'behavior',
+    'switch',
+    'off',
+    ['off', 'on'],
+    'Whether household wealth includes a claim on firm capital. Off counts only deposits, which reproduces the previous wealth distribution. On, firm capital valued at the posted price is split across households with the same skill weights used for profits, including the extra concentration from AI ownership. Those claims are not traded and do not move deposits. They raise measured wealth and the wealth Gini when capital income is uneven.',
+  ),
 ];

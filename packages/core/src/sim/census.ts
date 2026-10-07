@@ -1,5 +1,6 @@
 import { splitBasket, type BasketSplit } from './basket.js';
 import type { Economy } from './economy.js';
+import { refreshEquityClaims } from './equity.js';
 import { deflationPenalty, employedCount } from './helpers.js';
 import { clamp, distributionOf, mean, median } from './stats.js';
 
@@ -35,7 +36,7 @@ export function measureHouseholds(economy: Economy): HouseholdMeasures {
     housingSecurity: mean(securities),
     employed: employedCount(economy),
     income: distributionOf(incomes),
-    wealth: distributionOf(economy.households.map((household) => household.deposit)),
+    wealth: distributionOf(householdWealth(economy)),
     skill: distributionOf(economy.households.map((household) => household.skill)),
     consumption: consumptionStats,
     wellbeingMean: wellbeingStats.mean,
@@ -101,6 +102,16 @@ export function jobShares(economy: Economy): {
     small: small / households,
     large: large / households,
   };
+}
+
+function householdWealth(economy: Economy): number[] {
+  if (economy.params.equityMarket !== 'on') {
+    return economy.households.map((household) => household.deposit);
+  }
+  refreshEquityClaims(economy);
+  return economy.households.map(
+    (household, index) => household.deposit + (economy.equityClaims[index] ?? 0),
+  );
 }
 
 function categoryPrices(economy: Economy): BasketSplit {

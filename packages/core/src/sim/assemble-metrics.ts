@@ -39,6 +39,8 @@ function recordOutput(snapshot: MetricSnapshot, metrics: MetricSink): void {
     'laborShare',
     snapshot.nominalOutput > 0 ? snapshot.wageBill / snapshot.nominalOutput : 0,
   );
+  const earned = snapshot.wageBill + snapshot.profitPaid;
+  metrics.set('capitalShare', earned > 0 ? snapshot.profitPaid / earned : 0);
   metrics.set('unemployment', 1 - snapshot.employed / snapshot.householdCount);
   metrics.set('naturalUnemployment', snapshot.naturalUnemployment);
 }
