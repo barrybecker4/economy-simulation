@@ -605,6 +605,19 @@ Acceptance:
 - With agents trading, a higher compute productivity ends with higher real GDP.
 - The ledger audit still passes.
 
+### Phase 23: Multi-unit ledger
+
+Goal: several monies can be posted and audited separately. A run that still uses one money is unchanged.
+
+1. `MultiLedger` holds one ledger per money. Fiat books stay integer cents. Other books use fractional satoshis. An exchange posts both sides, so neither money is created by the trade.
+2. The economy’s existing stock journal stays on its single ledger. This phase does not move household deposits.
+
+Acceptance:
+
+- A one-money book matches a single ledger.
+- Random exchanges keep every money’s audit passing, including fractional satoshi amounts.
+- Existing economy tests are unchanged.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.
