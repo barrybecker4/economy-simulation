@@ -5,7 +5,14 @@ import { hurdleInvestment } from './credit.js';
 import { deflationPenaltyFrom } from './helpers.js';
 import { hiringScale, wageGrowth } from './labor.js';
 import { monthlyPriceMove } from './pricing.js';
-import { automationShare, roboticsProgress, taskGain } from './population.js';
+import {
+  adoptionProgress,
+  automationShare,
+  ownerSlotCount,
+  roboticsProgress,
+  scheduledAgentCount,
+  taskGain,
+} from './population.js';
 import { AI_INTERNET_TASK_GAIN } from './rules.js';
 import { goodsBudget, goodsSpendingShare } from './spending.js';
 
@@ -26,18 +33,22 @@ describe('pure economy formulas', () => {
   });
 
   it('puts the automatable share at the midpoint halfway through', () => {
-    expect(automationShare(0.1, 0.9, 0.4, 15, 15)).toBeCloseTo(0.5, 12);
+    expect(automationShare(0.1, 0.9, 0.4, 10, 10)).toBeCloseTo(0.5, 12);
+    expect(adoptionProgress(0.1, 0.9, 0.4, 10, 10)).toBeCloseTo(0.5, 12);
     expect(automationShare(0.3, 0.3, 1, 10, 20)).toBe(0.3);
+    expect(adoptionProgress(0.3, 0.3, 1, 10, 20)).toBe(0);
+    expect(ownerSlotCount(1000, 0.95, 0.5)).toBe(475);
+    expect(scheduledAgentCount(475, 20, 0.5)).toBe(4750);
   });
 
   it('scales the task gain with bullishness and retires the physical share on a ramp', () => {
     expect(taskGain(0, 10)).toBeCloseTo(AI_INTERNET_TASK_GAIN, 12);
     expect(taskGain(1, 10)).toBeCloseTo(1, 12);
     expect(taskGain(2, 10)).toBeCloseTo(Math.exp(0.15 * 10), 12);
-    expect(roboticsProgress(4, 5, 8)).toBe(0);
-    expect(roboticsProgress(5, 5, 8)).toBe(0);
-    expect(roboticsProgress(9, 5, 8)).toBeCloseTo(0.5, 12);
-    expect(roboticsProgress(13, 5, 8)).toBe(1);
+    expect(roboticsProgress(7, 8, 12)).toBe(0);
+    expect(roboticsProgress(8, 8, 12)).toBe(0);
+    expect(roboticsProgress(14, 8, 12)).toBeCloseTo(0.5, 12);
+    expect(roboticsProgress(20, 8, 12)).toBe(1);
   });
 
   it('makes downward wage pressure stickier than upward', () => {

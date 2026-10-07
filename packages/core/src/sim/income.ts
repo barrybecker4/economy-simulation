@@ -19,7 +19,7 @@ export function redistributeToUnemployed(economy: Economy): void {
 
 /**
  * Pay wages from firm receipts, then distribute the residual as profit shares.
- * Ownership weights rise faster than skill, so wealth stays more unequal than income.
+ * Profit weights rise faster than skill. Agent ownership follows household id.
  */
 export function distributeIncome(economy: Economy): void {
   const wagePaid = new Array<number>(economy.households.length).fill(0);

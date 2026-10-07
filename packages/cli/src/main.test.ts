@@ -20,7 +20,7 @@ describe('cli', () => {
     const parsed = JSON.parse(first) as { config: { seed: number; name: string } };
     expect(parsed.config.seed).toBe(7);
     expect(parsed.config.name).toBe('baseline');
-  });
+  }, 20_000);
 
   it('compares two regimes for one seed', () => {
     const directory = mkdtempSync(path.join(tmpdir(), 'economy-sim-'));

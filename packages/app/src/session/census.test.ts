@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { RunSuccess } from '../worker/protocol.js';
 import { CHART_METRICS } from '../worker/series.js';
-import { agentCountFromShare, monthCensus, ownerCount } from './census.js';
+import { agentCountFromShare, monthCensus, ownerCount, type CensusFrame } from './census.js';
 
 const ticks = [0, 1];
 
@@ -27,25 +27,39 @@ function series(): Record<string, number[]> {
 describe('monthCensus', () => {
   it('builds wealth, job, and owner panels for the selected month', () => {
     const result: RunSuccess = { kind: 'run', ticks, series: series() };
-    const empty = monthCensus(result, 0, 100, 0.5);
+    const frame = censusFrame();
+    const empty = monthCensus(result, 0, frame);
     expect(empty.wealth.map((slice) => slice.share)).toEqual([0.05, 0.1, 0.15, 0.2, 0.5]);
     expect(empty.jobs.map((slice) => slice.share)).toEqual([0.06, 0.5, 0.44]);
     expect(empty.owners.hasAgents).toBe(false);
     expect(empty.owners.agentCount).toBe(0);
 
-    const later = monthCensus(result, 1, 100, 0.5);
+    const later = monthCensus(result, 1, frame);
     expect(later.owners.hasAgents).toBe(true);
     expect(later.owners.agentCount).toBe(25);
-    expect(later.owners.ownerCount).toBe(50);
+    expect(later.owners.ownerCount).toBe(25);
     expect(later.owners.ownerWealthShare).toBe(0.3);
   });
 });
 
 describe('agent and owner counts', () => {
-  it('inverts the AI agent share and matches population ownership', () => {
+  it('inverts the AI agent share and counts owners from the adoption curve', () => {
     expect(agentCountFromShare(0, 100)).toBe(0);
     expect(agentCountFromShare(0.2, 100)).toBe(25);
-    expect(ownerCount(100, 0.5, 25)).toBe(50);
-    expect(ownerCount(100, 0.5, 0)).toBe(0);
+    const frame = censusFrame();
+    expect(ownerCount(frame, 10, 25)).toBe(25);
+    expect(ownerCount(frame, 10, 0)).toBe(0);
+    expect(ownerCount({ ...frame, autoStart: 0.3, autoEnd: 0.3 }, 10, 25)).toBe(0);
   });
 });
+
+function censusFrame(): CensusFrame {
+  return {
+    households: 100,
+    ownerShareCeiling: 0.95,
+    autoStart: 0.1,
+    autoEnd: 0.9,
+    adoptionMidpoint: 0,
+    adoptionSteepness: 0.4,
+  };
+}

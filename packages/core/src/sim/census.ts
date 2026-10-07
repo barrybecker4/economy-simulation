@@ -57,16 +57,13 @@ export function ownerWealthShare(economy: Economy): number {
   if (economy.agents.length === 0 || economy.households.length === 0) {
     return 0;
   }
-  const ownerCount = Math.max(
-    1,
-    Math.round(economy.households.length * (1 - economy.params.ownership)),
-  );
+  const owners = new Set(economy.agents.map((agent) => agent.owner));
   let ownerWealth = 0;
   let total = 0;
   for (const household of economy.households) {
     const deposit = Math.max(0, household.deposit);
     total += deposit;
-    if (household.id < ownerCount) {
+    if (owners.has(household.id)) {
       ownerWealth += deposit;
     }
   }

@@ -20,11 +20,12 @@ export function tradeAgents(economy: Economy): void {
     return;
   }
   const friction = paymentFriction(economy);
-  if (!serviceIsCheap(economy.wageLevel, friction)) {
+  const progress = economy.adoptionProgress;
+  if (!serviceIsCheap(economy.wageLevel, friction, progress)) {
     clearAgentIncome(economy);
     return;
   }
-  const ask = economy.wageLevel * AI_SERVICE_WAGE_SHARE * (1 + friction);
+  const ask = economy.wageLevel * AI_SERVICE_WAGE_SHARE * progress * (1 + friction);
   for (const agent of economy.agents) {
     sellCompute(economy, agent, ask, friction);
   }
@@ -73,8 +74,8 @@ function paymentFriction(economy: Economy): number {
     : economy.params.frictionBitcoin;
 }
 
-function serviceIsCheap(wage: number, friction: number): boolean {
-  return wage * AI_SERVICE_WAGE_SHARE * (1 + friction) < wage * AI_SERVICE_PRICE_CAP;
+function serviceIsCheap(wage: number, friction: number, progress: number): boolean {
+  return wage * AI_SERVICE_WAGE_SHARE * progress * (1 + friction) < wage * AI_SERVICE_PRICE_CAP;
 }
 
 function clearAgentIncome(economy: Economy): void {

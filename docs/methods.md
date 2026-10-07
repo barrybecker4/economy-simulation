@@ -1,6 +1,6 @@
 # Methods notes
 
-`pnpm sim hypotheses --out hypotheses.json` runs H1–H8. Each note says what the runner compares. A `supported` flag is the comparison on seed 4 for 36 months at 40 households. It is a check that the mechanism moves, not a test of the real economy. See [limits.md](limits.md).
+`pnpm sim hypotheses --out hypotheses.json` runs H1–H8. Each note says what the runner compares. A `supported` flag is the comparison on seed 4 at 40 households, usually for 36 months. H4 runs 48 months. It is a check that the mechanism moves, not a test of the real economy. See [limits.md](limits.md).
 
 ## H1
 
@@ -24,7 +24,7 @@ One run keeps the automatable share fixed. Another adopts quickly at the default
 
 Claim: lower payment friction raises the AI transaction share.
 
-Two fiat runs set the autonomy share to 0.6. Friction is 0 in one and 0.1 in the other. Support means the easier run has a higher AI share of transactions.
+Two fiat runs put the adoption midpoint at year 1 and the steepness at 1.5, and they run for 48 months so agent output is near its ceiling. Friction is 0 in one and 0.1 in the other. Support means the easier run has a higher AI share of transactions.
 
 ## H5
 

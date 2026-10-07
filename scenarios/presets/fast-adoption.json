@@ -2,8 +2,10 @@
   "name": "fast-adoption",
   "ticks": 600,
   "sliders": {
+    "ai.adoptionMidpointYear": 3,
+    "ai.adoptionSteepness": 1.2,
     "ai.bullishness": 1.5,
-    "ai.adoptionMidpointYear": 5,
-    "ai.adoptionSteepness": 1.2
+    "ai.roboticsRampYears": 8,
+    "ai.roboticsStartYear": 4
   }
 }

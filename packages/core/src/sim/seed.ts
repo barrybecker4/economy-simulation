@@ -36,6 +36,7 @@ export function blankEconomy(
     aiFactor: 1,
     displacementFactor: 1,
     automatedShare: params.autoStart,
+    adoptionProgress: 0,
     agentVolume: 0,
     agentGoodsSpend: 0,
     agentFees: 0,

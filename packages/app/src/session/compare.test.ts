@@ -286,12 +286,12 @@ describe('comparison session', () => {
         seed: 1,
         ticks: 24,
         regime: 'fiat',
-        overrides: { 'scale.households': 500, 'ai.ownershipConcentration': 0.2 },
+        overrides: { 'scale.households': 500, 'ai.ownerShareCeiling': 0.4 },
       }),
       baseline,
     );
     session = pinBaseline(session, sliders).session;
-    session = editSlider(session, getSlider('ai.ownershipConcentration'), '0.9');
+    session = editSlider(session, getSlider('ai.ownerShareCeiling'), '0.8');
     session = editRegime(session, 'bitcoin');
     const prepared = prepareRun(session, sliders);
     if (prepared.blocked) {
@@ -316,12 +316,12 @@ describe('comparison session', () => {
     expect(bundle.variant?.result).toBe(variant);
     expect(bundle.variant?.regime).toBe('bitcoin');
     expect(bundle.variant?.households).toBe(500);
-    expect(bundle.variant?.ownership).toBe(0.9);
+    expect(bundle.variant?.ownerShareCeiling).toBe(0.8);
     expect(bundle.variant?.transitionLength).toBe(0);
     expect(bundle.baseline?.result).toBe(baseline);
     expect(bundle.baseline?.regime).toBe('fiat');
     expect(bundle.baseline?.households).toBe(500);
-    expect(bundle.baseline?.ownership).toBe(0.2);
+    expect(bundle.baseline?.ownerShareCeiling).toBe(0.4);
     expect(bundle.baseline?.transitionLength).toBe(0);
     expect(canPromoteBaseline(session)).toBe(true);
   });

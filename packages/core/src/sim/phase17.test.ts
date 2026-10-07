@@ -9,7 +9,7 @@ const small = {
   'scale.firms': 6,
   'scale.banks': 1,
   'shock.frequency': 0,
-  'ai.agentAutonomyShareEnd': 0,
+  'ai.ownerShareCeiling': 0,
 };
 
 const delayedRobotics = {
@@ -41,13 +41,13 @@ describe('phase 17 AI bullishness and robotics', () => {
       'ai.bullishness': 1,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
-      'ai.roboticsStartYear': 5,
-      'ai.roboticsRampYears': 8,
+      'ai.roboticsStartYear': 8,
+      'ai.roboticsRampYears': 12,
       ticks: 180,
     });
     expect(delayed.audit.ok && ramping.audit.ok).toBe(true);
-    const preRamp = series(delayed, 'realGdp').slice(0, 60);
-    expect(series(ramping, 'realGdp').slice(0, 60)).toEqual(preRamp);
+    const preRamp = series(delayed, 'realGdp').slice(0, 96);
+    expect(series(ramping, 'realGdp').slice(0, 96)).toEqual(preRamp);
     expect(last(ramping, 'productivityPerHuman')).toBeGreaterThan(
       last(delayed, 'productivityPerHuman'),
     );

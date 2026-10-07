@@ -11,8 +11,8 @@ Registry version: 3.
 - Label: AI adoption midpoint
 - Group: ai
 - Unit: years
-- Default: 15
-- Range: 3 to 40
+- Default: 10
+- Range: 1 to 40
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Year when the automatable share is halfway from the start share to the end share. An earlier year brings the S-curve forward. The curve is flat, and this year does nothing, when the start and end shares are equal.
@@ -28,16 +28,16 @@ Registry version: 3.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How sharply the automatable share climbs through its S-curve, per year. A higher value bunches the change around the midpoint year. A lower value spreads the same change over more years. It has no effect when the start and end shares are equal.
 
-## ai.agentAutonomyShareEnd
+## ai.agentsPerOwnerCeiling
 
-- Label: AI agent autonomy share
+- Label: Agents per owner
 - Group: aiClaims
-- Unit: share
-- Default: 0.5
-- Range: 0 to 1
+- Unit: agents
+- Default: 20
+- Range: 0 to 50
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How many AI agents eventually keep their own accounts, as a share of the household count. The count rises in a straight line from zero to this share over five years. At 0.5 with 1,000 households, the run ends with about 500 agents. Each agent has a human owner, holds a deposit, and sells one unit of compute to a firm when its price, including the payment fee, is cheap relative to the wage. It keeps a small amount for compute and pays the rest to its owner. Human well-being, income, and wealth count households only. At zero, no agents are created and the rest of the economy is unchanged.
+- Description: How many agents one owner holds once the adoption curve has finished. The count rises along that curve from zero to this ceiling. New agents go to owners who are short of the current level. An existing agent keeps its owner and its deposit. At zero, no agents are created.
 
 ## ai.automatableShareEnd
 
@@ -83,6 +83,17 @@ Registry version: 3.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual rate at which AI compute gets cheaper. Cost starts equal to the wage and is multiplied by one minus this rate each year. Firms take up newly automatable tasks only once that cost is below the wage. Any positive rate makes cost fall below the wage after the first year. At zero, cost stays at the wage and this channel adds no capacity.
 
+## ai.ownerShareCeiling
+
+- Label: Owner-share ceiling
+- Group: aiClaims
+- Unit: share
+- Default: 0.95
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Highest fraction of households that own an agent. The owner share rises along the adoption curve from zero to this ceiling. Households become owners in id order, lowest first. At 0.95 with 1,000 households, 950 households can own an agent once the curve has finished. At zero, no agents are created. The curve stays at zero when the start and end automatable shares are equal.
+
 ## ai.ownershipConcentration
 
 - Label: AI ownership concentration
@@ -92,7 +103,7 @@ Registry version: 3.
 - Range: 0.1 to 0.99
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How concentrated the gains from AI are across households. Two things use it. Profit shares normally follow skill raised to 1.5; once AI capacity is above normal, that exponent rises by this value times the extra capacity factor, so the same skill gaps claim a larger share of profits. AI agents are also owned by a smaller group: the owner count is the household count times one minus this value. At 0.8, about a fifth of households own the agents. It does not change who is employed.
+- Description: How strongly profits skew toward high-skill households as the AI factor rises. Profit shares normally follow skill raised to 1.5. Once AI capacity is above normal, that exponent rises by this value times the extra capacity factor, so the same skill gaps claim a larger share of profits. It does not choose which households own agents.
 
 ## ai.paymentFrictionBitcoin
 
@@ -103,7 +114,7 @@ Registry version: 3.
 - Range: 0 to 0.1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Fee on an AI agent sale in the bitcoin and hybrid regimes, as a share of the payment. The fee is paid into bank equity. The asking price starts at 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales. The default of 0.005 stays well under that cutoff. The fiat regime uses the fiat fee instead. The fee does nothing when no autonomous agents are created.
+- Description: Fee on an AI agent sale in the bitcoin and hybrid regimes, as a share of the payment. The fee is paid into bank equity. The asking price rises along the adoption curve toward 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales once output is near that ceiling. The default of 0.005 stays well under that cutoff. The fiat regime uses the fiat fee instead. The fee does nothing when no agents are created.
 
 ## ai.paymentFrictionFiat
 
@@ -114,40 +125,40 @@ Registry version: 3.
 - Range: 0 to 0.1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Fee on an AI agent sale in the fiat regime, as a share of the payment. The fee is paid into bank equity. The asking price starts at 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales. Below that, a higher fee makes the agent a worse deal and can leave the ask uncompetitive. The bitcoin and hybrid regimes use the bitcoin fee instead. The fee does nothing when no autonomous agents are created.
+- Description: Fee on an AI agent sale in the fiat regime, as a share of the payment. The fee is paid into bank equity. The asking price rises along the adoption curve toward 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales once output is near that ceiling. Below that, a higher fee makes the agent a worse deal and can leave the ask uncompetitive. The bitcoin and hybrid regimes use the bitcoin fee instead. The fee does nothing when no agents are created.
 
 ## ai.physicalTaskShare
 
-- Label: Physical task share
+- Label: Reachable share
 - Group: ai
 - Unit: share
 - Default: 0.3
 - Range: 0 to 0.7
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of tasks that software cannot do, such as in-person physical work, before the robotics ramp opens them. Extra capacity from AI is the gain in the automatable share times one minus the effective physical share. If the automatable share has risen by 0.2 and this share is 0.3, capacity is about 14 percent higher while the ceiling is intact. At 0, the whole gain becomes capacity. At 1, nothing is automated until robots retire the share. Displacement, which limits job search, begins only once capacity has actually increased.
+- Description: Blocked share of an automatable-share rise before robotics. The control shows one minus this stored value, the reachable share. The default stored value 0.30 reads as 0.70, so 70 percent of the rise counts before robotics. Robotics raises the reachable share to one. A higher stored value blocks more of the rise. If the automatable share has risen by 0.2 and this stored value is 0.3, about 14 percent of tasks are adopted while the block is intact. At 0 the whole rise counts. Displacement, which limits job search, begins only once capacity has actually increased.
 
 ## ai.roboticsRampYears
 
 - Label: Robotics ramp
 - Group: ai
 - Unit: years
-- Default: 8
+- Default: 12
 - Range: 1 to 30
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How many years the effective physical-task share takes to fall from its slider value to zero after the robotics start year. The path is a straight line. At the defaults the ceiling is intact through year 5, half gone around year 9, and gone by year 13. A finished ramp lets the automatable share that software already reached cover the old physical tasks as well. Tasks outside the final automatable share stay human.
+- Description: How many years the reachable share takes to rise from the control value to one after the robotics start year. The path is a straight line. At the defaults the block is intact through year 8, half gone around year 14, and gone by year 20. A finished ramp lets the automatable share that software already reached cover the old physical tasks as well. Tasks outside the final automatable share stay human.
 
 ## ai.roboticsStartYear
 
 - Label: Robotics start
 - Group: ai
 - Unit: years
-- Default: 5
+- Default: 8
 - Range: 0 to 50
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Year from the start of the run when mass robotics begins to open physical tasks. The core does not read the calendar. Tick 0 is month 0, and charts label that month as the month the page is opened, so the default of 5 is about 2031 when month 0 is read as late 2026. Until this year the physical-task share stays at its slider. A start year at or past the last year of the run leaves the ceiling intact for that run.
+- Description: Year from the start of the run when mass robotics begins to open physical tasks. The core does not read the calendar. Tick 0 is month 0, and charts label that month as the month the page is opened, so the default of 8 is about 2034 when month 0 is read as late 2026. Until this year the reachable share stays at the control value. A start year at or past the last year of the run leaves the block intact for that run.
 
 ## bank.capitalRatio
 

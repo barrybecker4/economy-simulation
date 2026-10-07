@@ -35,7 +35,7 @@
     changedSliders,
     parameterSliders,
     resolvedSliders,
-    sliderValue,
+    presentedSliderValue,
   } from './session/sliders.js';
   import { nextStep } from './session/guide.js';
   import Compare from './ui/Compare.svelte';
@@ -99,22 +99,12 @@
   const census = $derived(
     bundle.variant === null
       ? null
-      : monthCensus(
-          bundle.variant.result,
-          monthIndex,
-          bundle.variant.households,
-          bundle.variant.ownership,
-        ),
+      : monthCensus(bundle.variant.result, monthIndex, bundle.variant),
   );
   const baselineCensus = $derived(
     bundle.baseline === null
       ? null
-      : monthCensus(
-          bundle.baseline.result,
-          monthIndex,
-          bundle.baseline.households,
-          bundle.baseline.ownership,
-        ),
+      : monthCensus(bundle.baseline.result, monthIndex, bundle.baseline),
   );
   const diffs = $derived(comparisonDiffs(session, sliders));
   const canPin = $derived(canPinBaseline(session));
@@ -243,7 +233,7 @@
   }
 
   function valueOf(slider: Slider): number | string {
-    return sliderValue(slider, session.regime, session.overrides);
+    return presentedSliderValue(slider, session.regime, session.overrides);
   }
 
   function showGroup(index: number, group: string, list: typeof views): boolean {

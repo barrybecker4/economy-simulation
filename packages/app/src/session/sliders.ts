@@ -4,7 +4,7 @@ import {
   type NumberSlider,
   type Slider,
 } from '../../../core/src/config/registry.js';
-import { groupRank } from '../tip/labels.js';
+import { BLOCKED_SHARE, groupRank, presentStored } from '../tip/labels.js';
 
 const REGIME_ID = 'regime.type';
 
@@ -37,6 +37,15 @@ export function sliderValue(
   return overrides[slider.id] ?? slider.default;
 }
 
+/** Value shown on the control. The reachable share is one minus its stored block. */
+export function presentedSliderValue(
+  slider: Slider,
+  regime: string,
+  overrides: Readonly<Record<string, number | string>>,
+): number | string {
+  return presentStored(slider, sliderValue(slider, regime, overrides));
+}
+
 export function resolvedSliders(
   sliders: readonly Slider[],
   regime: string,
@@ -62,6 +71,9 @@ export function changedSliders(
 export function sliderStep(slider: Slider): number {
   if (slider.kind !== 'number') {
     throw new Error(`${slider.id} has no numeric step`);
+  }
+  if (slider.id === BLOCKED_SHARE) {
+    return 0.001;
   }
   const step = (slider.max - slider.min) / 100;
   if (!(step > 0)) {

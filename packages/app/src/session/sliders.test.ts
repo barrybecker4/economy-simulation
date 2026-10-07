@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getSlider, listSliders } from '../../../core/src/config/registry.js';
-import { GROUP_ORDER } from '../tip/labels.js';
+import { controlRange, GROUP_ORDER, presentStored, storePresented } from '../tip/labels.js';
 import {
   changedSliders,
   parameterSliders,
@@ -63,6 +63,18 @@ describe('writeSlider', () => {
     expect(next.overrides).toEqual({ 'firm.markup': 0.4 });
   });
 
+  it('stores the reachable-share complement and omits the default block', () => {
+    const slider = getSlider('ai.physicalTaskShare');
+    expect(presentStored(slider, 0.3)).toBe(0.7);
+    expect(controlRange(slider)).toEqual({ min: 0.3, max: 1 });
+    const restored = writeSlider(slider, storePresented(slider, '0.7'), 'fiat', {
+      'ai.physicalTaskShare': 0.1,
+    });
+    expect(restored.overrides['ai.physicalTaskShare']).toBeUndefined();
+    const blocked = writeSlider(slider, storePresented(slider, '0.3'), 'fiat', {});
+    expect(blocked.overrides['ai.physicalTaskShare']).toBe(0.7);
+  });
+
   it('rejects a non-finite number and an unknown option', () => {
     expect(() => writeSlider(markup, 'nope', 'fiat', {})).toThrow(/finite number/);
     expect(() => writeSlider(regime, 'gold', 'fiat', {})).toThrow(/must be one of/);
@@ -75,6 +87,7 @@ describe('sliderStep', () => {
       throw new Error('firm.markup must be numeric');
     }
     expect(sliderStep(markup)).toBe((markup.max - markup.min) / 100);
+    expect(sliderStep(getSlider('ai.physicalTaskShare'))).toBe(0.001);
     expect(() => sliderStep(regime)).toThrow(/no numeric step/);
   });
 });

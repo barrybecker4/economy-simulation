@@ -29,7 +29,7 @@ describe('presets', () => {
   it('applies one category and leaves the others matched', () => {
     const next = applyCategory('aiBullishness', 'high', 'fiat', {});
     expect(next.regime).toBe('fiat');
-    expect(next.overrides['ai.adoptionMidpointYear']).toBe(5);
+    expect(next.overrides['ai.adoptionMidpointYear']).toBe(3);
     expect(next.overrides['ai.bullishness']).toBe(1.5);
     const match = matchingCategories(next.overrides);
     expect(match.aiBullishness).toBe('high');

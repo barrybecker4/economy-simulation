@@ -13,8 +13,8 @@ const scale = {
 
 describe('AI agents', () => {
   it('leaves the economy unchanged when no agents become autonomous', () => {
-    const plain = run({ ...scale, 'ai.agentAutonomyShareEnd': 0, 'ai.paymentFrictionFiat': 0 });
-    const costly = run({ ...scale, 'ai.agentAutonomyShareEnd': 0, 'ai.paymentFrictionFiat': 0.1 });
+    const plain = run({ ...scale, 'ai.ownerShareCeiling': 0, 'ai.paymentFrictionFiat': 0 });
+    const costly = run({ ...scale, 'ai.ownerShareCeiling': 0, 'ai.paymentFrictionFiat': 0.1 });
     expect(plain.audit.ok && costly.audit.ok).toBe(true);
     expect(series(plain, 'realGdp')).toEqual(series(costly, 'realGdp'));
     expect(series(plain, 'priceLevel')).toEqual(series(costly, 'priceLevel'));
@@ -22,12 +22,16 @@ describe('AI agents', () => {
   });
 
   it('trades more when payment friction is lower, and conserves money', () => {
-    const easy = run({ ...scale, 'ai.agentAutonomyShareEnd': 0.5, 'ai.paymentFrictionFiat': 0 });
-    const hard = run({ ...scale, 'ai.agentAutonomyShareEnd': 0.5, 'ai.paymentFrictionFiat': 0.1 });
+    const fast = {
+      'ai.adoptionMidpointYear': 1,
+      'ai.adoptionSteepness': 1.2,
+    };
+    const easy = run({ ...scale, ...fast, 'ai.paymentFrictionFiat': 0 });
+    const hard = run({ ...scale, ...fast, 'ai.paymentFrictionFiat': 0.1 });
     const bitcoin = run({
       ...scale,
+      ...fast,
       'regime.type': 'bitcoin',
-      'ai.agentAutonomyShareEnd': 0.5,
       'deflation.sensitivity': 0,
     });
     expect(easy.audit.ok && hard.audit.ok && bitcoin.audit.ok).toBe(true);
@@ -43,7 +47,7 @@ describe('AI agents', () => {
   });
 
   it('keeps AI wealth share at zero when autonomy is off', () => {
-    const plain = run({ ...scale, 'ai.agentAutonomyShareEnd': 0 });
+    const plain = run({ ...scale, 'ai.ownerShareCeiling': 0 });
     expect(series(plain, 'aiShareOfWealth').every((value) => value === 0)).toBe(true);
   });
 });

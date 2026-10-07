@@ -38,7 +38,8 @@ export interface Parameters {
   roboticsStartYear: number;
   roboticsRampYears: number;
   ownership: number;
-  autonomyEnd: number;
+  ownerShareCeiling: number;
+  agentsPerOwnerCeiling: number;
   frictionFiat: number;
   frictionBitcoin: number;
   ubiShare: number;
@@ -113,7 +114,8 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     roboticsStartYear: slider(config, 'ai.roboticsStartYear'),
     roboticsRampYears: slider(config, 'ai.roboticsRampYears'),
     ownership: slider(config, 'ai.ownershipConcentration'),
-    autonomyEnd: slider(config, 'ai.agentAutonomyShareEnd'),
+    ownerShareCeiling: slider(config, 'ai.ownerShareCeiling'),
+    agentsPerOwnerCeiling: slider(config, 'ai.agentsPerOwnerCeiling'),
     frictionFiat: slider(config, 'ai.paymentFrictionFiat'),
     frictionBitcoin: slider(config, 'ai.paymentFrictionBitcoin'),
     ubiShare: slider(config, 'government.ubiShare'),

@@ -51,7 +51,7 @@ describe('preset categories', () => {
     const next = applyCategoryOption('aiBullishness', 'high', base);
     expect(next['bank.capitalRatio']).toBe(0.16);
     expect(next['ai.bullishness']).toBe(1.5);
-    expect(next['ai.adoptionMidpointYear']).toBe(5);
+    expect(next['ai.adoptionMidpointYear']).toBe(3);
     expect(next['ai.adoptionSteepness']).toBe(1.2);
     expect(matchingCategoryOption('credit', next)).toBe('tight');
     expect(matchingCategoryOption('aiBullishness', next)).toBe('high');
@@ -92,18 +92,23 @@ describe('preset categories', () => {
     expect(composeScenario('no-ai').sliders).toEqual({
       'ai.automatableShareStart': 0.3,
       'ai.automatableShareEnd': 0.3,
+      'ai.roboticsStartYear': 10,
+      'ai.roboticsRampYears': 10,
     });
     expect(composeScenario('fast-adoption').sliders).toEqual({
       'ai.bullishness': 1.5,
-      'ai.adoptionMidpointYear': 5,
+      'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
+      'ai.roboticsStartYear': 4,
+      'ai.roboticsRampYears': 8,
     });
     expect(composeScenario('slow-adoption').sliders).toEqual({
       'ai.bullishness': 0,
-      'ai.adoptionMidpointYear': 30,
+      'ai.adoptionMidpointYear': 20,
       'ai.adoptionSteepness': 0.15,
       'ai.physicalTaskShare': 0.7,
-      'ai.roboticsStartYear': 50,
+      'ai.roboticsStartYear': 20,
+      'ai.roboticsRampYears': 16,
     });
     expect(composeScenario('high-physical').sliders).toEqual(
       composeScenario('slow-adoption').sliders,

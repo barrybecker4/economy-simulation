@@ -139,20 +139,45 @@ describe('AI productivity', () => {
     expect(last(on, 'meanRealConsumption')).toBeGreaterThan(last(off, 'meanRealConsumption'));
   });
 
-  it('taxes and shops agents when autonomy is on', () => {
+  it('schedules owners in id order and ignores ownership concentration', () => {
+    const shared = {
+      ...scale,
+      'ai.adoptionMidpointYear': 1,
+      'ai.adoptionSteepness': 0.4,
+      'ai.ownerShareCeiling': 0.95,
+      'ai.agentsPerOwnerCeiling': 20,
+    };
+    const low = run({ ...shared, 'ai.ownershipConcentration': 0.2 });
+    const high = run({ ...shared, 'ai.ownershipConcentration': 0.9 });
+    expect(last(low, 'aiShareOfAgents')).toBeGreaterThan(0.9);
+    expect(last(high, 'aiShareOfAgents')).toBeCloseTo(last(low, 'aiShareOfAgents'), 12);
+    expect(last(low, 'ownerWealthShare')).toBeGreaterThan(0.9);
+    expect(last(high, 'ownerWealthShare')).toBeGreaterThan(0.9);
+  });
+
+  it('creates no agents when the automatable share is flat', () => {
+    const result = run({
+      ...scale,
+      'ai.automatableShareStart': 0.3,
+      'ai.automatableShareEnd': 0.3,
+      'ai.adoptionMidpointYear': 1,
+    });
+    expect(series(result, 'aiShareOfAgents').every((value) => value === 0)).toBe(true);
+  });
+
+  it('taxes and shops agents when the adoption curve is underway', () => {
     const none = run({
       ...scale,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
       'ai.physicalTaskShare': 0.1,
-      'ai.agentAutonomyShareEnd': 0,
+      'ai.ownerShareCeiling': 0,
     });
     const agents = run({
       ...scale,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
       'ai.physicalTaskShare': 0.1,
-      'ai.agentAutonomyShareEnd': 0.6,
       'ai.paymentFrictionFiat': 0,
     });
     expect(last(none, 'aiShareOfAgents')).toBe(0);

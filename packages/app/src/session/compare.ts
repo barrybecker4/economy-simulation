@@ -2,7 +2,7 @@ import { getSlider, type Slider } from '../../../core/src/config/registry.js';
 import { applyCategory } from './presets.js';
 import { defaultPage } from './query.js';
 import { assertSeedCount, MAX_SEEDS, MIN_SEEDS, readyLabel } from './run.js';
-import { parameterSliders, sliderValue, writeSlider } from './sliders.js';
+import { parameterSliders, presentedSliderValue, sliderValue, writeSlider } from './sliders.js';
 import type { RunSuccess } from '../worker/protocol.js';
 
 export interface CompareSide {
@@ -73,8 +73,8 @@ export function compareDiffs(
     diffs.push({
       id: slider.id,
       label: slider.label,
-      baseline: left,
-      variant: right,
+      baseline: presentedSliderValue(slider, baseline.regime, baseline.overrides),
+      variant: presentedSliderValue(slider, variant.regime, variant.overrides),
     });
   }
   return diffs;
@@ -90,7 +90,6 @@ const PROMOTE_STATUS =
 
 /** Census falls back here only when a resolved slider is not a finite number. */
 const CENSUS_HOUSEHOLDS_FALLBACK = 1000;
-const CENSUS_OWNERSHIP_FALLBACK = 0.5;
 
 export interface ComparisonSession {
   seed: number;
@@ -124,7 +123,11 @@ export interface ComparisonSide {
   result: RunSuccess;
   regime: string;
   households: number;
-  ownership: number;
+  ownerShareCeiling: number;
+  autoStart: number;
+  autoEnd: number;
+  adoptionMidpoint: number;
+  adoptionSteepness: number;
   /** Resolved transition.lengthMonths for chart marks. */
   transitionLength: number;
 }
@@ -398,15 +401,36 @@ function baselineView(session: ComparisonSession): ComparisonSide | null {
 function censusCounts(
   regime: string,
   overrides: Readonly<Record<string, number | string>>,
-): { households: number; ownership: number; transitionLength: number } {
+): {
+  households: number;
+  ownerShareCeiling: number;
+  autoStart: number;
+  autoEnd: number;
+  adoptionMidpoint: number;
+  adoptionSteepness: number;
+  transitionLength: number;
+} {
   return {
     households: finiteNumber(
       sliderValue(getSlider('scale.households'), regime, overrides),
       CENSUS_HOUSEHOLDS_FALLBACK,
     ),
-    ownership: finiteNumber(
-      sliderValue(getSlider('ai.ownershipConcentration'), regime, overrides),
-      CENSUS_OWNERSHIP_FALLBACK,
+    ownerShareCeiling: finiteNumber(
+      sliderValue(getSlider('ai.ownerShareCeiling'), regime, overrides),
+      0.95,
+    ),
+    autoStart: finiteNumber(
+      sliderValue(getSlider('ai.automatableShareStart'), regime, overrides),
+      0.1,
+    ),
+    autoEnd: finiteNumber(sliderValue(getSlider('ai.automatableShareEnd'), regime, overrides), 0.9),
+    adoptionMidpoint: finiteNumber(
+      sliderValue(getSlider('ai.adoptionMidpointYear'), regime, overrides),
+      10,
+    ),
+    adoptionSteepness: finiteNumber(
+      sliderValue(getSlider('ai.adoptionSteepness'), regime, overrides),
+      0.4,
     ),
     transitionLength: Math.round(
       finiteNumber(sliderValue(getSlider('transition.lengthMonths'), regime, overrides), 0),

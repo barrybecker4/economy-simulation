@@ -34,7 +34,7 @@ describe('payment flows', () => {
   });
 
   it('keeps agent sales, fees, goods, tax, and sweeps at zero when autonomy ends at zero', () => {
-    const result = run({ ...scale, 'ai.agentAutonomyShareEnd': 0 });
+    const result = run({ ...scale, 'ai.ownerShareCeiling': 0 });
     for (const id of [
       'agentVolume',
       'agentFees',
@@ -63,7 +63,7 @@ describe('payment flows', () => {
 
 describe('household census', () => {
   it('keeps wealth quintile shares summing to one', () => {
-    const result = run({ ...scale, 'ai.agentAutonomyShareEnd': 0.4 });
+    const result = run(scale);
     const q1 = series(result, 'wealthQuintile1');
     const q2 = series(result, 'wealthQuintile2');
     const q3 = series(result, 'wealthQuintile3');
@@ -94,7 +94,7 @@ describe('household census', () => {
   });
 
   it('leaves owner wealth share at zero when autonomy is off', () => {
-    const result = run({ ...scale, 'ai.agentAutonomyShareEnd': 0 });
+    const result = run({ ...scale, 'ai.ownerShareCeiling': 0 });
     expect(series(result, 'ownerWealthShare').every((value) => value === 0)).toBe(true);
   });
 });

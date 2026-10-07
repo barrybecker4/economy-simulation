@@ -19,6 +19,8 @@ export interface Economy {
   aiFactor: number;
   displacementFactor: number;
   automatedShare: number;
+  /** Adoption-curve progress in [0, 1]. Zero when the automatable share is flat. */
+  adoptionProgress: number;
   agentVolume: number;
   agentGoodsSpend: number;
   agentFees: number;

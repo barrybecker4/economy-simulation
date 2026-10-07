@@ -80,8 +80,9 @@ function h3(): HypothesisResult {
 }
 
 function h4(): HypothesisResult {
-  const easy = run({ ...base, 'ai.agentAutonomyShareEnd': 0.6, 'ai.paymentFrictionFiat': 0 });
-  const hard = run({ ...base, 'ai.agentAutonomyShareEnd': 0.6, 'ai.paymentFrictionFiat': 0.1 });
+  const fast = { 'ai.adoptionMidpointYear': 1, 'ai.adoptionSteepness': 1.5 };
+  const easy = run({ ...base, ...fast, 'ai.paymentFrictionFiat': 0 }, 48);
+  const hard = run({ ...base, ...fast, 'ai.paymentFrictionFiat': 0.1 }, 48);
   return {
     id: 'H4',
     claim: 'Lower payment friction raises the AI transaction share.',
@@ -161,8 +162,8 @@ function h8(): HypothesisResult {
   };
 }
 
-function run(sliders: Record<string, number | string>): SimulationResult {
-  return simulate(loadScenario({ name: 'hypothesis', seed: 4, ticks: 36, sliders }));
+function run(sliders: Record<string, number | string>, ticks = 36): SimulationResult {
+  return simulate(loadScenario({ name: 'hypothesis', seed: 4, ticks, sliders }));
 }
 
 function last(result: SimulationResult, id: MetricId): number {

@@ -1,3 +1,4 @@
+import { adoptionProgress, ownerSlotCount } from '../../../core/src/sim/population.js';
 import { CENSUS_JOBS, CENSUS_OWNERS, CENSUS_WEALTH } from '../dashboard/catalog.js';
 import type { RunSuccess } from '../worker/protocol.js';
 import { metricAt } from '../worker/series.js';
@@ -29,16 +30,24 @@ export interface MonthCensus {
   owners: OwnerPicture;
 }
 
+export interface CensusFrame {
+  households: number;
+  ownerShareCeiling: number;
+  autoStart: number;
+  autoEnd: number;
+  adoptionMidpoint: number;
+  adoptionSteepness: number;
+}
+
 export function monthCensus(
   result: RunSuccess,
   monthIndex: number,
-  households: number,
-  ownershipConcentration: number,
+  frame: CensusFrame,
 ): MonthCensus {
   const index = clampIndex(monthIndex, result.ticks.length);
   const agentShare = metricAt(result, CENSUS_OWNERS.aiShareOfAgents, index);
-  const agentCount = agentCountFromShare(agentShare, households);
-  const owners = ownerCount(households, ownershipConcentration, agentCount);
+  const agentCount = agentCountFromShare(agentShare, frame.households);
+  const owners = ownerCount(frame, index / 12, agentCount);
   return {
     monthIndex: index,
     wealth: CENSUS_WEALTH.map((slice) => ({
@@ -72,16 +81,20 @@ export function agentCountFromShare(share: number, households: number): number {
   return Math.max(0, Math.round((share * households) / (1 - share)));
 }
 
-/** Matches packages/core/src/sim/population.ts: first round(households * (1 - concentration)) ids. */
-export function ownerCount(
-  households: number,
-  ownershipConcentration: number,
-  agentCount: number,
-): number {
-  if (agentCount <= 0 || households <= 0) {
+/** Households that hold an agent once slots are filled from the lowest id. */
+export function ownerCount(frame: CensusFrame, years: number, agentCount: number): number {
+  if (agentCount <= 0 || frame.households <= 0) {
     return 0;
   }
-  return Math.max(1, Math.round(households * (1 - ownershipConcentration)));
+  const progress = adoptionProgress(
+    frame.autoStart,
+    frame.autoEnd,
+    frame.adoptionSteepness,
+    frame.adoptionMidpoint,
+    years,
+  );
+  const slots = ownerSlotCount(frame.households, frame.ownerShareCeiling, progress);
+  return Math.min(agentCount, slots);
 }
 
 function clampIndex(index: number, length: number): number {

@@ -25,7 +25,7 @@
 <script lang="ts">
   import { onMount, tick, type Snippet } from 'svelte';
   import type { Slider } from '../../../core/src/config/registry.js';
-  import { groupLabel, sliderBounds, statusLabel } from './labels.js';
+  import { groupLabel, presentStored, sliderBounds, statusLabel } from './labels.js';
   import { nameTipFrame, placeNameTip, type NameTipFrame, type Viewport } from './place.js';
 
   let {
@@ -249,7 +249,7 @@
       <p class="copy">{slider.description}</p>
       <ul class="meta">
         <li><span>Unit</span> {slider.unit}</li>
-        <li><span>Default</span> {slider.default}</li>
+        <li><span>Default</span> {presentStored(slider, slider.default)}</li>
         <li><span>{slider.kind === 'number' ? 'Range' : 'Options'}</span> {sliderBounds(slider)}</li>
       </ul>
       <p class="source">

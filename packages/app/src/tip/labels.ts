@@ -42,11 +42,50 @@ export function statusLabel(status: SliderStatus): string {
   return STATUSES[status];
 }
 
-export function sliderBounds(slider: Slider): string {
-  if (slider.kind === 'number') {
-    return `${slider.min} to ${slider.max}`;
+export const BLOCKED_SHARE = 'ai.physicalTaskShare';
+
+/** The control shows one minus the stored block for the reachable share. */
+export function controlRange(slider: Slider): { min: number; max: number } | null {
+  if (slider.kind !== 'number') {
+    return null;
   }
-  return slider.options.join(', ');
+  if (slider.id === BLOCKED_SHARE) {
+    return { min: roundShare(1 - slider.max), max: roundShare(1 - slider.min) };
+  }
+  return { min: slider.min, max: slider.max };
+}
+
+export function presentStored(slider: Slider, stored: number | string): number | string {
+  if (slider.id === BLOCKED_SHARE && typeof stored === 'number') {
+    return roundShare(1 - stored);
+  }
+  return stored;
+}
+
+export function storePresented(slider: Slider, raw: string): string {
+  if (slider.id !== BLOCKED_SHARE) {
+    return raw;
+  }
+  const displayed = Number(raw);
+  if (!Number.isFinite(displayed)) {
+    return raw;
+  }
+  return String(roundShare(1 - displayed));
+}
+
+function roundShare(value: number): number {
+  return Math.round(value * 1_000_000) / 1_000_000;
+}
+
+export function sliderBounds(slider: Slider): string {
+  const range = controlRange(slider);
+  if (range !== null) {
+    return `${range.min} to ${range.max}`;
+  }
+  if (slider.kind === 'enum') {
+    return slider.options.join(', ');
+  }
+  return '';
 }
 
 export function groupRank(group: SliderGroup): number {

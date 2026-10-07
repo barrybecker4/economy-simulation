@@ -5,6 +5,7 @@
   import { GROUP_ORDER, groupLabel } from '../tip/labels.js';
   import { categoryForGroup, categoryTipItems, type PresetCategory } from '../session/presets.js';
   import { sliderStep } from '../session/sliders.js';
+import { controlRange, storePresented } from '../tip/labels.js';
 
   let {
     parameters,
@@ -181,16 +182,17 @@
               <label class:frozen>
                 <NameTip {slider} wide />
                 {#if slider.kind === 'number'}
+                  {@const range = controlRange(slider)}
                   <input
                     type="range"
-                    min={slider.min}
-                    max={slider.max}
+                    min={range?.min}
+                    max={range?.max}
                     step={sliderStep(slider)}
                     value={Number(value(slider))}
                     disabled={frozen}
                     aria-labelledby="label-{slider.id}"
                     aria-describedby="help-{slider.id}"
-                    oninput={(event) => onSlider(slider, rawValue(event))}
+                    oninput={(event) => onSlider(slider, storePresented(slider, rawValue(event)))}
                   />
                   <output>{value(slider)}</output>
                 {:else}

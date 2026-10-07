@@ -57,14 +57,14 @@ Layout:
 
 A household is one human. An agent is an autonomous actor owned by one household. One household may own many agents, and many households own none.
 
-| Actor        | Role                                                                        | Main decisions                                                                      |
-| ------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Household    | Supplies labor, consumes, saves, borrows, owns firms, homes, and agents     | Consumption, saving, borrowing, which job to accept, which housing contract to use  |
-| Firm         | Produces goods, employs households, rents or owns AI capacity               | Price, wage offers, hiring, investment, adoption of AI, profit-sharing versus loans |
-| Bank         | Accepts deposits and makes loans                                            | Lending volume and interest rate, subject to the regime                             |
-| Government   | Taxes, spends, and issues debt                                              | Spending, transfers, and borrowing                                                  |
-| Central bank | Fiat and hybrid regimes only                                                | Policy rate by rule, optional asset purchases, lender of last resort in the hybrid  |
-| Agent        | Sells compute and transacts on its own account                              | How to spend its compute budget                                                     |
+| Actor        | Role                                                                    | Main decisions                                                                      |
+| ------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Household    | Supplies labor, consumes, saves, borrows, owns firms, homes, and agents | Consumption, saving, borrowing, which job to accept, which housing contract to use  |
+| Firm         | Produces goods, employs households, rents or owns AI capacity           | Price, wage offers, hiring, investment, adoption of AI, profit-sharing versus loans |
+| Bank         | Accepts deposits and makes loans                                        | Lending volume and interest rate, subject to the regime                             |
+| Government   | Taxes, spends, and issues debt                                          | Spending, transfers, and borrowing                                                  |
+| Central bank | Fiat and hybrid regimes only                                            | Policy rate by rule, optional asset purchases, lender of last resort in the hybrid  |
+| Agent        | Sells compute and transacts on its own account                          | How to spend its compute budget                                                     |
 
 ### Markets
 
@@ -141,9 +141,9 @@ Other outputs recorded every tick: real GDP and growth, productivity per human, 
 
 Three channels, each with its own sliders.
 
-1. Productivity through task automation. The automatable share follows an S-curve from `ai.automatableShareStart` to `ai.automatableShareEnd`. A share `ai.physicalTaskShare` cannot be automated. Effective labor is human hours plus AI labor-equivalents, limited by the automatable share.
-2. AI capital, cost, and ownership. Compute cost falls at `ai.computeCostDeclineRate`. Firms adopt AI when its cost per task is below the wage. Returns go to owners. `ai.ownershipConcentration` sets how concentrated ownership is across humans.
-3. AI agents as economic actors. The share of agents that transact on their own account grows toward `ai.agentAutonomyShareEnd` and may become most of the population. Earnings accrue to a human owner. Payment friction is `ai.paymentFrictionFiat` or `ai.paymentFrictionBitcoin`. Those friction defaults are guesses.
+1. Productivity through task automation. The automatable share follows an S-curve from `ai.automatableShareStart` to `ai.automatableShareEnd`. A stored block `ai.physicalTaskShare` keeps part of that rise out of firm capacity until robotics. The control shows the reachable share, one minus the block. Effective labor is human hours plus AI labor-equivalents, limited by the automatable share.
+2. AI capital, cost, and ownership. Compute cost falls at `ai.computeCostDeclineRate`. Firms adopt AI when its cost per task is below the wage. Returns go to owners. `ai.ownershipConcentration` sets how steeply those profits skew across owners.
+3. AI agents as economic actors. Owner share and agents per owner follow the same adoption curve toward `ai.ownerShareCeiling` and `ai.agentsPerOwnerCeiling`. Earnings accrue to a household owner. Payment friction is `ai.paymentFrictionFiat` or `ai.paymentFrictionBitcoin`. Those friction defaults are guesses.
 
 ### Initial slider registry
 
@@ -185,12 +185,13 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | Contracts   | deflation.sensitivity                  | 1               | 0 to 5                       |
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
 | AI          | ai.automatableShareEnd                 | 0.9             | 0.3 to 1                     |
-| AI          | ai.adoptionMidpointYear                | 15              | 3 to 40                      |
+| AI          | ai.adoptionMidpointYear                | 10              | 1 to 40                      |
 | AI          | ai.adoptionSteepness                   | 0.4             | 0.1 to 1.5                   |
 | AI          | ai.computeCostDeclineRate (annual)     | 0.3             | 0 to 0.6                     |
 | AI          | ai.physicalTaskShare                   | 0.3             | 0 to 0.7                     |
 | AI          | ai.ownershipConcentration              | 0.8             | 0.1 to 0.99                  |
-| AI          | ai.agentAutonomyShareEnd               | 0.5             | 0 to 1                       |
+| AI          | ai.ownerShareCeiling                   | 0.95            | 0 to 1                       |
+| AI          | ai.agentsPerOwnerCeiling               | 20              | 0 to 50                      |
 | AI          | ai.paymentFrictionFiat                 | 0.02            | 0 to 0.1                     |
 | AI          | ai.paymentFrictionBitcoin              | 0.005           | 0 to 0.1                     |
 
@@ -316,7 +317,7 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 
 1. Task-based production and the S-curve automatable share.
 2. AI capacity as an input with a falling compute cost, adopted when cost per task beats the wage.
-3. AI capital ownership across humans, concentrated by `ai.ownershipConcentration`.
+3. AI capital income across owners, skewed by `ai.ownershipConcentration`.
 4. Displaced workers search less effectively when their skills match automated tasks.
 5. Outputs: labor share, AI share of output, share of tasks automated, Gini, top decile.
 6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme.
@@ -336,7 +337,7 @@ Acceptance:
 Goal: channel 3. An increasing share of the agent population transacts on its own account.
 
 1. AI agents have an owner, a balance in the regime's unit, a compute budget, and a service price. They sell services to firms, buy goods, and pay income tax.
-2. The autonomy share grows toward `ai.agentAutonomyShareEnd`.
+2. Owner share, agents per owner, and agent output follow the adoption curve toward their ceilings.
 3. Each agent transaction pays the regime's friction slider. The fee goes to banks under fiat and to the network under bitcoin.
 4. An agent-to-agent market discovers a price for services.
 5. Outputs: AI transaction share, payment volume, fee revenue, and the share of GDP that is agent-to-agent trade.
@@ -345,10 +346,10 @@ Goal: channel 3. An increasing share of the agent population transacts on its ow
 
 Acceptance:
 
-- An autonomy share of zero matches Phase 5 for the same seeds.
+- An owner-share ceiling of zero matches Phase 5 for the same seeds.
 - Money is conserved on agent-to-agent trades, including fractional satoshi fees.
 - Lower friction raises the AI transaction share (monotonicity).
-- With autonomy above zero, agents pay income tax and buy goods.
+- With a positive owner-share ceiling, agents pay income tax and buy goods.
 - A high end share, at least half of agents, still meets the development performance target.
 
 Out of scope: AI agents whose goals differ from their owners, and a market for firm shares.
@@ -525,7 +526,7 @@ Acceptance:
 Goal: the size of the AI productivity gain is a slider, and mass robotics later opens the physical-task ceiling.
 
 1. `ai.bullishness` defaults to 1. At 0 the gain on each adopted task is one tenth of the default and saturates with the adoption curve. At 1 the AI factor is `1 + adopted`, matching Phase 16 when robotics has not started. Above 1 the task gain compounds at `0.15 × (bullishness − 1)` per year with no ceiling.
-2. `ai.roboticsStartYear` defaults to 5 and `ai.roboticsRampYears` defaults to 8. From the start year the effective physical-task share falls in a straight line to zero. A start year at or past the last year of the run leaves the ceiling intact.
+2. `ai.roboticsStartYear` defaults to 8 and `ai.roboticsRampYears` defaults to 12. From the start year the effective physical-task block falls in a straight line to zero. A start year at or past the last year of the run leaves the block intact.
 3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain does not drive unemployment to one. The AI share of output and the household grant track `1 − 1 / AI factor`.
 
 Acceptance:
@@ -543,7 +544,7 @@ Acceptance:
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.
 
 - Credit-driven expansions are followed by contractions of comparable duration.
-- Wealth is more unequally distributed than income, and income is more unequally distributed than skill.
+- When the automatable share does not rise, wealth is more unequally distributed than income, and income is more unequally distributed than skill. After the adoption curve finishes, agent ownership follows household id, so wealth can be less concentrated than income.
 - In the fiat regime, there is a short-run negative relationship between unemployment and inflation under sticky wages.
 - Output is more volatile than consumption, and investment is more volatile than output.
 - A positive productivity shock raises output and lowers prices in the short run.
