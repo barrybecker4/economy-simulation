@@ -1,4 +1,5 @@
 import type { Rng } from '../rng/rng.js';
+import type { MoneyShares } from './monies.js';
 import type { Parameters } from './parameters.js';
 import type { ActiveShock, Agent, Bank, Firm, ForcedShock, Household } from './types.js';
 
@@ -69,4 +70,8 @@ export interface Economy {
   housingPressure: number;
   /** Fractional households waiting to enter or exit. */
   populationCredit: number;
+  moneyShares: MoneyShares;
+  bitcoinPrice: number;
+  stablecoinPrice: number;
+  cbdcPrice: number;
 }

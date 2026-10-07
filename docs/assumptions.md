@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 8.
+Registry version: 9.
 
 ## ai.adoptionMidpointYear
 
@@ -643,6 +643,83 @@ Registry version: 8.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.
+
+## money.bitcoinIssuance
+
+- Label: Bitcoin issuance
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 0.2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: New bitcoin supply each month, as a share. The bitcoin exchange rate falls when issuance exceeds the bitcoin share and rises when the share is larger. At 0 issuance does not push the price down. Unused when money choice speed is 0.
+
+## money.bitcoinStart
+
+- Label: Opening bitcoin share
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of money balances that start as bitcoin. Fiat takes whatever this share, the stablecoin start, and the CBDC start do not claim. At 0 the opening mix has no bitcoin unless the other starts are zero and this is the residual, which it is not.
+
+## money.bitcoinTrust
+
+- Label: Bitcoin trust
+- Group: regime
+- Unit: score
+- Default: 0.3
+- Range: 0 to 2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How willing holders are to keep bitcoin. The bitcoin score is this trust plus the real return, minus a small payment friction. A higher value raises the bitcoin share when money choice is on. Unused when money choice speed is 0.
+
+## money.cbdcStart
+
+- Label: Opening CBDC share
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of money balances that start as a central-bank digital currency. At 0 none of the opening mix is CBDC.
+
+## money.choiceSpeed
+
+- Label: Money choice speed
+- Group: regime
+- Unit: share per tick
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How fast currency shares move toward the monies people prefer. Shares of fiat, bitcoin, stablecoins, and CBDC start from the opening sliders. Each month they step toward the mix implied by legal tender, trust, payment friction, and the real return. At 0 the shares stay at the opening mix and the regime slider still selects the monetary rule, which reproduces the previous phase. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.
+
+## money.fiatLegalTender
+
+- Label: Fiat legal-tender pull
+- Group: regime
+- Unit: score
+- Default: 1
+- Range: 0 to 2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly fiat is pulled into use by taxes, courts, and legal tender. It is the fiat score in the money-choice softmax. A higher value holds the fiat share up when money choice is on. Unused when money choice speed is 0.
+
+## money.stablecoinStart
+
+- Label: Opening stablecoin share
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of money balances that start as stablecoins. Stablecoin trust and friction are fixed in the model. At 0 none of the opening mix is a stablecoin.
 
 ## population.growth
 

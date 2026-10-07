@@ -118,6 +118,11 @@ function flows(
   | 'cumulativeFailures'
   | 'boomLength'
   | 'bustLength'
+  | 'fiatShare'
+  | 'bitcoinShare'
+  | 'stablecoinShare'
+  | 'cbdcShare'
+  | 'bitcoinPrice'
 > {
   return {
     loanFinance: economy.loanFinance,
@@ -146,6 +151,11 @@ function flows(
     cumulativeFailures: economy.cumulativeFailures,
     boomLength: economy.boomLength,
     bustLength: economy.bustLength,
+    fiatShare: economy.moneyShares.fiat,
+    bitcoinShare: economy.moneyShares.bitcoin,
+    stablecoinShare: economy.moneyShares.stablecoin,
+    cbdcShare: economy.moneyShares.cbdc,
+    bitcoinPrice: economy.bitcoinPrice,
   };
 }
 

@@ -618,6 +618,19 @@ Acceptance:
 - Random exchanges keep every money’s audit passing, including fractional satoshi amounts.
 - Existing economy tests are unchanged.
 
+### Phase 24: Money kinds, exchange rates, and money choice
+
+Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
+
+1. Opening shares are `money.bitcoinStart`, `money.stablecoinStart`, and `money.cbdcStart`. Fiat is the residual. All three default to 0, so the opening mix is all fiat.
+2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each digital share and with `money.bitcoinIssuance`.
+
+Acceptance:
+
+- Choice speed 0 matches Phase 23 for the same seeds, and the fiat share stays 1.
+- A higher bitcoin trust raises the bitcoin share and, with no issuance, its exchange rate.
+- The main ledger audit still passes.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

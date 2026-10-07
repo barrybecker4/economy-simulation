@@ -77,6 +77,13 @@ const EXPECTED_IDS = [
   'production.alpha',
   'production.demandWeight',
   'goods.sampleSize',
+  'money.choiceSpeed',
+  'money.bitcoinStart',
+  'money.stablecoinStart',
+  'money.cbdcStart',
+  'money.fiatLegalTender',
+  'money.bitcoinTrust',
+  'money.bitcoinIssuance',
 ];
 
 describe('slider registry', () => {

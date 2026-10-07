@@ -74,6 +74,11 @@ export interface MetricSnapshot {
   cumulativeFailures: number;
   boomLength: number;
   bustLength: number;
+  fiatShare: number;
+  bitcoinShare: number;
+  stablecoinShare: number;
+  cbdcShare: number;
+  bitcoinPrice: number;
   nominalOutput: number;
   income: DistributionReading;
   wealth: DistributionReading;

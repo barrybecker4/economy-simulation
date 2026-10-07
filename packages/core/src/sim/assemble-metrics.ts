@@ -68,6 +68,11 @@ function recordMoney(snapshot: MetricSnapshot, metrics: MetricSink): void {
     'creditToGdp',
     snapshot.nominalOutput > 0 ? snapshot.loans / (snapshot.nominalOutput * 12) : 0,
   );
+  metrics.set('fiatShare', snapshot.fiatShare);
+  metrics.set('bitcoinShare', snapshot.bitcoinShare);
+  metrics.set('stablecoinShare', snapshot.stablecoinShare);
+  metrics.set('cbdcShare', snapshot.cbdcShare);
+  metrics.set('bitcoinPrice', snapshot.bitcoinPrice);
 }
 
 function recordTenure(snapshot: MetricSnapshot, metrics: MetricSink, penalty: number): void {

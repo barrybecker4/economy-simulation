@@ -85,6 +85,11 @@ export const METRIC_IDS = [
   'aiShareOfOutput',
   'aiShareOfTransactions',
   'tasksAutomated',
+  'fiatShare',
+  'bitcoinShare',
+  'stablecoinShare',
+  'cbdcShare',
+  'bitcoinPrice',
   'auditOk',
 ] as const;
 

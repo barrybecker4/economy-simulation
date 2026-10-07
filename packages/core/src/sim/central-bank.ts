@@ -1,6 +1,7 @@
 import { savingsStock, totalDeposits, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
 import { expectedInflation, moneyAmount, outputGap } from './helpers.js';
+import { updateMoneyChoice } from './monies.js';
 import {
   addReserves,
   injectBankCapital,
@@ -26,7 +27,13 @@ export function taylorRate(input: {
 }
 
 export function onCentralBank(economy: Economy): void {
-  if (economy.params.regime === 'fiat') {
+  updateMoneyChoice(economy);
+  if (economy.params.choiceSpeed > 0) {
+    setBlendedPolicy(economy);
+    if (economy.moneyShares.fiat > 0) {
+      accommodateReserves(economy);
+    }
+  } else if (economy.params.regime === 'fiat') {
     setFiatPolicy(economy);
     accommodateReserves(economy);
   } else {
@@ -36,6 +43,23 @@ export function onCentralBank(economy: Economy): void {
     }
   }
   payDepositInterest(economy);
+}
+
+function setBlendedPolicy(economy: Economy): void {
+  const taylor = taylorRate({
+    timePrefMean: economy.params.timePrefMean,
+    inflation: expectedInflation(economy),
+    inflationTarget: economy.params.inflationTarget,
+    inflationWeight: economy.params.inflationWeight,
+    outputWeight: economy.params.outputWeight,
+    outputGap: outputGap(economy),
+  });
+  const savings = savingsStock(economy);
+  const pressure = savings > 0 ? totalLoans(economy) / savings - 1 : 0;
+  const market = Math.max(0, economy.policyRate + 0.05 * pressure);
+  const fiat = economy.moneyShares.fiat;
+  economy.policyRate = Math.max(0, fiat * taylor + (1 - fiat) * market);
+  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
 }
 
 function setMarketRate(economy: Economy): void {
