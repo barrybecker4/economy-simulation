@@ -152,4 +152,14 @@ export const AI_SLIDERS: readonly Slider[] = [
     0.1,
     'Fee on an AI agent sale in the bitcoin and hybrid regimes, as a share of the payment. The fee is paid into bank equity. The asking price rises along the adoption curve toward 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales once output is near that ceiling. The default of 0.005 stays well under that cutoff. The fiat regime uses the fiat fee instead. The fee does nothing when no agents are created.',
   ),
+  numberSlider(
+    'agent.marketDepth',
+    'Agent market depth',
+    'aiClaims',
+    'coefficient',
+    0,
+    0,
+    2,
+    'How much crowding raises the price of agent compute. The ask starts at the adoption progress times 4 percent of the wage, marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm. Firms still buy only when the ask is under 4.2 percent of the wage, so enough crowding stops the sales. At 0 the ask is unchanged and the previous agent market is reproduced.',
+  ),
 ];

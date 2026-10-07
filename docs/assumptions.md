@@ -4,7 +4,18 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 10.
+Registry version: 11.
+
+## agent.marketDepth
+
+- Label: Agent market depth
+- Group: aiClaims
+- Unit: coefficient
+- Default: 0
+- Range: 0 to 2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How much crowding raises the price of agent compute. The ask starts at the adoption progress times 4 percent of the wage, marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm. Firms still buy only when the ask is under 4.2 percent of the wage, so enough crowding stops the sales. At 0 the ask is unchanged and the previous agent market is reproduced.
 
 ## ai.adoptionMidpointYear
 

@@ -48,6 +48,7 @@ export interface Parameters {
   agentsPerOwnerCeiling: number;
   frictionFiat: number;
   frictionBitcoin: number;
+  marketDepth: number;
   ubiShare: number;
   shockFrequency: number;
   shockSize: number;
@@ -140,6 +141,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     agentsPerOwnerCeiling: slider(config, 'ai.agentsPerOwnerCeiling'),
     frictionFiat: slider(config, 'ai.paymentFrictionFiat'),
     frictionBitcoin: slider(config, 'ai.paymentFrictionBitcoin'),
+    marketDepth: slider(config, 'agent.marketDepth'),
     ubiShare: slider(config, 'government.ubiShare'),
     shockFrequency: slider(config, 'shock.frequency'),
     shockSize: slider(config, 'shock.size'),

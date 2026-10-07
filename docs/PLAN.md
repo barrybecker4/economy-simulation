@@ -657,6 +657,19 @@ Acceptance:
 - Equity market on ends with a higher wealth Gini.
 - The ledger audit still passes. Claims do not move deposits.
 
+### Phase 27: Agent market depth
+
+Goal: the price of agent compute can rise when agents crowd firms.
+
+1. `agent.marketDepth` defaults to 0. At 0 the ask is adoption progress times 4 percent of the wage, marked up by payment friction.
+2. Above 0 the ask is multiplied by one plus depth times agents per firm. Firms still refuse an ask at or above 4.2 percent of the wage.
+
+Acceptance:
+
+- Depth 0 matches Phase 26 agent volume for the same seeds.
+- Enough crowding ends with a lower agent volume than depth 0.
+- The ledger audit still passes.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

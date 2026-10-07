@@ -69,6 +69,7 @@ const EXPECTED_IDS = [
   'ai.computeProductivity',
   'ai.paymentFrictionFiat',
   'ai.paymentFrictionBitcoin',
+  'agent.marketDepth',
   'scale.households',
   'scale.firms',
   'scale.banks',

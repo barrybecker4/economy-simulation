@@ -13,6 +13,22 @@ export interface GoodsMarket {
   demandFactor: number;
 }
 
+/** Ask for one compute unit. Depth 0 is the adoption price marked up by friction. */
+export function quotedServicePrice(input: {
+  wage: number;
+  progress: number;
+  friction: number;
+  depth: number;
+  agents: number;
+  firms: number;
+}): number {
+  const base = input.wage * AI_SERVICE_WAGE_SHARE * input.progress * (1 + input.friction);
+  if (input.depth <= 0 || input.firms <= 0) {
+    return base;
+  }
+  return base * (1 + input.depth * (input.agents / input.firms));
+}
+
 export function tradeAgents(economy: Economy): void {
   economy.agentVolume = 0;
   economy.agentFees = 0;
@@ -21,11 +37,18 @@ export function tradeAgents(economy: Economy): void {
   }
   const friction = paymentFriction(economy);
   const progress = economy.adoptionProgress;
-  if (!serviceIsCheap(economy.wageLevel, friction, progress)) {
+  const ask = quotedServicePrice({
+    wage: economy.wageLevel,
+    progress,
+    friction,
+    depth: economy.params.marketDepth,
+    agents: economy.agents.length,
+    firms: economy.firms.length,
+  });
+  if (!(economy.wageLevel > 0 && ask < economy.wageLevel * AI_SERVICE_PRICE_CAP)) {
     clearAgentIncome(economy);
     return;
   }
-  const ask = economy.wageLevel * AI_SERVICE_WAGE_SHARE * progress * (1 + friction);
   for (const agent of economy.agents) {
     sellCompute(economy, agent, ask, friction);
   }
@@ -72,10 +95,6 @@ function paymentFriction(economy: Economy): number {
   return economy.params.regime === 'fiat'
     ? economy.params.frictionFiat
     : economy.params.frictionBitcoin;
-}
-
-function serviceIsCheap(wage: number, friction: number, progress: number): boolean {
-  return wage * AI_SERVICE_WAGE_SHARE * progress * (1 + friction) < wage * AI_SERVICE_PRICE_CAP;
 }
 
 function clearAgentIncome(economy: Economy): void {
