@@ -20,7 +20,7 @@ Give an implementer one phase at a time. Example: "Implement Phase 1 of docs/PLA
 - TypeScript strict, pnpm workspaces, Vitest, fast-check, Zod.
 - Web application: Svelte and Vite, charts with uPlot, simulation in a Web Worker.
 - Continuous integration: GitHub Actions runs lint, format check, typecheck, and tests.
-- Deployment, in the last phase: Cloudflare Pages for the static application. No server for the first release.
+- Deployment, in the last phase: manual upload of the static application build (`packages/app/dist`) to a static host. No server for the first release.
 - Optional analysis notebooks live in `packages/analysis` when the experiment phase needs them.
 
 Layout:
@@ -413,7 +413,7 @@ Goal: make the model credible enough to share.
 2. Finish `docs/model.md`, including every equation, and write a one-page limits note: a few goods rather than every product, no international trade, no firm-share exchange, and well-being adds housing security at a fixed weight of 0.5.
 3. A methods note for each hypothesis.
 4. A gallery of example scenarios.
-5. Deploy to Cloudflare Pages from GitHub Actions on each merge to `master`.
+5. Build the static application (`pnpm --filter @economy-simulation/app build`) and deploy `packages/app/dist` manually to a static host.
 6. Contribution guide and an issue template for new assumptions, contract types, or hypotheses.
 
 Acceptance:
