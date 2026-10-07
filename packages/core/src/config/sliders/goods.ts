@@ -27,7 +27,16 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     0,
     -0.01,
     0.02,
-    'Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term.',
+    'Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term. When housing.marketClearing is on, this growth also eases the market scarcity index.',
+  ),
+  enumSlider(
+    'housing.marketClearing',
+    'Housing market clearing',
+    'goods',
+    'switch',
+    'off',
+    ['off', 'on'],
+    'Whether housing scarcity is a market outcome. Off keeps the formula price and a home price of 48 months of income. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off reproduces the previous housing prices.',
   ),
   basketProductivity(
     'goods.energyProductivity',

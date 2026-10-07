@@ -27,6 +27,7 @@ export interface Parameters {
   prodGrowth: number;
   categoryGrowth: CategoryProductivity;
   housingSupplyGrowth: number;
+  marketClearing: 'off' | 'on';
   regime: Regime;
   unit: MoneyUnit;
   lendingModel: LendingModel;
@@ -106,6 +107,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
       electronics: slider(config, 'goods.electronicsProductivity'),
     },
     housingSupplyGrowth: slider(config, 'goods.housingSupplyGrowth'),
+    marketClearing: marketClearingOf(config),
     regime,
     // Transition runs use satoshis from the start so the conversion can reassign
     // holdings without changing the ledger class mid-run.
@@ -152,6 +154,14 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     debtHaircut: slider(config, 'transition.debtHaircut'),
     holderConcentration: slider(config, 'transition.holderConcentration'),
   };
+}
+
+export function marketClearingOf(config: ResolvedConfig): 'off' | 'on' {
+  const value = config.sliders['housing.marketClearing'];
+  if (value === 'off' || value === 'on') {
+    return value;
+  }
+  throw new Error('housing.marketClearing must be off or on');
 }
 
 export function firmLevelHiringOf(config: ResolvedConfig): 'off' | 'on' {

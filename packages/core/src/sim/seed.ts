@@ -79,6 +79,7 @@ export function blankEconomy(
     fiscalBoost: 0,
     transitionDone: false,
     creditStress: 0,
+    housingPressure: 1,
   };
 }
 

@@ -111,6 +111,7 @@ function categoryPrices(economy: Economy): BasketSplit {
     productivity: economy.params.categoryGrowth,
     housingSupplyGrowth: economy.params.housingSupplyGrowth,
     deflationPenalty: deflationPenalty(economy),
+    housingPressure: economy.params.marketClearing === 'on' ? economy.housingPressure : 1,
   });
 }
 

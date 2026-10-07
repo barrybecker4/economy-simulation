@@ -63,11 +63,15 @@ export function splitBasket(input: {
   productivity: CategoryProductivity;
   housingSupplyGrowth: number;
   deflationPenalty: number;
+  /** Extra scarcity from the housing market. Omitted or 1 keeps the formula price. */
+  housingPressure?: number;
 }): BasketSplit {
   const relative = (growth: number): number =>
     (1 + input.baselineGrowth) ** input.years / (1 + growth) ** input.years;
   const housing =
-    (relative(0) * (1 - input.deflationPenalty)) / (1 + input.housingSupplyGrowth) ** input.years;
+    ((relative(0) * (1 - input.deflationPenalty)) /
+      (1 + input.housingSupplyGrowth) ** input.years) *
+    (input.housingPressure ?? 1);
   const unscaled = {
     food: relative(input.productivity.food),
     housing,

@@ -578,6 +578,19 @@ Acceptance:
 - With the endogenous weight at 1 and no credit shock, credit rises and later falls.
 - A positive bond rate raises interest paid once the treasury has issued bonds, and the ledger audit passes.
 
+### Phase 21: A housing market
+
+Goal: housing scarcity can clear against tenure demand and supply, instead of only a time formula.
+
+1. `housing.marketClearing` defaults to `off`. Off keeps the formula category price and a home price of 48 months of income.
+2. On: a scarcity index starts at 1 and moves with the share of owners and mortgage holders and with housing supply growth. It multiplies the housing category price and the home price. Tenure choice off holds demand at the neutral share.
+
+Acceptance:
+
+- Market clearing off matches Phase 20 housing prices for the same seeds.
+- With tenure choice on, market clearing ends with a higher housing price relative to the CPI than the formula path.
+- The ledger audit still passes.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

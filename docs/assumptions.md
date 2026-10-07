@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 6.
+Registry version: 7.
 
 ## ai.adoptionMidpointYear
 
@@ -389,7 +389,7 @@ Registry version: 6.
 - Range: -0.01 to 0.02
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term.
+- Description: Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term. When housing.marketClearing is on, this growth also eases the market scarcity index.
 
 ## goods.medicalProductivity
 
@@ -555,6 +555,17 @@ Registry version: 6.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Maximum consumer loan stock as a share of monthly income when tenure choice is on. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off.
+
+## housing.marketClearing
+
+- Label: Housing market clearing
+- Group: goods
+- Unit: switch
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Whether housing scarcity is a market outcome. Off keeps the formula price and a home price of 48 months of income. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off reproduces the previous housing prices.
 
 ## housing.mortgageLtv
 

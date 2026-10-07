@@ -9,6 +9,7 @@ import {
 } from './money.js';
 import { bankCreditRoom } from './banking.js';
 import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
+import { updateHousingPressure } from './housing.js';
 import { CONSUMER_LOAN_REPAY, HOME_PRICE_MONTHS, MONTHLY_RENT_RATE } from './rules.js';
 import type { Household, Tenure } from './types.js';
 
@@ -43,6 +44,7 @@ export function onContractChoice(economy: Economy): void {
   economy.newBorrowing = 0;
   economy.loanRepaid = 0;
   if (economy.params.tenureChoice === 'off') {
+    updateHousingPressure(economy);
     return;
   }
   const penalty = deflationPenalty(economy);
@@ -53,7 +55,8 @@ export function onContractChoice(economy: Economy): void {
   for (const household of economy.households) {
     serviceDebts(economy, household);
     const income = Math.max(household.income, household.smoothed, 1);
-    const homePrice = moneyAmount(economy, income * HOME_PRICE_MONTHS);
+    const scarcity = economy.params.marketClearing === 'on' ? economy.housingPressure : 1;
+    const homePrice = moneyAmount(economy, income * HOME_PRICE_MONTHS * scarcity);
     const rentBurden = homePrice * MONTHLY_RENT_RATE * termMonths;
     const maxLoan = moneyAmount(economy, homePrice * ltv);
     const mortgageBurden = expectedMortgageBurden(maxLoan, expectedDeflation, termYears);
@@ -109,6 +112,7 @@ export function onContractChoice(economy: Economy): void {
       economy.newBorrowing += borrowed;
     }
   }
+  updateHousingPressure(economy);
 }
 
 function serviceDebts(economy: Economy, household: Household): void {

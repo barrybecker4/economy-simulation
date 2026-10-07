@@ -64,4 +64,6 @@ export interface Economy {
   transitionDone: boolean;
   /** Leverage and default pressure. Unused while endogenous credit weight is 0. */
   creditStress: number;
+  /** Housing price pressure. One leaves the formula price unchanged. */
+  housingPressure: number;
 }
