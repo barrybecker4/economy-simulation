@@ -2,6 +2,20 @@
 
 A closed economy of households, firms, and banks, used to see which assumptions a conclusion depends on.
 
+## Actors
+
+**Household**:
+One human: one skill, one job, and one deposit. A household contains no other humans.
+_Avoid_: Human agent, family, person
+
+**Agent**:
+An autonomous actor with its own deposit, owned by one household. It sells compute, shops, and pays income tax.
+_Avoid_: AI agent, bot
+
+**Owner**:
+A household that owns one or more agents. Each agent has one owner. Many households own none.
+_Avoid_: Human owner
+
 ## Comparison
 
 **Scenario**:

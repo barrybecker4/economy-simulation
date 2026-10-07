@@ -11,7 +11,7 @@ The original design note stored money as integer cents or integer satoshis, trea
 ## Decision
 
 - Fiat balances stay integer cents. Bitcoin balances, prices, and settlements are IEEE-754 doubles in satoshis and may be fractional. The fiat ledger audit is exact. The bitcoin audit passes within a relative epsilon. Saved output uses a canonical decimal format.
-- Humans and AI agents are one population. The AI share is an assumption and may become most of the economy. Well-being uses human agents only.
+- Households are the humans, one human each. Agents are autonomous actors owned by households, and one household may own many. The agent count and the AI share of output are assumptions, and that share may become most of the economy. Well-being uses households only.
 - After the single-good baseline, the CPI is split into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. Productivity and housing supply move those prices apart. Headline inflation is their expenditure-weighted average.
 - Expected deflation reduces lending, borrowing, and speculation in proportion to its strength. Firms can shift from tradeable stock to profit-sharing. Housing can shift from nominal mortgages to bitcoin-collateralized loans, targeted savings cooperatives, or rent-to-own.
 - Outcome quality is a dashboard: inequality, mean and median real wealth, mean and median real consumption, and well-being. Well-being is the log of real consumption plus 0.5 times housing security. There is no composite index.

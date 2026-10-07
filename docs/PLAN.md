@@ -47,24 +47,24 @@ Layout:
 ## Time and scale
 
 - One tick is one month. A default run is 50 years (600 ticks). Both are configuration.
-- Development population: 1,000 agents, 100 firms, 3 banks. Release target: 10,000 agents and 500 firms.
-- The AI share of agents is a slider path, not a hard cap.
+- Development population: 1,000 households, 100 firms, 3 banks. Release target: 10,000 households and 500 firms.
+- The agent count is a share of households, not a hard cap.
 - Performance, measured and adjusted as phases land: a development run of 600 ticks in under one second in Node, and a release-size run in under 15 seconds.
 
 ## Domain model
 
 ### Actors
 
-Agents are one population. Each agent is a human or an AI agent.
+A household is one human. An agent is an autonomous actor owned by one household. One household may own many agents, and many households own none.
 
 | Actor        | Role                                                                        | Main decisions                                                                      |
 | ------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Human        | Supplies labor, consumes, saves, borrows, owns firms, homes, and AI capital | Consumption, saving, borrowing, which job to accept, which housing contract to use  |
-| Firm         | Produces goods, employs humans, rents or owns AI capacity                   | Price, wage offers, hiring, investment, adoption of AI, profit-sharing versus loans |
+| Household    | Supplies labor, consumes, saves, borrows, owns firms, homes, and agents     | Consumption, saving, borrowing, which job to accept, which housing contract to use  |
+| Firm         | Produces goods, employs households, rents or owns AI capacity               | Price, wage offers, hiring, investment, adoption of AI, profit-sharing versus loans |
 | Bank         | Accepts deposits and makes loans                                            | Lending volume and interest rate, subject to the regime                             |
 | Government   | Taxes, spends, and issues debt                                              | Spending, transfers, and borrowing                                                  |
 | Central bank | Fiat and hybrid regimes only                                                | Policy rate by rule, optional asset purchases, lender of last resort in the hybrid  |
-| AI agent     | Performs tasks and, in a later phase, transacts on its own account          | Which tasks to take and how to spend its compute budget                             |
+| Agent        | Sells compute and transacts on its own account                              | How to spend its compute budget                                                     |
 
 ### Markets
 
