@@ -202,6 +202,17 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'total-wealth',
+    title: 'Total wealth',
+    group: 'Inequality',
+    unit: 'money',
+    description:
+      'Sum of household wealth divided by CPI — the stock the wealth-by-fifth shares divide. Wealth is deposits plus equity claims on firm capital when the equity market is on (claims use a valuation scale so capital is a material share of wealth). Negative holdings count as zero. Agent deposits are not included. For the output pie that grows like historical real GDP, see the Output chart. More than one seed draws the median.',
+    lines: [
+      { id: 'totalRealWealth', label: 'Total real wealth', color: '#9f1239', better: 'higher' },
+    ],
+  },
+  {
     key: 'turnover',
     title: 'Inflation and turnover',
     group: 'Money',

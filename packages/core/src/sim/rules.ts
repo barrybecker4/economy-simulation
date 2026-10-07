@@ -7,6 +7,12 @@ export const NATURAL_UNEMPLOYMENT = 0.06;
 export const MONTHLY_SEPARATION = 0.02;
 /** Share of capital that depreciates each month. */
 export const MONTHLY_DEPRECIATION = 0.005;
+/**
+ * Multiplier on firm capital at posted prices when building household equity
+ * claims. Physical capital stays in worker-scale units for production and
+ * loans; this scale makes claims on the order of opening deposits.
+ */
+export const WEALTH_CAPITAL_MULTIPLIER = 40;
 /** How many months of sales firms want to hold as inventory. */
 export const INVENTORY_MONTHS = 1;
 /** Weight on previous expected sales. The rest is sales since the last labor step. */

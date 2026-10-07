@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
-import { onCredit } from './credit.js';
+import { desiredCapital, onCredit } from './credit.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 
@@ -15,9 +15,10 @@ describe('investment finance', () => {
       firm.price = 10;
       firm.workers = [];
     }
+    const gap = desiredCapital(economy);
     onCredit(economy);
     expect(economy.newBorrowing).toBeGreaterThan(0);
-    expect(economy.loanFinance).toBeCloseTo(10 * economy.firms.length, 6);
+    expect(economy.loanFinance).toBeCloseTo(gap * 10 * economy.firms.length, 6);
     expect(economy.profitSharingFinance).toBe(0);
   });
 
@@ -32,10 +33,16 @@ describe('investment finance', () => {
       firm.price = 10;
       firm.workers = [];
     }
+    const gap = desiredCapital(economy);
+    // Calm months install a twelfth of the gap (then the hurdle keeps a quarter).
+    const monthGap = gap / 12;
     onCredit(economy);
     expect(economy.loanFinance).toBe(0);
-    expect(economy.realInvestment).toBeCloseTo(0.25 * economy.firms.length, 8);
-    expect(economy.profitSharingFinance).toBeCloseTo(7.5 * economy.firms.length, 8);
+    expect(economy.realInvestment).toBeCloseTo(0.25 * monthGap * economy.firms.length, 8);
+    expect(economy.profitSharingFinance).toBeCloseTo(
+      0.75 * monthGap * 10 * economy.firms.length,
+      8,
+    );
   });
 });
 

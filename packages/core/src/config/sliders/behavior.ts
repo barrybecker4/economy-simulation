@@ -136,8 +136,8 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     'Equity market',
     'behavior',
     'switch',
-    'off',
+    'on',
     ['off', 'on'],
-    'Whether household wealth includes a claim on firm capital. Off counts only deposits, which reproduces the previous wealth distribution. On, firm capital valued at the posted price is split across households with the same skill weights used for profits, including the extra concentration from AI ownership. Those claims are not traded and do not move deposits. They raise measured wealth and the wealth Gini when capital income is uneven.',
+    'Whether household wealth includes a claim on firm capital. On, firm capital valued at the posted price is split across households with the same skill weights used for profits, including the extra concentration from AI ownership. Those claims are not traded and do not move deposits. They raise measured wealth and the wealth Gini when capital income is uneven. Off counts only deposits.',
   ),
 ];

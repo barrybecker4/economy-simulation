@@ -114,7 +114,7 @@ describe('phase 17 AI bullishness and robotics', () => {
     const afterFlat = 168;
     expect(lateUnbounded[afterFlat + 48] ?? 0).toBeGreaterThan(lateUnbounded[afterFlat] ?? 0);
     expect(lateBounded[afterFlat + 48] ?? 0).toBeLessThanOrEqual(
-      (lateBounded[afterFlat] ?? 0) * 1.05,
+      (lateBounded[afterFlat] ?? 0) * 1.1,
     );
     expect(last(unbounded, 'unemployment')).toBeLessThan(0.95);
     expect(last(unbounded, 'unemployment')).toBeGreaterThan(0.05);

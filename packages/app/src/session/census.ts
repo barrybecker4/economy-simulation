@@ -26,6 +26,10 @@ export interface OwnerPicture {
 export interface MonthCensus {
   monthIndex: number;
   wealth: WealthSlice[];
+  /** Real household wealth at this month: non-negative holdings over CPI. */
+  totalRealWealth: number;
+  /** Real GDP (sum of firm capacities) at this month. */
+  realGdp: number;
   jobs: JobSlice[];
   owners: OwnerPicture;
 }
@@ -55,6 +59,8 @@ export function monthCensus(
       share: metricAt(result, slice.id, index),
       color: slice.color,
     })),
+    totalRealWealth: metricAt(result, 'totalRealWealth', index),
+    realGdp: metricAt(result, 'realGdp', index),
     jobs: CENSUS_JOBS.map((job) => ({
       label: job.label,
       share: metricAt(result, job.id, index),

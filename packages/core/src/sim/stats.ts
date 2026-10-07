@@ -50,7 +50,7 @@ export function quintileShares(
 
 /**
  * One ascending sort feeds Gini, mean, median, tail shares, and quintiles.
- * Gini still shifts negatives; shares treat negatives as zero.
+ * Gini still shifts negatives; shares and total treat negatives as zero.
  */
 export function distributionOf(values: readonly number[]): {
   gini: number;
@@ -59,6 +59,7 @@ export function distributionOf(values: readonly number[]): {
   topDecile: number;
   bottomQuintile: number;
   quintiles: [number, number, number, number, number];
+  total: number;
 } {
   const sorted = sortedCopy(values);
   return {
@@ -68,6 +69,7 @@ export function distributionOf(values: readonly number[]): {
     topDecile: tailShareOfSorted(sorted, 0.1, 'top'),
     bottomQuintile: tailShareOfSorted(sorted, 0.2, 'bottom'),
     quintiles: quintileSharesOfSorted(sorted),
+    total: nonNegativeTotal(sorted),
   };
 }
 
@@ -148,16 +150,21 @@ function tailShareOfSorted(
   return total === 0 ? 0 : slice / total;
 }
 
+function nonNegativeTotal(sorted: readonly number[]): number {
+  let total = 0;
+  for (const value of sorted) {
+    total += Math.max(0, value);
+  }
+  return total;
+}
+
 function quintileSharesOfSorted(
   sorted: readonly number[],
 ): [number, number, number, number, number] {
   if (sorted.length === 0) {
     return [0.2, 0.2, 0.2, 0.2, 0.2];
   }
-  let total = 0;
-  for (const value of sorted) {
-    total += Math.max(0, value);
-  }
+  const total = nonNegativeTotal(sorted);
   if (total === 0) {
     return [0.2, 0.2, 0.2, 0.2, 0.2];
   }

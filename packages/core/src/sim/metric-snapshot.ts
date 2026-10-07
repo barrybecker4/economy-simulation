@@ -7,6 +7,8 @@ export interface DistributionReading {
   topDecile: number;
   bottomQuintile: number;
   quintiles: [number, number, number, number, number];
+  /** Sum of non-negative holdings; quintile share times this is that fifth's amount. */
+  total: number;
 }
 
 export interface TenureReading {

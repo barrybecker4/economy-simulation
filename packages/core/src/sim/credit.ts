@@ -1,6 +1,11 @@
 import { bankCreditRoom, equityFor, loansAt, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
-import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
+import {
+  deflationPenalty,
+  expectedInflation,
+  moneyAmount,
+  referenceWorkersPerFirm,
+} from './helpers.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import {
   CREDIT_IMPULSE_DRAW,
@@ -9,10 +14,27 @@ import {
   ENDOGENOUS_LEVERAGE_START,
   ENDOGENOUS_STRESS_LIMIT,
   LOAN_SPREAD,
+  MONTHLY_DEPRECIATION,
   RETAINED_INVESTMENT_SHARE,
 } from './rules.js';
 import { clamp } from './stats.js';
 import type { Bank, Firm } from './types.js';
+
+/**
+ * Capital target: reference staffing times productivity and the AI factor.
+ * Uses L*, not current headcount, so displacement does not shrink the stock.
+ * Credit impulses raise the target. Equity claims use a valuation multiplier
+ * on this capital stock.
+ */
+export function desiredCapital(economy: Economy): number {
+  return Math.max(
+    1,
+    referenceWorkersPerFirm(economy) *
+      economy.productivity *
+      economy.aiFactor *
+      (1 + Math.max(0, economy.creditImpulse)),
+  );
+}
 
 /** True when expected capital return clears the real return on money plus the premium. */
 export function clearsInvestmentHurdle(input: {
@@ -173,12 +195,15 @@ function invest(
   expectedReturn: number,
   realReturn: number,
 ): void {
-  const lumpy = economy.tick % 12 === 0 || economy.creditImpulse > 0;
-  if (!lumpy) {
-    return;
-  }
-  const desired = Math.max(1, firm.workers.length * (1 + Math.max(0, economy.creditImpulse)));
+  const desired = desiredCapital(economy);
   const gap = Math.max(0, desired - firm.capital);
+  // In calm months, replace depreciation and spread larger catch-up over the
+  // year so wealth does not sawtooth. A credit impulse still installs the full
+  // gap that month.
+  const monthInstall =
+    economy.creditImpulse > 0
+      ? gap
+      : Math.min(gap, Math.max(firm.capital * MONTHLY_DEPRECIATION, gap / 12));
   const hurdleOn = economy.params.investmentHurdle === 'on';
   const clears =
     !hurdleOn ||
@@ -187,10 +212,16 @@ function invest(
       realReturn,
       premium: economy.params.hurdlePremium,
     });
+  // Borrowing still only opens during a credit impulse, and only toward a
+  // headcount-scale target so AI-driven capital does not create a loan boom.
   if (clears && economy.creditImpulse > 0 && bank && !bank.failed) {
-    drawExpansionLoan(economy, firm, gap);
+    const borrowTarget = Math.max(
+      1,
+      firm.workers.length * (1 + Math.max(0, economy.creditImpulse)),
+    );
+    drawExpansionLoan(economy, firm, Math.max(0, borrowTarget - firm.capital));
   }
-  const decision = hurdleInvestment(gap, clears);
+  const decision = hurdleInvestment(monthInstall, clears);
   firm.capital += decision.installed;
   economy.realInvestment += decision.installed;
   economy.investmentSpend += decision.installed * firm.price;

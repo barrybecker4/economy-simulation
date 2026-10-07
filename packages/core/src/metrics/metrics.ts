@@ -74,6 +74,7 @@ export const METRIC_IDS = [
   'ownerWealthShare',
   'meanRealWealth',
   'medianRealWealth',
+  'totalRealWealth',
   'meanRealIncome',
   'medianRealIncome',
   'meanRealConsumption',

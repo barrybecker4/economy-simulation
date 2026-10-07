@@ -1,6 +1,6 @@
 import { powerWeights, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
-import { PROFIT_SKILL_EXPONENT } from './rules.js';
+import { PROFIT_SKILL_EXPONENT, WEALTH_CAPITAL_MULTIPLIER } from './rules.js';
 
 /** Split firm capital, valued at posted prices, by the profit-share weights. */
 export function capitalClaims(input: {
@@ -17,7 +17,7 @@ export function capitalClaims(input: {
 export function refreshEquityClaims(economy: Economy): void {
   let capitalValue = 0;
   for (const firm of economy.firms) {
-    capitalValue += Math.max(0, firm.capital * firm.price);
+    capitalValue += Math.max(0, firm.capital * firm.price * WEALTH_CAPITAL_MULTIPLIER);
   }
   const concentration =
     PROFIT_SKILL_EXPONENT +

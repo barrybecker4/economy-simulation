@@ -107,10 +107,47 @@ describe('assembleMetrics', () => {
     expect(values.get('realWage')).toBe(5);
     expect(recorded(snapshot({ priceLevel: 0, wageLevel: 10 })).get('realWage')).toBe(0);
   });
+
+  it('records total real wealth as the non-negative wealth total over CPI', () => {
+    const withPrice = recorded(
+      snapshot({
+        priceLevel: 2,
+        wealth: {
+          gini: 0.4,
+          mean: 20,
+          median: 10,
+          topDecile: 0.5,
+          bottomQuintile: 0.05,
+          quintiles: [0.05, 0.1, 0.15, 0.2, 0.5],
+          total: 100,
+        },
+      }),
+    );
+    expect(withPrice.get('totalRealWealth')).toBe(50);
+    expect(
+      recorded(
+        snapshot({
+          priceLevel: 0,
+          wealth: {
+            gini: 0,
+            mean: 0,
+            median: 0,
+            topDecile: 0,
+            bottomQuintile: 0,
+            quintiles: [0.2, 0.2, 0.2, 0.2, 0.2],
+            total: 100,
+          },
+        }),
+      ).get('totalRealWealth'),
+    ).toBe(0);
+  });
 });
 
-function snapshot(overrides: Partial<TestInput> = {}): MetricSnapshot {
-  const input = { ...defaults(), ...overrides };
+function snapshot(
+  overrides: Partial<TestInput> & { wealth?: MetricSnapshot['wealth'] } = {},
+): MetricSnapshot {
+  const { wealth, ...rest } = overrides;
+  const input = { ...defaults(), ...rest };
   const nominalOutput = input.priceLevel * input.realGdp;
   return {
     realGdp: input.realGdp,
@@ -178,7 +215,7 @@ function snapshot(overrides: Partial<TestInput> = {}): MetricSnapshot {
     bitcoinPrice: 1,
     nominalOutput,
     income: dist(),
-    wealth: dist(),
+    wealth: wealth ?? dist(),
     skill: dist(),
     consumption: dist(),
     wellbeingMean: input.wellbeingMean,
@@ -253,5 +290,6 @@ function dist(): MetricSnapshot['income'] {
     topDecile: 0,
     bottomQuintile: 0,
     quintiles: [0, 0, 0, 0, 0],
+    total: 0,
   };
 }

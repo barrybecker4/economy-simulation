@@ -51,5 +51,13 @@ describe('stats', () => {
     expect(stats.topDecile).toBe(topShare([1, 2, 3, 4, 90], 0.1));
     expect(stats.bottomQuintile).toBe(bottomShare([1, 2, 3, 4, 90], 0.2));
     expect(stats.quintiles).toEqual(quintileShares([1, 2, 3, 4, 90]));
+    expect(stats.total).toBe(100);
+    expect(stats.quintiles.reduce((sum, share) => sum + share, 0)).toBeCloseTo(1, 12);
+  });
+
+  it('sums only non-negative holdings for the distribution total', () => {
+    expect(distributionOf([-5, 1, 2, 3, 4]).total).toBe(10);
+    expect(distributionOf([]).total).toBe(0);
+    expect(distributionOf([0, 0, 0]).total).toBe(0);
   });
 });

@@ -126,7 +126,7 @@ Agents choose the contract with the lowest expected real burden given `d`. These
 
 Every tick records level and distribution. Human metrics use human agents only. AI agents are reported through composition metrics, not through well-being.
 
-- Inequality: Gini of wealth, income, and consumption; top-decile wealth share; bottom-quintile wealth share.
+- Inequality: Gini of wealth, income, and consumption; top-decile wealth share; bottom-quintile wealth share; total real wealth (the pie those shares divide).
 - Wealth and income: mean and median real wealth; mean and median real income.
 - Consumption: mean and median real consumption; share of humans below a consumption floor.
 - Well-being: log real consumption plus 0.5 times a housing-security score. Security is lowest when unhoused, higher when renting or waiting in a cooperative, higher as rent-to-own vests, and highest when the home is owned. Report mean, median, and the consumption-floor share.
@@ -384,9 +384,10 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
    The legend lists each series once. Hovering that item highlights the baseline and the scenario together.
    A pinned pair also draws the month payment diagram as baseline beside scenario, with edge amounts on hover instead of a legend,
    and stacks the scenario wealth-by-fifth and job-mix bars directly under the baseline bars.
+   This month also shows total real wealth (the stock those shares divide) and real GDP (the output pie) side by side.
    Those legends read the baseline share, then the scenario. Under each comparison chart,
    a caption states how the scenario differs at the last month, mentions the rest of the path only when a strict majority of months disagrees,
-   and calls the change an improvement or worse only for well-being, unemployment, inequality, living standards, real GDP,
+   and calls the change an improvement or worse only for well-being, unemployment, inequality, total wealth, living standards, real GDP,
    and productivity per human. When a money chart's baseline and scenario use different units,
    dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does not score that pair.
 4. Charts with uPlot for the welfare dashboard and category prices.
@@ -648,13 +649,15 @@ Acceptance:
 
 Goal: capital income can show up as wealth, not only as a flow of profit.
 
-1. `equity.marketOn` defaults to `off`. Off counts only deposits.
-2. On: firm capital at posted prices is split by the profit weights, including the extra concentration from AI ownership. Wealth Gini uses deposits plus those claims. Capital share is profits over wages plus profits.
+1. `equity.marketOn` defaults to `on`. Off counts only deposits.
+2. On: firm capital at posted prices, scaled by a wealth valuation multiplier, is split by the profit weights, including the extra concentration from AI ownership. Wealth Gini uses deposits plus those claims. Capital share is profits over wages plus profits.
+3. Desired capital tracks reference staffing times productivity and the AI factor, not current headcount, so AI displacement does not shrink the capital stock and stronger AI raises measured wealth. Investment tops up every month. Default total real wealth rises over a decade.
 
 Acceptance:
 
-- Equity market off matches Phase 25 wealth Gini for the same seeds.
-- Equity market on ends with a higher wealth Gini.
+- Equity market off is deterministic for the same seeds.
+- Equity market on ends with a higher wealth Gini than off under concentrated AI ownership.
+- Default sliders raise total real wealth and real GDP over 120 months.
 - The ledger audit still passes. Claims do not move deposits.
 
 ### Phase 27: Agent market depth

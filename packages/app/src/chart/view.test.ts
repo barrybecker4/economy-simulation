@@ -50,6 +50,7 @@ describe('chartViews', () => {
       'output',
       'living',
       'inequality',
+      'total-wealth',
       'turnover',
       'money',
       'shocks',
@@ -257,6 +258,7 @@ describe('chartViews', () => {
     baselineSeries.naturalUnemployment = [0.06, 0.06];
     baselineSeries.interestRate = [0.04, 0.04];
     baselineSeries.priceLevel = [100, 100];
+    baselineSeries.totalRealWealth = [1000, 1000];
     const variantSeries = series([1, 2]);
     variantSeries.meanWellbeing = [1.5, 2.5];
     variantSeries.medianWellbeing = [1, 2];
@@ -264,6 +266,7 @@ describe('chartViews', () => {
     variantSeries.naturalUnemployment = [0.06, 0.06];
     variantSeries.interestRate = [0.04, 0.04];
     variantSeries.priceLevel = [100, 108];
+    variantSeries.totalRealWealth = [1000, 1500];
     const views = chartViews({ kind: 'run', ticks, series: variantSeries }, 'fiat', {
       result: { kind: 'run', ticks, series: baselineSeries },
       regime: 'fiat',
@@ -281,6 +284,9 @@ describe('chartViews', () => {
     expect(views.find((view) => view.key === 'prices')?.caption).not.toMatch(/improvement|worse/);
     expect(views.find((view) => view.key === 'credit')?.caption).toBe(
       'Every series matches the baseline.',
+    );
+    expect(views.find((view) => view.key === 'total-wealth')?.caption).toBe(
+      'Total real wealth ends higher (10 → 15). That is an improvement.',
     );
   });
 

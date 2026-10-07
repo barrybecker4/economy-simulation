@@ -297,11 +297,11 @@ Registry version: 12.
 - Label: Equity market
 - Group: behavior
 - Unit: switch
-- Default: off
+- Default: on
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Whether household wealth includes a claim on firm capital. Off counts only deposits, which reproduces the previous wealth distribution. On, firm capital valued at the posted price is split across households with the same skill weights used for profits, including the extra concentration from AI ownership. Those claims are not traded and do not move deposits. They raise measured wealth and the wealth Gini when capital income is uneven.
+- Description: Whether household wealth includes a claim on firm capital. On, firm capital valued at the posted price is split across households with the same skill weights used for profits, including the extra concentration from AI ownership. Those claims are not traded and do not move deposits. They raise measured wealth and the wealth Gini when capital income is uneven. Off counts only deposits.
 
 ## expectations.anchorWeight
 

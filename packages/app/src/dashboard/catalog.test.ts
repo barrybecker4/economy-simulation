@@ -77,6 +77,7 @@ const PREVIOUS_WORKER_SERIES = [
   'jobSmallFirmShare',
   'jobLargeFirmShare',
   'ownerWealthShare',
+  'totalRealWealth',
 ];
 
 describe('dashboard catalog', () => {

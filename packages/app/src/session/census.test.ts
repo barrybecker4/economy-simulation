@@ -21,6 +21,8 @@ function series(): Record<string, number[]> {
   out.ownerWealthShare = [0, 0.3];
   out.aiShareOfWealth = [0, 0.02];
   out.aiShareOfAgents = [0, 0.2];
+  out.totalRealWealth = [200, 250];
+  out.realGdp = [900, 1100];
   return out;
 }
 
@@ -30,11 +32,15 @@ describe('monthCensus', () => {
     const frame = censusFrame();
     const empty = monthCensus(result, 0, frame);
     expect(empty.wealth.map((slice) => slice.share)).toEqual([0.05, 0.1, 0.15, 0.2, 0.5]);
+    expect(empty.totalRealWealth).toBe(200);
+    expect(empty.realGdp).toBe(900);
     expect(empty.jobs.map((slice) => slice.share)).toEqual([0.06, 0.5, 0.44]);
     expect(empty.owners.hasAgents).toBe(false);
     expect(empty.owners.agentCount).toBe(0);
 
     const later = monthCensus(result, 1, frame);
+    expect(later.totalRealWealth).toBe(250);
+    expect(later.realGdp).toBe(1100);
     expect(later.owners.hasAgents).toBe(true);
     expect(later.owners.agentCount).toBe(25);
     expect(later.owners.ownerCount).toBe(25);

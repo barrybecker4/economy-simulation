@@ -353,6 +353,101 @@
   </div>
 
   <div class="panel">
+    <h3>Total wealth</h3>
+    <p class="note">
+      Stock of household deposits plus equity claims when the equity market is on, divided by CPI.
+      The wealth-by-fifth bars are shares of this stock.
+    </p>
+    {#if baselineCensus && baselineFlows !== null}
+      {@const sameUnit = baselineFlows.unit === flows.unit}
+      {#if sameUnit}
+        {@const peak = Math.max(baselineCensus.totalRealWealth, census.totalRealWealth, 1)}
+        <div class="compare-lines">
+          <div class="line size-line">
+            <span class="line-label">Baseline</span>
+            <div
+              class="size-track"
+              role="img"
+              aria-label="Baseline total real wealth {formatMoney(baselineCensus.totalRealWealth)} {flows.unit}"
+            >
+              <div
+                class="size-fill"
+                style:width="{(baselineCensus.totalRealWealth / peak) * 100}%"
+              ></div>
+            </div>
+            <span class="size-amount"
+              >{formatMoney(baselineCensus.totalRealWealth)} {flows.unit}</span
+            >
+          </div>
+          <div class="line size-line">
+            <span class="line-label">Scenario</span>
+            <div
+              class="size-track"
+              role="img"
+              aria-label="Scenario total real wealth {formatMoney(census.totalRealWealth)} {flows.unit}"
+            >
+              <div
+                class="size-fill"
+                style:width="{(census.totalRealWealth / peak) * 100}%"
+              ></div>
+            </div>
+            <span class="size-amount">{formatMoney(census.totalRealWealth)} {flows.unit}</span>
+          </div>
+        </div>
+      {:else}
+        <p>
+          Baseline: {formatMoney(baselineCensus.totalRealWealth)}
+          {baselineFlows.unit}. Scenario: {formatMoney(census.totalRealWealth)}
+          {flows.unit}.
+        </p>
+      {/if}
+    {:else}
+      <p>
+        Total real household wealth: {formatMoney(census.totalRealWealth)}
+        {flows.unit}.
+      </p>
+    {/if}
+  </div>
+
+  <div class="panel">
+    <h3>Output</h3>
+    <p class="note">
+      Real GDP is the sum of firm capacities this month — the output pie historical GDP charts
+      measure, not the wealth stock above.
+    </p>
+    {#if baselineCensus}
+      {@const peak = Math.max(baselineCensus.realGdp, census.realGdp, 1)}
+      <div class="compare-lines">
+        <div class="line size-line">
+          <span class="line-label">Baseline</span>
+          <div
+            class="size-track output"
+            role="img"
+            aria-label="Baseline real GDP {formatMoney(baselineCensus.realGdp)}"
+          >
+            <div class="size-fill output" style:width="{(baselineCensus.realGdp / peak) * 100}%"
+            ></div>
+          </div>
+          <span class="size-amount">{formatMoney(baselineCensus.realGdp)}</span>
+        </div>
+        <div class="line size-line">
+          <span class="line-label">Scenario</span>
+          <div
+            class="size-track output"
+            role="img"
+            aria-label="Scenario real GDP {formatMoney(census.realGdp)}"
+          >
+            <div class="size-fill output" style:width="{(census.realGdp / peak) * 100}%"></div>
+          </div>
+          <span class="size-amount">{formatMoney(census.realGdp)}</span>
+        </div>
+      </div>
+    {:else}
+      <p>Real GDP: {formatMoney(census.realGdp)}.</p>
+    {/if}
+  </div>
+
+  <div class="panel">
     <h3>Jobs</h3>
     {#if baselineCensus}
       {@render comparedShares(baselineCensus.jobs, census.jobs, 'job mix shares')}
@@ -488,10 +583,40 @@
     gap: 0.55rem;
     grid-template-columns: 4.75rem minmax(0, 1fr);
   }
+  .line.size-line {
+    grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+  }
   .line-label {
     color: #44403c;
     font-size: 0.85rem;
     font-weight: 600;
+  }
+  .size-track {
+    background: #e7e5e4;
+    border-radius: 0.25rem;
+    height: 1.5rem;
+    overflow: hidden;
+    width: 100%;
+  }
+  .size-fill {
+    background: #9f1239;
+    height: 100%;
+    min-width: 0;
+  }
+  .size-fill.output {
+    background: #1e3a8a;
+  }
+  .note {
+    color: #57534e;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    margin: 0 0 0.65rem;
+  }
+  .size-amount {
+    color: #44403c;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .stack {
     border-radius: 0.25rem;

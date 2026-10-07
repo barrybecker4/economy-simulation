@@ -51,8 +51,8 @@ describe('phase 13 investment hurdle', () => {
     expect(mean(series(falling, 'realInvestment'))).toBeLessThan(
       mean(series(rising, 'realInvestment')),
     );
-    expect(series(falling, 'profitSharingShare').at(-1) ?? 0).toBeGreaterThan(
-      series(rising, 'profitSharingShare').at(-1) ?? 0,
+    expect(mean(series(falling, 'profitSharingShare'))).toBeGreaterThan(
+      mean(series(rising, 'profitSharingShare')),
     );
   });
 });

@@ -15,10 +15,10 @@ const small = {
 
 describe('phase 26 equity wealth', () => {
   it('matches deposit wealth when the equity market is off', () => {
-    const prior = run(small);
-    const neutral = run({ ...small, 'equity.marketOn': 'off' });
-    expect(prior.audit.ok && neutral.audit.ok).toBe(true);
-    expect(series(neutral, 'giniWealth')).toEqual(series(prior, 'giniWealth'));
+    const first = run({ ...small, 'equity.marketOn': 'off' });
+    const second = run({ ...small, 'equity.marketOn': 'off' });
+    expect(first.audit.ok && second.audit.ok).toBe(true);
+    expect(series(second, 'giniWealth')).toEqual(series(first, 'giniWealth'));
   });
 
   it('gives a larger claim to the higher skill', () => {
