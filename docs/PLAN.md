@@ -631,6 +631,19 @@ Acceptance:
 - A higher bitcoin trust raises the bitcoin share and, with no issuance, its exchange rate.
 - The main ledger audit still passes.
 
+### Phase 25: Regime labels are opening conditions
+
+Goal: a conclusion about money can depend on emergent shares. `regime.type` still selects the opening rule set so the existing comparisons keep running. It does not freeze the mix once `money.choiceSpeed` is positive.
+
+1. Hypothesis H9 runs the same trust and legal-tender settings from a fiat opening and from a bitcoin opening.
+2. Both runs are supported when the bitcoin share rises above its start. The opening label does not decide the share.
+
+Acceptance:
+
+- The hypothesis runner reports H1–H9.
+- H9 is supported for the bundled settings.
+- Choice speed 0 still leaves H1–H8 on their previous regime rules.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

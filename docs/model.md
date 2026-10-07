@@ -42,7 +42,7 @@ Uniforms are on `[0, 1)`. Normal draws use Box–Muller. A standard deviation of
 
 Each tick runs, in order: shocks, population mix, labor market, production, goods and asset markets, contract choice, credit, government, central bank, bookkeeping, welfare. The bookkeeping step records the audit. Welfare can read that audit. The result's audit is taken again after the tick. A caller of the scheduler can leave a step empty. The economy fills every step.
 
-The ledger unit follows `regime.type`: fiat uses cents; bitcoin and hybrid use satoshis. That slider is the opening monetary rule. `money.choiceSpeed` can move the shares of fiat, bitcoin, stablecoins, and CBDC away from the opening mix. At speed 0 the shares stay put and the rule is unchanged. Above 0 the policy rate is the fiat share times the Taylor rule plus the rest times the market rate, and each digital money has an exchange rate that rises with its share and falls with issuance.
+The ledger unit follows `regime.type`: fiat uses cents; bitcoin and hybrid use satoshis. That slider is only the opening monetary rule. `money.choiceSpeed` can move the shares of fiat, bitcoin, stablecoins, and CBDC away from the opening mix. At speed 0 the shares stay put and the rule is unchanged. Above 0 the policy rate is the fiat share times the Taylor rule plus the rest times the market rate, and each digital money has an exchange rate that rises with its share and falls with issuance.
 
 ## Metrics
 

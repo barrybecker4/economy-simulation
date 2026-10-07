@@ -18,7 +18,7 @@ const base = {
 };
 
 export function runHypotheses(): HypothesisResult[] {
-  return [h1(), h2(), h3(), h4(), h5(), h6(), h7(), h8()];
+  return [h1(), h2(), h3(), h4(), h5(), h6(), h7(), h8(), h9()];
 }
 
 function h1(): HypothesisResult {
@@ -159,6 +159,25 @@ function h8(): HypothesisResult {
     claim: 'Electronics cheapen and housing rises inside both a rising and a falling CPI.',
     supported: electronics && housing && pathsDiffer,
     detail: `fiat inflation ${last(fiat, 'inflation')} bitcoin ${last(bitcoin, 'inflation')}`,
+  };
+}
+
+function h9(): HypothesisResult {
+  const prefs = {
+    ...base,
+    'money.choiceSpeed': 0.2,
+    'money.bitcoinStart': 0.1,
+    'money.bitcoinTrust': 2,
+    'money.fiatLegalTender': 0,
+  };
+  const fromFiat = run({ ...prefs, 'regime.type': 'fiat' });
+  const fromBitcoin = run({ ...prefs, 'regime.type': 'bitcoin' });
+  const moved = last(fromFiat, 'bitcoinShare') > 0.1 && last(fromBitcoin, 'bitcoinShare') > 0.1;
+  return {
+    id: 'H9',
+    claim: 'Currency shares follow trust and legal tender, not only the opening regime label.',
+    supported: moved,
+    detail: `bitcoin share from fiat ${last(fromFiat, 'bitcoinShare')} from bitcoin ${last(fromBitcoin, 'bitcoinShare')}`,
   };
 }
 
