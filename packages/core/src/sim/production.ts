@@ -45,4 +45,5 @@ function produce(economy: Economy, firm: Firm): void {
     firm.inventory += firm.output;
   }
   firm.capital *= 1 - MONTHLY_DEPRECIATION;
+  firm.computeReady = 0;
 }

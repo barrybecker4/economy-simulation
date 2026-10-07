@@ -99,6 +99,7 @@ function sellCompute(economy: Economy, agent: Agent, ask: number, friction: numb
   const fee = moneyAmount(economy, bill * friction);
   debitDeposit(firm, bill);
   creditDeposit(agent, bill - fee);
+  firm.computeReady += 1;
   agent.income = bill - fee;
   if (fee > 0) {
     collectBankFee(bank, economy, fee);

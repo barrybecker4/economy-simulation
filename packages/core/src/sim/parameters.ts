@@ -25,6 +25,8 @@ export interface Parameters {
   inflationTimePreference: number;
   anchorWeight: number;
   prodGrowth: number;
+  popGrowth: number;
+  computeProductivity: number;
   categoryGrowth: CategoryProductivity;
   housingSupplyGrowth: number;
   marketClearing: 'off' | 'on';
@@ -96,6 +98,8 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     inflationTimePreference: slider(config, 'household.inflationTimePreference'),
     anchorWeight: slider(config, 'expectations.anchorWeight'),
     prodGrowth: slider(config, 'productivity.baseGrowth'),
+    popGrowth: slider(config, 'population.growth'),
+    computeProductivity: slider(config, 'ai.computeProductivity'),
     categoryGrowth: {
       food: slider(config, 'goods.foodProductivity'),
       energy: slider(config, 'goods.energyProductivity'),

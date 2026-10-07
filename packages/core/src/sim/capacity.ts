@@ -3,17 +3,19 @@ import { humanWeight, referenceWorkersPerFirm } from './helpers.js';
 import type { Firm } from './types.js';
 
 export function firmCapacity(economy: Economy, firm: Firm): number {
-  return productionCapacity({
-    firmProductivity: firm.productivity,
-    productivity: economy.productivity,
-    productivityImpulse: economy.productivityImpulse,
-    capital: firm.capital,
-    alpha: economy.params.alpha,
-    labor: firm.workers.length,
-    laborStar: referenceWorkersPerFirm(economy),
-    aiFactor: economy.aiFactor,
-    humanWeight: humanWeight(economy),
-  });
+  return (
+    productionCapacity({
+      firmProductivity: firm.productivity,
+      productivity: economy.productivity,
+      productivityImpulse: economy.productivityImpulse,
+      capital: firm.capital,
+      alpha: economy.params.alpha,
+      labor: firm.workers.length,
+      laborStar: referenceWorkersPerFirm(economy),
+      aiFactor: economy.aiFactor,
+      humanWeight: humanWeight(economy),
+    }) * computeCapacityFactor(firm.computeReady, economy.params.computeProductivity)
+  );
 }
 
 /** Cobb–Douglas capacity with AI-scaled staffing. */
@@ -43,6 +45,14 @@ export function productionCapacity(input: {
     input.aiFactor *
     staffing
   );
+}
+
+/** Capacity multiplier from compute bought last month. Zero productivity leaves capacity unchanged. */
+export function computeCapacityFactor(units: number, productivity: number): number {
+  if (productivity <= 0 || units <= 0) {
+    return 1;
+  }
+  return 1 + productivity * units;
 }
 
 function staffingFactor(labor: number, laborHat: number, alpha: number, weight: number): number {

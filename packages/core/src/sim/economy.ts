@@ -10,6 +10,7 @@ export interface Economy {
   readonly banks: Bank[];
   readonly agents: Agent[];
   readonly shockRng: Rng;
+  readonly populationRng: Rng;
   readonly priceHistory: number[];
   readonly gdpHistory: number[];
   readonly creditHistory: number[];
@@ -66,4 +67,6 @@ export interface Economy {
   creditStress: number;
   /** Housing price pressure. One leaves the formula price unchanged. */
   housingPressure: number;
+  /** Fractional households waiting to enter or exit. */
+  populationCredit: number;
 }

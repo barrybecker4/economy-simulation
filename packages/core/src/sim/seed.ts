@@ -16,6 +16,7 @@ const OPENING_LOAN_SHARE = 0.5;
 export function blankEconomy(
   params: Parameters,
   shockRng: Rng,
+  populationRng: Rng,
   forcedShock: ForcedShock | null,
 ): Economy {
   const wageLevel = INITIAL_WAGE;
@@ -27,6 +28,7 @@ export function blankEconomy(
     banks: [],
     agents: [],
     shockRng,
+    populationRng,
     priceHistory: [],
     gdpHistory: Array.from({ length: 12 }, () => 1),
     creditHistory: [],
@@ -80,6 +82,7 @@ export function blankEconomy(
     transitionDone: false,
     creditStress: 0,
     housingPressure: 1,
+    populationCredit: 0,
   };
 }
 
@@ -159,6 +162,7 @@ function seedFirms(economy: Economy, init: Rng): void {
       deposit: 0,
       loan: 0,
       output: 0,
+      computeReady: 0,
       sales: 0,
       expectedSales: 0,
       negTicks: 0,

@@ -160,7 +160,7 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | Behavior    | firm.priceAdjustSpeed                  | 0.3             | 0.05 to 1                    |
 | Behavior    | wage.nominalRigidity                   | 0.7             | 0 to 0.95                    |
 | Environment | productivity.baseGrowth (annual)       | 0.01            | 0 to 0.04                    |
-| Environment | population.growth (annual)             | 0.005           | -0.01 to 0.02                |
+| Environment | population.growth (annual)             | 0               | -0.01 to 0.02                |
 | Environment | shock.frequency (per year)             | 0.1             | 0 to 1                       |
 | Environment | shock.size                             | 0.05            | 0 to 0.3                     |
 | Policy      | tax.incomeRate                         | 0.2             | 0 to 0.5                     |
@@ -589,6 +589,20 @@ Acceptance:
 
 - Market clearing off matches Phase 20 housing prices for the same seeds.
 - With tenure choice on, market clearing ends with a higher housing price relative to the CPI than the formula path.
+- The ledger audit still passes.
+
+### Phase 22: Demographics and productive compute
+
+Goal: population growth changes the household count, and agent compute can raise the buyer’s capacity.
+
+1. `population.growth` now changes the number of households. The default is 0, which holds the count fixed. The previous default of 0.005 was stored and not applied.
+2. `ai.computeProductivity` defaults to 0. Above 0, each compute unit a firm buys multiplies next month’s capacity by one plus that rate times the units.
+
+Acceptance:
+
+- Population growth 0 and compute productivity 0 match Phase 21 for the same seeds.
+- A positive population growth ends with higher real GDP than a fixed population.
+- With agents trading, a higher compute productivity ends with higher real GDP.
 - The ledger audit still passes.
 
 ## Validation

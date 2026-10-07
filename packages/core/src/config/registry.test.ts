@@ -65,6 +65,7 @@ const EXPECTED_IDS = [
   'ai.ownershipConcentration',
   'ai.ownerShareCeiling',
   'ai.agentsPerOwnerCeiling',
+  'ai.computeProductivity',
   'ai.paymentFrictionFiat',
   'ai.paymentFrictionBitcoin',
   'scale.households',

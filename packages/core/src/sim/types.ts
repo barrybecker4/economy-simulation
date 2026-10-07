@@ -32,6 +32,8 @@ export interface Firm {
   deposit: number;
   loan: number;
   output: number;
+  /** Agent compute units bought last month. They raise capacity when compute productivity is positive. */
+  computeReady: number;
   /** Units sold since the last labor step, including government purchases. */
   sales: number;
   /** Smoothed unit sales used when demand sets output or firms set hiring. */

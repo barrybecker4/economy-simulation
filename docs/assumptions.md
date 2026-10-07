@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 7.
+Registry version: 8.
 
 ## ai.adoptionMidpointYear
 
@@ -82,6 +82,17 @@ Registry version: 7.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual rate at which AI compute gets cheaper. Cost starts equal to the wage and is multiplied by one minus this rate each year. Firms take up newly automatable tasks only once that cost is below the wage. Any positive rate makes cost fall below the wage after the first year. At zero, cost stays at the wage and this channel adds no capacity.
+
+## ai.computeProductivity
+
+- Label: Compute productivity
+- Group: ai
+- Unit: per unit
+- Default: 0
+- Range: 0 to 2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How much one unit of agent compute raises the buying firm’s capacity next month. Capacity is multiplied by one plus this rate times units bought last month. At 0 the purchase is only a payment and capacity is unchanged, which reproduces the previous production path. Above 0, firms that buy compute produce more.
 
 ## ai.ownerShareCeiling
 
@@ -638,11 +649,11 @@ Registry version: 7.
 - Label: Population growth
 - Group: background
 - Unit: 1/year
-- Default: 0.005
+- Default: 0
 - Range: -0.01 to 0.02
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Intended annual change in the number of people. The economy does not apply it. The household count stays at the Households slider for the whole run, and unemployment is measured against that fixed population. The value is stored with the scenario so the assumption stays visible.
+- Description: Annual change in the number of households. The monthly rate adds or removes people deterministically, carrying a fractional remainder so a small rate still changes the count. New households enter unemployed, with no deposit, a fresh skill draw, and the next id. A household who exits leaves any deposit to the first household and any loan is written off against bank equity. At 0 the household count stays at the Households slider, which keeps the previous population path. The old default of 0.005 was stored but never applied.
 
 ## prices.trendWeight
 

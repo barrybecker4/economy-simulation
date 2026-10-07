@@ -17,10 +17,10 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'Population growth',
     'background',
     '1/year',
-    0.005,
+    0,
     -0.01,
     0.02,
-    'Intended annual change in the number of people. The economy does not apply it. The household count stays at the Households slider for the whole run, and unemployment is measured against that fixed population. The value is stored with the scenario so the assumption stays visible.',
+    'Annual change in the number of households. The monthly rate adds or removes people deterministically, carrying a fractional remainder so a small rate still changes the count. New households enter unemployed, with no deposit, a fresh skill draw, and the next id. A household who exits leaves any deposit to the first household and any loan is written off against bank equity. At 0 the household count stays at the Households slider, which keeps the previous population path. The old default of 0.005 was stored but never applied.',
   ),
   numberSlider(
     'shock.frequency',

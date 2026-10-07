@@ -1,6 +1,9 @@
 import type { Economy } from './economy.js';
+import { separate } from './helpers.js';
+import { chargeEquityForDefault, transferDeposit } from './money.js';
 import { AI_INTERNET_TASK_GAIN, AI_UNBOUNDED_GROWTH } from './rules.js';
-import { clamp } from './stats.js';
+import { clamp, monthlyFromAnnual } from './stats.js';
+import type { Household } from './types.js';
 
 /**
  * Progress of the adoption curve, from 0 to 1.
@@ -30,13 +33,7 @@ export function automationShare(
   if (autoEnd === autoStart) {
     return autoStart;
   }
-  const progress = adoptionProgress(
-    autoStart,
-    autoEnd,
-    adoptionSteepness,
-    adoptionMidpoint,
-    years,
-  );
+  const progress = adoptionProgress(autoStart, autoEnd, adoptionSteepness, adoptionMidpoint, years);
   return autoStart + (autoEnd - autoStart) * progress;
 }
 
@@ -78,6 +75,7 @@ export function taskGain(bullishness: number, years: number): number {
 }
 
 export function onPopulation(economy: Economy): void {
+  applyPopulationGrowth(economy);
   const years = economy.tick / 12;
   const progress = adoptionProgress(
     economy.params.autoStart,
@@ -113,6 +111,78 @@ export function onPopulation(economy: Economy): void {
   economy.aiFactor = 1 + adopted * gain;
   economy.displacementFactor = 1 + adopted * Math.min(gain, 1);
   spawnAgents(economy, progress);
+}
+
+function applyPopulationGrowth(economy: Economy): void {
+  const monthly = monthlyFromAnnual(economy.params.popGrowth);
+  if (monthly === 0 || economy.households.length === 0) {
+    return;
+  }
+  economy.populationCredit += economy.households.length * monthly;
+  while (economy.populationCredit >= 1) {
+    economy.populationCredit -= 1;
+    addHousehold(economy);
+  }
+  while (economy.populationCredit <= -1 && economy.households.length > 1) {
+    economy.populationCredit += 1;
+    removeLastHousehold(economy);
+  }
+}
+
+function addHousehold(economy: Economy): void {
+  const id = economy.households.length;
+  const sigma = economy.params.skillSigma;
+  const skill =
+    clamp(economy.populationRng.lognormal(0, sigma), 0.2, 5) / Math.exp((sigma * sigma) / 2);
+  const timePref = clamp(
+    economy.populationRng.normal(economy.params.timePrefMean, economy.params.prefStd),
+    0.01,
+    0.15,
+  );
+  const household: Household = {
+    id,
+    bank: id % Math.max(economy.params.bankCount, 1),
+    skill,
+    timePref,
+    deposit: 0,
+    employer: -1,
+    income: 0,
+    consumption: 0,
+    realConsumption: 0,
+    smoothed: 0,
+    search: economy.populationRng.fork(id),
+    tenure: 'none',
+    mortgage: 0,
+    mortgagePayment: 0,
+    consumerLoan: 0,
+  };
+  economy.households.push(household);
+}
+
+function removeLastHousehold(economy: Economy): void {
+  const exiting = economy.households[economy.households.length - 1];
+  const heir = economy.households[0];
+  if (!exiting || !heir || exiting.id === heir.id) {
+    return;
+  }
+  if (exiting.employer >= 0) {
+    separate(economy, exiting);
+  }
+  if (exiting.deposit > 0) {
+    transferDeposit(exiting, heir, exiting.deposit);
+  }
+  const debt = exiting.mortgage + exiting.consumerLoan;
+  if (debt > 0) {
+    chargeEquityForDefault(economy.banks[exiting.bank], economy, debt);
+    exiting.mortgage = 0;
+    exiting.consumerLoan = 0;
+  }
+  for (const agent of economy.agents) {
+    if (agent.owner === exiting.id) {
+      agent.owner = heir.id;
+    }
+  }
+  economy.households.pop();
 }
 
 function spawnAgents(economy: Economy, progress: number): void {

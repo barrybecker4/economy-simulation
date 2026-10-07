@@ -123,6 +123,16 @@ export const AI_SLIDERS: readonly Slider[] = [
     'How many agents one owner holds once the adoption curve has finished. The count rises along that curve from zero to this ceiling. New agents go to owners who are short of the current level. An existing agent keeps its owner and its deposit. At zero, no agents are created.',
   ),
   numberSlider(
+    'ai.computeProductivity',
+    'Compute productivity',
+    'ai',
+    'per unit',
+    0,
+    0,
+    2,
+    'How much one unit of agent compute raises the buying firm’s capacity next month. Capacity is multiplied by one plus this rate times units bought last month. At 0 the purchase is only a payment and capacity is unchanged, which reproduces the previous production path. Above 0, firms that buy compute produce more.',
+  ),
+  numberSlider(
     'ai.paymentFrictionFiat',
     'Fiat payment friction',
     'aiClaims',

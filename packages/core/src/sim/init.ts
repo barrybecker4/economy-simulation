@@ -22,7 +22,7 @@ export function createEconomy(
   forcedShock: ForcedShock | null,
 ): Economy {
   const root = new Rng(seed);
-  const economy = blankEconomy(params, root.fork('shocks'), forcedShock);
+  const economy = blankEconomy(params, root.fork('shocks'), root.fork('population'), forcedShock);
   seedPriceHistory(economy, priceTrend(economy));
   seedActors(economy, root.fork('init'), root);
   normalizeSkills(economy);
