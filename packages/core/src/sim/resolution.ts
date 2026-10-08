@@ -1,4 +1,5 @@
 import { addBonds, equityFor, loansAt } from './banking.js';
+import { adjustBankEquity } from './capital-identity.js';
 import { moneyAmount } from './helpers.js';
 import type { Economy } from './economy.js';
 import type { Bank } from './types.js';
@@ -103,8 +104,7 @@ function bailIn(economy: Economy, bank: Bank): void {
           ? Math.min(account.deposit, left)
           : moneyAmount(economy, Math.min(account.deposit, (need * account.deposit) / deposits));
       account.deposit -= cut;
-      bank.equity += cut;
-      economy.privateEquity -= cut;
+      adjustBankEquity(bank, economy, cut);
       left -= cut;
     }
   }
@@ -167,8 +167,7 @@ function writeDownDeposit(
     return;
   }
   account.deposit -= cut;
-  bank.equity += cut;
-  economy.privateEquity -= cut;
+  adjustBankEquity(bank, economy, cut);
 }
 
 function clampHaircut(value: number): number {

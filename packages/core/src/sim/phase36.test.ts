@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
+import { adjustBankEquity } from './capital-identity.js';
 import { payHouseholdDepositInterest } from './central-bank.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
@@ -43,8 +44,7 @@ describe('phase 36 deposit interest pays the posted rate', () => {
     }
     bank.failed = false;
     const cover = 1_000_000;
-    bank.equity += cover;
-    economy.privateEquity -= cover;
+    adjustBankEquity(bank, economy, cover);
     economy.policyRate = 0.04;
     payHouseholdDepositInterest(economy, new Map([[0, cover]]));
     expect(economy.depositRate).toBeCloseTo(0.04, 8);

@@ -1,4 +1,5 @@
 import { bondNumber } from './banking.js';
+import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
 import { spendableDeposit } from './helpers.js';
 import type { Bank, Firm, Household } from './types.js';
@@ -64,8 +65,7 @@ export function drawFirmLoan(firm: Firm, amount: number): void {
 /** Coupon leaves the treasury and is booked as bank equity. */
 export function payBondCoupon(bank: Bank, economy: Economy, coupon: number): void {
   economy.govDeposits -= coupon;
-  bank.equity += coupon;
-  economy.privateEquity -= coupon;
+  adjustBankEquity(bank, economy, coupon);
 }
 
 /** Mortgage interest is bank income. Only principal repayment extinguishes the loan. */
@@ -76,14 +76,12 @@ export function payMortgageInterest(
   interest: number,
 ): void {
   household.deposit -= interest;
-  bank.equity += interest;
-  economy.privateEquity -= interest;
+  adjustBankEquity(bank, economy, interest);
 }
 
 export function payFirmInterest(firm: Firm, bank: Bank, economy: Economy, interest: number): void {
   firm.deposit -= interest;
-  bank.equity += interest;
-  economy.privateEquity -= interest;
+  adjustBankEquity(bank, economy, interest);
 }
 
 /**
@@ -112,8 +110,7 @@ export function repayConsumerLoan(household: Household, amount: number): void {
 
 /** Payment fee: bank equity rises and the residual falls. */
 export function collectBankFee(bank: Bank, economy: Economy, fee: number): void {
-  bank.equity += fee;
-  economy.privateEquity -= fee;
+  adjustBankEquity(bank, economy, fee);
 }
 
 /**
@@ -134,10 +131,7 @@ export function chargeEquityForDefault(
   economy: Economy,
   loss: number,
 ): void {
-  if (bank) {
-    bank.equity -= loss;
-  }
-  economy.privateEquity += loss;
+  adjustBankEquity(bank, economy, -loss);
 }
 
 export function writeOffFirmLoan(
@@ -147,10 +141,7 @@ export function writeOffFirmLoan(
   loss: number,
 ): void {
   firm.loan -= loss;
-  if (bank) {
-    bank.equity -= loss;
-  }
-  economy.privateEquity += loss;
+  adjustBankEquity(bank, economy, -loss);
 }
 
 /**
@@ -187,9 +178,8 @@ export function payDepositInterest(
   economy: Economy,
   interest: number,
 ): void {
-  bank.equity -= interest;
   household.deposit += interest;
-  economy.privateEquity += interest;
+  adjustBankEquity(bank, economy, -interest);
 }
 
 /**
@@ -200,9 +190,8 @@ export function subsidizeDepositInterest(bank: Bank, economy: Economy, amount: n
   if (amount <= 0) {
     return;
   }
-  bank.equity += amount;
   bank.reserves += amount;
-  economy.privateEquity -= amount;
+  adjustBankEquity(bank, economy, amount);
 }
 
 /**

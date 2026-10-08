@@ -81,6 +81,16 @@ _Avoid_: Control, snapshot
 The assumptions a scenario keeps at the baseline: scale and population growth.
 _Avoid_: Locked sliders, frozen parameters
 
+## Bank books
+
+**Private equity**:
+The residual that closes bank books so vault equals bank equity plus this residual.
+_Avoid_: residual equity, balancing item
+
+**Bank equity**:
+A bank's capital stock on the liability side of its books.
+_Avoid_: capital buffer (when you mean the stock itself)
+
 ## Events
 
 **Shock**:

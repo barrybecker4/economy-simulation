@@ -1,4 +1,5 @@
 import { exactCentSum } from '../money/amount.js';
+import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
 import { clamp } from './stats.js';
 
@@ -83,11 +84,7 @@ export function markBitcoinToMarket(economy: Economy): void {
   const loans = bitcoinLoanUnits(economy) * price;
   const equityGap = loans - economy.bitcoinLoanCarried - (deposits - economy.bitcoinCarried);
   if (Math.abs(equityGap) > 1e-9) {
-    const bank = economy.banks[0];
-    if (bank) {
-      bank.equity += equityGap;
-    }
-    economy.privateEquity -= equityGap;
+    adjustBankEquity(economy.banks[0], economy, equityGap);
   }
   economy.bitcoinCarried = deposits;
   economy.bitcoinLoanCarried = loans;

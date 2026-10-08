@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { equityFor, loansAt } from './banking.js';
+import { adjustBankEquity } from './capital-identity.js';
 import { payHouseholdDepositInterest } from './central-bank.js';
 import { createEconomy } from './init.js';
 import { subsidizeDepositInterest } from './money.js';
@@ -33,8 +34,7 @@ describe('phase 51 deposit interest is a flow', () => {
     const bank = requireBank(economy);
     const target = equityFor(economy, loansAt(economy, bank.id));
     const cover = 10_000_000;
-    bank.equity += cover;
-    economy.privateEquity -= cover;
+    adjustBankEquity(bank, economy, cover);
     economy.policyRate = 0.04;
     payHouseholdDepositInterest(economy, new Map([[bank.id, cover]]));
     expect(economy.depositInterestPaid).toBeGreaterThanOrEqual(householdCoupon(economy) * 0.9);
@@ -45,8 +45,7 @@ describe('phase 51 deposit interest is a flow', () => {
     const economy = economyWith({ ...monetary, 'regime.type': 'bitcoin' });
     const bank = requireBank(economy);
     const before = bank.equity;
-    bank.equity += 50;
-    economy.privateEquity -= 50;
+    adjustBankEquity(bank, economy, 50);
     economy.policyRate = 0.05;
     payHouseholdDepositInterest(economy, new Map([[bank.id, 50]]));
     expect(economy.depositInterestPaid).toBeLessThanOrEqual(50);
