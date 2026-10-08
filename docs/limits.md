@@ -13,8 +13,9 @@ goods price.
 There is no market for firm shares. When `housing.tenureChoice` is off, the model reports a higher profit-sharing share
 and a higher non-mortgage housing share as functions of the deflation penalty. Those figures change how profits are
 weighted and how property turnover is scored. They are not a stock exchange, a mortgage menu, or a cooperative that
-agents join. When tenure choice is on, non-mortgage housing and property turnover are measured from household tenures,
-mortgages, and tenure changes. Shelter remains inside the food and housing spending floor. Consumer credit funds only
+agents join. When tenure choice is on, households open near the 2026 U.S. mix, about 65.5 percent owners, and non-mortgage housing
+and property turnover are measured from household tenures, mortgages, and tenure changes. The opening mix is a
+calibration, not a share the monthly cost comparison produces on its own. Shelter remains inside the food and housing spending floor. Consumer credit funds only
 discretionary spending.
 
 Well-being is the log of human real consumption plus 0.5 times housing security. Housing security is real income

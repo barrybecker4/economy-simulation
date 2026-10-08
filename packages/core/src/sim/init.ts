@@ -3,6 +3,7 @@ import type { Economy } from './economy.js';
 import { employ, priceTrend } from './helpers.js';
 import { redistributeToUnemployed } from './income.js';
 import { capitalizeBanks } from './bank-books.js';
+import { seedOpeningTenure } from './opening-tenure.js';
 import type { Parameters } from './parameters.js';
 import { NATURAL_UNEMPLOYMENT } from './rules.js';
 import {
@@ -32,6 +33,7 @@ export function createEconomy(
   seedFirmPayroll(economy);
   redistributeToUnemployed(economy);
   rememberOpeningIncome(economy, initialOutput);
+  seedOpeningTenure(economy);
   capitalizeBanks(economy);
   return economy;
 }

@@ -49,6 +49,7 @@ describe('chartViews', () => {
       'ai-spend',
       'output',
       'living',
+      'tenure',
       'inequality',
       'total-wealth',
       'turnover',
@@ -60,6 +61,13 @@ describe('chartViews', () => {
     expect(fiat.find((view) => view.key === 'tax')?.unit).toBe('cents');
     expect(bitcoin.find((view) => view.key === 'ubi')?.unit).toBe('satoshis');
     expect(fiat.find((view) => view.key === 'output')?.group).toBe('Output');
+    expect(fiat.find((view) => view.key === 'tenure')?.group).toBe('Living standards');
+    expect(fiat.find((view) => view.key === 'tenure')?.unit).toBe('share');
+    expect(fiat.find((view) => view.key === 'tenure')?.lines.map((line) => line.label)).toEqual([
+      'Renting',
+      'Mortgage',
+      'Owned outright',
+    ]);
     expect(fiat.find((view) => view.key === 'shocks')?.lines.map((line) => line.label)).toEqual([
       'Demand',
       'Credit',

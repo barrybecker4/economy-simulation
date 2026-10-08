@@ -245,8 +245,14 @@ posted price, minus loans) stays negative for 6 months is replaced. Its loan is 
 
 When expected deflation is positive and `deflation.sensitivity` is positive, a share of loans is repaid each month. When
 `housing.tenureChoice` is off, the recorded profit-sharing and non-mortgage housing shares rise with the penalty; those
-shares are accounting reports. When tenure choice is on, each household picks rent, a nominal mortgage, or cash
-ownership by the lowest expected real burden. Expected deflation raises the mortgage burden. Shelter stays inside the
+shares are accounting reports. When tenure choice is on, households open already housed. `housing.openingOwnerShare` (default 0.655) is the share who
+own, matching the approximate U.S. homeownership rate in 2026, and `housing.openingMortgageShareOfOwners` (default
+0.62) is the share of those owners who still have a mortgage. The highest-skill households own outright, the next band
+holds the mortgages, and the rest rent. An opening mortgage is the loan-to-value share of 48 months of that household's
+income, at the opening loan rate and the mortgage term. It is outstanding principal, not a new deposit: the purchase
+was in the past. Each bank's book is scaled down if it would leave that bank's reserves short of the reserve
+requirement. A household whose principal rounds to zero owns outright. Each month a household then picks rent, a
+nominal mortgage, or cash ownership by the lowest expected real burden. Expected deflation raises the mortgage burden. Shelter stays inside the
 food and housing floor. New consumer loans fund only discretionary spending and shrink with the penalty, down to zero.
 Household mortgages and consumer loans join total credit. When `housing.marketClearing` is off there is no separate
 housing quantity market; the category price stays the formula above. See [ADR 0004](adr/0004-housing-tenure-index.md).

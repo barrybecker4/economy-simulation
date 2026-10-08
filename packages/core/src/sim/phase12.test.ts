@@ -34,8 +34,10 @@ describe('phase 12 household tenure and credit', () => {
   });
 
   it('cuts mortgages and consumer credit under stronger deflation while keeping the floor', () => {
+    const fromRenters = { 'housing.openingOwnerShare': 0 };
     const mild = run({
       ...small,
+      ...fromRenters,
       'regime.type': 'bitcoin',
       'housing.tenureChoice': 'on',
       'deflation.sensitivity': 0,
@@ -43,6 +45,7 @@ describe('phase 12 household tenure and credit', () => {
     });
     const sharp = run({
       ...small,
+      ...fromRenters,
       'regime.type': 'bitcoin',
       'housing.tenureChoice': 'on',
       'deflation.sensitivity': 5,

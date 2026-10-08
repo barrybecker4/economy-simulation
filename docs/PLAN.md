@@ -549,10 +549,15 @@ and cuts new consumer credit without removing the food and housing floor.
    floor. Consumer loans fund only discretionary spending and fall as expected deflation rises.
 3. Measured shares and debt-service series replace the penalty formulas when the switch is on. Household loans join
    `totalLoans`.
+4. On, households open already housed. `housing.openingOwnerShare` defaults to 0.655 and
+   `housing.openingMortgageShareOfOwners` defaults to 0.62, about the 2026 U.S. split of owners, mortgagors, and
+   renters. The highest-skill households own outright. Opening mortgages are outstanding principal, scaled per bank so
+   reserves still cover the reserve requirement. Off still opens with no household loans.
 
 Acceptance:
 
 - `off` matches Phase 11, and H7 still holds.
+- `on` opens near a 65.5 percent owner share and a 34.5 percent renter share.
 - `on`, stronger expected deflation lowers the mortgage share and new consumer borrowing, keeps goods spending at or
   above the floor, and raises debt service for existing mortgages.
 - Household loan creation and repayment pass the ledger audit.

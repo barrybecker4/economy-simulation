@@ -24,4 +24,13 @@ export const ANNOTATIONS: Record<string, Pick<Slider, 'status' | 'source'>> = {
     status: 'calibrated',
     source: 'Set equal to the spending share so the treasury starts near balance.',
   },
+  'housing.openingOwnerShare': {
+    status: 'sourced',
+    source: 'Approximate U.S. homeownership rate in 2026, about 65.5 percent of households.',
+  },
+  'housing.openingMortgageShareOfOwners': {
+    status: 'sourced',
+    source:
+      'About 62 percent of U.S. owner households have a mortgage, from the Census mortgage-status share.',
+  },
 };

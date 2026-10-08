@@ -31,7 +31,7 @@ describe('phase 21 housing market', () => {
     ).toBeGreaterThan(1);
   });
 
-  it('raises owner demand when market clearing and tenure choice interact', () => {
+  it('raises the housing price relative to the CPI when owners exceed the neutral share', () => {
     const shared = {
       ...small,
       'centralBank.moneyGrowth': 0,
@@ -42,9 +42,7 @@ describe('phase 21 housing market', () => {
     const formula = run({ ...shared, 'housing.marketClearing': 'off' });
     const market = run({ ...shared, 'housing.marketClearing': 'on' });
     expect(formula.audit.ok && market.audit.ok).toBe(true);
-    const ownerDemand = (result: SimulationResult) =>
-      (last(result, 'ownedShare') ?? 0) + (last(result, 'mortgageShare') ?? 0);
-    expect(ownerDemand(market)).toBeGreaterThan(ownerDemand(formula));
+    expect(relative(market)).toBeGreaterThan(relative(formula));
   });
 });
 

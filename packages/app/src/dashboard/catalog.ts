@@ -176,6 +176,19 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'tenure',
+    title: 'Housing tenure',
+    group: 'Living standards',
+    unit: 'share',
+    description:
+      'Share of households renting, buying with a mortgage, or owning outright. The share who own is mortgage plus owned outright. All three stay at zero until Housing tenure choice is on. With that switch on, the run opens near a 65.5 percent owner share. More than one seed draws each median.',
+    lines: [
+      { id: 'rentShare', label: 'Renting', color: '#0369a1' },
+      { id: 'mortgageShare', label: 'Mortgage', color: '#7c3aed' },
+      { id: 'ownedShare', label: 'Owned outright', color: '#0f766e' },
+    ],
+  },
+  {
     key: 'inequality',
     title: 'Inequality',
     group: 'Inequality',

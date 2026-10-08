@@ -66,6 +66,8 @@ export interface Parameters {
   firmLevelHiring: 'off' | 'on';
   equityMarket: 'off' | 'on';
   tenureChoice: 'off' | 'on';
+  openingOwnerShare: number;
+  openingMortgageAmongOwners: number;
   mortgageTermYears: number;
   mortgageLtv: number;
   consumerCreditLimit: number;
@@ -161,6 +163,8 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     firmLevelHiring: firmLevelHiringOf(config),
     equityMarket: equityMarketOf(config),
     tenureChoice: tenureChoiceOf(config),
+    openingOwnerShare: slider(config, 'housing.openingOwnerShare'),
+    openingMortgageAmongOwners: slider(config, 'housing.openingMortgageShareOfOwners'),
     mortgageTermYears: slider(config, 'housing.mortgageTermYears'),
     mortgageLtv: slider(config, 'housing.mortgageLtv'),
     consumerCreditLimit: slider(config, 'housing.consumerCreditLimit'),
