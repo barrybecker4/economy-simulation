@@ -268,7 +268,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     0,
     1,
-    'Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. It does not spend the capital buffer. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.',
+    'Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves, up to the steady-state money-growth budget. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. That creation is subtracted from the same tick’s money-growth injection. It does not spend the capital buffer. Coupon above the budget is not paid. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.bondPurchaseShare',

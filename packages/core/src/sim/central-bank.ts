@@ -88,8 +88,8 @@ export function growFiatMoney(economy: Economy): void {
   }
   const raw = deposits * monthly;
   const capped = clamp(raw, -0.05 * deposits, 0.05 * deposits);
-  // Reserve interest was already created this tick. Net it out so the growth
-  // rule still hits the same annual path.
+  // Reserve interest and the deposit-interest subsidy were already created this
+  // tick inside the growth budget. Net them out so the annual path still holds.
   const amount = moneyAmount(economy, capped) - economy.reserveInterestPaid;
   if (amount === 0) {
     return;
@@ -451,9 +451,10 @@ function accommodateReserves(economy: Economy): void {
 
 /**
  * Pay household deposit interest from this tick's asset income, not from the
- * capital buffer. Fiat banks also earn the policy rate on reserves; that
- * creation is recorded so money growth can net it out. A subsidy, if any, tops
- * up the posted coupon without spending equity that was already on the books.
+ * capital buffer. Fiat banks also earn the policy rate on reserves and may
+ * receive a deposit-interest subsidy; both creations draw on the steady-state
+ * money-growth budget and are recorded so money growth can net them out.
+ * Coupon that does not fit in that budget is not paid.
  */
 export function payHouseholdDepositInterest(
   economy: Economy,
@@ -519,33 +520,73 @@ export function payHouseholdDepositInterest(
     if (
       shortfall > 0 &&
       economy.params.regime === 'fiat' &&
-      economy.params.depositInterestSubsidy > 0
+      economy.params.depositInterestSubsidy > 0 &&
+      reserveBudget > 0
     ) {
-      const inject = moneyAmount(economy, shortfall * economy.params.depositInterestSubsidy);
+      const inject = Math.min(
+        reserveBudget,
+        moneyAmount(economy, shortfall * economy.params.depositInterestSubsidy),
+      );
       if (inject > 0) {
         subsidizeDepositInterest(bank, economy, inject);
+        economy.reserveInterestPaid += inject;
+        reserveBudget -= inject;
         room += inject;
       }
     }
     roomByBank.set(bank.id, Math.min(room, Math.max(0, bank.equity)));
   }
-  for (const household of economy.households) {
-    const bank = economy.banks[household.bank];
-    if (!bank || bank.failed || household.deposit <= 0) {
+  // Pay each bank's coupon so the credits sum to the room exactly. The last
+  // household at that bank takes the residual and closes float drift on
+  // satoshi books.
+  for (const bank of economy.banks) {
+    if (bank.failed) {
       continue;
     }
     const room = roomByBank.get(bank.id) ?? 0;
     if (room <= 0) {
       continue;
     }
-    const wanted = moneyAmount(economy, household.deposit * monthly);
-    const interest = Math.min(wanted, room);
-    if (interest <= 0) {
+    const holders = economy.households.filter(
+      (household) => household.bank === bank.id && household.deposit > 0,
+    );
+    if (holders.length === 0) {
       continue;
     }
-    creditDepositInterest(bank, household, economy, interest);
-    economy.depositInterestPaid += interest;
-    roomByBank.set(bank.id, room - interest);
+    const wants = holders.map((household) =>
+      moneyAmount(economy, household.deposit * monthly),
+    );
+    const due = wants.reduce((sum, want) => sum + want, 0);
+    const payTotal = Math.min(room, due);
+    if (payTotal <= 0) {
+      continue;
+    }
+    let paid = 0;
+    const lastIndex = holders.reduce(
+      (last, household, index) => ((wants[index] ?? 0) > 0 ? index : last),
+      -1,
+    );
+    for (let index = 0; index < holders.length; index += 1) {
+      const household = holders[index];
+      const want = wants[index] ?? 0;
+      if (!household || want <= 0) {
+        continue;
+      }
+      const remaining = payTotal - paid;
+      if (remaining <= 0) {
+        break;
+      }
+      const interest =
+        index === lastIndex
+          ? remaining
+          : Math.min(want, remaining, moneyAmount(economy, (want / due) * payTotal));
+      if (interest <= 0) {
+        continue;
+      }
+      creditDepositInterest(bank, household, economy, interest);
+      economy.depositInterestPaid += interest;
+      paid += interest;
+    }
   }
   const deposits = Math.max(1, totalDeposits(economy) - economy.depositInterestPaid);
   economy.paidDepositRate = deposits > 0 ? (economy.depositInterestPaid * 12) / deposits : 0;

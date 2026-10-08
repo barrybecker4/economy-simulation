@@ -101,6 +101,20 @@ describe('phase 51 deposit interest is a flow', () => {
     });
     expect(series(inactive, 'auditOk').every((value) => value === 1)).toBe(true);
   });
+
+  it('keeps S3 fiat inflation under 10 percent when the subsidy and pass-through bind', () => {
+    const result = run({
+      ...monetary,
+      'regime.type': 'fiat',
+      'bank.depositPassThrough': 1,
+      'bank.depositInterestSubsidy': 1,
+      'prices.trendWeight': 0,
+      'production.demandWeight': 1,
+      ticks: 120,
+    });
+    expect(result.audit.ok).toBe(true);
+    expect(series(result, 'inflation').at(-1) ?? 0).toBeLessThan(0.1);
+  });
 });
 
 function householdCoupon(economy: ReturnType<typeof economyWith>): number {

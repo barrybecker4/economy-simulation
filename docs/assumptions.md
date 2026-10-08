@@ -213,7 +213,7 @@ Registry version: 12.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. It does not spend the capital buffer. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.
+- Description: Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves, up to the steady-state money-growth budget. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. That creation is subtracted from the same tick’s money-growth injection. It does not spend the capital buffer. Coupon above the budget is not paid. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.
 
 ## bank.depositPassThrough
 
@@ -829,7 +829,7 @@ Registry version: 12.
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, and the same wage elasticity scales that total. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.
+- Description: Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.
 
 ## labor.maxApplications
 

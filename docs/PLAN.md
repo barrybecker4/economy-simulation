@@ -1284,8 +1284,9 @@ Acceptance:
 Goal: remove the emergency flexibility override, and stop firm-level hiring from shedding the labor force when sales fall.
 
 1. `wage.emergencyFlex` is gone. Downward wage gaps stay scaled by the square of `1 − rigidity`.
-2. Firm-level hiring's aggregate target is the economy-wide cost quota. A lower sales target cannot pull employment
-   below that quota. The quota still falls when the real wage is above the productivity-adjusted reference.
+2. Firm-level hiring's aggregate target is the sales headcount clamped so it cannot rise above the cost quota or fall
+   more than one month's shed below it. The quota still falls when the real wage is above the productivity-adjusted
+   reference. Phase 62 restores the live sales target inside that band.
 
 Acceptance:
 
@@ -1325,6 +1326,34 @@ Acceptance:
 - A debt haircut of 0.3 moves credit by more than 2 points versus a haircut of 0.
 - The ledger balances on each conversion tick.
 - Gradual weight 0 does not create a bitcoin balance before the last month.
+
+### Phase 62: Review fixes for satoshi books, hiring, shocks, and mortgages
+
+Goal: satoshi deposit-interest journals stay balanced; firm-level hiring binds; a productivity shock does not flip the
+unemployment gap after the impulse; the deposit subsidy stays inside the money-growth budget; mortgage choice uses a
+real buy-or-wait cost.
+
+1. Satoshi stock targets set private equity as the vault residual. Seating creates a private-equity line when dust
+   dropped it. Each bank's deposit coupon pays with a last-household residual.
+2. Firm-level hiring's aggregate target is the sales headcount clamped to
+   `[costQuota × (1 − monthly shed), costQuota]`. Vacancies go to understaffed firms.
+3. The hiring real-wage reference glides the productivity impulse to zero with nominal rigidity after the raw impulse
+   ends, and cannot raise the hiring scale above 1 while that glided impulse is negative.
+4. Fiat deposit-interest subsidy draws on the same money-growth budget as reserve interest and is netted from the same
+   tick's injection.
+5. Mortgage and ownership burdens use the real loan rate and expected capital loss. The offered term shortens until the
+   nominal payment fits income after expected inflation. Liquid mortgagors may prepay under expected deflation.
+
+Acceptance:
+
+- Monetary bitcoin seeds 5, 7, 14, and 19, and S3 bitcoin with pass-through 1 at skill sigma 0.5 and 1.1, finish with a
+  passing audit.
+- Under a demand contraction with demand weight 1, firm-level hiring on ends the window with higher unemployment than
+  off, and unemployment stays under 0.5.
+- Over a 24-month adverse productivity window with sticky wages, the unemployment gap versus calm stays positive.
+- S3 fiat with subsidy 1 and pass-through 1 ends 120 months under 10 percent inflation.
+- Under −8 percent expected inflation a long mortgage loses to rent; a liquid mortgagor prepays; an illiquid one does
+  not; monetary bitcoin originates fewer than eight new mortgages in 120 months.
 
 ## Validation
 

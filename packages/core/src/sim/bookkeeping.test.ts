@@ -5,9 +5,36 @@ import { Ledger } from '../ledger/ledger.js';
 import type { MetricId } from '../metrics/metrics.js';
 import { bitcoinAmountsMatch } from '../money/amount.js';
 import { simulate } from './simulate.js';
-import { postBalancedStockLines } from './stocks.js';
+import { postBalancedStockLines, roundedStockTargets } from './stocks.js';
+
+const monetaryBitcoin = {
+  'scale.households': 60,
+  'scale.firms': 6,
+  'scale.banks': 1,
+  'shock.frequency': 0,
+  'prices.trendWeight': 0,
+  'production.demandWeight': 1,
+  'bank.depositPassThrough': 1,
+  'expectations.anchorWeight': 0.5,
+  'housing.tenureChoice': 'on',
+  'credit.endogenousWeight': 1,
+  'credit.leverageStart': 1,
+  'credit.householdMortgageShare': 0.25,
+  'housing.mortgageLtv': 0.95,
+  'bank.capitalRatio': 0.04,
+  'bank.resolution': 'merge',
+  'household.openingDepositMonths': 12,
+};
 
 describe('stock journal', () => {
+  it('sets satoshi private equity as the vault residual', () => {
+    const targets = roundedStockTargets('satoshi', 100, 40, 10, 0, 50, 20, 29.999);
+    expect(targets.get('private-equity')).toBe(30);
+    expect((targets.get('vault') ?? 0) - (targets.get('bank-equity') ?? 0)).toBe(
+      targets.get('private-equity'),
+    );
+  });
+
   it('drops a one-line stock posting instead of writing an unbalanced journal', () => {
     const ledger = new Ledger('cent');
     ledger.open('vault', 'asset');
@@ -37,6 +64,65 @@ describe('stock journal', () => {
         -Number(ledger.balance('private-equity')),
       ),
     ).toBe(true);
+  });
+
+  it('creates a private-equity seat when that line was dropped as dust', () => {
+    const ledger = new Ledger('satoshi');
+    ledger.open('deposits', 'asset');
+    ledger.open('bank-deposits', 'liability');
+    ledger.open('bank-equity', 'equity');
+    ledger.open('private-equity', 'equity');
+    expect(() =>
+      postBalancedStockLines(ledger, [
+        { accountId: 'deposits', side: 'debit', amount: 1.0000000005 },
+        { accountId: 'bank-deposits', side: 'credit', amount: 1 },
+        { accountId: 'bank-equity', side: 'debit', amount: 1 },
+      ]),
+    ).not.toThrow();
+    expect(ledger.audit().ok).toBe(true);
+  });
+
+  it('finishes monetary bitcoin seeds that used to die on Debits must equal credits', () => {
+    for (const seed of [5, 7, 14, 19]) {
+      const result = simulate(
+        loadScenario({
+          name: 'monetary-bitcoin-crash',
+          seed,
+          ticks: 120,
+          sliders: {
+            ...monetaryBitcoin,
+            'regime.type': 'bitcoin',
+            'household.skillSigma': 1.1,
+          },
+        }),
+      );
+      expect(result.audit.ok, `seed ${seed}`).toBe(true);
+      expect(series(result, 'auditOk').every((value) => value === 1)).toBe(true);
+    }
+  });
+
+  it('finishes S3 bitcoin with pass-through at skill sigma 0.5 and 1.1', () => {
+    for (const sigma of [0.5, 1.1]) {
+      const result = simulate(
+        loadScenario({
+          name: 's3-bitcoin-pass-through',
+          seed: 5,
+          ticks: 120,
+          sliders: {
+            'scale.households': 60,
+            'scale.firms': 6,
+            'scale.banks': 1,
+            'shock.frequency': 0,
+            'regime.type': 'bitcoin',
+            'prices.trendWeight': 0,
+            'production.demandWeight': 1,
+            'bank.depositPassThrough': 1,
+            'household.skillSigma': sigma,
+          },
+        }),
+      );
+      expect(result.audit.ok, `sigma ${sigma}`).toBe(true);
+    }
   });
 
   it('finishes a fiat gradual-transition run that used to die on Debits must equal credits', () => {

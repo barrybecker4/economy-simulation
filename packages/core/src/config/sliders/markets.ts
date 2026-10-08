@@ -29,7 +29,7 @@ export const MARKET_SLIDERS: readonly Slider[] = [
     'switch',
     'off',
     ['off', 'on'],
-    'Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, and the same wage elasticity scales that total. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.',
+    'Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.',
   ),
   numberSlider(
     'production.alpha',

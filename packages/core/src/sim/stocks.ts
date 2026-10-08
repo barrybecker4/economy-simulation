@@ -53,7 +53,15 @@ export function postStocks(economy: Economy, ledger: Ledger): void {
     equity,
     economy.privateEquity,
   );
-  postBalancedStockLines(ledger, stockLines(ledger, targets));
+  const seatedPrivateEquity = postBalancedStockLines(ledger, stockLines(ledger, targets));
+  // Seating can nudge the ledger residual by float dust. Keep the economy on
+  // vault − equity unless that nudge stays inside the unit tolerance.
+  if (
+    seatedPrivateEquity !== undefined &&
+    residualMatches(ledger.unit, seatedPrivateEquity, vault - equity)
+  ) {
+    economy.privateEquity = seatedPrivateEquity;
+  }
 }
 
 /**
@@ -73,11 +81,15 @@ export function bankBalanceIdentity(economy: Economy): number {
 
 type StockLine = { accountId: string; side: EntrySide; amount: bigint | number };
 
-/** Post stock lines. A lone dust line is dropped; a balanced change posts. */
+/**
+ * Post stock lines. A lone dust line is dropped; a balanced change posts.
+ * For satoshi journals, returns the ledger private-equity balance after seating
+ * so the economy residual stays aligned with the book.
+ */
 export function postBalancedStockLines(
   ledger: Ledger,
   lines: readonly StockLine[],
-): void {
+): number | undefined {
   let kept = lines.filter((line) => keepStockAmount(ledger.unit, line.amount));
   if (ledger.unit === 'satoshi') {
     kept = seatSatoshiStockResidual(kept);
@@ -85,15 +97,20 @@ export function postBalancedStockLines(
   if (kept.length >= 2) {
     ledger.post(kept);
   }
+  if (ledger.unit !== 'satoshi' || !ledger.accountIds().includes('private-equity')) {
+    return undefined;
+  }
+  return Number(ledger.balance('private-equity'));
 }
 
 /**
  * Float drift between vault, bank equity, and private equity can leave satoshi
  * stock deltas that are opposite but not bit-identical. Seat the imbalance on
- * private-equity (the vault residual) so the journal passes debit=credit.
+ * private-equity (the vault residual) so the journal passes debit=credit. When
+ * that line was filtered as dust, create it.
  */
 function seatSatoshiStockResidual(lines: readonly StockLine[]): StockLine[] {
-  if (lines.length < 2) {
+  if (lines.length < 1) {
     return [...lines];
   }
   const { debit, credit } = stockSideTotals(lines);
@@ -101,11 +118,19 @@ function seatSatoshiStockResidual(lines: readonly StockLine[]): StockLine[] {
     return [...lines];
   }
   const gap = debit - credit;
-  const peIndex = lines.findIndex((line) => line.accountId === 'private-equity');
-  if (peIndex < 0) {
-    return [...lines];
-  }
   const seated = lines.map((line) => ({ ...line }));
+  const peIndex = seated.findIndex((line) => line.accountId === 'private-equity');
+  if (peIndex < 0) {
+    // Debit excess needs a credit on equity; credit excess needs a debit.
+    // Create the line even for sub-dust gaps so debit=credit still holds at
+    // the posting epsilon after the keep filter dropped private-equity.
+    seated.push({
+      accountId: 'private-equity',
+      side: gap > 0 ? 'credit' : 'debit',
+      amount: Math.abs(gap),
+    });
+    return seated;
+  }
   const pe = seated[peIndex];
   if (!pe || typeof pe.amount !== 'number') {
     return seated;
@@ -150,9 +175,9 @@ function sumBank(economy: Economy, read: (bank: Economy['banks'][number]) => num
 }
 
 /**
- * Build stock targets. For cents, round each paired stock once and set
- * private-equity as the residual so vault = bank equity + private equity after
- * rounding (independent Math.round on half-cents can break that identity).
+ * Build stock targets. Private equity is the vault residual so
+ * vault = bank equity + private equity. For cents, round each paired stock
+ * once first (independent Math.round on half-cents can break that identity).
  */
 export function roundedStockTargets(
   unit: MoneyUnit,
@@ -162,10 +187,10 @@ export function roundedStockTargets(
   bonds: number,
   vault: number,
   equity: number,
-  privateEquity: number,
+  _privateEquity: number,
 ): Map<string, number> {
   if (unit !== 'cent') {
-    return stockTargets(deposits, loans, reserves, bonds, vault, equity, privateEquity);
+    return stockTargets(deposits, loans, reserves, bonds, vault, equity, vault - equity);
   }
   const roundDeposits = Math.round(deposits);
   const roundLoans = Math.round(loans);

@@ -1,7 +1,7 @@
 # Remaining design asymmetries
 
-Phase 50 note. These asymmetries still shape regime comparisons even after
-Phases 35–49.
+Phase 50 note, updated through Phase 62. These asymmetries still shape regime
+comparisons even after Phases 35–62.
 
 ## Transition window
 
@@ -32,8 +32,40 @@ Endogenous opening tenure remains deferred.
 
 With no bank failure and choice speed 0, hybrid matches bitcoin except that
 hybrid can inject capital as lender of last resort when equity goes negative.
-If that injection leaves equity negative, hybrid uses the same merge or bail-in
-as the other regimes, and the treasury deposit at bank 0 is included.
+That injection creates base money. Hybrid is not hard money plus a backstop; it
+is a money-creating LOLR. If that injection leaves equity negative, hybrid uses
+the same merge or bail-in as the other regimes, and the treasury deposit at bank
+0 is included.
+
+## Fiat-only reserve interest and deposit subsidy
+
+Fiat banks can fund deposit interest from interest on reserves and from
+`bank.depositInterestSubsidy`, both inside the steady-state money-growth budget.
+Bitcoin and hybrid receive neither. That is a saver transfer under fiat, not a
+Cantillon test of who first holds new money. Report saver and distribution gaps
+with pass-through 0 as well as at the preset.
+
+## Injection channel
+
+`centralBank.injectionChannel` changes who first holds new fiat. With
+`centralBank.spendNewMoney` at 0, loan, bond, and treasury receipts stay
+unblended into household demand, so channel comparisons are first-recipient
+tests. `newLoans` is inside money repaid before wages; a collapse of that stock
+under the monetary preset is the channel working. Do not blend channels to make
+loan injections look like a gift.
+
+## Rebate and S0–S3 gaps
+
+The treasury surplus rebate ([ADR 0012](../adr/0012-treasury-surplus-rebate.md))
+runs in every regime. It can dominate S0–S3 gaps. Report those gaps twice: at the
+default buffer, and with `government.treasuryBufferMonths` high enough that the
+rebate does not bind.
+
+## Imposed inequality
+
+The monetary preset sets `household.skillSigma` to 1.1, skill-weighted bequests
+use skill to the 16th, and the transition can reassign deposits by holder
+concentration. Those are imposed. Regime gaps are also shown at skill sigma 0.5.
 
 ## Registry versus app defaults
 

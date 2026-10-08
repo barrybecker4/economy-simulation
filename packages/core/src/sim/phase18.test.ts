@@ -48,15 +48,19 @@ describe('phase 18 demand and firm hiring', () => {
     );
   });
 
-  it('does not let firm-level hiring ratchet unemployment past the cost quota', () => {
-    const shock: ForcedShock = { tick: 24, kind: 'demand', size: 0.3 };
+  it('raises unemployment under a demand contraction when firm-level hiring is on', () => {
+    const shock: ForcedShock = { tick: 24, kind: 'demand', size: -0.3 };
     const quota = run({ ...small, 'production.demandWeight': 1 }, shock);
     const firms = run(
       { ...small, 'production.demandWeight': 1, 'labor.firmLevelHiring': 'on' },
       shock,
     );
     expect(quota.audit.ok && firms.audit.ok).toBe(true);
-    expect(Math.abs(last(firms, 'unemployment') - last(quota, 'unemployment'))).toBeLessThan(0.02);
+    expect(series(firms, 'unemployment')).not.toEqual(series(quota, 'unemployment'));
+    const contraction = 35;
+    expect(series(firms, 'unemployment')[contraction] ?? 0).toBeGreaterThan(
+      series(quota, 'unemployment')[contraction] ?? 0,
+    );
     expect(last(firms, 'unemployment')).toBeLessThan(0.5);
   });
 });

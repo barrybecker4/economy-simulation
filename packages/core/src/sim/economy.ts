@@ -41,6 +41,12 @@ export interface Economy {
   productivity: number;
   demandImpulse: number;
   productivityImpulse: number;
+  /**
+   * Productivity impulse used in the hiring real-wage reference. Tracks the
+   * raw impulse while it is active, then glides to zero with nominal rigidity
+   * so sticky wages do not treat the month after a supply shock as a boom.
+   */
+  hiringProductivityImpulse: number;
   creditImpulse: number;
   policyRate: number;
   realGdp: number;

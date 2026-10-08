@@ -70,3 +70,17 @@ CPI. The bitcoin run should end with lower inflation than fiat. Support needs al
 `pnpm sim transition --out docs/results/transition.json` runs the Phase 15 comparison. Steady fiat, steady bitcoin, and
 a 12-month transition each use the same seeds for 120 months with tenure choice on. The report gives median real
 consumption, real wealth, unemployment, debt service, and tenure shares, with the 5th and 95th percentiles across seeds.
+
+## Reporting rules
+
+- **Paired seeds.** Any seed that throws or fails the audit in one arm is dropped from every arm of that comparison. Do
+  not publish unpaired consumption gaps from crash survivors; those gaps flatter bitcoin on consumption by about a
+  percentage point on the monetary preset. Unemployment gaps were not affected by that survivor bias.
+- **Pass-through sensitivity.** Fiat-only reserve interest and the deposit subsidy are a saver transfer. Report saver
+  and distribution gaps with `bank.depositPassThrough` at 0 as well as at the preset.
+- **Injection channels.** First-recipient claims use `centralBank.spendNewMoney` 0. Do not treat a collapse of
+  `newLoans` under the monetary preset as a failed gift.
+- **Rebate-off sensitivity.** S0–S3 gaps are reported with the default treasury buffer and with a buffer high enough
+  that the rebate does not bind.
+- **Skill sigma.** Regime gaps on the monetary preset are also shown at `household.skillSigma` 0.5.
+- Design asymmetries that remain intentional are listed in [methods/remaining-asymmetries.md](methods/remaining-asymmetries.md).

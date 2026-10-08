@@ -29,15 +29,16 @@ export function monthlyRentCost(homePrice: number): number {
 }
 
 /**
- * Monthly opportunity cost of owning outright: the home price times the loan
- * rate plus expected deflation, as a monthly flow.
+ * Monthly opportunity cost of owning outright: the home price times the real
+ * loan rate, as a monthly flow.
  */
-export function monthlyOwnedCost(
-  homePrice: number,
-  loanRate: number,
-  expectedDeflation: number,
-): number {
-  return (homePrice * (loanRate + expectedDeflation)) / 12;
+export function monthlyOwnedCost(homePrice: number, realLoanRate: number): number {
+  return (homePrice * realLoanRate) / 12;
+}
+
+/** Expected monthly capital loss on the house. Negative when prices are rising. */
+export function ownershipCapitalLoss(homePrice: number, expectedInflation: number): number {
+  return (-expectedInflation * homePrice) / 12;
 }
 
 /** Level monthly payment on an amortizing mortgage. */
@@ -56,6 +57,34 @@ export function monthlyMortgagePayment(
   }
   const growth = (1 + monthly) ** months;
   return (principal * monthly * growth) / (growth - 1);
+}
+
+/**
+ * Longest mortgage term, up to the slider, at which the fixed nominal payment
+ * stays inside the default share of income after income grows at expected
+ * inflation. Zero means even a one-year loan fails.
+ */
+export function affordableMortgageTermYears(input: {
+  principal: number;
+  loanRate: number;
+  income: number;
+  defaultShare: number;
+  expectedInflation: number;
+  maxTermYears: number;
+}): number {
+  if (input.principal <= 0 || input.income <= 0 || input.maxTermYears < 1) {
+    return 0;
+  }
+  for (let term = Math.max(1, Math.round(input.maxTermYears)); term >= 1; term -= 1) {
+    const payment = monthlyMortgagePayment(input.principal, input.loanRate, term);
+    const incomeFactor =
+      input.expectedInflation >= 0 ? 1 : (1 + input.expectedInflation) ** term;
+    const incomeFloor = Math.max(1e-9, input.income * incomeFactor);
+    if (payment <= incomeFloor * input.defaultShare) {
+      return term;
+    }
+  }
+  return 0;
 }
 
 /** @deprecated Prefer monthly user costs. Kept for phase 12 unit tests. */
@@ -100,10 +129,11 @@ export function onContractChoice(economy: Economy): void {
     return;
   }
   const penalty = deflationPenalty(economy);
-  const expectedDeflation = Math.max(0, -expectedInflation(economy));
-  const termYears = economy.params.mortgageTermYears;
+  const inflation = expectedInflation(economy);
+  const maxTermYears = economy.params.mortgageTermYears;
   const ltv = economy.params.mortgageLtv;
   const loanRate = economy.policyRate + LOAN_SPREAD;
+  const realRate = loanRate - inflation;
   for (const household of economy.households) {
     const priorTenure = household.tenure;
     serviceDebts(economy, household);
@@ -118,24 +148,56 @@ export function onContractChoice(economy: Economy): void {
     const downPayment = moneyAmount(economy, homePrice * (1 - ltv));
     const maxLoan = moneyAmount(economy, homePrice * ltv);
     const impatience = (homePrice * (household.timePref - economy.params.timePrefMean)) / 12;
+    const capitalLoss = ownershipCapitalLoss(homePrice, inflation);
     const rentBurden = monthlyRentCost(homePrice);
-    const ownedBurden = monthlyOwnedCost(homePrice, loanRate, expectedDeflation) + impatience;
-    // Burden uses loan rate plus expected deflation so deflation raises the real
-    // cost of a long nominal mortgage. The booked payment uses the contractual
-    // loan rate only. Impatience is this household's time preference against the
-    // mean, so the median household stays near the rent-mortgage margin.
+    const ownedBurden = monthlyOwnedCost(homePrice, realRate) + capitalLoss + impatience;
+    const termYears = affordableMortgageTermYears({
+      principal: maxLoan,
+      loanRate,
+      income,
+      defaultShare: economy.params.mortgageDefaultShare,
+      expectedInflation: inflation,
+      maxTermYears,
+    });
+    // Burden uses the real loan rate and expected capital loss so deflation
+    // raises the cost of buying now. The booked payment uses the contractual
+    // nominal loan rate only. Impatience keeps the median household near the
+    // rent-mortgage margin at the neutral rate.
     const mortgageBurden =
-      monthlyMortgagePayment(maxLoan, loanRate + expectedDeflation, termYears) +
-      monthlyOwnedCost(downPayment, loanRate, expectedDeflation) +
-      impatience;
+      termYears > 0
+        ? monthlyMortgagePayment(maxLoan, realRate, termYears) +
+          monthlyOwnedCost(downPayment, realRate) +
+          capitalLoss +
+          impatience
+        : Number.POSITIVE_INFINITY;
     const choice = tenureFromBurdens({
       rent: rentBurden,
       mortgage: mortgageBurden,
       owned: ownedBurden,
     });
-    if (household.search.uniform() >= economy.params.housingAdjustment) {
+
+    const considerPrepay =
+      inflation < 0 && household.tenure === 'mortgage' && household.mortgage > 0;
+    const adjusting = household.search.uniform() < economy.params.housingAdjustment;
+    if (considerPrepay && (choice === 'rent' || choice === 'owned')) {
+      fundFromBitcoin(economy, household, household.mortgage);
+      if (household.deposit >= household.mortgage) {
+        const payoff = household.mortgage;
+        repayMortgage(household, payoff);
+        economy.loanRepaid += payoff;
+        household.mortgagePayment = 0;
+        household.mortgageArrears = 0;
+        household.tenure = 'owned';
+        economy.mortgageToOwned += 1;
+        economy.tenureChanges += 1;
+      }
+    }
+
+    if (!adjusting) {
+      maybeBorrowConsumer(economy, household, income, penalty);
       continue;
     }
+
     if (household.tenure !== choice) {
       economy.tenureChanges += 1;
     }
@@ -157,7 +219,8 @@ export function onContractChoice(economy: Economy): void {
     } else if (
       (choice === 'mortgage' || choice === 'owned') &&
       household.tenure !== 'mortgage' &&
-      household.tenure !== 'owned'
+      household.tenure !== 'owned' &&
+      termYears > 0
     ) {
       // Owned may win on user cost while cash is short; try a mortgage before rent.
       const room = mortgageCreditRoom(economy, household.bank);
@@ -187,20 +250,29 @@ export function onContractChoice(economy: Economy): void {
       household.tenure = 'rent';
     }
 
-    const creditCap = moneyAmount(economy, income * economy.params.consumerCreditLimit);
-    const headroom = Math.max(0, creditCap - household.consumerLoan);
-    const borrowFactor = Math.max(0, 1 - penalty) * rateTransmissionFactor(economy);
-    // Consumer credit uses general firm room so mortgage draws do not invert the
-    // deflation effect by freeing capital for more consumer loans.
-    const room = bankCreditRoom(economy, household.bank);
-    const borrowed = moneyAmount(economy, Math.min(headroom, Math.max(0, room)) * borrowFactor);
-    if (borrowed > 0) {
-      drawConsumerLoan(household, borrowed);
-      economy.newConsumerBorrowing += borrowed;
-      economy.newBorrowing += borrowed;
-    }
+    maybeBorrowConsumer(economy, household, income, penalty);
   }
   updateHousingPressure(economy);
+}
+
+function maybeBorrowConsumer(
+  economy: Economy,
+  household: Household,
+  income: number,
+  penalty: number,
+): void {
+  const creditCap = moneyAmount(economy, income * economy.params.consumerCreditLimit);
+  const headroom = Math.max(0, creditCap - household.consumerLoan);
+  const borrowFactor = Math.max(0, 1 - penalty) * rateTransmissionFactor(economy);
+  // Consumer credit uses general firm room so mortgage draws do not invert the
+  // deflation effect by freeing capital for more consumer loans.
+  const room = bankCreditRoom(economy, household.bank);
+  const borrowed = moneyAmount(economy, Math.min(headroom, Math.max(0, room)) * borrowFactor);
+  if (borrowed > 0) {
+    drawConsumerLoan(household, borrowed);
+    economy.newConsumerBorrowing += borrowed;
+    economy.newBorrowing += borrowed;
+  }
 }
 
 function serviceDebts(economy: Economy, household: Household): void {

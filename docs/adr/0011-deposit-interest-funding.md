@@ -23,9 +23,12 @@ subsidy bound.
   Expansion loans that fund new capital are not under that cap.
 - Equity already on the books, including the capital buffer, is not spent to pay
   the coupon.
-- `bank.depositInterestSubsidy` remains an optional fiat top-up. It lowers
-  private equity by the amount equity rises. Vault is unchanged. Bitcoin and
-  hybrid do not receive reserve interest or the subsidy.
+- `bank.depositInterestSubsidy` remains an optional fiat top-up inside the same
+  money-growth budget. It lowers private equity by the amount equity rises.
+  Vault is unchanged. That creation is subtracted from the same tick's
+  money-growth injection. Coupon above the budget is not paid. Bitcoin and
+  hybrid do not receive reserve interest or the subsidy. See
+  [ADR 0015](0015-subsidy-budget-and-mortgage-real-cost.md).
 
 ## Consequences
 

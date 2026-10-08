@@ -57,6 +57,7 @@ export function blankEconomy(
     productivity: 1,
     demandImpulse: 0,
     productivityImpulse: 0,
+    hiringProductivityImpulse: 0,
     creditImpulse: 0,
     policyRate: params.timePrefMean + params.inflationTarget,
     realGdp: 0,

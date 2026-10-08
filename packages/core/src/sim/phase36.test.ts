@@ -51,7 +51,7 @@ describe('phase 36 deposit interest pays the posted rate', () => {
     expect(economy.depositInterestPaid).toBeGreaterThan(0);
   });
 
-  it('covers a shortfall with the fiat subsidy', () => {
+  it('covers a shortfall with the fiat subsidy up to the money-growth budget', () => {
     const economy = createEconomy(
       loadParameters(
         loadScenario({
@@ -76,7 +76,11 @@ describe('phase 36 deposit interest pays the posted rate', () => {
     bank.failed = false;
     economy.policyRate = 0.05;
     payHouseholdDepositInterest(economy, new Map([[0, 0]]));
-    expect(economy.paidDepositRate / economy.depositRate).toBeGreaterThanOrEqual(0.9);
+    expect(economy.depositInterestPaid).toBeGreaterThan(0);
+    expect(economy.reserveInterestPaid).toBe(economy.depositInterestPaid);
+    // A 5 percent posted rate exceeds the ~3 percent steady-state growth budget,
+    // so the subsidy cannot pay the full coupon.
+    expect(economy.paidDepositRate).toBeLessThan(economy.depositRate);
   });
 
   it('matches phase 35 when pass-through is 0', () => {

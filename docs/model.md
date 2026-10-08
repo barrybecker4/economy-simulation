@@ -37,9 +37,11 @@ For fiat cents, each paired stock target is rounded once before posting. Private
 after rounding vault and bank equity, so independent half-cent rounding cannot break `vault = bank equity + private
 equity`. Firm cash receipts under cents are split with a floor and a last residual so firm deposits stay integers.
 
-For bitcoin satoshis, stock line amounts are floating point. After many posts, paired equity deltas can drift by a few
-parts in 1e-10 so debit and credit no longer match under `bitcoinAmountsMatch`. The stock journal seats that imbalance
-on private equity (the vault residual) before posting.
+For bitcoin satoshis, stock line amounts are floating point. Private equity in the journal is the vault residual, as
+under cents. After many posts, paired equity deltas can drift by a few parts in 1e-10 so debit and credit no longer match
+under `bitcoinAmountsMatch`. The stock journal seats that imbalance on private equity before posting, and creates the
+private-equity line when it was dropped as dust. Deposit-interest credits at a bank sum to that bank's paid coupon
+exactly; the last household takes the residual.
 
 ## Time
 
@@ -153,24 +155,26 @@ topped up outside measured output.
 Each month 2 percent of employed workers separate. Let `humanWeight = 1 / (1 + displacement)`, where displacement is the
 adopted task share times the capped task gain from the AI productivity section. When `labor.firmLevelHiring` is off,
 firms hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse and by
-`labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed
-sales, capped so sales cannot move the target by more than half in one step. A productivity impulse is not a second
-multiplier on that headcount. It lowers the reference real wage, so the wage scale cuts hiring when elasticity is
-positive. Firms shed at most 5 percent of employed workers that month. The wage scale is
+`labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed sales, and
+vacancies go first to understaffed firms. The aggregate target is that sales headcount, clamped between the cost quota
+times `1 − 0.05` and the cost quota, so sales can pull employment about one month's shed below the cost quota and cannot
+raise it above that quota. A productivity impulse is not a second multiplier on that headcount. It lowers the reference
+real wage while active. After the raw impulse returns to zero, the hiring reference glides the impulse back to zero at
+rate `1 − wage.nominalRigidity` per month, and the hiring scale cannot rise above 1 while that glided impulse is still
+negative, so sticky wages do not treat the month after a supply shock as a cheap-labor boom. Firms shed at most 5 percent
+of employed workers that month, starting at overstaffed firms when firm-level hiring is on. The wage scale is
 `clamp(1 − elasticity × (real wage / reference − 1), 0.5, 1.25)`, where the real wage is the money wage over the CPI and
-the reference is `1 / (1 + firm.markup)` times one plus the productivity impulse. The default elasticity is 0.5, so a real wage 10
-percent above that reference cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled quota
-is below current employment, firms separate workers down to it. A searcher applies to at most `labor.maxApplications`
+the reference is `1 / (1 + firm.markup)` times one plus the hiring impulse. The default elasticity is 0.5, so a real wage
+10 percent above that reference cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled
+quota is below current employment, firms separate workers down to it. A searcher applies to at most `labor.maxApplications`
 firms. The natural unemployment rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is zero and
 rises as adopted tasks grow.
 
 The money wage grows at the monthly inflation target plus monthly productivity growth. Tightness is
 `(natural unemployment − unemployment) × humanWeight`. A positive tightness adds a further wage term and a negative one
 subtracts. `wage.nominalRigidity` shrinks that gap, and it shrinks a negative gap by the square of the remaining
-flexibility, so wages are stickier downward. There is no emergency override of that rigidity. When firm-level hiring is
-on, the aggregate target is still the economy-wide cost quota, so a fall in sales cannot shed the labor force below it.
-The contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
-worker's skill.
+flexibility, so wages are stickier downward. There is no emergency override of that rigidity. The contract wage at a firm
+is the money wage times the firm's productivity. Pay offered to a worker is that wage times the worker's skill.
 
 ## Goods and relative prices
 
@@ -238,16 +242,22 @@ times household deposits (default 0.02), and decays otherwise. While stress is l
 `1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household deposits once a
 year, inside the wider room and not above the firm's capital value. Expansion loans that fund new capital are outside that cap. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay. At
 weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The
-payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next from equity
-(including that borrower interest) down to zero, with an optional fiat central-bank subsidy for any shortfall, then
-equity above the capital target is paid out. When tenure choice is on, a household that misses full mortgage payments
+payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next from this
+tick's borrower interest and, under fiat, from reserve interest and an optional subsidy inside the money-growth budget,
+then equity above the capital target is paid out. When tenure choice is on, a household that misses full mortgage payments
 for three months while the payment exceeds `housing.mortgageDefaultShare` of income has the unpaid balance written off
 against bank equity and returns to rent. `credit.householdMortgageShare` reserves that fraction of each bank’s capital
 capacity for household mortgages so new originations are not crowded out by firm credit. At 0, households compete for
-the same room as firms. Tenure choice compares monthly user costs; the mortgage burden is the amortizing payment at the
-loan rate plus expected deflation, plus the opportunity cost of the down payment. The booked payment uses the
-contractual loan rate only. When owning outright has the lowest user cost but the household lacks cash for the full
-price, it tries a mortgage before staying a renter.
+the same room as firms. Tenure choice compares monthly user costs. The mortgage burden is the amortizing payment at the real loan rate
+(`loanRate − expectedInflation`), plus the opportunity cost of the down payment at that rate, plus this month's expected
+capital loss on the house (`−expectedInflation × homePrice / 12`). Cash ownership uses the same real rate and capital
+loss. Rent does not. The booked payment uses the contractual nominal loan rate only. The longest offered term, up to
+`housing.mortgageTermYears`, is the longest horizon at which that nominal payment stays inside
+`housing.mortgageDefaultShare` of income after income grows at expected inflation; if even one year fails, the household
+does not originate. While expected inflation is negative, a mortgagor whose deposits cover the balance may prepay in
+full when rent or cash ownership wins on user cost. Illiquid borrowers keep the loan. When owning outright has the
+lowest user cost but the household lacks cash for the full price, it tries a mortgage before staying a renter. See
+[ADR 0015](adr/0015-subsidy-budget-and-mortgage-real-cost.md).
 
 Routine investment runs every month: it replaces that month's depreciation and spreads any larger catch-up to desired
 capital across about a year, so measured wealth does not sawtooth from once-a-year lumps. Desired capital is reference
@@ -270,14 +280,18 @@ holds the mortgages, and the rest rent. An opening mortgage is the loan-to-value
 income, at the opening loan rate and the mortgage term. It is outstanding principal, not a new deposit: the purchase
 was in the past. Each bank's book is scaled down if it would leave that bank's reserves short of the reserve
 requirement. A household whose principal rounds to zero owns outright. Each month a household draws against `housing.adjustmentRate` (default 0.01). Only those who draw may switch
-tenure, so one cheap month cannot move the whole stock. A household who may switch picks rent, a nominal mortgage, or
-cash ownership by the lowest expected real burden. That burden adds the household's time preference minus the mean, so
-the median household is near the rent-mortgage margin at the neutral loan rate and impatient households keep renting.
-Expected deflation raises the mortgage burden. The monthly payment splits into interest at the current loan rate, which is bank income and can fund deposit interest, and principal, which is the only part that extinguishes the loan. A new mortgage credits the principal to firms. The buyer pays only the
-down payment and does not keep the principal. Total deposits rise by the principal. A mortgagor does not sell the
-house back into firm deposits: that would pull working capital out of payroll. Tenure moves from mortgage to rent
-only when the loan is repaid or foreclosed. Shelter stays inside the
-food and housing floor. New consumer loans fund only discretionary spending and shrink with the penalty, down to zero.
+tenure on the ordinary path, so one cheap month cannot move the whole stock. Under expected deflation, a liquid
+mortgagor may also prepay without that draw when the real burden says rent or cash ownership is cheaper. A household who
+may switch picks rent, a nominal mortgage, or cash ownership by the lowest expected real burden. That burden adds the
+household's time preference minus the mean, so the median household is near the rent-mortgage margin at the neutral loan
+rate and impatient households keep renting. Expected inflation enters as a real rate and as expected capital loss on the
+house, so deflation raises the mortgage burden and inflation lowers it. The monthly payment splits into interest at the
+current loan rate, which is bank income and can fund deposit interest, and principal, which is the only part that
+extinguishes the loan. A new mortgage credits the principal to firms. The buyer pays only the down payment and does not
+keep the principal. Total deposits rise by the principal. A mortgagor does not sell the house back into firm deposits:
+that would pull working capital out of payroll. Tenure moves from mortgage to rent only when the loan is repaid or
+foreclosed. Shelter stays inside the food and housing floor. New consumer loans fund only discretionary spending and
+shrink with the penalty, down to zero.
 Household mortgages and consumer loans join total credit. When `housing.marketClearing` is off there is no separate
 housing quantity market; the category price stays the formula above. See [ADR 0004](adr/0004-housing-tenure-index.md).
 When it is on, a scarcity index starts at 1. It rises when the share of households who own or hold a mortgage is above
@@ -328,12 +342,15 @@ the mid-teens. A sustained gap still moves the published rate, because the weigh
 
 `bank.depositPassThrough` times the policy rate is the posted deposit rate. Household interest is paid after firm loan
 interest and before bank dividends. Funding is this tick's borrower interest, plus, under fiat, interest on reserves at
-the policy rate, and only up to the gap in the coupon and the steady-state money-growth budget. That reserve interest is new base money and is subtracted from the same tick's money-growth injection,
-so the growth rule still hits its annual path. The capital buffer is not spent. Under fiat, `bank.depositInterestSubsidy`
-can cover a share of any shortfall with new reserves and equity; private equity falls by the same amount so vault still
-equals bank equity plus private equity. The annualized rate actually paid enters the real return on money in the
-goods budget. At pass-through 0, deposits pay nothing. At subsidy 0 a bank pays only what loan interest and, under
-fiat, reserve interest cover. See [ADR 0011](adr/0011-deposit-interest-funding.md).
+the policy rate and an optional deposit-interest subsidy, and only up to the gap in the coupon and the steady-state
+money-growth budget. Reserve interest and the subsidy are new base money and are subtracted from the same tick's
+money-growth injection, so the growth rule still hits its annual path. Coupon above that budget is not paid. The capital
+buffer is not spent. Under fiat, `bank.depositInterestSubsidy` covers a share of any shortfall that still fits in the
+budget with new reserves and equity; private equity falls by the same amount so vault still equals bank equity plus
+private equity. The annualized rate actually paid enters the real return on money in the goods budget. At pass-through
+0, deposits pay nothing. At subsidy 0 a bank pays only what loan interest and, under fiat, reserve interest cover. See
+[ADR 0011](adr/0011-deposit-interest-funding.md) and
+[ADR 0015](adr/0015-subsidy-budget-and-mortgage-real-cost.md).
 `centralBank.moneyGrowth` (default 1) changes fiat deposits by that weight times
 `(inflation target + baseline productivity + inflation gap) / 12` times deposits. On the 2 percent target with 1 percent
 productivity growth, that is about 3 percent a year when inflation is on target. `centralBank.injectionChannel` chooses

@@ -9,7 +9,7 @@ import {
 } from './rules.js';
 import { clamp, monthlyFromAnnual } from './stats.js';
 import type { Economy } from './economy.js';
-import type { Household } from './types.js';
+import type { Firm, Household } from './types.js';
 import {
   displaced,
   employedCount,
@@ -60,17 +60,27 @@ export function workersForSales(input: {
 export function onLabor(economy: Economy): void {
   refreshExpectedSales(economy);
   separateAtRandom(economy);
+  updateHiringProductivityImpulse(economy);
   const costQuota = employmentTarget(economy);
-  // Sales can ask for a different headcount, but the aggregate cannot rise above
-  // the cost quota or fall below it. That is what stopped a drop in sales from
-  // shedding the whole labor force. The quota itself is lower when the real
-  // wage is above the productivity-adjusted reference, so that case can still shed.
-  const target =
-    economy.params.firmLevelHiring === 'on'
-      ? Math.min(costQuota, Math.max(firmEmploymentTarget(economy), costQuota))
-      : costQuota;
-  shedGradually(economy, target);
-  hireUpTo(economy, target, vacancyLimit(economy, target));
+  const firmTargets =
+    economy.params.firmLevelHiring === 'on' ? firmHeadcounts(economy) : null;
+  // Sales can pull the aggregate about one month's shed below the cost quota,
+  // and cannot raise it above that quota. That keeps firm-level hiring live
+  // without letting a sales drop shed the whole labor force.
+  const target = firmTargets
+    ? clamp(
+        firmTargets.reduce((sum, row) => sum + row.wanted, 0),
+        Math.floor(costQuota * (1 - MONTHLY_FIRM_SHED)),
+        costQuota,
+      )
+    : costQuota;
+  if (firmTargets) {
+    shedFromOverstaffed(economy, target, firmTargets);
+    hireToUnderstaffed(economy, target, firmTargets);
+  } else {
+    shedGradually(economy, target);
+    hireUpTo(economy, target, vacancyLimit(economy, target));
+  }
   updateWages(economy);
 }
 
@@ -107,28 +117,56 @@ function vacancyLimit(economy: Economy, target: number): number {
   return Math.max(1, Math.ceil(Math.max(target, 1) / economy.firms.length));
 }
 
-function firmEmploymentTarget(economy: Economy): number {
+function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
   const scale = wageHiringScale(economy);
-  let wanted = 0;
-  for (const firm of economy.firms) {
-    wanted += workersForSales({
-      workers: firm.workers.length,
-      capacity: firmCapacity(economy, firm),
-      expectedSales: firm.expectedSales,
-      alpha: economy.params.alpha,
-      humanWeight: humanWeight(economy),
-    });
+  return economy.firms.map((firm) => ({
+    firm,
+    wanted: Math.round(
+      workersForSales({
+        workers: firm.workers.length,
+        capacity: firmCapacity(economy, firm),
+        expectedSales: firm.expectedSales,
+        alpha: economy.params.alpha,
+        humanWeight: humanWeight(economy),
+      }) * scale,
+    ),
+  }));
+}
+
+/**
+ * While a productivity impulse is active, the hiring reference tracks it.
+ * After it returns to zero, the reference glides back at rate 1 − rigidity so
+ * flexible wages snap and sticky wages do not over-hire into the recovery.
+ */
+function updateHiringProductivityImpulse(economy: Economy): void {
+  if (economy.productivityImpulse !== 0) {
+    economy.hiringProductivityImpulse = economy.productivityImpulse;
+    return;
   }
-  return Math.round(wanted * scale);
+  economy.hiringProductivityImpulse *= economy.params.rigidity;
+  if (Math.abs(economy.hiringProductivityImpulse) < 1e-12) {
+    economy.hiringProductivityImpulse = 0;
+  }
 }
 
 function wageHiringScale(economy: Economy): number {
   const realWage = economy.priceLevel > 0 ? economy.wageLevel / economy.priceLevel : 1;
-  return hiringScale({
+  const impulse =
+    economy.productivityImpulse !== 0
+      ? economy.productivityImpulse
+      : economy.hiringProductivityImpulse;
+  const scale = hiringScale({
     realWage,
-    referenceRealWage: (1 / (1 + economy.params.markup)) * (1 + economy.productivityImpulse),
+    referenceRealWage: (1 / (1 + economy.params.markup)) * (1 + impulse),
     elasticity: economy.params.wageElasticity,
   });
+  // After a negative productivity impulse, sticky real wages can sit below the
+  // gliding reference and look "cheap." Cap the scale at 1 so the recovery
+  // does not over-hire and flip the unemployment gap's sign.
+  if (economy.productivityImpulse === 0 && economy.hiringProductivityImpulse < 0) {
+    return Math.min(scale, 1);
+  }
+  return scale;
 }
 
 function shedGradually(economy: Economy, target: number): void {
@@ -148,6 +186,39 @@ function shedGradually(economy: Economy, target: number): void {
   }
 }
 
+/** Shed first from firms whose headcount exceeds their sales target. */
+function shedFromOverstaffed(
+  economy: Economy,
+  target: number,
+  firmTargets: readonly { firm: Firm; wanted: number }[],
+): void {
+  let employed = employedCount(economy);
+  const cap = Math.max(1, Math.floor(employed * MONTHLY_FIRM_SHED));
+  let shed = 0;
+  const over = firmTargets
+    .filter((row) => row.firm.workers.length > row.wanted)
+    .sort((left, right) => right.firm.workers.length - right.wanted - (left.firm.workers.length - left.wanted));
+  for (const row of over) {
+    while (
+      employed > target &&
+      shed < cap &&
+      row.firm.workers.length > row.wanted
+    ) {
+      const workerId = row.firm.workers[row.firm.workers.length - 1];
+      const household = workerId === undefined ? undefined : economy.households[workerId];
+      if (!household) {
+        break;
+      }
+      separate(economy, household);
+      employed -= 1;
+      shed += 1;
+    }
+  }
+  if (employed > target && shed < cap) {
+    shedGradually(economy, target);
+  }
+}
+
 function hireUpTo(economy: Economy, target: number, perFirm: number): void {
   let employed = employedCount(economy);
   for (const household of economy.households) {
@@ -160,12 +231,53 @@ function hireUpTo(economy: Economy, target: number, perFirm: number): void {
   }
 }
 
+/** Hire first into firms whose sales target exceeds current headcount. */
+function hireToUnderstaffed(
+  economy: Economy,
+  target: number,
+  firmTargets: readonly { firm: Firm; wanted: number }[],
+): void {
+  let employed = employedCount(economy);
+  const under = new Map(firmTargets.map((row) => [row.firm.id, row.wanted]));
+  for (const household of economy.households) {
+    if (employed >= target || household.employer >= 0) {
+      continue;
+    }
+    if (placeAtUnderstaffed(economy, household, under)) {
+      employed += 1;
+    }
+  }
+}
+
 function placeHousehold(economy: Economy, household: Household, perFirm: number): boolean {
   const start = household.search.uniformInt(0, economy.firms.length - 1);
   const applications = displaced(economy, household) ? 1 : economy.params.maxApplications;
   for (let attempt = 0; attempt < applications; attempt += 1) {
     const firm = economy.firms[(start + attempt) % economy.firms.length];
     if (!firm || firm.workers.length >= perFirm) {
+      continue;
+    }
+    firm.workers.push(household.id);
+    household.employer = firm.id;
+    return true;
+  }
+  return false;
+}
+
+function placeAtUnderstaffed(
+  economy: Economy,
+  household: Household,
+  wantedByFirm: ReadonlyMap<number, number>,
+): boolean {
+  const start = household.search.uniformInt(0, economy.firms.length - 1);
+  const applications = displaced(economy, household) ? 1 : economy.params.maxApplications;
+  for (let attempt = 0; attempt < applications; attempt += 1) {
+    const firm = economy.firms[(start + attempt) % economy.firms.length];
+    if (!firm) {
+      continue;
+    }
+    const wanted = wantedByFirm.get(firm.id) ?? firm.workers.length;
+    if (firm.workers.length >= wanted) {
       continue;
     }
     firm.workers.push(household.id);

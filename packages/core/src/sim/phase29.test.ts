@@ -21,7 +21,7 @@ describe('phase 29 housing user cost', () => {
   it('compares monthly rent, mortgage, and owned costs', () => {
     const price = 4800;
     const rent = monthlyRentCost(price);
-    const owned = monthlyOwnedCost(price, 0.05, 0);
+    const owned = monthlyOwnedCost(price, 0.05);
     const mortgage = monthlyMortgagePayment(price * 0.8, 0.05, 30);
     expect(rent).toBeCloseTo(price * 0.007, 8);
     expect(owned).toBeGreaterThan(0);

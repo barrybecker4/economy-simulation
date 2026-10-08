@@ -34,6 +34,20 @@ describe('phase 58 productivity shock through costs', () => {
     const after = Math.abs(gap(slump, calm, 60));
     expect(after).toBeLessThan(during);
   });
+
+  it('keeps the unemployment gap adverse over the full 24-month shock window', () => {
+    const calm = runSticky(null);
+    const slump = runSticky({ tick: 24, kind: 'productivity', size: -0.1 });
+    expect(calm.audit.ok && slump.audit.ok).toBe(true);
+    const window = unemploymentGap(slump, calm, 24, 47);
+    const peak = Math.max(
+      ...series(slump, 'unemployment')
+        .slice(24, 48)
+        .map((value, index) => value - (series(calm, 'unemployment')[24 + index] ?? 0)),
+    );
+    expect(peak).toBeGreaterThan(0);
+    expect(window).toBeGreaterThan(0);
+  });
 });
 
 function opened(sliders: Record<string, number | string>) {
@@ -76,9 +90,44 @@ function run(shock: ForcedShock | null): SimulationResult {
   );
 }
 
+function runSticky(shock: ForcedShock | null): SimulationResult {
+  return simulate(
+    loadScenario({
+      name: 'phase58-sticky',
+      seed: 3,
+      ticks: 72,
+      sliders: {
+        'scale.households': 60,
+        'scale.firms': 6,
+        'scale.banks': 1,
+        'shock.frequency': 0,
+        'regime.type': 'fiat',
+        'wage.nominalRigidity': 0.95,
+        'labor.wageElasticity': 0.5,
+      },
+    }),
+    shock,
+  );
+}
+
 function gap(shocked: SimulationResult, calm: SimulationResult, tick: number): number {
   const base = series(calm, 'realGdp')[tick] ?? 1;
   return ((series(shocked, 'realGdp')[tick] ?? 0) - base) / Math.max(base, 1);
+}
+
+function unemploymentGap(
+  shocked: SimulationResult,
+  calm: SimulationResult,
+  from: number,
+  to: number,
+): number {
+  let total = 0;
+  let count = 0;
+  for (let tick = from; tick <= to; tick += 1) {
+    total += (series(shocked, 'unemployment')[tick] ?? 0) - (series(calm, 'unemployment')[tick] ?? 0);
+    count += 1;
+  }
+  return total / Math.max(count, 1);
 }
 
 function series(result: SimulationResult, id: MetricId): number[] {
