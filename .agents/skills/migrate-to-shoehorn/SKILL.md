@@ -7,7 +7,8 @@ description: Migrate test files from `as` type assertions to @total-typescript/s
 
 ## Why shoehorn?
 
-`shoehorn` lets you pass partial data in tests while keeping TypeScript happy. It replaces `as` assertions with type-safe alternatives.
+`shoehorn` lets you pass partial data in tests while keeping TypeScript happy. It replaces `as` assertions with
+type-safe alternatives.
 
 **Test code only.** Never use shoehorn in production code.
 

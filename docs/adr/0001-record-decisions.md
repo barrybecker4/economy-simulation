@@ -6,7 +6,8 @@ Accepted
 
 ## Context
 
-Design choices in this repository change what the simulation means. Later phases need a short record so those choices are not reversed by accident.
+Design choices in this repository change what the simulation means. Later phases need a short record so those choices
+are not reversed by accident.
 
 ## Decision
 

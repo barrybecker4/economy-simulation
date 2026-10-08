@@ -45,6 +45,12 @@ export const INCOME_SMOOTHING = 0.9;
 export const UNEMPLOYED_TRANSFER = 0.05;
 /** Months of income a household holds before spending out of deposits. */
 export const DEPOSIT_BUFFER_MONTHS = 48;
+/**
+ * Opening deposit months below which fiat money growth is blended into spending
+ * when posted prices follow excess demand. Half the precautionary buffer:
+ * the monetary preset (12) is below it and the registry default (36) is above it.
+ */
+export const THIN_OPENING_MONTHS = DEPOSIT_BUFFER_MONTHS / 2;
 /** Home price measured in months of income. */
 export const HOME_PRICE_MONTHS = 48;
 /** Monthly rent as a share of that home price. About 8.4 percent a year. */
