@@ -295,13 +295,15 @@ interest and before bank dividends, funded by borrower interest plus equity abov
 rate actually paid enters the real return on money in the goods budget. At pass-through 0, deposits pay nothing.
 `centralBank.moneyGrowth` (default 1) changes fiat household deposits and bank reserves together by that weight times
 `(inflation target + baseline productivity + inflation gap) / 12` times deposits. On the 2 percent target with 1 percent
-productivity growth, that is about 3 percent a year when inflation is on target. When `prices.trendWeight` is below 1
-and opening deposits are shorter than half the 48-month spending buffer, each household's share of that new money is
-added to smoothed income in proportion to how far the deposit sits under the buffer, and the next shopping step spends
-it. A thicker opening stock, or a trend weight of 1, leaves that channel off. Bitcoin and hybrid ignore money growth. If
-bank reserves are below `bank.reserveRequirement` times deposits, the central bank issues the gap to the first bank and
-credits matching firm deposits. Bitcoin and hybrid do not create reserves to meet the requirement. The hybrid lender of
-last resort is described under regimes.
+productivity growth, that is about 3 percent a year when inflation is on target. A contraction draws reserves from banks
+in id order, starting with the first, and stops when those reserves are used up, so deposits never fall by more than
+reserves on the books. When `prices.trendWeight` is below 1 and opening deposits are shorter than half the 48-month
+spending buffer, each household's share of that new money is added to smoothed income in proportion to how far the
+deposit sits under the buffer, and the next shopping step spends it. A thicker opening stock, or a trend weight of 1,
+leaves that channel off. Bitcoin and hybrid ignore money growth. If bank reserves are below
+`bank.reserveRequirement` times deposits, the central bank issues the gap to the first bank and credits matching firm
+deposits. Bitcoin and hybrid do not create reserves to meet the requirement. The hybrid lender of last resort is
+described under regimes.
 
 ## Welfare
 

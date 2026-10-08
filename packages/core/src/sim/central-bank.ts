@@ -63,7 +63,8 @@ export function onCentralBank(economy: Economy): void {
 
 /**
  * Grow or shrink fiat broad money toward the inflation target plus productivity.
- * Credits household deposits and matching bank reserves so books stay closed.
+ * Deposits and reserves change by the same amount. A contraction takes reserves in
+ * bank id order and stops when they are used up, so books stay closed.
  */
 export function growFiatMoney(economy: Economy): void {
   if (economy.params.regime !== 'fiat' || economy.params.moneyGrowth <= 0) {
@@ -94,9 +95,24 @@ export function growFiatMoney(economy: Economy): void {
     addReserves(bank, amount);
     return;
   }
-  const removed = drainHouseholdDeposits(economy, -amount);
-  if (removed > 0) {
-    bank.reserves = Math.max(0, bank.reserves - removed);
+  const removed = drainHouseholdDeposits(economy, Math.min(-amount, reserveStock(economy)));
+  releaseReserves(economy, removed);
+}
+
+function reserveStock(economy: Economy): number {
+  return economy.banks.reduce((sum, bank) => sum + Math.max(0, bank.reserves), 0);
+}
+
+/** Take reserves from banks in id order. No bank's reserves go negative. */
+function releaseReserves(economy: Economy, amount: number): void {
+  let left = amount;
+  for (const bank of economy.banks) {
+    if (left <= 0) {
+      return;
+    }
+    const take = Math.min(Math.max(0, bank.reserves), left);
+    bank.reserves -= take;
+    left -= take;
   }
 }
 

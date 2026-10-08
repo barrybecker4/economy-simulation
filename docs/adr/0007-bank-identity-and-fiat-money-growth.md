@@ -16,7 +16,8 @@ not grow with the inflation target, so a higher target meant an imposed price pa
   the private-equity residual.
 - Opening reserves fill `deposits − loans − bonds`.
 - `centralBank.moneyGrowth` defaults to 1. Under fiat, deposits and reserves change together by that weight times
-  `(inflation target + productivity growth + inflation gap) / 12` times deposits. Bitcoin and hybrid ignore the slider.
+  `(inflation target + productivity growth + inflation gap) / 12` times deposits. A contraction draws reserves from banks
+  in id order, starting with the first, and stops when those reserves are used up. Bitcoin and hybrid ignore the slider.
   Setting the slider to 0 freezes the fiat stock for regression tests.
 
 There is still no multi-period forecast or durable-goods timing model. Expected inflation remains the trailing rate

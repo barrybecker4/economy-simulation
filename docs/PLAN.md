@@ -229,9 +229,9 @@ plain-language description and a status.
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
 | AI          | ai.automatableShareEnd                 | 0.9             | 0.3 to 1                     |
 | AI          | ai.adoptionMidpointYear                | 20              | 1 to 40                      |
-| AI          | ai.adoptionSteepness                   | 0.15             | 0.1 to 1.5                   |
+| AI          | ai.adoptionSteepness                   | 0.15            | 0.1 to 1.5                   |
 | AI          | ai.computeCostDeclineRate (annual)     | 0.3             | 0 to 0.6                     |
-| AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7 | | AI | ai.bullishness | 0 | 0 to 2 | | AI | ai.roboticsStartYear | 20 | 0 to 50 | | AI | ai.roboticsRampYears | 16 | 1 to 30                     |
+| AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7                     |     | AI  | ai.bullishness | 0   | 0 to 2 |     | AI  | ai.roboticsStartYear | 20  | 0 to 50 |     | AI  | ai.roboticsRampYears | 16  | 1 to 30 |
 | AI          | ai.ownershipConcentration              | 0.8             | 0.1 to 0.99                  |
 | AI          | ai.ownerShareCeiling                   | 0.95            | 0 to 1                       |
 | AI          | ai.agentsPerOwnerCeiling               | 20              | 0 to 50                      |
@@ -756,8 +756,7 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to
-   0. Fiat is the residual.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
    return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each
    digital share. Bitcoin issuance is the halving schedule, not a slider.
@@ -870,7 +869,8 @@ Acceptance:
 Goal: fiat broad money grows with the inflation target and productivity by default.
 
 1. `centralBank.moneyGrowth` defaults to 1. Fiat deposits and reserves change together by that weight times
-   `(inflationTarget + productivity.baseGrowth + inflation gap) / 12` times deposits.
+   `(inflationTarget + productivity.baseGrowth + inflation gap) / 12` times deposits. A contraction draws reserves in
+   bank id order, starting with the first, and stops when those reserves are used up.
 2. Bitcoin and hybrid ignore the slider. At 0 the fiat stock stays fixed for regression tests.
 
 Acceptance:

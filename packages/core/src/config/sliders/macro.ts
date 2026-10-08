@@ -170,7 +170,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     1,
     0,
     1,
-    'How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. Bitcoin and hybrid ignore this slider. At 0 the fiat stock stays fixed.',
+    'How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits. A contraction draws reserves from banks in id order, starting with the first, and stops when those reserves are used up. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. Bitcoin and hybrid ignore this slider. At 0 the fiat stock stays fixed.',
   ),
   numberSlider(
     'government.stabilizer',
