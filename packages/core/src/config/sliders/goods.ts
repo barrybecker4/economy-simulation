@@ -129,4 +129,14 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     1,
     'Maximum consumer loan stock as a share of monthly income when tenure choice is on. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off.',
   ),
+  numberSlider(
+    'housing.mortgageDefaultShare',
+    'Mortgage default income share',
+    'credit',
+    'share',
+    0.4,
+    0.1,
+    1,
+    'When tenure choice is on, a household that cannot pay its full mortgage for three months while the payment exceeds this share of income has the unpaid balance written off against bank equity and returns to rent. At 0.4 the payment must be above 40 percent of income. Unused when tenure choice is off.',
+  ),
 ];

@@ -14,4 +14,6 @@ The AI block is a single automatable-share path with a bullishness scale and a l
 
 Expected deflation can cut only discretionary goods spending above the food and housing floor. That floor is the sum of the food and housing CPI weights. Credit-financed discretionary spending is a later mechanism. When `prices.trendWeight` is below 1, the fiat inflation target no longer fully writes the price path.
 
+An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The fixed stock is money growth 0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0, `production.demandWeight` 1, deposit pass-through 1, anchored expectations, tenure choice on) so spending can move prices and output. `scenarios/baseline.json` stays empty for CLI regression.
+
 Development runs of 1,000 households finish in about a second in Node, a little over the one-second target. Sweeps in the CLI run in this process at a small scale. A 50-seed development sweep is a manual command, not part of the default test suite.

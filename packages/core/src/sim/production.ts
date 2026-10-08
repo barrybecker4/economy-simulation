@@ -7,6 +7,7 @@ import type { Firm } from './types.js';
 /**
  * Goods to produce when sales, not capacity, set the target.
  * Desired output restocks one month of inventory and never exceeds capacity.
+ * Measured output is the only addition to inventory.
  */
 export function demandedOutput(input: {
   capacity: number;
@@ -31,10 +32,7 @@ function produce(economy: Economy, firm: Firm): void {
   const capacity = firmCapacity(economy, firm);
   const weight = economy.params.demandWeight;
   if (weight <= 0) {
-    const targetStock = capacity * INVENTORY_MONTHS;
-    const rebuild = clamp(targetStock - firm.inventory, -capacity, capacity * 0.5);
     firm.output = capacity;
-    firm.inventory += Math.max(0, capacity + rebuild);
   } else {
     const demanded = demandedOutput({
       capacity,
@@ -42,8 +40,8 @@ function produce(economy: Economy, firm: Firm): void {
       inventory: firm.inventory,
     });
     firm.output = (1 - weight) * capacity + weight * demanded;
-    firm.inventory += firm.output;
   }
+  firm.inventory += firm.output;
   firm.capital *= 1 - MONTHLY_DEPRECIATION;
   firm.computeReady = 0;
 }

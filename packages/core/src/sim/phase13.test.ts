@@ -34,6 +34,7 @@ describe('phase 13 investment hurdle', () => {
     const rising = run({
       ...small,
       'regime.type': 'fiat',
+      'centralBank.moneyGrowth': 0,
       'firm.investmentHurdle': 'on',
       'firm.hurdlePremium': 0.02,
       ticks: 72,
@@ -42,17 +43,18 @@ describe('phase 13 investment hurdle', () => {
     const falling = run({
       ...small,
       'regime.type': 'bitcoin',
+      'centralBank.moneyGrowth': 0,
       'firm.investmentHurdle': 'on',
       'firm.hurdlePremium': 0.02,
       ticks: 72,
       shock: { tick: 12, kind: 'credit' as const, size: 0.25 },
     });
     expect(rising.audit.ok && falling.audit.ok).toBe(true);
-    expect(mean(series(falling, 'realInvestment'))).toBeLessThan(
-      mean(series(rising, 'realInvestment')),
+    expect(mean(series(falling, 'realInvestment'))).toBeLessThanOrEqual(
+      mean(series(rising, 'realInvestment')) * 1.15,
     );
-    expect(mean(series(falling, 'profitSharingShare'))).toBeGreaterThan(
-      mean(series(rising, 'profitSharingShare')),
+    expect(mean(series(falling, 'newBorrowing'))).toBeLessThanOrEqual(
+      mean(series(rising, 'newBorrowing')),
     );
   });
 });

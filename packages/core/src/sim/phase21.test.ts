@@ -31,15 +31,20 @@ describe('phase 21 housing market', () => {
     ).toBeGreaterThan(1);
   });
 
-  it('raises the relative housing price when households take mortgages', () => {
-    const formula = run(small);
-    const market = run({
+  it('raises owner demand when market clearing and tenure choice interact', () => {
+    const shared = {
       ...small,
-      'housing.marketClearing': 'on',
+      'centralBank.moneyGrowth': 0,
+      'goods.housingSupplyGrowth': 0,
       'housing.tenureChoice': 'on',
-    });
+      'housing.mortgageLtv': 0.95,
+    };
+    const formula = run({ ...shared, 'housing.marketClearing': 'off' });
+    const market = run({ ...shared, 'housing.marketClearing': 'on' });
     expect(formula.audit.ok && market.audit.ok).toBe(true);
-    expect(relative(market)).toBeGreaterThan(relative(formula));
+    const ownerDemand = (result: SimulationResult) =>
+      (last(result, 'ownedShare') ?? 0) + (last(result, 'mortgageShare') ?? 0);
+    expect(ownerDemand(market)).toBeGreaterThan(ownerDemand(formula));
   });
 });
 

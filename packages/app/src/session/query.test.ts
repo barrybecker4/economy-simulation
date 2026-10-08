@@ -19,7 +19,7 @@ describe('parsePageState', () => {
 
   it('omits the default seed count from the query string', () => {
     expect(pageSearch({ ...defaultPage(), seed: 2, ticks: 24 })).toBe(
-      'seed=2&ticks=24&regime=fiat',
+      'seed=2&ticks=24&regime=fiat&bank.capitalRatio=0.04&bank.depositPassThrough=1&credit.endogenousWeight=1&credit.leverageStart=1&expectations.anchorWeight=0.5&household.openingDepositMonths=12&housing.tenureChoice=on&prices.trendWeight=0&production.demandWeight=1',
     );
   });
 

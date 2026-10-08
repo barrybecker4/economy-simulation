@@ -259,6 +259,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How hard the fiat policy rate reacts when inflation misses the target. The rule adds this weight times (inflation minus the target), on top of an inflation term that already enters one-for-one. At 1.5, inflation one percentage point above target adds 1.5 points to the policy rate from this term alone. The weight is used only in the fiat regime. The policy rate cannot fall below zero.
 
+## centralBank.moneyGrowth
+
+- Label: Fiat money growth
+- Group: centralBank
+- Unit: share
+- Default: 1
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. Bitcoin and hybrid ignore this slider. At 0 the fiat stock stays fixed.
+
 ## centralBank.outputWeight
 
 - Label: Output weight
@@ -279,7 +290,18 @@ Registry version: 12.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed 2 percent of household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. At 0 the previous credit path is unchanged.
+- Description: How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed credit.leverageStart times household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. At 0 the previous credit path is unchanged.
+
+## credit.leverageStart
+
+- Label: Credit leverage start
+- Group: credit
+- Unit: share
+- Default: 0.02
+- Range: 0.02 to 1.5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Loan-to-deposit ratio above which endogenous credit stress begins to build. At the default of 0.02, calm lending stops once loans exceed 2 percent of household deposits. Raise it toward 1 so calm banks can hold a loan book on the order of deposits before stress cuts lending. Unused when endogenous credit weight is 0.
 
 ## deflation.sensitivity
 
@@ -523,6 +545,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly inflation above the regime normal path raises the goods spending share. The gap is expected inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. Expected inflation is the trailing year-over-year rate unless expectations.anchorWeight pulls it toward that path. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.
 
+## household.openingDepositMonths
+
+- Label: Opening deposit months
+- Group: behavior
+- Unit: months
+- Default: 36
+- Range: 6 to 60
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. At 36, deposits are about three years of income and velocity is low. Lower values raise velocity. The monetary preset can shorten this toward a year of income.
+
 ## household.realReturnSensitivity
 
 - Label: Real-return spending sensitivity
@@ -599,6 +632,17 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Whether housing scarcity is a market outcome. Off keeps the formula price and a home price of 48 months of income. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off reproduces the previous housing prices.
+
+## housing.mortgageDefaultShare
+
+- Label: Mortgage default income share
+- Group: credit
+- Unit: share
+- Default: 0.4
+- Range: 0.1 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: When tenure choice is on, a household that cannot pay its full mortgage for three months while the payment exceeds this share of income has the unpaid balance written off against bank equity and returns to rent. At 0.4 the payment must be above 40 percent of income. Unused when tenure choice is off.
 
 ## housing.mortgageLtv
 

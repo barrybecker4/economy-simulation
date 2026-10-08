@@ -20,6 +20,7 @@ export interface Parameters {
   reserveRequirement: number;
   capitalRatio: number;
   endogenousWeight: number;
+  leverageStart: number;
   bondRate: number;
   timePrefMean: number;
   inflationTimePreference: number;
@@ -56,6 +57,7 @@ export interface Parameters {
   firmCount: number;
   bankCount: number;
   skillSigma: number;
+  openingDepositMonths: number;
   prefStd: number;
   realReturnSensitivity: number;
   trendWeight: number;
@@ -67,10 +69,12 @@ export interface Parameters {
   mortgageTermYears: number;
   mortgageLtv: number;
   consumerCreditLimit: number;
+  mortgageDefaultShare: number;
   investmentHurdle: 'off' | 'on';
   hurdlePremium: number;
   depositPassThrough: number;
   bondPurchaseShare: number;
+  moneyGrowth: number;
   stabilizer: number;
   transitionLength: number;
   debtHaircut: number;
@@ -100,6 +104,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     reserveRequirement: slider(config, 'bank.reserveRequirement'),
     capitalRatio: slider(config, 'bank.capitalRatio'),
     endogenousWeight: slider(config, 'credit.endogenousWeight'),
+    leverageStart: slider(config, 'credit.leverageStart'),
     bondRate: slider(config, 'government.bondRate'),
     timePrefMean: slider(config, 'household.timePreferenceMean'),
     inflationTimePreference: slider(config, 'household.inflationTimePreference'),
@@ -147,6 +152,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     firmCount: Math.round(slider(config, 'scale.firms')),
     bankCount: Math.round(slider(config, 'scale.banks')),
     skillSigma: slider(config, 'household.skillSigma'),
+    openingDepositMonths: slider(config, 'household.openingDepositMonths'),
     prefStd: slider(config, 'household.timePreferenceStd'),
     realReturnSensitivity: slider(config, 'household.realReturnSensitivity'),
     trendWeight: slider(config, 'prices.trendWeight'),
@@ -158,10 +164,12 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     mortgageTermYears: slider(config, 'housing.mortgageTermYears'),
     mortgageLtv: slider(config, 'housing.mortgageLtv'),
     consumerCreditLimit: slider(config, 'housing.consumerCreditLimit'),
+    mortgageDefaultShare: slider(config, 'housing.mortgageDefaultShare'),
     investmentHurdle: investmentHurdleOf(config),
     hurdlePremium: slider(config, 'firm.hurdlePremium'),
     depositPassThrough: slider(config, 'bank.depositPassThrough'),
     bondPurchaseShare: slider(config, 'centralBank.bondPurchaseShare'),
+    moneyGrowth: slider(config, 'centralBank.moneyGrowth'),
     stabilizer: slider(config, 'government.stabilizer'),
     transitionLength,
     debtHaircut: slider(config, 'transition.debtHaircut'),

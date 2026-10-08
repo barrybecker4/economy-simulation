@@ -673,6 +673,99 @@ Acceptance:
 - Enough crowding ends with a lower agent volume than depth 0.
 - The ledger audit still passes.
 
+### Phase 28: Conservation
+
+Goal: money is not destroyed by tenure choice, inventory matches measured output, satoshi dust does not crash the stock journal, and bank books close.
+
+1. Bitcoin stock lines inside the audit absolute epsilon are dropped. A one-line stock journal is dropped instead of posted.
+2. Cash home purchase requires a full home price and pays firms, so total deposits are unchanged.
+3. Firms add only measured output to inventory.
+4. Opening reserves fill `deposits − loans − bonds` so `loans + reserves + bonds + vault = deposits + bank equity`. The tick fails when that identity is outside the unit tolerance.
+
+Acceptance:
+
+- A one-line satoshi dust journal does not throw.
+- With tenure choice on, bitcoin deposits do not collapse at tick 0, and the ledger audit passes.
+- Bank books close at the open and after cash home purchases.
+
+### Phase 29: Housing user cost
+
+Goal: tenure choice compares monthly user costs with interest and a down payment, so rent is sometimes chosen.
+
+1. Rent cost is the monthly rent rate times the home price.
+2. Owned cost is the home price times the loan rate plus expected deflation, as a monthly opportunity cost.
+3. Mortgage cost is the amortizing payment on the LTV loan at the loan rate, plus the opportunity cost of the down payment. The down payment is cash paid to firms.
+
+Acceptance:
+
+- With tenure choice on, bitcoin deposits do not collapse at tick 0.
+- The rent share is not zero in both regimes.
+- Stronger expected deflation still lowers the mortgage share.
+
+### Phase 30: Rates that match cash
+
+Goal: deposit interest is paid before equity dividends, the paid rate enters the real return, and the bitcoin loan rate is a level around time preference.
+
+1. Household deposit interest is paid after firm loan interest and before bank dividends, funded by borrower interest plus equity above the capital target.
+2. The annualized paid deposit rate enters goods spending’s real return.
+3. Bitcoin and hybrid set the policy rate to `max(0, timePrefMean + LOAN_SPREAD × pressure)` with pressure clamped, not a ratchet toward zero.
+
+Acceptance:
+
+- With loans near the savings stock, the bitcoin interest rate is positive.
+- Pass-through above 0 can cut discretionary spending while leaving the floor in place.
+
+### Phase 31: Endogenous fiat broad money
+
+Goal: fiat broad money grows with the inflation target and productivity by default.
+
+1. `centralBank.moneyGrowth` defaults to 1. Fiat deposits and reserves change together by that weight times `(inflationTarget + productivity.baseGrowth + inflation gap) / 12` times deposits.
+2. Bitcoin and hybrid ignore the slider. At 0 the fiat stock stays fixed for regression tests.
+
+Acceptance:
+
+- Default fiat deposits are higher after 10 years than the same seed at money growth 0.
+- Money growth 0 matches a fixed stock. Bitcoin deposits do not follow the slider.
+
+### Phase 32: Monetary comparison preset
+
+Goal: the web app opens on settings where spending can move prices and output.
+
+1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5, and tenure choice on. Money growth stays at its default of 1.
+2. The app’s default page overrides match that preset.
+
+Acceptance:
+
+- A 50 percent helicopter raise in deposits raises the CPI by more than 1 percent within two years under the preset.
+- Fiat broad money ends higher when the inflation target is higher.
+- Fiat and bitcoin shock unemployment paths differ.
+- The ledger identity holds with tenure choice on.
+
+### Phase 33: Credit stock and foreclosure
+
+Goal: calm lending can reach a larger loan book, and unpaid mortgages can be written off.
+
+1. `credit.leverageStart` defaults to 0.02. The monetary preset sets it to 1 with endogenous credit weight 1 and a 4 percent capital ratio.
+2. `housing.mortgageDefaultShare` defaults to 0.4. After three missed full payments while the payment exceeds that share of income, the unpaid mortgage is written off against bank equity and the household returns to rent.
+
+Acceptance:
+
+- On the monetary preset, credit to GDP rises above 8 percent without a credit shock.
+- Pass-through can cut discretionary spending when the real-return sensitivity is positive.
+
+### Phase 34: Remeasure residuals
+
+Goal: fix the supply-shock hiring sign and remeasure unemployment, velocity, and inequality on the monetary preset.
+
+1. The employment quota scales with the productivity impulse so an adverse supply shock raises unemployment.
+2. `household.openingDepositMonths` defaults to 36. The monetary preset uses 12.
+
+Acceptance:
+
+- A negative productivity shock raises unemployment relative to the calm path.
+- With shocks off, unemployment stays within 8 points of the natural rate on the preset.
+- Shorter opening deposits raise velocity.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.

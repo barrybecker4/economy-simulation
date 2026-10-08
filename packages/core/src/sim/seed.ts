@@ -11,8 +11,6 @@ import { INITIAL_WAGE, INVENTORY_MONTHS } from './rules.js';
 import { clamp, mean } from './stats.js';
 import type { Firm, ForcedShock } from './types.js';
 
-/** Three years of the base wage, scaled by skill squared. */
-const OPENING_DEPOSIT_MONTHS = 36;
 const OPENING_LOAN_SHARE = 0.5;
 
 export function blankEconomy(
@@ -76,6 +74,8 @@ export function blankEconomy(
     demandBase: 0,
     desiredSpend: 0,
     depositRate: 0,
+    paidDepositRate: 0,
+    depositInterestPaid: 0,
     tenureChanges: 0,
     newConsumerBorrowing: 0,
     loanFinance: 0,
@@ -133,8 +133,9 @@ export function openFirmBooks(economy: Economy): number {
 }
 
 export function seedHouseholdCash(economy: Economy): void {
+  const months = economy.params.openingDepositMonths;
   for (const household of economy.households) {
-    setDeposit(household, Math.round(household.skill ** 2 * INITIAL_WAGE * OPENING_DEPOSIT_MONTHS));
+    setDeposit(household, Math.round(household.skill ** 2 * INITIAL_WAGE * months));
     household.income = 0;
   }
 }
@@ -199,6 +200,7 @@ function seedHouseholds(economy: Economy, init: Rng, root: Rng): void {
       tenure: 'none',
       mortgage: 0,
       mortgagePayment: 0,
+      mortgageArrears: 0,
       consumerLoan: 0,
     });
   }

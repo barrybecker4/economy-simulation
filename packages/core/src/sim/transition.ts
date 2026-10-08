@@ -1,7 +1,14 @@
 import { powerWeights, splitResidual } from './allocate.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
-import { clearBonds, setConsumerLoan, setDeposit, setFirmLoan, setMortgage } from './money.js';
+import {
+  chargeEquityForDefault,
+  clearBonds,
+  setConsumerLoan,
+  setDeposit,
+  setFirmLoan,
+  setMortgage,
+} from './money.js';
 import type { Household } from './types.js';
 
 /**
@@ -36,13 +43,21 @@ function applyDebtHaircut(economy: Economy): void {
   }
   for (const firm of economy.firms) {
     const cut = moneyAmount(economy, firm.loan * haircut);
+    if (cut <= 0) {
+      continue;
+    }
     setFirmLoan(firm, Math.max(0, firm.loan - cut));
+    chargeEquityForDefault(economy.banks[firm.bank], economy, cut);
   }
   for (const household of economy.households) {
     const mortgageCut = moneyAmount(economy, household.mortgage * haircut);
     const consumerCut = moneyAmount(economy, household.consumerLoan * haircut);
+    const cut = mortgageCut + consumerCut;
     setMortgage(household, Math.max(0, household.mortgage - mortgageCut));
     setConsumerLoan(household, Math.max(0, household.consumerLoan - consumerCut));
+    if (cut > 0) {
+      chargeEquityForDefault(economy.banks[household.bank], economy, cut);
+    }
     if (household.mortgage <= 0) {
       household.mortgagePayment = 0;
       if (household.tenure === 'mortgage') {

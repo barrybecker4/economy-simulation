@@ -154,6 +154,7 @@ function addHousehold(economy: Economy): void {
     tenure: 'none',
     mortgage: 0,
     mortgagePayment: 0,
+    mortgageArrears: 0,
     consumerLoan: 0,
   };
   economy.households.push(household);

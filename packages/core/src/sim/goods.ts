@@ -32,10 +32,12 @@ function demandBase(economy: Economy): number {
 
 function goodsMarket(economy: Economy): GoodsMarket {
   const inflationRate = expectedInflation(economy);
+  const depositYield =
+    economy.paidDepositRate > 0 ? economy.paidDepositRate : economy.depositRate;
   return {
     floorShare: subsistenceShare(),
     inflationGap: inflationRate - normalInflation(economy),
-    realReturn: economy.depositRate - inflationRate,
+    realReturn: depositYield - inflationRate,
     demandFactor: 1 + economy.demandImpulse + economy.fiscalBoost,
   };
 }

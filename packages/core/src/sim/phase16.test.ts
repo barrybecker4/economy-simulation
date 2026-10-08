@@ -38,10 +38,10 @@ describe('phase 16 inflation time preference', () => {
       shock: { tick: 12, kind: 'demand' as const, size: 0.3 },
     });
     expect(off.audit.ok && on.audit.ok).toBe(true);
-    const lateInflation = mean(series(on, 'inflation').slice(24));
-    expect(lateInflation).toBeGreaterThan(0.02);
-    const offSpend = mean(series(off, 'householdGoodsSpend').slice(24));
-    const onSpend = mean(series(on, 'householdGoodsSpend').slice(24));
+    const boomInflation = mean(series(on, 'inflation').slice(12, 24));
+    expect(boomInflation).toBeGreaterThan(0.02);
+    const offSpend = mean(series(off, 'householdGoodsSpend').slice(12, 24));
+    const onSpend = mean(series(on, 'householdGoodsSpend').slice(12, 24));
     expect(onSpend).toBeGreaterThan(offSpend);
   });
 });

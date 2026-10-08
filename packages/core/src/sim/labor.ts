@@ -96,8 +96,14 @@ function separateAtRandom(economy: Economy): void {
 function employmentTarget(economy: Economy): number {
   const scale = wageHiringScale(economy);
   const demand = clamp(1 + economy.demandImpulse + economy.fiscalBoost, 0.85, 1.1);
+  const supply = clamp(1 + economy.productivityImpulse, 0.5, 1.5);
   return Math.round(
-    economy.households.length * (1 - NATURAL_UNEMPLOYMENT) * humanWeight(economy) * demand * scale,
+    economy.households.length *
+      (1 - NATURAL_UNEMPLOYMENT) *
+      humanWeight(economy) *
+      demand *
+      scale *
+      supply,
   );
 }
 

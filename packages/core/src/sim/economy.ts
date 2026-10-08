@@ -58,6 +58,9 @@ export interface Economy {
   demandBase: number;
   desiredSpend: number;
   depositRate: number;
+  /** Annualized rate actually credited on household deposits last payment. */
+  paidDepositRate: number;
+  depositInterestPaid: number;
   tenureChanges: number;
   newConsumerBorrowing: number;
   loanFinance: number;

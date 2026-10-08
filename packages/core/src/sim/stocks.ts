@@ -41,6 +41,7 @@ export function postStocks(economy: Economy, ledger: Ledger): void {
   const vault = sumBank(economy, (bank) => bank.vault);
   const equity = sumBank(economy, (bank) => bank.equity);
   alignPrivateEquity(economy, ledger.unit, vault, equity);
+  assertBankBalance(economy, ledger.unit, deposits, loans, reserves, bonds, vault, equity);
   const targets = stockTargets(
     deposits,
     loans,
@@ -53,17 +54,37 @@ export function postStocks(economy: Economy, ledger: Ledger): void {
   postBalancedStockLines(ledger, stockLines(ledger, targets));
 }
 
-/** Post stock lines, rejecting a one-sided journal. */
+/**
+ * Bank assets minus deposit liabilities and equity. Zero when books close.
+ * loans + reserves + bonds + vault = deposits + bank equity
+ * Private equity is the vault residual (vault − equity) and is audited separately.
+ */
+export function bankBalanceIdentity(economy: Economy): number {
+  const deposits = totalDeposits(economy);
+  const loans = totalLoans(economy);
+  const reserves = sumBank(economy, (bank) => bank.reserves);
+  const bonds = sumBank(economy, (bank) => bank.bonds);
+  const vault = sumBank(economy, (bank) => bank.vault);
+  const equity = sumBank(economy, (bank) => bank.equity);
+  return loans + reserves + bonds + vault - deposits - equity;
+}
+
+/** Post stock lines. A lone dust line is dropped; a balanced change posts. */
 export function postBalancedStockLines(
   ledger: Ledger,
   lines: readonly { accountId: string; side: EntrySide; amount: bigint | number }[],
 ): void {
-  if (lines.length === 1) {
-    throw new Error('Stock journal moved only one account; a balanced change needs at least two');
+  const kept = lines.filter((line) => keepStockAmount(ledger.unit, line.amount));
+  if (kept.length >= 2) {
+    ledger.post(kept);
   }
-  if (lines.length >= 2) {
-    ledger.post(lines);
+}
+
+function keepStockAmount(unit: MoneyUnit, amount: bigint | number): boolean {
+  if (unit === 'cent') {
+    return typeof amount === 'bigint' ? amount !== 0n : Math.round(Math.abs(amount)) !== 0;
   }
+  return Math.abs(Number(amount)) > BITCOIN_AUDIT_ABSOLUTE_EPSILON;
 }
 
 function sumBank(economy: Economy, read: (bank: Economy['banks'][number]) => number): number {
@@ -113,16 +134,37 @@ function alignPrivateEquity(
   economy.privateEquity = residual;
 }
 
-function residualMatches(unit: MoneyUnit, kept: number, residual: number): boolean {
-  if (unit === 'cent') {
-    return Math.abs(kept - residual) < 0.5;
+function assertBankBalance(
+  economy: Economy,
+  unit: MoneyUnit,
+  deposits: number,
+  loans: number,
+  reserves: number,
+  bonds: number,
+  vault: number,
+  equity: number,
+): void {
+  const assets = loans + reserves + bonds + vault;
+  const claims = deposits + equity;
+  const gap = assets - claims;
+  if (withinUnitTolerance(unit, gap, Math.max(1, Math.abs(deposits), Math.abs(loans)))) {
+    return;
   }
-  const scale = Math.max(1, Math.abs(kept), Math.abs(residual));
-  const tolerance = Math.max(
-    BITCOIN_AUDIT_ABSOLUTE_EPSILON,
-    BITCOIN_AUDIT_RELATIVE_EPSILON * scale,
+  throw new Error(
+    `Bank books do not close at tick ${economy.tick}: assets ${assets} vs deposits plus equity ${claims}`,
   );
-  return Math.abs(kept - residual) <= tolerance;
+}
+
+function residualMatches(unit: MoneyUnit, kept: number, residual: number): boolean {
+  return withinUnitTolerance(unit, kept - residual, Math.max(1, Math.abs(kept), Math.abs(residual)));
+}
+
+function withinUnitTolerance(unit: MoneyUnit, gap: number, scale: number): boolean {
+  if (unit === 'cent') {
+    return Math.abs(gap) < 0.5;
+  }
+  const tolerance = Math.max(BITCOIN_AUDIT_ABSOLUTE_EPSILON, BITCOIN_AUDIT_RELATIVE_EPSILON * scale);
+  return Math.abs(gap) <= tolerance;
 }
 
 function stockLines(
@@ -166,5 +208,5 @@ function postingAmount(unit: MoneyUnit, delta: number): bigint | number | undefi
     return cents === 0 ? undefined : BigInt(cents);
   }
   const amount = Math.abs(delta);
-  return amount === 0 ? undefined : amount;
+  return amount <= BITCOIN_AUDIT_ABSOLUTE_EPSILON ? undefined : amount;
 }

@@ -17,6 +17,8 @@ export interface Household {
   tenure: Tenure;
   mortgage: number;
   mortgagePayment: number;
+  /** Months the household has missed a full mortgage payment. */
+  mortgageArrears: number;
   consumerLoan: number;
 }
 

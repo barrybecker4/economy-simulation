@@ -29,8 +29,9 @@ export function onBookkeeping(economy: Economy, ctx: TickContext): void {
 }
 
 function replaceFirm(economy: Economy, firm: Firm): void {
+  const bank = economy.banks[firm.bank];
   economy.defaultsThisTick += firm.loan;
-  chargeEquityForDefault(economy.banks[firm.bank], economy, firm.loan);
+  chargeEquityForDefault(bank, economy, firm.loan);
   for (const workerId of firm.workers) {
     const worker = economy.households[workerId];
     if (worker) {
@@ -38,7 +39,7 @@ function replaceFirm(economy: Economy, firm: Firm): void {
     }
   }
   firm.workers = [];
-  resetFailedFirmAccounts(firm, INITIAL_WAGE);
+  resetFailedFirmAccounts(firm, bank, economy, INITIAL_WAGE);
   firm.capital = 1;
   firm.inventory = 1;
   firm.price = economy.priceLevel;

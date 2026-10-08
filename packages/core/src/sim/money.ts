@@ -98,10 +98,17 @@ export function collectBankFee(bank: Bank, economy: Economy, fee: number): void 
   economy.privateEquity -= fee;
 }
 
-/** Dividend: bank equity falls and the residual rises. */
+/**
+ * Dividend: bank equity and vault cash fall together, up to available vault.
+ * Book equity above vault (negative private equity) is not paid out as cash.
+ */
 export function releaseBankEquity(bank: Bank, economy: Economy, amount: number): void {
-  bank.equity -= amount;
-  economy.privateEquity += amount;
+  const payable = Math.min(amount, Math.max(0, bank.vault));
+  if (payable <= 0) {
+    return;
+  }
+  bank.equity -= payable;
+  bank.vault -= payable;
 }
 
 export function chargeEquityForDefault(
@@ -129,11 +136,29 @@ export function writeOffFirmLoan(
 }
 
 /**
- * The house is not a ledger account. The deposit leaves the banking system.
- * Vault cash and bank equity stay put, so the private-equity residual does not move.
+ * Cash home purchase: the buyer pays firms. Total deposits are unchanged.
  */
-export function payCashForHome(household: Household, price: number): void {
+export function payCashForHome(household: Household, economy: Economy, price: number): void {
   household.deposit -= price;
+  creditFirms(economy, price);
+}
+
+/** Split a cash receipt across firm deposits so the banking system keeps the money. */
+export function creditFirms(economy: Economy, amount: number): void {
+  if (amount <= 0 || economy.firms.length === 0) {
+    return;
+  }
+  const each = amount / economy.firms.length;
+  let paid = 0;
+  for (let index = 0; index < economy.firms.length; index += 1) {
+    const firm = economy.firms[index];
+    if (!firm) {
+      continue;
+    }
+    const share = index === economy.firms.length - 1 ? amount - paid : each;
+    firm.deposit += share;
+    paid += share;
+  }
 }
 
 export function payDepositInterest(
@@ -147,21 +172,36 @@ export function payDepositInterest(
   economy.privateEquity += interest;
 }
 
-export function injectBankCapital(bank: Bank, amount: number): void {
+/**
+ * Lender-of-last-resort capital: equity, vault, and reserves rise, and matching
+ * deposits are credited to firms so bank books stay closed.
+ */
+export function injectBankCapital(bank: Bank, economy: Economy, amount: number): void {
   bank.equity += amount;
   bank.vault += amount;
   bank.reserves += amount;
+  creditFirms(economy, amount);
 }
 
 export function addReserves(bank: Bank, amount: number): void {
   bank.reserves += amount;
 }
 
+/** Transition write-off: bond assets become reserves so total bank assets are unchanged. */
 export function clearBonds(bank: Bank): void {
+  bank.reserves += bank.bonds;
   bank.bonds = 0;
 }
 
-export function resetFailedFirmAccounts(firm: Firm, deposit: number): void {
+/**
+ * Reset a failed firm. Loan is already written off against equity. The deposit
+ * balance is left unchanged so the banking system neither creates nor destroys money.
+ */
+export function resetFailedFirmAccounts(
+  firm: Firm,
+  _bank: Bank | undefined,
+  _economy: Economy,
+  _deposit: number,
+): void {
   firm.loan = 0;
-  firm.deposit = deposit;
 }

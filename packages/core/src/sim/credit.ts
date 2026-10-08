@@ -6,6 +6,7 @@ import {
   moneyAmount,
   referenceWorkersPerFirm,
 } from './helpers.js';
+import { payHouseholdDepositInterest } from './central-bank.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import {
   CREDIT_IMPULSE_DRAW,
@@ -68,8 +69,10 @@ export function creditStressNext(input: {
   stress: number;
   leverage: number;
   lossRate: number;
+  leverageStart?: number;
 }): number {
-  const pressure = input.lossRate + Math.max(0, input.leverage - ENDOGENOUS_LEVERAGE_START);
+  const start = input.leverageStart ?? ENDOGENOUS_LEVERAGE_START;
+  const pressure = input.lossRate + Math.max(0, input.leverage - start);
   return clamp(0.9 * input.stress + pressure, 0, 2);
 }
 
@@ -98,13 +101,20 @@ export function onCredit(economy: Economy): void {
       drawEndogenousCredit(economy);
     }
   }
-  const realReturn = economy.depositRate - expectedInflation(economy);
+  const realReturn = economy.paidDepositRate - expectedInflation(economy);
   const expectedReturn = economy.params.prodGrowth + economy.params.markup * 0.25;
+  const borrowerInterest = new Map<number, number>();
   for (const firm of economy.firms) {
     const bank = economy.banks[firm.bank];
     repayDeflatingLoan(economy, firm);
-    payInterest(economy, firm, bank);
+    const interest = payInterest(economy, firm, bank);
+    if (bank && interest > 0) {
+      borrowerInterest.set(bank.id, (borrowerInterest.get(bank.id) ?? 0) + interest);
+    }
     invest(economy, firm, bank, expectedReturn, realReturn);
+  }
+  payHouseholdDepositInterest(economy, borrowerInterest);
+  for (const bank of economy.banks) {
     payDividend(economy, bank);
   }
 }
@@ -121,6 +131,7 @@ function refreshCreditStress(economy: Economy): void {
     stress: economy.creditStress,
     leverage: loans / deposits,
     lossRate,
+    leverageStart: economy.params.leverageStart,
   });
 }
 
@@ -178,14 +189,15 @@ function repayDeflatingLoan(economy: Economy, firm: Firm): void {
   economy.loanRepaid += repay;
 }
 
-function payInterest(economy: Economy, firm: Firm, bank: Bank | undefined): void {
+function payInterest(economy: Economy, firm: Firm, bank: Bank | undefined): number {
   const rawInterest = (firm.loan * (economy.policyRate + LOAN_SPREAD)) / 12;
   const interest = moneyAmount(economy, rawInterest);
   if (interest <= 0 || firm.deposit < interest || !bank || bank.failed) {
-    return;
+    return 0;
   }
   payFirmInterest(firm, bank, economy, interest);
   economy.interestPaid += interest;
+  return interest;
 }
 
 function invest(

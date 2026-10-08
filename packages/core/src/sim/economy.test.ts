@@ -9,7 +9,11 @@ const TARGET = 0.02;
 describe('phase 2 fiat economy', () => {
   it('stays stable and finishes a development-size run', () => {
     const started = performance.now();
-    const result = run({ seed: 1, ticks: 600, sliders: { 'shock.frequency': 0 } });
+    const result = run({
+      seed: 1,
+      ticks: 600,
+      sliders: { 'shock.frequency': 0, 'centralBank.moneyGrowth': 0 },
+    });
     const elapsed = performance.now() - started;
     expect(result.audit.ok, 'seed 1 ledger').toBe(true);
     const unemployment = series(result, 'unemployment');

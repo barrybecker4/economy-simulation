@@ -1,12 +1,18 @@
-import { savingsStock, totalDeposits, totalLoans } from './banking.js';
+import { splitProportional } from './allocate.js';
+import { equityFor, loansAt, savingsStock, totalDeposits, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
-import { expectedInflation, moneyAmount, outputGap } from './helpers.js';
+import { expectedInflation, inflation, moneyAmount, outputGap } from './helpers.js';
 import { updateMoneyChoice } from './monies.js';
 import {
   addReserves,
+  creditDeposit,
+  creditFirms,
+  debitDeposit,
   injectBankCapital,
   payDepositInterest as creditDepositInterest,
 } from './money.js';
+import { LOAN_SPREAD } from './rules.js';
+import { clamp } from './stats.js';
 
 /** Taylor-style fiat policy rate. */
 export function taylorRate(input: {
@@ -26,6 +32,17 @@ export function taylorRate(input: {
   );
 }
 
+/** Bitcoin/hybrid loan rate as a level around time preference, not a ratchet to zero. */
+export function marketLoanRate(input: {
+  timePrefMean: number;
+  loans: number;
+  savings: number;
+}): number {
+  const pressure =
+    input.savings > 0 ? clamp(input.loans / input.savings - 1, -1, 2) : 0;
+  return Math.max(0, input.timePrefMean + LOAN_SPREAD * pressure);
+}
+
 export function onCentralBank(economy: Economy): void {
   updateMoneyChoice(economy);
   if (economy.params.choiceSpeed > 0) {
@@ -35,6 +52,7 @@ export function onCentralBank(economy: Economy): void {
     }
   } else if (economy.params.regime === 'fiat') {
     setFiatPolicy(economy);
+    growFiatMoney(economy);
     accommodateReserves(economy);
   } else {
     setMarketRate(economy);
@@ -42,7 +60,82 @@ export function onCentralBank(economy: Economy): void {
       supportInsolventBanks(economy);
     }
   }
-  payDepositInterest(economy);
+}
+
+/**
+ * Grow or shrink fiat broad money toward the inflation target plus productivity.
+ * Credits household deposits and matching bank reserves so books stay closed.
+ */
+export function growFiatMoney(economy: Economy): void {
+  if (economy.params.regime !== 'fiat' || economy.params.moneyGrowth <= 0) {
+    return;
+  }
+  const trailing = inflation(economy);
+  const annual =
+    economy.params.inflationTarget +
+    economy.params.prodGrowth +
+    (economy.params.inflationTarget - trailing);
+  const monthly = (economy.params.moneyGrowth * annual) / 12;
+  const deposits = totalDeposits(economy);
+  if (deposits <= 0) {
+    return;
+  }
+  const raw = deposits * monthly;
+  const capped = clamp(raw, -0.05 * deposits, 0.05 * deposits);
+  const amount = moneyAmount(economy, capped);
+  if (amount === 0) {
+    return;
+  }
+  const bank = economy.banks[0];
+  if (!bank) {
+    throw new Error('Fiat money growth needs a bank');
+  }
+  if (amount > 0) {
+    injectHouseholdDeposits(economy, amount);
+    addReserves(bank, amount);
+    return;
+  }
+  const removed = drainHouseholdDeposits(economy, -amount);
+  if (removed > 0) {
+    bank.reserves = Math.max(0, bank.reserves - removed);
+  }
+}
+
+function injectHouseholdDeposits(economy: Economy, amount: number): void {
+  if (economy.households.length === 0 || amount <= 0) {
+    return;
+  }
+  const weights = economy.households.map((household) => Math.max(0, household.deposit));
+  const parts = splitProportional(amount, weights);
+  for (let index = 0; index < economy.households.length; index += 1) {
+    const household = economy.households[index];
+    const share = parts[index] ?? 0;
+    if (household && share > 0) {
+      creditDeposit(household, share);
+    }
+  }
+}
+
+function drainHouseholdDeposits(economy: Economy, amount: number): number {
+  if (economy.households.length === 0 || amount <= 0) {
+    return 0;
+  }
+  const weights = economy.households.map((household) => Math.max(0, household.deposit));
+  const parts = splitProportional(amount, weights);
+  let removed = 0;
+  for (let index = 0; index < economy.households.length; index += 1) {
+    const household = economy.households[index];
+    const share = parts[index] ?? 0;
+    if (!household || share <= 0) {
+      continue;
+    }
+    const take = Math.min(household.deposit, share);
+    if (take > 0) {
+      debitDeposit(household, take);
+      removed += take;
+    }
+  }
+  return removed;
 }
 
 function setBlendedPolicy(economy: Economy): void {
@@ -54,25 +147,29 @@ function setBlendedPolicy(economy: Economy): void {
     outputWeight: economy.params.outputWeight,
     outputGap: outputGap(economy),
   });
-  const savings = savingsStock(economy);
-  const pressure = savings > 0 ? totalLoans(economy) / savings - 1 : 0;
-  const market = Math.max(0, economy.policyRate + 0.05 * pressure);
+  const market = marketLoanRate({
+    timePrefMean: economy.params.timePrefMean,
+    loans: totalLoans(economy),
+    savings: savingsStock(economy),
+  });
   const fiat = economy.moneyShares.fiat;
   economy.policyRate = Math.max(0, fiat * taylor + (1 - fiat) * market);
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
 }
 
 function setMarketRate(economy: Economy): void {
-  const savings = savingsStock(economy);
-  const pressure = savings > 0 ? totalLoans(economy) / savings - 1 : 0;
-  economy.policyRate = Math.max(0, economy.policyRate + 0.05 * pressure);
+  economy.policyRate = marketLoanRate({
+    timePrefMean: economy.params.timePrefMean,
+    loans: totalLoans(economy),
+    savings: savingsStock(economy),
+  });
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
 }
 
 function supportInsolventBanks(economy: Economy): void {
   for (const bank of economy.banks) {
     if (bank.equity < 0) {
-      injectBankCapital(bank, -bank.equity + 1);
+      injectBankCapital(bank, economy, -bank.equity + 1);
     }
   }
 }
@@ -99,23 +196,54 @@ function accommodateReserves(economy: Economy): void {
   if (!bank) {
     throw new Error('Reserve accommodation needs a bank');
   }
-  addReserves(bank, required - reserves);
+  const gap = required - reserves;
+  addReserves(bank, gap);
+  creditFirms(economy, gap);
 }
 
-function payDepositInterest(economy: Economy): void {
+/**
+ * Pay the posted deposit rate from bank equity, after borrower interest and
+ * before dividends. Funding is borrower interest booked this tick plus equity
+ * above the regulatory target. Records the annualized rate actually paid.
+ */
+export function payHouseholdDepositInterest(
+  economy: Economy,
+  borrowerInterestByBank: ReadonlyMap<number, number>,
+): void {
+  economy.depositInterestPaid = 0;
+  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   if (economy.depositRate <= 0) {
+    economy.paidDepositRate = 0;
     return;
   }
   const monthly = economy.depositRate / 12;
+  const roomByBank = new Map<number, number>();
+  for (const bank of economy.banks) {
+    const target = equityFor(economy, loansAt(economy, bank.id));
+    const fromBorrowers = borrowerInterestByBank.get(bank.id) ?? 0;
+    const equityBeforeInterest = bank.equity - fromBorrowers;
+    const surplus = Math.max(0, equityBeforeInterest - target);
+    roomByBank.set(bank.id, surplus + fromBorrowers);
+  }
   for (const household of economy.households) {
     const bank = economy.banks[household.bank];
     if (!bank || bank.failed || household.deposit <= 0) {
       continue;
     }
-    const interest = moneyAmount(economy, household.deposit * monthly);
-    if (interest <= 0 || bank.equity < interest) {
+    const room = roomByBank.get(bank.id) ?? 0;
+    if (room <= 0) {
+      continue;
+    }
+    const wanted = moneyAmount(economy, household.deposit * monthly);
+    const interest = Math.min(wanted, room);
+    if (interest <= 0) {
       continue;
     }
     creditDepositInterest(bank, household, economy, interest);
+    economy.depositInterestPaid += interest;
+    roomByBank.set(bank.id, room - interest);
   }
+  const deposits = Math.max(1, totalDeposits(economy) - economy.depositInterestPaid);
+  economy.paidDepositRate =
+    deposits > 0 ? (economy.depositInterestPaid * 12) / deposits : 0;
 }

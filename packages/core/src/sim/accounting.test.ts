@@ -29,7 +29,7 @@ describe('bond issuance', () => {
     const treasury = economy.govDeposits;
     issueBonds(economy, 100);
     expect(economy.govDeposits).toBe(treasury + 100);
-    expect(buyer.bonds).toBe(100);
+    expect(buyer.bonds).toBe(75);
     expect(buyer.reserves).toBe(reserves + 25);
   });
 });

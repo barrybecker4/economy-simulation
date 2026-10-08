@@ -47,10 +47,12 @@ export const UNEMPLOYED_TRANSFER = 0.05;
 export const DEPOSIT_BUFFER_MONTHS = 48;
 /** Home price measured in months of income. */
 export const HOME_PRICE_MONTHS = 48;
-/** Monthly rent as a share of that home price. */
-export const MONTHLY_RENT_RATE = 0.004;
+/** Monthly rent as a share of that home price. About 8.4 percent a year. */
+export const MONTHLY_RENT_RATE = 0.007;
 /** Monthly repayment of a consumer loan, as a share of the balance. */
 export const CONSUMER_LOAN_REPAY = 0.05;
+/** Months of missed full mortgage payments before foreclosure. */
+export const MORTGAGE_ARREARS_MONTHS = 3;
 /** Agent compute price as a share of the wage, before payment friction. */
 export const AI_SERVICE_WAGE_SHARE = 0.04;
 /** Agents do not sell once price times friction reaches this share of the wage. */

@@ -438,7 +438,7 @@ describe('comparison session', () => {
     expect(update.session.ticks).toBe(page.ticks);
     expect(update.session.seeds).toBe(page.seeds);
     expect(update.session.regime).toBe(page.regime);
-    expect(update.session.overrides).toEqual({});
+    expect(update.session.overrides).toEqual(page.overrides);
     expect(update.session.result).toBeNull();
     expect(update.session.pin).toBeNull();
   });

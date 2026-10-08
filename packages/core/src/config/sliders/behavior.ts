@@ -43,6 +43,16 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     'How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price and wage trends keep the regime path at weight 0, and follow the expectation above 0. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.',
   ),
   numberSlider(
+    'household.openingDepositMonths',
+    'Opening deposit months',
+    'behavior',
+    'months',
+    36,
+    6,
+    60,
+    'Months of the base wage, scaled by skill squared, held as each household’s opening deposit. At 36, deposits are about three years of income and velocity is low. Lower values raise velocity. The monetary preset can shorten this toward a year of income.',
+  ),
+  numberSlider(
     'household.skillSigma',
     'Skill dispersion',
     'behavior',

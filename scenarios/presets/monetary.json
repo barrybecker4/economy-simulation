@@ -1,0 +1,15 @@
+{
+  "name": "monetary-comparison",
+  "ticks": 600,
+  "sliders": {
+    "prices.trendWeight": 0,
+    "production.demandWeight": 1,
+    "bank.depositPassThrough": 1,
+    "expectations.anchorWeight": 0.5,
+    "housing.tenureChoice": "on",
+    "credit.endogenousWeight": 1,
+    "credit.leverageStart": 1,
+    "bank.capitalRatio": 0.04,
+    "household.openingDepositMonths": 12
+  }
+}

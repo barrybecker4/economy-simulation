@@ -10,12 +10,40 @@ export interface PageState {
   overrides: Record<string, number | string>;
 }
 
+/** Opening comparison: spending can move prices and output; fiat money growth stays at its default of 1. */
+export const MONETARY_OVERRIDES: Readonly<Record<string, number | string>> = {
+  'prices.trendWeight': 0,
+  'production.demandWeight': 1,
+  'bank.depositPassThrough': 1,
+  'expectations.anchorWeight': 0.5,
+  'housing.tenureChoice': 'on',
+  'credit.endogenousWeight': 1,
+  'credit.leverageStart': 1,
+  'bank.capitalRatio': 0.04,
+  'household.openingDepositMonths': 12,
+};
+
 export function defaultPage(): PageState {
-  return { seed: 1, ticks: 120, seeds: 1, regime: defaultRegime(), overrides: {} };
+  return {
+    seed: 1,
+    ticks: 120,
+    seeds: 1,
+    regime: defaultRegime(),
+    overrides: { ...MONETARY_OVERRIDES },
+  };
 }
 
 export function parsePageState(search: string, defaults: PageState = defaultPage()): PageState {
   const params = singleParams(search);
+  if (params.size === 0) {
+    return {
+      seed: defaults.seed,
+      ticks: defaults.ticks,
+      seeds: defaults.seeds,
+      regime: defaults.regime,
+      overrides: { ...defaults.overrides },
+    };
+  }
   return {
     seed: readInteger(
       params.get('seed'),
