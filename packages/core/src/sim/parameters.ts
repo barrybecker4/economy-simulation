@@ -18,6 +18,7 @@ export interface Parameters {
   inflationTarget: number;
   inflationWeight: number;
   outputWeight: number;
+  rateSmoothing: number;
   reserveRequirement: number;
   capitalRatio: number;
   endogenousWeight: number;
@@ -118,6 +119,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     inflationTarget: slider(config, 'centralBank.inflationTarget'),
     inflationWeight: slider(config, 'centralBank.inflationWeight'),
     outputWeight: slider(config, 'centralBank.outputWeight'),
+    rateSmoothing: slider(config, 'centralBank.rateSmoothing'),
     reserveRequirement: slider(config, 'bank.reserveRequirement'),
     capitalRatio: slider(config, 'bank.capitalRatio'),
     endogenousWeight: slider(config, 'credit.endogenousWeight'),

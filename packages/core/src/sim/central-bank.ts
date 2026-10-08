@@ -212,17 +212,18 @@ function setBlendedPolicy(economy: Economy): void {
     savings: savingsStock(economy),
   });
   const fiat = economy.moneyShares.fiat;
-  economy.policyRate = Math.max(0, fiat * taylor + (1 - fiat) * market);
-  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
+  publishRate(economy, fiat * taylor + (1 - fiat) * market);
 }
 
 function setMarketRate(economy: Economy): void {
-  economy.policyRate = marketLoanRate({
-    timePrefMean: economy.params.timePrefMean,
-    loans: totalLoans(economy),
-    savings: savingsStock(economy),
-  });
-  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
+  publishRate(
+    economy,
+    marketLoanRate({
+      timePrefMean: economy.params.timePrefMean,
+      loans: totalLoans(economy),
+      savings: savingsStock(economy),
+    }),
+  );
 }
 
 function supportInsolventBanks(economy: Economy): void {
@@ -235,14 +236,24 @@ function supportInsolventBanks(economy: Economy): void {
 }
 
 function setFiatPolicy(economy: Economy): void {
-  economy.policyRate = taylorRate({
-    timePrefMean: economy.params.timePrefMean,
-    inflation: expectedInflation(economy),
-    inflationTarget: economy.params.inflationTarget,
-    inflationWeight: economy.params.inflationWeight,
-    outputWeight: economy.params.outputWeight,
-    outputGap: outputGap(economy),
-  });
+  publishRate(
+    economy,
+    taylorRate({
+      timePrefMean: economy.params.timePrefMean,
+      inflation: expectedInflation(economy),
+      inflationTarget: economy.params.inflationTarget,
+      inflationWeight: economy.params.inflationWeight,
+      outputWeight: economy.params.outputWeight,
+      outputGap: outputGap(economy),
+    }),
+  );
+}
+
+/** Last month’s rate keeps `rateSmoothing` of its weight. The rest is the new setting. */
+function publishRate(economy: Economy, raw: number): void {
+  const weight = clamp(economy.params.rateSmoothing, 0, 0.95);
+  const setting = Math.max(0, raw);
+  economy.policyRate = weight * economy.policyRate + (1 - weight) * setting;
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
 }
 

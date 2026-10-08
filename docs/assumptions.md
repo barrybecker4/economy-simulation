@@ -336,6 +336,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How hard the fiat policy rate reacts when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity. The rule adds this weight times (natural unemployment minus the unemployment rate) times the human share of output. A slack labor market cuts the rate and a tight one raises it. At 0.5 with no AI, unemployment one point below the natural rate adds half a point to the policy rate. Late in adoption the same point gap moves the rate less. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
 
+## centralBank.rateSmoothing
+
+- Label: Policy-rate smoothing
+- Group: centralBank
+- Unit: weight
+- Default: 0.5
+- Range: 0 to 0.95
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Weight on last month’s policy rate when publishing this month’s rate. The rest is the new Taylor setting under fiat, or the new market loan rate under bitcoin and hybrid. A high weight stops one capped price move from swinging the opening rate between 0 and the mid-teens. At 0 the published rate is the raw setting. The weight cannot be 1, so a sustained inflation gap still moves the rate.
+
 ## centralBank.spendNewMoney
 
 - Label: Spend new money

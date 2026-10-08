@@ -1198,6 +1198,19 @@ Acceptance:
   economy-wide hiring path still does. Bitcoin new lending can sit at zero while the opening mortgage book exceeds a
   quarter of household deposits.
 
+### Phase 54: The policy rate cannot whipsaw at the open
+
+Goal: one capped monthly price move cannot swing the published policy rate from 0 to the mid-teens in the opening
+months. Smoothing is not a freeze.
+
+1. `centralBank.rateSmoothing` is the weight on last month's rate. The default is 0.5, not 0.
+2. Fiat Taylor settings and the bitcoin market rate both pass through that smoother.
+
+Acceptance:
+
+- On the monetary preset, fiat and bitcoin rates over ticks 0–6 do not include both 0 and a print above 10 percent.
+- A sustained inflation gap still lifts the published rate.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

@@ -29,6 +29,7 @@ const EXPECTED_IDS = [
   'centralBank.inflationTarget',
   'centralBank.inflationWeight',
   'centralBank.outputWeight',
+  'centralBank.rateSmoothing',
   'bank.reserveRequirement',
   'bank.capitalRatio',
   'bank.resolution',

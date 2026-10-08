@@ -309,11 +309,15 @@ for the next month’s household spending and hiring. Bitcoin and hybrid set tha
 deposit and raises bank equity, with the private-equity residual falling by the same amount. A shortfall is financed by
 new bonds. At a rate of 0 no coupon is paid.
 
-The central bank sets
+The central bank sets a raw fiat rate
 
 ```text
-policy rate = max(0, time preference + inflation + inflationWeight * (inflation − target) + outputWeight * (natural unemployment − unemployment) * humanWeight)
+raw rate = max(0, time preference + inflation + inflationWeight * (inflation − target) + outputWeight * (natural unemployment − unemployment) * humanWeight)
 ```
+
+and publishes `centralBank.rateSmoothing` times last month's rate plus the rest times that raw rate. Bitcoin's market
+loan rate is smoothed the same way. The default weight is 0.5, high enough that the opening months do not swing from 0 to
+the mid-teens. A sustained gap still moves the published rate, because the weight is below 1.
 
 `bank.depositPassThrough` times the policy rate is the posted deposit rate. Household interest is paid after firm loan
 interest and before bank dividends. Funding is this tick's borrower interest, plus, under fiat, interest on reserves at

@@ -72,6 +72,7 @@ describe('preset categories', () => {
       'centralBank.inflationWeight': 1.5,
       'centralBank.outputWeight': 0.5,
       'centralBank.bondPurchaseShare': 0.5,
+      'centralBank.rateSmoothing': 0.5,
       'bank.reserveRequirement': 0.1,
     });
     expect(applyCategoryOption('centralBank', 'monetizing', {})).toEqual({

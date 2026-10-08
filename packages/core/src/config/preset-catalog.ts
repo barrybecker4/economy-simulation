@@ -43,6 +43,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
       'centralBank.inflationWeight',
       'centralBank.outputWeight',
       'centralBank.bondPurchaseShare',
+      'centralBank.rateSmoothing',
       'bank.reserveRequirement',
     ],
     options: [
@@ -57,6 +58,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'centralBank.outputWeight': 0.2,
           'centralBank.bondPurchaseShare': 0,
           'bank.reserveRequirement': 0.1,
+          'centralBank.rateSmoothing': 0.5,
         },
       },
       {
@@ -70,6 +72,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'centralBank.outputWeight': 0.5,
           'centralBank.bondPurchaseShare': 0,
           'bank.reserveRequirement': 0.1,
+          'centralBank.rateSmoothing': 0.5,
         },
       },
       {
@@ -83,6 +86,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'centralBank.outputWeight': 1.2,
           'centralBank.bondPurchaseShare': 0,
           'bank.reserveRequirement': 0.1,
+          'centralBank.rateSmoothing': 0.5,
         },
       },
       {
@@ -96,6 +100,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'centralBank.outputWeight': 0.5,
           'centralBank.bondPurchaseShare': 0.5,
           'bank.reserveRequirement': 0.1,
+          'centralBank.rateSmoothing': 0.5,
         },
       },
     ],
