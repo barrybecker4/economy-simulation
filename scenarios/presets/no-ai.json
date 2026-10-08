@@ -2,8 +2,12 @@
   "name": "no-ai",
   "ticks": 600,
   "sliders": {
+    "ai.adoptionMidpointYear": 10,
+    "ai.adoptionSteepness": 0.4,
     "ai.automatableShareEnd": 0.3,
     "ai.automatableShareStart": 0.3,
+    "ai.bullishness": 1,
+    "ai.physicalTaskShare": 0.3,
     "ai.roboticsRampYears": 10,
     "ai.roboticsStartYear": 10
   }

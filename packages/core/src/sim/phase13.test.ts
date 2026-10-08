@@ -31,8 +31,17 @@ describe('phase 13 investment hurdle', () => {
   });
 
   it('cuts investment and raises measured profit-sharing under deflation', () => {
+    const substantialAi = {
+      'ai.bullishness': 1,
+      'ai.adoptionMidpointYear': 10,
+      'ai.adoptionSteepness': 0.4,
+      'ai.physicalTaskShare': 0.3,
+      'ai.roboticsStartYear': 8,
+      'ai.roboticsRampYears': 12,
+    };
     const rising = run({
       ...small,
+      ...substantialAi,
       'regime.type': 'fiat',
       'centralBank.moneyGrowth': 0,
       'firm.investmentHurdle': 'on',
@@ -42,6 +51,7 @@ describe('phase 13 investment hurdle', () => {
     });
     const falling = run({
       ...small,
+      ...substantialAi,
       'regime.type': 'bitcoin',
       'centralBank.moneyGrowth': 0,
       'firm.investmentHurdle': 'on',

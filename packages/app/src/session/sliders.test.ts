@@ -65,14 +65,14 @@ describe('writeSlider', () => {
 
   it('stores the reachable-share complement and omits the default block', () => {
     const slider = getSlider('ai.physicalTaskShare');
-    expect(presentStored(slider, 0.3)).toBe(0.7);
+    expect(presentStored(slider, 0.7)).toBe(0.3);
     expect(controlRange(slider)).toEqual({ min: 0.3, max: 1 });
-    const restored = writeSlider(slider, storePresented(slider, '0.7'), 'fiat', {
+    const restored = writeSlider(slider, storePresented(slider, '0.3'), 'fiat', {
       'ai.physicalTaskShare': 0.1,
     });
     expect(restored.overrides['ai.physicalTaskShare']).toBeUndefined();
-    const blocked = writeSlider(slider, storePresented(slider, '0.3'), 'fiat', {});
-    expect(blocked.overrides['ai.physicalTaskShare']).toBe(0.7);
+    const opened = writeSlider(slider, storePresented(slider, '0.7'), 'fiat', {});
+    expect(opened.overrides['ai.physicalTaskShare']).toBe(0.3);
   });
 
   it('rejects a non-finite number and an unknown option', () => {

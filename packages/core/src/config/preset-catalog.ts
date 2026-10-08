@@ -210,7 +210,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'none',
         name: 'None',
         detail:
-          'Start and end automatable shares both 30 percent, so the curve stays put. Bullishness and reach stay at their defaults. Robotics would start at year 10 and finish at year 20.',
+          'Start and end automatable shares both 30 percent, so the curve stays put. Bullishness 1, medium adoption timing, and a 70 percent reachable share; robotics would start at year 10 and finish at year 20.',
         values: {
           'ai.bullishness': 1,
           'ai.automatableShareStart': 0.3,
@@ -226,7 +226,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'modest',
         name: 'Modest',
         detail:
-          'Bullishness 0, slow adoption (midpoint year 20, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 20 over 16 years).',
+          'Bullishness 0, slow adoption (midpoint year 20, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 20 over 16 years). This is the registry default.',
         values: {
           'ai.bullishness': 0,
           'ai.automatableShareStart': 0.1,

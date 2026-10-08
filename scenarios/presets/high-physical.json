@@ -1,12 +1,5 @@
 {
   "name": "high-physical",
   "ticks": 600,
-  "sliders": {
-    "ai.adoptionMidpointYear": 20,
-    "ai.adoptionSteepness": 0.15,
-    "ai.bullishness": 0,
-    "ai.physicalTaskShare": 0.7,
-    "ai.roboticsRampYears": 16,
-    "ai.roboticsStartYear": 20
-  }
+  "sliders": {}
 }

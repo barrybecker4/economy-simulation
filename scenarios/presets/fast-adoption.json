@@ -5,6 +5,7 @@
     "ai.adoptionMidpointYear": 3,
     "ai.adoptionSteepness": 1.2,
     "ai.bullishness": 1.5,
+    "ai.physicalTaskShare": 0.3,
     "ai.roboticsRampYears": 8,
     "ai.roboticsStartYear": 4
   }

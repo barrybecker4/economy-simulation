@@ -58,11 +58,11 @@ describe('preset categories', () => {
   });
 
   it('omits registry defaults from the override map', () => {
-    const overrides = applyCategoryOption('aiBullishness', 'substantial', {
+    const overrides = applyCategoryOption('aiBullishness', 'modest', {
       'firm.markup': 0.4,
     });
     expect(overrides).toEqual({ 'firm.markup': 0.4 });
-    expect(matchingCategoryOption('aiBullishness', overrides)).toBe('substantial');
+    expect(matchingCategoryOption('aiBullishness', overrides)).toBe('modest');
   });
 
   it('monetizes half of new bonds and leaves the rate rule at its defaults', () => {
@@ -90,8 +90,12 @@ describe('preset categories', () => {
   it('composes named scenario files from category options', () => {
     expect(composeScenario('neutral')).toEqual({ regime: 'fiat', sliders: {} });
     expect(composeScenario('no-ai').sliders).toEqual({
+      'ai.bullishness': 1,
       'ai.automatableShareStart': 0.3,
       'ai.automatableShareEnd': 0.3,
+      'ai.adoptionMidpointYear': 10,
+      'ai.adoptionSteepness': 0.4,
+      'ai.physicalTaskShare': 0.3,
       'ai.roboticsStartYear': 10,
       'ai.roboticsRampYears': 10,
     });
@@ -99,17 +103,11 @@ describe('preset categories', () => {
       'ai.bullishness': 1.5,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
+      'ai.physicalTaskShare': 0.3,
       'ai.roboticsStartYear': 4,
       'ai.roboticsRampYears': 8,
     });
-    expect(composeScenario('slow-adoption').sliders).toEqual({
-      'ai.bullishness': 0,
-      'ai.adoptionMidpointYear': 20,
-      'ai.adoptionSteepness': 0.15,
-      'ai.physicalTaskShare': 0.7,
-      'ai.roboticsStartYear': 20,
-      'ai.roboticsRampYears': 16,
-    });
+    expect(composeScenario('slow-adoption').sliders).toEqual({});
     expect(composeScenario('high-physical').sliders).toEqual(
       composeScenario('slow-adoption').sliders,
     );
@@ -151,7 +149,7 @@ describe('composeCategoryOptions', () => {
     const sliders = composeCategoryOptions({
       credit: 'tight',
       publicFinance: 'small',
-      aiBullishness: 'substantial',
+      aiBullishness: 'modest',
     });
     expect(sliders['bank.capitalRatio']).toBe(0.16);
     expect(sliders['tax.incomeRate']).toBe(0.1);

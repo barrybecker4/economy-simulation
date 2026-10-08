@@ -28,18 +28,21 @@ describe('phase 26 equity wealth', () => {
   });
 
   it('raises the wealth Gini once capital claims are counted', () => {
-    const deposits = run({
-      ...small,
+    const concentrated = {
+      'ai.bullishness': 1,
       'ai.adoptionMidpointYear': 2,
       'ai.adoptionSteepness': 1.5,
+      'ai.physicalTaskShare': 0.3,
       'ai.ownershipConcentration': 0.95,
+    };
+    const deposits = run({
+      ...small,
+      ...concentrated,
       'equity.marketOn': 'off',
     });
     const equity = run({
       ...small,
-      'ai.adoptionMidpointYear': 2,
-      'ai.adoptionSteepness': 1.5,
-      'ai.ownershipConcentration': 0.95,
+      ...concentrated,
       'equity.marketOn': 'on',
     });
     expect(deposits.audit.ok && equity.audit.ok).toBe(true);

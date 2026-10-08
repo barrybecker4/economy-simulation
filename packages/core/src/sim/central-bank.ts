@@ -11,7 +11,7 @@ import {
   injectBankCapital,
   payDepositInterest as creditDepositInterest,
 } from './money.js';
-import { LOAN_SPREAD } from './rules.js';
+import { DEPOSIT_BUFFER_MONTHS, LOAN_SPREAD, THIN_OPENING_MONTHS } from './rules.js';
 import { clamp } from './stats.js';
 
 /** Taylor-style fiat policy rate. */
@@ -38,8 +38,7 @@ export function marketLoanRate(input: {
   loans: number;
   savings: number;
 }): number {
-  const pressure =
-    input.savings > 0 ? clamp(input.loans / input.savings - 1, -1, 2) : 0;
+  const pressure = input.savings > 0 ? clamp(input.loans / input.savings - 1, -1, 2) : 0;
   return Math.max(0, input.timePrefMean + LOAN_SPREAD * pressure);
 }
 
@@ -112,6 +111,7 @@ function injectHouseholdDeposits(economy: Economy, amount: number): void {
     const share = parts[index] ?? 0;
     if (household && share > 0) {
       creditDeposit(household, share);
+      blendIdleMoney(economy, household, share);
     }
   }
 }
@@ -136,6 +136,31 @@ function drainHouseholdDeposits(economy: Economy, amount: number): number {
     }
   }
   return removed;
+}
+
+/**
+ * When posted prices follow excess demand, balances under the precautionary
+ * buffer would otherwise hoard broad-money growth. Blend new money into
+ * smoothed income in proportion to that shortfall so it is shopped with.
+ * At trend weight 1 the regime price path already carries the money rule,
+ * and at the buffer the wealth rule already spends the surplus.
+ */
+function blendIdleMoney(
+  economy: Economy,
+  household: { deposit: number; income: number; smoothed: number },
+  flow: number,
+): void {
+  if (
+    economy.params.trendWeight >= 1 ||
+    economy.params.openingDepositMonths >= THIN_OPENING_MONTHS ||
+    flow <= 0 ||
+    household.income <= 0
+  ) {
+    return;
+  }
+  const buffer = household.income * DEPOSIT_BUFFER_MONTHS;
+  const shortfall = clamp((buffer - household.deposit) / buffer, 0, 1);
+  household.smoothed = Math.max(0, household.smoothed + flow * shortfall);
 }
 
 function setBlendedPolicy(economy: Economy): void {
@@ -244,6 +269,5 @@ export function payHouseholdDepositInterest(
     roomByBank.set(bank.id, room - interest);
   }
   const deposits = Math.max(1, totalDeposits(economy) - economy.depositInterestPaid);
-  economy.paidDepositRate =
-    deposits > 0 ? (economy.depositInterestPaid * 12) / deposits : 0;
+  economy.paidDepositRate = deposits > 0 ? (economy.depositInterestPaid * 12) / deposits : 0;
 }

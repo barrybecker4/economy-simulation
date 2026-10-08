@@ -88,6 +88,7 @@ describe('AI productivity', () => {
     });
     const fast = run({
       ...scale,
+      'ai.bullishness': 1,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
       'ai.physicalTaskShare': 0.1,

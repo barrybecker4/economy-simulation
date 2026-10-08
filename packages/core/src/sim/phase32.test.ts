@@ -55,6 +55,25 @@ describe('phase 32 monetary comparison preset', () => {
     expect(series(fiat, 'unemployment')).not.toEqual(series(bitcoin, 'unemployment'));
   });
 
+  it('lifts scarce categories and cheapens mass-produced goods as fiat money grows', () => {
+    const result = run({
+      ...monetary,
+      'credit.endogenousWeight': 1,
+      'credit.leverageStart': 1,
+      'bank.capitalRatio': 0.04,
+      'household.openingDepositMonths': 12,
+      ticks: 120,
+    });
+    expect(result.audit.ok).toBe(true);
+    expect(endOverStart(result, 'moneySupply')).toBeGreaterThan(1);
+    for (const id of ['priceEnergy', 'priceMedical', 'priceEducation'] as const) {
+      expect(endOverStart(result, id)).toBeGreaterThan(1);
+    }
+    for (const id of ['priceApparel', 'priceElectronics'] as const) {
+      expect(endOverStart(result, id)).toBeLessThan(1);
+    }
+  });
+
   it('keeps the ledger identity with tenure choice on', () => {
     const fiat = run({ ...monetary, 'regime.type': 'fiat', ticks: 36 });
     const bitcoin = run({ ...monetary, 'regime.type': 'bitcoin', ticks: 36 });
@@ -97,4 +116,11 @@ function run(
 
 function series(result: SimulationResult, id: MetricId): number[] {
   return result.metrics.series[id].flatMap((value) => (value === null ? [] : [value]));
+}
+
+function endOverStart(result: SimulationResult, id: MetricId): number {
+  const values = series(result, id);
+  const first = values[0] ?? 1;
+  const last = values[values.length - 1] ?? 0;
+  return first === 0 ? last : last / first;
 }

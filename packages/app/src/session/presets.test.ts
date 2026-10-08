@@ -23,7 +23,7 @@ describe('presets', () => {
     expect(match.centralBank).toBe('balanced');
     expect(match.publicFinance).toBe('moderate');
     expect(match.credit).toBe('moderate');
-    expect(match.aiBullishness).toBe('substantial');
+    expect(match.aiBullishness).toBe('modest');
   });
 
   it('applies one category and leaves the others matched', () => {
