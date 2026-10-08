@@ -63,6 +63,8 @@ describe('experiments', () => {
       'H9',
     ]);
     expect(results.every((result) => result.detail.length > 0)).toBe(true);
-    expect(results.find((result) => result.id === 'H9')?.supported).toBe(true);
+    for (const result of results) {
+      expect(result.supported, result.id).toBe(true);
+    }
   });
 });
