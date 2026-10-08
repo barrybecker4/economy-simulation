@@ -8,6 +8,7 @@ import { monthlyPriceMove } from './pricing.js';
 import {
   adoptionProgress,
   automationShare,
+  computeAdoptionFactor,
   ownerSlotCount,
   roboticsProgress,
   scheduledAgentCount,
@@ -39,6 +40,13 @@ describe('pure economy formulas', () => {
     expect(adoptionProgress(0.3, 0.3, 1, 10, 20)).toBe(0);
     expect(ownerSlotCount(1000, 0.95, 0.5)).toBe(475);
     expect(scheduledAgentCount(475, 20, 0.5)).toBe(4750);
+  });
+
+  it('ramps adopted tasks as compute falls below the wage', () => {
+    expect(computeAdoptionFactor(100, 100)).toBe(0);
+    expect(computeAdoptionFactor(100, 110)).toBe(0);
+    expect(computeAdoptionFactor(100, 70)).toBeCloseTo(0.3, 12);
+    expect(computeAdoptionFactor(100, 0)).toBe(1);
   });
 
   it('scales the task gain with bullishness and retires the physical share on a ramp', () => {

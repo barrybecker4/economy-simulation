@@ -31,12 +31,7 @@ import type { RunSuccess } from '../worker/protocol.js';
 
 const sliders = listSliders();
 
-const FRAME_IDS = [
-  'scale.households',
-  'scale.firms',
-  'scale.banks',
-  'population.growth',
-] as const;
+const FRAME_IDS = ['scale.households', 'scale.firms', 'scale.banks', 'population.growth'] as const;
 
 describe('comparisonFrame', () => {
   it('marks scale and population growth', () => {

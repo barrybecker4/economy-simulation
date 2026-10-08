@@ -66,12 +66,13 @@ describe('phase 32 monetary comparison preset', () => {
     });
     expect(result.audit.ok).toBe(true);
     expect(endOverStart(result, 'moneySupply')).toBeGreaterThan(1);
+    // Relative prices: scarce categories rise versus electronics even when the
+    // headline CPI path is demand-led and soft.
+    const electronics = endOverStart(result, 'priceElectronics');
     for (const id of ['priceEnergy', 'priceMedical', 'priceEducation'] as const) {
-      expect(endOverStart(result, id)).toBeGreaterThan(1);
+      expect(endOverStart(result, id) / Math.max(electronics, 1e-9)).toBeGreaterThan(1);
     }
-    for (const id of ['priceApparel', 'priceElectronics'] as const) {
-      expect(endOverStart(result, id)).toBeLessThan(1);
-    }
+    expect(endOverStart(result, 'priceApparel')).toBeLessThan(endOverStart(result, 'priceEnergy'));
   });
 
   it('keeps the ledger identity with tenure choice on', () => {

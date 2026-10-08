@@ -33,6 +33,14 @@ again during bookkeeping. Customer deposits, loans, reserves, and government bon
 matching liability, so a change in the stock stays inside the identity. Bank vault cash equals bank equity plus a
 private-equity residual. Equity may be negative after a loss. An asset balance may not.
 
+For fiat cents, each paired stock target is rounded once before posting. Private equity in the journal is the residual
+after rounding vault and bank equity, so independent half-cent rounding cannot break `vault = bank equity + private
+equity`. Firm cash receipts under cents are split with a floor and a last residual so firm deposits stay integers.
+
+For bitcoin satoshis, stock line amounts are floating point. After many posts, paired equity deltas can drift by a few
+parts in 1e-10 so debit and credit no longer match under `bitcoinAmountsMatch`. The stock journal seats that imbalance
+on private equity (the vault residual) before posting.
+
 ## Time
 
 One tick is one month. A scenario's `ticks` field sets the length of a run. The default is 600 ticks, which is 50 years.
@@ -144,10 +152,11 @@ topped up outside measured output.
 
 Each month 2 percent of employed workers separate. Let `humanWeight = 1 / (1 + displacement)`, where displacement is the
 adopted task share times the capped task gain from the AI productivity section. When `labor.firmLevelHiring` is off,
-firms hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse and by
-`labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed sales, capped
-so sales cannot move the target by more than half in one step. The same wage scale applies to the sum, and firms shed at
-most 5 percent of employed workers that month. The wage scale is
+firms hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse, the productivity
+impulse, and by `labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed
+sales, capped so sales cannot move the target by more than half in one step, then the same productivity-impulse scale is
+applied so an adverse supply shock raises unemployment on both hiring paths. The wage scale applies to the sum, and firms
+shed at most 5 percent of employed workers that month. The wage scale is
 `clamp(1 − elasticity × (real wage / reference − 1), 0.5, 1.25)`, where the real wage is the money wage over the CPI and
 the reference is `1 / (1 + firm.markup)`, the opening real wage. The default elasticity is 0.5, so a real wage 10
 percent above that reference cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled quota
@@ -158,8 +167,10 @@ rises as adopted tasks grow.
 The money wage grows at the monthly inflation target plus monthly productivity growth. Tightness is
 `(natural unemployment − unemployment) × humanWeight`. A positive tightness adds a further wage term and a negative one
 subtracts. `wage.nominalRigidity` shrinks that gap, and it shrinks a negative gap by the square of the remaining
-flexibility, so wages are stickier downward. The contract wage at a firm is the money wage times the firm's
-productivity. Pay offered to a worker is that wage times the worker's skill.
+flexibility, so wages are stickier downward. After six months with unemployment more than five points above the natural
+rate, `wage.emergencyFlex` multiplies effective rigidity by one minus that value, so deep slumps can un-stick wages. The
+contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
+worker's skill.
 
 ## Goods and relative prices
 
@@ -225,11 +236,16 @@ times household deposits (default 0.02), and decays otherwise. While stress is l
 `1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household deposits once a
 year, inside the wider room. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay. At
 weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The
-payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next, funded by
-that borrower interest plus equity above the capital target, then equity above the target is paid out, so interest does
-not quietly recapitalize a bank before a credit loss. When tenure choice is on, a household that misses full mortgage
-payments for three months while the payment exceeds `housing.mortgageDefaultShare` of income has the unpaid balance
-written off against bank equity and returns to rent.
+payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next from equity
+(including that borrower interest) down to zero, with an optional fiat central-bank subsidy for any shortfall, then
+equity above the capital target is paid out. When tenure choice is on, a household that misses full mortgage payments
+for three months while the payment exceeds `housing.mortgageDefaultShare` of income has the unpaid balance written off
+against bank equity and returns to rent. `credit.householdMortgageShare` reserves that fraction of each bank’s capital
+capacity for household mortgages so new originations are not crowded out by firm credit. At 0, households compete for
+the same room as firms. Tenure choice compares monthly user costs; the mortgage burden is the amortizing payment at the
+loan rate plus expected deflation, plus the opportunity cost of the down payment. The booked payment uses the
+contractual loan rate only. When owning outright has the lowest user cost but the household lacks cash for the full
+price, it tries a mortgage before staying a renter.
 
 Routine investment runs every month: it replaces that month's depreciation and spreads any larger catch-up to desired
 capital across about a year, so measured wealth does not sawtooth from once-a-year lumps. Desired capital is reference
@@ -291,16 +307,20 @@ policy rate = max(0, time preference + inflation + inflationWeight * (inflation 
 ```
 
 `bank.depositPassThrough` times the policy rate is the posted deposit rate. Household interest is paid after firm loan
-interest and before bank dividends, funded by borrower interest plus equity above the capital target. The annualized
-rate actually paid enters the real return on money in the goods budget. At pass-through 0, deposits pay nothing.
-`centralBank.moneyGrowth` (default 1) changes fiat household deposits and bank reserves together by that weight times
+interest and before bank dividends. Funding uses bank equity already on the books (including that tick's borrower
+interest) down to zero, then under fiat a `bank.depositInterestSubsidy` share of any shortfall is covered by new
+reserves and equity from the central bank. The annualized rate actually paid enters the real return on money in the
+goods budget. At pass-through 0, deposits pay nothing. At subsidy 0 a thin bank may still pay less than the posted rate.
+`centralBank.moneyGrowth` (default 1) changes fiat deposits and bank reserves together by that weight times
 `(inflation target + baseline productivity + inflation gap) / 12` times deposits. On the 2 percent target with 1 percent
 productivity growth, that is about 3 percent a year when inflation is on target. A contraction draws reserves from banks
 in id order, starting with the first, and stops when those reserves are used up, so deposits never fall by more than
-reserves on the books. When `prices.trendWeight` is below 1 and opening deposits are shorter than half the 48-month
-spending buffer, each household's share of that new money is added to smoothed income in proportion to how far the
-deposit sits under the buffer, and the next shopping step spends it. A thicker opening stock, or a trend weight of 1,
-leaves that channel off. Bitcoin and hybrid ignore money growth. If bank reserves are below
+reserves on the books. `centralBank.injectionChannel` chooses who first holds an expansion: pro-rata household deposits
+(default), the treasury, firm deposits as new loans, or firm deposits as an asset purchase. See
+[ADR 0010](adr/0010-injection-channel.md). When `prices.trendWeight` is below 1 and opening deposits are shorter than
+half the 48-month spending buffer, each household's share of pro-rata new money is added to smoothed income in
+proportion to how far the deposit sits under the buffer. `centralBank.spendNewMoney` forces that blend even with thick
+opening deposits. A trend weight of 1 leaves the blend off. Bitcoin and hybrid ignore money growth. If bank reserves are below
 `bank.reserveRequirement` times deposits, the central bank issues the gap to the first bank and credits matching firm
 deposits. Bitcoin and hybrid do not create reserves to meet the requirement. The hybrid lender of last resort is
 described under regimes.
@@ -329,7 +349,9 @@ savings. Savings are 25 percent of household deposits under maturity-matched len
 New bitcoin credit cannot exceed the unused savings. The government still finances a shortfall by selling bonds to
 banks, not by central-bank money. A hybrid central bank does not target inflation. If a bank's equity is negative it
 injects enough reserves and vault cash to make that equity positive. That is the only base-money growth in the hybrid
-regime. Expected deflation is `max(0, −inflation)`. `deflation.sensitivity` times that rate, capped at 0.9, repays
+regime. When `bank.resolution` is `merge`, an insolvent bank that is still negative after any hybrid support transfers
+deposits and loans to a surviving bank, or bails in depositors at a sole bank until equity is positive. See
+[ADR 0009](adr/0009-bank-resolution.md). At `off`, a failed bank only stops lending. Expected deflation is `max(0, −inflation)`. `deflation.sensitivity` times that rate, capped at 0.9, repays
 loans, cuts housing demand, and raises the recorded shares of profit-sharing and non-mortgage housing when those shares
 are still formula-based. The penalty is zero when sensitivity is zero or inflation is positive, so the fiat path is
 unchanged.
@@ -337,14 +359,24 @@ unchanged.
 When `transition.lengthMonths` is positive, the run starts on fiat rules with satoshi balances. At the last transition
 month, `transition.debtHaircut` writes off that share of firm and household debts, household deposits are reassigned
 with skill weights raised by `transition.holderConcentration`, bank-held government bonds are cleared, and the active
-regime becomes bitcoin. See [ADR 0005](adr/0005-fiat-bitcoin-transition.md).
+regime becomes bitcoin. When `transition.gradualWeight` is positive, that haircut and reassignment are spread across
+the window instead of only the last month. See [ADR 0005](adr/0005-fiat-bitcoin-transition.md).
+
+`credit.rateTransmission` scales new consumer borrowing and firm capital installation by
+`max(0, 1 − weight × max(0, policy rate − inflation))`. `household.durableShare` delays a slice of discretionary
+spending when the real return on money is positive. `productivity.endogenousWeight` mixes baseline productivity growth
+with a utilization term. `population.bequests` chooses first-household or skill-weighted transfers on exit.
+`bitcoin.marketPriceWeight` lets the recorded bitcoin exchange rate move with issuance and trust separately from the
+goods CPI. Remaining regime asymmetries are listed in [docs/methods/remaining-asymmetries.md](methods/remaining-asymmetries.md).
 
 ## AI productivity
 
 The automatable share follows a logistic from `ai.automatableShareStart` to `ai.automatableShareEnd`. The midpoint is
 `ai.adoptionMidpointYear` and the slope is `ai.adoptionSteepness`. When the two shares are equal the share does not move
 and AI does not change production, hiring, or ownership. Compute cost starts at the wage and falls at
-`ai.computeCostDeclineRate`. Firms adopt only once that cost is below the wage.
+`ai.computeCostDeclineRate`. Adopted tasks are the reachable span times `(wage − computeCost) / wage` when compute is
+below the wage, and zero at or above the wage, so capacity and displacement ramp with cheaper compute instead of
+switching on in one month.
 
 The blocked share is `ai.physicalTaskShare`. The control shows one minus that value, the reachable share. The default
 stored block is 0.7, so the control reads 0.3. The effective block starts at the stored share and falls to zero after
@@ -353,7 +385,7 @@ effective block is the stored share times one minus that progress. The default s
 16 years, so if month 0 is read as late 2026 the ceiling begins to lift around 2046 and is gone by about year 36. The
 core does not read the wall clock. A start year at or past the last year of the run leaves the ceiling intact.
 
-Adopted tasks are the gain in the automatable share times one minus the effective physical share. The task gain is
+Adopted tasks are that cost-weighted gain in the automatable share times one minus the effective physical share. The task gain is
 `0.1 + 0.9 × min(bullishness, 1)`, then multiplied by `exp(max(0, bullishness − 1) × 0.15 × years)`. At bullishness 0,
 the default, the gain is one tenth of the unit reference. At 1 it is one and saturates with the S-curve. Above 1 the
 same level compounds without a ceiling. The AI factor is `1 + adopted × taskGain`. Displacement is

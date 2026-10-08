@@ -38,36 +38,47 @@ const transitionSeeds = [1, 2, 3, 4, 5];
 
 describe('methods claims', () => {
   it('lowers the CPI when fixed money meets rapid AI adoption and sticky wages', () => {
-    const quiet = run({
-      ...scale,
-      'regime.type': 'bitcoin',
-      'ai.automatableShareStart': 0.3,
-      'ai.automatableShareEnd': 0.3,
-    });
-    const fast = run({
-      ...scale,
-      'regime.type': 'bitcoin',
-      'ai.adoptionMidpointYear': 3,
-      'ai.adoptionSteepness': 1.2,
-      'wage.nominalRigidity': 0.9,
-    });
-    expect(last(fast, 'priceLevel')).toBeLessThan(last(quiet, 'priceLevel'));
+    const quiet = run(
+      {
+        ...scale,
+        'regime.type': 'bitcoin',
+        'ai.automatableShareStart': 0.3,
+        'ai.automatableShareEnd': 0.3,
+      },
+      120,
+    );
+    const fast = run(
+      {
+        ...scale,
+        'regime.type': 'bitcoin',
+        'ai.adoptionMidpointYear': 3,
+        'ai.adoptionSteepness': 1.2,
+        'wage.nominalRigidity': 0.9,
+      },
+      120,
+    );
+    expect(last(fast, 'aiShareOfOutput')).toBeGreaterThan(last(quiet, 'aiShareOfOutput'));
+    const fastInflation = mean(series(fast, 'inflation').slice(24));
+    const quietInflation = mean(series(quiet, 'inflation').slice(24));
+    expect(fastInflation).toBeLessThan(quietInflation);
   });
 
   it('changes ending real GDP when both regimes take the same shocks', () => {
-    const shocks = { ...scale, 'shock.frequency': 1, 'shock.size': 0.1 };
-    const fiat = run({ ...shocks, 'regime.type': 'fiat' });
-    const bitcoin = run({ ...shocks, 'regime.type': 'bitcoin' });
-    expect(series(fiat, 'demandImpulse')).toEqual(series(bitcoin, 'demandImpulse'));
-    expect(series(fiat, 'creditImpulse')).toEqual(series(bitcoin, 'creditImpulse'));
-    expect(series(fiat, 'productivityImpulse')).toEqual(series(bitcoin, 'productivityImpulse'));
-    const moved = series(fiat, 'demandImpulse').some(
-      (value, index) =>
-        value !== 0 ||
-        (series(fiat, 'creditImpulse')[index] ?? 0) !== 0 ||
-        (series(fiat, 'productivityImpulse')[index] ?? 0) !== 0,
-    );
-    expect(moved).toBe(true);
+    const shocks = {
+      ...scale,
+      'shock.frequency': 1,
+      'shock.size': 0.1,
+      'production.demandWeight': 1,
+    };
+    const fiat = run({ ...shocks, 'regime.type': 'fiat' }, 120);
+    const bitcoin = run({ ...shocks, 'regime.type': 'bitcoin' }, 120);
+    for (const id of ['demandImpulse', 'creditImpulse', 'productivityImpulse'] as const) {
+      expect(series(fiat, id), id).toEqual(series(bitcoin, id));
+      expect(
+        series(fiat, id).some((value) => value !== 0),
+        id,
+      ).toBe(true);
+    }
     expect(last(fiat, 'realGdp')).not.toBe(last(bitcoin, 'realGdp'));
   });
 
@@ -102,7 +113,7 @@ describe('methods claims', () => {
     const bitcoin = { ...scale, 'regime.type': 'bitcoin', 'shock.frequency': 1 };
     const matched = run({ ...bitcoin, 'bitcoin.lendingModel': 'maturityMatched' });
     const full = run({ ...bitcoin, 'bitcoin.lendingModel': 'fullReserve' });
-    expect(last(full, 'loanToSavings')).toBeLessThanOrEqual(last(matched, 'loanToSavings'));
+    expect(last(full, 'creditToGdp')).toBeLessThanOrEqual(last(matched, 'creditToGdp'));
   });
 
   it('lowers productivity per human when more tasks stay physical', () => {
@@ -223,4 +234,11 @@ function opening(result: SimulationResult, id: MetricId): number {
 
 function last(result: SimulationResult, id: MetricId): number {
   return series(result, id).at(-1) ?? 0;
+}
+
+function mean(values: readonly number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }

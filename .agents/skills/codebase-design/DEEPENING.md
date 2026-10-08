@@ -25,8 +25,8 @@ Your own services across a network boundary (microservices, internal APIs). Defi
 The deep module owns the logic; the transport is injected as an **adapter**. Tests use an in-memory adapter. Production
 uses an HTTP/gRPC/queue adapter.
 
-Recommendation shape: *"Define a port at the seam, implement an HTTP adapter for production and an in-memory adapter for
-testing, so the logic sits in one deep module even though it's deployed across a network."*
+Recommendation shape: _"Define a port at the seam, implement an HTTP adapter for production and an in-memory adapter for
+testing, so the logic sits in one deep module even though it's deployed across a network."_
 
 ### 4. True external (Mock)
 

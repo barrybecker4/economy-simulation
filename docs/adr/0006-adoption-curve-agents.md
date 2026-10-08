@@ -23,8 +23,8 @@ Agent output was a flat 4 percent of the wage from the first month.
   payment friction.
 - `ai.ownershipConcentration` only steepens profit shares. It no longer sets the owner count. The autonomy slider is
   removed.
-- The adoption midpoint defaults to year 10, with a minimum of 1. Preset midpoints are none 10, slow 20, medium 10, fast
-  3, and extreme 3.
+- The adoption midpoint defaults to year 10, with a minimum of 1. Preset midpoints are none 10, modest 10, substantial 5,
+  high 3, and extreme 3.
 - Robotics defaults are start year 8 and a 12-year ramp, matching the medium preset. Preset robotics years are none
   10/10, slow 20/16, medium 8/12, fast 4/8, and extreme 1/4.
 - Extreme ends the automatable share at 0.99. Other presets and a fresh run still end at 0.9.
@@ -33,6 +33,6 @@ Agent output was a flat 4 percent of the wage from the first month.
 
 ## Consequences
 
-A default run can hold on the order of 19,000 agents once the curve saturates. 
+A default run can hold on the order of 19,000 agents once the curve saturates.
 Aggregate agent activity grows through that count. The price of one agent's compute unit still levels off at 4 percent
 of the wage. `docs/model.md` and `docs/PLAN.md` follow this ADR.

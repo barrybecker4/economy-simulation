@@ -22,9 +22,7 @@ const monetary = {
 
 describe('phase 33 credit stock and foreclosure', () => {
   it('builds stress only above the configured leverage start', () => {
-    expect(
-      creditStressNext({ stress: 0, leverage: 0.5, lossRate: 0, leverageStart: 0.8 }),
-    ).toBe(0);
+    expect(creditStressNext({ stress: 0, leverage: 0.5, lossRate: 0, leverageStart: 0.8 })).toBe(0);
     expect(
       creditStressNext({ stress: 0, leverage: 1.0, lossRate: 0, leverageStart: 0.8 }),
     ).toBeCloseTo(0.2, 8);

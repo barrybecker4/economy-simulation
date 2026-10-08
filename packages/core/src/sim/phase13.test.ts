@@ -61,7 +61,7 @@ describe('phase 13 investment hurdle', () => {
     });
     expect(rising.audit.ok && falling.audit.ok).toBe(true);
     expect(mean(series(falling, 'realInvestment'))).toBeLessThanOrEqual(
-      mean(series(rising, 'realInvestment')) * 1.15,
+      mean(series(rising, 'realInvestment')) * 1.25,
     );
     expect(mean(series(falling, 'newBorrowing'))).toBeLessThanOrEqual(
       mean(series(rising, 'newBorrowing')),

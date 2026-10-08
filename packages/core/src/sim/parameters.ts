@@ -10,6 +10,7 @@ export interface Parameters {
   markup: number;
   priceSpeed: number;
   rigidity: number;
+  emergencyFlex: number;
   maxApplications: number;
   sampleSize: number;
   taxRate: number;
@@ -21,6 +22,13 @@ export interface Parameters {
   capitalRatio: number;
   endogenousWeight: number;
   leverageStart: number;
+  householdMortgageShare: number;
+  rateTransmission: number;
+  endogenousProductivity: number;
+  bequests: 'firstHousehold' | 'skillWeighted';
+  bitcoinMarketPriceWeight: number;
+  durableShare: number;
+  gradualTransition: number;
   bondRate: number;
   timePrefMean: number;
   inflationTimePreference: number;
@@ -75,8 +83,13 @@ export interface Parameters {
   investmentHurdle: 'off' | 'on';
   hurdlePremium: number;
   depositPassThrough: number;
+  depositInterestSubsidy: number;
+  resolution: 'off' | 'merge';
+  depositHaircut: number;
   bondPurchaseShare: number;
   moneyGrowth: number;
+  injectionChannel: 'proRataDeposits' | 'governmentSpending' | 'newLoans' | 'assetPurchase';
+  spendNewMoney: number;
   stabilizer: number;
   transitionLength: number;
   debtHaircut: number;
@@ -96,6 +109,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     markup: slider(config, 'firm.markup'),
     priceSpeed: slider(config, 'firm.priceAdjustSpeed'),
     rigidity: slider(config, 'wage.nominalRigidity'),
+    emergencyFlex: slider(config, 'wage.emergencyFlex'),
     maxApplications: Math.round(slider(config, 'labor.maxApplications')),
     sampleSize: Math.round(slider(config, 'goods.sampleSize')),
     taxRate: slider(config, 'tax.incomeRate'),
@@ -107,6 +121,13 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     capitalRatio: slider(config, 'bank.capitalRatio'),
     endogenousWeight: slider(config, 'credit.endogenousWeight'),
     leverageStart: slider(config, 'credit.leverageStart'),
+    householdMortgageShare: slider(config, 'credit.householdMortgageShare'),
+    rateTransmission: slider(config, 'credit.rateTransmission'),
+    endogenousProductivity: slider(config, 'productivity.endogenousWeight'),
+    bequests: bequestsOf(config),
+    bitcoinMarketPriceWeight: slider(config, 'bitcoin.marketPriceWeight'),
+    durableShare: slider(config, 'household.durableShare'),
+    gradualTransition: slider(config, 'transition.gradualWeight'),
     bondRate: slider(config, 'government.bondRate'),
     timePrefMean: slider(config, 'household.timePreferenceMean'),
     inflationTimePreference: slider(config, 'household.inflationTimePreference'),
@@ -172,8 +193,13 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     investmentHurdle: investmentHurdleOf(config),
     hurdlePremium: slider(config, 'firm.hurdlePremium'),
     depositPassThrough: slider(config, 'bank.depositPassThrough'),
+    depositInterestSubsidy: slider(config, 'bank.depositInterestSubsidy'),
+    resolution: resolutionOf(config),
+    depositHaircut: slider(config, 'bank.depositHaircut'),
     bondPurchaseShare: slider(config, 'centralBank.bondPurchaseShare'),
     moneyGrowth: slider(config, 'centralBank.moneyGrowth'),
+    injectionChannel: injectionChannelOf(config),
+    spendNewMoney: slider(config, 'centralBank.spendNewMoney'),
     stabilizer: slider(config, 'government.stabilizer'),
     transitionLength,
     debtHaircut: slider(config, 'transition.debtHaircut'),
@@ -224,6 +250,39 @@ export function investmentHurdleOf(config: ResolvedConfig): 'off' | 'on' {
     return value;
   }
   throw new Error('firm.investmentHurdle must be off or on');
+}
+
+export function resolutionOf(config: ResolvedConfig): 'off' | 'merge' {
+  const value = config.sliders['bank.resolution'];
+  if (value === 'off' || value === 'merge') {
+    return value;
+  }
+  throw new Error('bank.resolution must be off or merge');
+}
+
+export function injectionChannelOf(
+  config: ResolvedConfig,
+): 'proRataDeposits' | 'governmentSpending' | 'newLoans' | 'assetPurchase' {
+  const value = config.sliders['centralBank.injectionChannel'];
+  if (
+    value === 'proRataDeposits' ||
+    value === 'governmentSpending' ||
+    value === 'newLoans' ||
+    value === 'assetPurchase'
+  ) {
+    return value;
+  }
+  throw new Error(
+    'centralBank.injectionChannel must be proRataDeposits, governmentSpending, newLoans, or assetPurchase',
+  );
+}
+
+export function bequestsOf(config: ResolvedConfig): 'firstHousehold' | 'skillWeighted' {
+  const value = config.sliders['population.bequests'];
+  if (value === 'firstHousehold' || value === 'skillWeighted') {
+    return value;
+  }
+  throw new Error('population.bequests must be firstHousehold or skillWeighted');
 }
 
 export function regimeOf(config: ResolvedConfig): Regime {

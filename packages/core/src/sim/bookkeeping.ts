@@ -4,16 +4,13 @@ import type { Economy } from './economy.js';
 import type { Firm } from './types.js';
 import { totalLoans } from './banking.js';
 import { chargeEquityForDefault, resetFailedFirmAccounts } from './money.js';
+import { resolveInsolventBanks } from './resolution.js';
 import { postStocks } from './stocks.js';
 
 export function onBookkeeping(economy: Economy, ctx: TickContext): void {
   postStocks(economy, ctx.ledger);
-  for (const bank of economy.banks) {
-    if (!bank.failed && bank.equity <= 0) {
-      bank.failed = true;
-      economy.cumulativeFailures += 1;
-    }
-  }
+  // Catch losses booked after the pre-credit pass (for example write-offs).
+  resolveInsolventBanks(economy);
   for (const firm of economy.firms) {
     const equity = firm.deposit + firm.capital * firm.price - firm.loan;
     firm.negTicks = equity < 0 ? firm.negTicks + 1 : 0;

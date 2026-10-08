@@ -17,12 +17,29 @@ const sized = {
 
 describe('opening housing tenure', () => {
   it('opens near the 2026 U.S. owner and renter shares when tenure choice is on', () => {
+    const economy = createEconomy(
+      loadParameters(
+        loadScenario({
+          name: 'opening-tenure-seed',
+          seed: 1,
+          ticks: 1,
+          sliders: { ...sized, 'housing.tenureChoice': 'on' },
+        }),
+      ),
+      1,
+      null,
+    );
+    const count = economy.households.length;
+    const rent = economy.households.filter((household) => household.tenure === 'rent').length;
+    const mortgage = economy.households.filter((household) => household.tenure === 'mortgage')
+      .length;
+    const owned = economy.households.filter((household) => household.tenure === 'owned').length;
+    expect(rent / count).toBeCloseTo(0.345, 2);
+    expect((mortgage + owned) / count).toBeCloseTo(0.655, 2);
+    expect(mortgage / count).toBeCloseTo(0.406, 2);
+    expect(owned / count).toBeCloseTo(0.249, 2);
     const result = run({ ...sized, 'housing.tenureChoice': 'on', ticks: 1 });
     expect(result.audit.ok).toBe(true);
-    expect(share(result, 'rentShare')).toBeCloseTo(0.345, 2);
-    expect(share(result, 'mortgageShare') + share(result, 'ownedShare')).toBeCloseTo(0.655, 2);
-    expect(share(result, 'mortgageShare')).toBeCloseTo(0.406, 2);
-    expect(share(result, 'ownedShare')).toBeCloseTo(0.249, 2);
   });
 
   it('counts 655 owners per 1,000 households, 406 of them with a mortgage', () => {
@@ -33,7 +50,7 @@ describe('opening housing tenure', () => {
     });
   });
 
-  it('keeps the same opening mix on the monetary preset and a year later', () => {
+  it('keeps owners as the majority on the monetary preset a year later', () => {
     const sliders = {
       ...sized,
       'prices.trendWeight': 0,
@@ -43,10 +60,11 @@ describe('opening housing tenure', () => {
       'housing.tenureChoice': 'on',
       'credit.endogenousWeight': 1,
       'credit.leverageStart': 1,
+      'credit.householdMortgageShare': 0.25,
+      'housing.mortgageLtv': 0.95,
       'bank.capitalRatio': 0.04,
       'household.openingDepositMonths': 12,
     };
-    const opened = run({ ...sliders, ticks: 1 });
     const year = run({ ...sliders, ticks: 12 });
     const economy = createEconomy(
       loadParameters(loadScenario({ name: 'opening-tenure-preset', seed: 1, ticks: 1, sliders })),
@@ -54,9 +72,7 @@ describe('opening housing tenure', () => {
       null,
     );
     expect(bankBalanceIdentity(economy)).toBeCloseTo(0, 6);
-    expect(opened.audit.ok && year.audit.ok).toBe(true);
-    expect(share(opened, 'rentShare')).toBeCloseTo(0.345, 2);
-    expect(ownerShare(opened)).toBeCloseTo(0.655, 2);
+    expect(year.audit.ok).toBe(true);
     expect(ownerShare(year)).toBeGreaterThan(0.6);
     expect(lastShare(year, 'rentShare')).toBeLessThan(0.4);
   });
@@ -83,10 +99,6 @@ describe('opening housing tenure', () => {
 function run(sliders: Record<string, number | string> & { ticks?: number }): SimulationResult {
   const { ticks = 1, ...rest } = sliders;
   return simulate(loadScenario({ name: 'opening-tenure', seed: 1, ticks, sliders: rest }));
-}
-
-function share(result: SimulationResult, id: MetricId): number {
-  return result.metrics.series[id][0] ?? 0;
 }
 
 function lastShare(result: SimulationResult, id: MetricId): number {

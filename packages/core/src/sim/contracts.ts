@@ -8,9 +8,10 @@ import {
   repayMortgage,
   setMortgage,
 } from './money.js';
-import { bankCreditRoom } from './banking.js';
+import { bankCreditRoom, mortgageCreditRoom } from './banking.js';
 import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
 import { updateHousingPressure } from './housing.js';
+import { resolveInsolventBanks } from './resolution.js';
 import {
   CONSUMER_LOAN_REPAY,
   HOME_PRICE_MONTHS,
@@ -82,7 +83,12 @@ export function tenureFromBurdens(burdens: {
 }
 
 export function onContractChoice(economy: Economy): void {
+  resolveInsolventBanks(economy);
   economy.tenureChanges = 0;
+  economy.rentToMortgage = 0;
+  economy.mortgageToOwned = 0;
+  economy.mortgageToRent = 0;
+  economy.mortgageOriginations = 0;
   economy.newConsumerBorrowing = 0;
   economy.newBorrowing = 0;
   economy.loanRepaid = 0;
@@ -96,7 +102,13 @@ export function onContractChoice(economy: Economy): void {
   const ltv = economy.params.mortgageLtv;
   const loanRate = economy.policyRate + LOAN_SPREAD;
   for (const household of economy.households) {
+    const priorTenure = household.tenure;
     serviceDebts(economy, household);
+    if (priorTenure === 'mortgage' && household.tenure === 'owned') {
+      economy.mortgageToOwned += 1;
+    } else if (priorTenure === 'mortgage' && household.tenure === 'rent') {
+      economy.mortgageToRent += 1;
+    }
     const income = Math.max(household.income, household.smoothed, 1);
     const scarcity = economy.params.marketClearing === 'on' ? economy.housingPressure : 1;
     const homePrice = moneyAmount(economy, income * HOME_PRICE_MONTHS * scarcity);
@@ -104,6 +116,11 @@ export function onContractChoice(economy: Economy): void {
     const maxLoan = moneyAmount(economy, homePrice * ltv);
     const rentBurden = monthlyRentCost(homePrice);
     const ownedBurden = monthlyOwnedCost(homePrice, loanRate, expectedDeflation);
+    // Burden uses loan rate plus expected deflation so deflation raises the real
+    // cost of a long nominal mortgage. The booked payment uses the contractual
+    // loan rate only.
+    // Payment at the loan rate plus expected deflation, plus the opportunity
+    // cost of the down payment. Deflation raises the mortgage burden.
     const mortgageBurden =
       monthlyMortgagePayment(maxLoan, loanRate + expectedDeflation, termYears) +
       monthlyOwnedCost(downPayment, loanRate, expectedDeflation);
@@ -118,25 +135,25 @@ export function onContractChoice(economy: Economy): void {
     if (choice === 'owned' && household.tenure === 'mortgage' && household.mortgage <= 0) {
       household.mortgagePayment = 0;
       household.tenure = 'owned';
+      economy.mortgageToOwned += 1;
     } else if (
       choice === 'owned' &&
       household.tenure !== 'owned' &&
-      household.tenure !== 'mortgage'
+      household.tenure !== 'mortgage' &&
+      homePrice > 0 &&
+      household.deposit >= homePrice
     ) {
-      if (homePrice > 0 && household.deposit >= homePrice) {
-        payCashForHome(household, economy, homePrice);
-        setMortgage(household, 0);
-        household.mortgagePayment = 0;
-        household.tenure = 'owned';
-      } else {
-        household.tenure = 'rent';
-      }
+      payCashForHome(household, economy, homePrice);
+      setMortgage(household, 0);
+      household.mortgagePayment = 0;
+      household.tenure = 'owned';
     } else if (
-      choice === 'mortgage' &&
+      (choice === 'mortgage' || choice === 'owned') &&
       household.tenure !== 'mortgage' &&
       household.tenure !== 'owned'
     ) {
-      const room = bankCreditRoom(economy, household.bank);
+      // Owned may win on user cost while cash is short; try a mortgage before rent.
+      const room = mortgageCreditRoom(economy, household.bank);
       const principal = Math.min(maxLoan, Math.max(0, room));
       if (principal > 0 && household.deposit >= downPayment && downPayment >= 0) {
         if (downPayment > 0) {
@@ -149,6 +166,10 @@ export function onContractChoice(economy: Economy): void {
         );
         household.tenure = 'mortgage';
         economy.newBorrowing += principal;
+        economy.mortgageOriginations += 1;
+        if (priorTenure === 'rent' || priorTenure === 'none' || priorTenure === undefined) {
+          economy.rentToMortgage += 1;
+        }
       } else {
         household.tenure = 'rent';
       }
@@ -161,7 +182,9 @@ export function onContractChoice(economy: Economy): void {
 
     const creditCap = moneyAmount(economy, income * economy.params.consumerCreditLimit);
     const headroom = Math.max(0, creditCap - household.consumerLoan);
-    const borrowFactor = Math.max(0, 1 - penalty);
+    const borrowFactor = Math.max(0, 1 - penalty) * rateTransmissionFactor(economy);
+    // Consumer credit uses general firm room so mortgage draws do not invert the
+    // deflation effect by freeing capital for more consumer loans.
     const room = bankCreditRoom(economy, household.bank);
     const borrowed = moneyAmount(economy, Math.min(headroom, Math.max(0, room)) * borrowFactor);
     if (borrowed > 0) {
@@ -226,4 +249,14 @@ function forecloseMortgage(economy: Economy, household: Household): void {
   household.mortgagePayment = 0;
   household.mortgageArrears = 0;
   household.tenure = 'rent';
+}
+
+/** max(0, 1 − transmission × max(0, policyRate − inflation)). */
+export function rateTransmissionFactor(economy: Economy): number {
+  const weight = economy.params.rateTransmission;
+  if (weight <= 0) {
+    return 1;
+  }
+  const realRate = Math.max(0, economy.policyRate - expectedInflation(economy));
+  return Math.max(0, 1 - weight * realRate);
 }

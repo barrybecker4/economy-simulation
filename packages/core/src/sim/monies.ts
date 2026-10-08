@@ -82,28 +82,37 @@ export function nextExchangeRate(price: number, share: number, issuance: number)
 }
 
 export function updateMoneyChoice(economy: Economy): void {
-  if (economy.params.choiceSpeed <= 0) {
-    return;
+  if (economy.params.choiceSpeed > 0) {
+    const realReturn =
+      economy.depositRate - economy.moneyShares.bitcoin * economy.params.prodGrowth;
+    economy.moneyShares = nextMoneyShares(
+      economy.moneyShares,
+      moneyScores({
+        fiatLegal: economy.params.fiatLegalTender,
+        bitcoinTrust: economy.params.bitcoinTrust,
+        realReturn,
+      }),
+      economy.params.choiceSpeed,
+    );
+    economy.bitcoinPrice = nextExchangeRate(
+      economy.bitcoinPrice,
+      economy.moneyShares.bitcoin,
+      bitcoinIssuanceRate(economy.tick),
+    );
+    economy.stablecoinPrice = nextExchangeRate(
+      economy.stablecoinPrice,
+      economy.moneyShares.stablecoin,
+      0,
+    );
+    economy.cbdcPrice = nextExchangeRate(economy.cbdcPrice, economy.moneyShares.cbdc, 0);
   }
-  const realReturn = economy.depositRate - economy.moneyShares.bitcoin * economy.params.prodGrowth;
-  economy.moneyShares = nextMoneyShares(
-    economy.moneyShares,
-    moneyScores({
-      fiatLegal: economy.params.fiatLegalTender,
-      bitcoinTrust: economy.params.bitcoinTrust,
-      realReturn,
-    }),
-    economy.params.choiceSpeed,
-  );
-  economy.bitcoinPrice = nextExchangeRate(
-    economy.bitcoinPrice,
-    economy.moneyShares.bitcoin,
-    bitcoinIssuanceRate(economy.tick),
-  );
-  economy.stablecoinPrice = nextExchangeRate(
-    economy.stablecoinPrice,
-    economy.moneyShares.stablecoin,
-    0,
-  );
-  economy.cbdcPrice = nextExchangeRate(economy.cbdcPrice, economy.moneyShares.cbdc, 0);
+  const weight = clamp(economy.params.bitcoinMarketPriceWeight, 0, 1);
+  if (weight > 0) {
+    const market = nextExchangeRate(
+      economy.bitcoinPrice,
+      Math.max(economy.moneyShares.bitcoin, 0.004) * (0.5 + economy.params.bitcoinTrust),
+      bitcoinIssuanceRate(economy.tick),
+    );
+    economy.bitcoinPrice = economy.bitcoinPrice * (1 - weight) + market * weight;
+  }
 }

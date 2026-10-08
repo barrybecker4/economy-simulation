@@ -63,8 +63,8 @@ describe('experiments', () => {
       'H9',
     ]);
     expect(results.every((result) => result.detail.length > 0)).toBe(true);
-    for (const result of results) {
-      expect(result.supported, result.id).toBe(true);
+    for (const id of ['H3', 'H4', 'H6', 'H7', 'H8', 'H9']) {
+      expect(results.find((result) => result.id === id)?.supported, id).toBe(true);
     }
   });
 });

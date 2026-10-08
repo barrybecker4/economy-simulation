@@ -93,7 +93,6 @@ describe('preset categories', () => {
       'ai.bullishness': 1,
       'ai.automatableShareStart': 0.3,
       'ai.automatableShareEnd': 0.3,
-      'ai.adoptionMidpointYear': 10,
       'ai.adoptionSteepness': 0.4,
       'ai.physicalTaskShare': 0.3,
       'ai.roboticsStartYear': 10,

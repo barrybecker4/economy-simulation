@@ -12,21 +12,37 @@ import {
 import type { Household } from './types.js';
 
 /**
- * One-shot rebase at the end of the transition window: haircut nominal debts,
- * reassign household deposits by holder concentration, freeze base money, and
- * switch the active regime to bitcoin. Balances stay in the ledger unit chosen
- * at the start of the run (satoshi when a transition is configured).
+ * Fiat-to-bitcoin transition. With gradual weight 0, one-shot rebase at the end
+ * of the window. With weight > 0, a share of the haircut and deposit reassignment
+ * runs each month of the window, and the regime flips on the last month.
  */
 export function onTransition(economy: Economy): void {
   const length = economy.params.transitionLength;
   if (length <= 0 || economy.transitionDone) {
     return;
   }
-  if (economy.tick < length - 1) {
+  const gradual = economy.params.gradualTransition;
+  if (gradual <= 0) {
+    if (economy.tick < length - 1) {
+      return;
+    }
+    applyDebtHaircut(economy, economy.params.debtHaircut);
+    redistributeDeposits(economy, 1);
+    finishTransition(economy);
     return;
   }
-  applyDebtHaircut(economy);
-  redistributeDeposits(economy);
+  if (economy.tick >= length) {
+    return;
+  }
+  const step = gradual / length;
+  applyDebtHaircut(economy, economy.params.debtHaircut * step);
+  redistributeDeposits(economy, step);
+  if (economy.tick >= length - 1) {
+    finishTransition(economy);
+  }
+}
+
+function finishTransition(economy: Economy): void {
   for (const bank of economy.banks) {
     clearBonds(bank);
   }
@@ -36,8 +52,7 @@ export function onTransition(economy: Economy): void {
   economy.transitionDone = true;
 }
 
-function applyDebtHaircut(economy: Economy): void {
-  const haircut = economy.params.debtHaircut;
+function applyDebtHaircut(economy: Economy, haircut: number): void {
   if (haircut <= 0) {
     return;
   }
@@ -67,7 +82,10 @@ function applyDebtHaircut(economy: Economy): void {
   }
 }
 
-function redistributeDeposits(economy: Economy): void {
+function redistributeDeposits(economy: Economy, weight: number): void {
+  if (weight <= 0) {
+    return;
+  }
   const total = positiveDeposits(economy);
   if (total <= 0 || economy.households.length === 0) {
     return;
@@ -76,15 +94,17 @@ function redistributeDeposits(economy: Economy): void {
     economy.households.map((household) => household.skill),
     1 + 4 * economy.params.holderConcentration,
   );
-  const parts = splitResidual(total, weights);
-  let assigned = 0;
-  const last = economy.households.length - 1;
-  for (let index = 0; index < last; index += 1) {
-    const amount = roundedShare(economy, parts[index]);
-    setDeposit(requireHousehold(economy, index), amount);
-    assigned += amount;
+  const targetParts = splitResidual(total, weights);
+  for (let index = 0; index < economy.households.length; index += 1) {
+    const household = requireHousehold(economy, index);
+    const target = roundedShare(economy, targetParts[index]);
+    const next = household.deposit + (target - household.deposit) * weight;
+    setDeposit(household, moneyAmount(economy, Math.max(0, next)));
   }
-  setDeposit(requireHousehold(economy, last), total - assigned);
+  // Seat residual on the last household so the stock is conserved after rounding.
+  const after = positiveDeposits(economy);
+  const last = requireHousehold(economy, economy.households.length - 1);
+  setDeposit(last, last.deposit + (total - after));
 }
 
 function roundedShare(economy: Economy, share: number | undefined): number {
@@ -103,9 +123,5 @@ function requireHousehold(economy: Economy, index: number): Household {
 }
 
 function positiveDeposits(economy: Economy): number {
-  let total = 0;
-  for (const household of economy.households) {
-    total += Math.max(0, household.deposit);
-  }
-  return total;
+  return economy.households.reduce((sum, household) => sum + Math.max(0, household.deposit), 0);
 }

@@ -27,7 +27,7 @@ export const AI_SLIDERS: readonly Slider[] = [
     'AI adoption midpoint',
     'ai',
     'years',
-    20,
+    10,
     1,
     40,
     'Year when the automatable share is halfway from the start share to the end share. An earlier year brings the S-curve forward. The curve is flat, and this year does nothing, when the start and end shares are equal.',

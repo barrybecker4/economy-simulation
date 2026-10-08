@@ -60,4 +60,4 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
   `Blocked by` line) or an assignee; first in map order wins.
 - **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
 - **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist
-  + link) to the map's Decisions-so-far.
+  - link) to the map's Decisions-so-far.

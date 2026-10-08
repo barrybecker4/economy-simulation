@@ -74,7 +74,7 @@ A starting situation that generates work, then merges onto the main flow.
 
 - **Something's broken** → **`/diagnosing-bugs`**. For the hard ones: the bug that resists a first glance, the
   intermittent flake, the regression that crept in between two known-good states. It refuses to theorise until it has a
-  **tight feedback loop** (one command that already goes red on *this* bug), then fixes with a regression test. Once the
+  **tight feedback loop** (one command that already goes red on _this_ bug), then fixes with a regression test. Once the
   fix is in, run **`/retro`** in the same session to ask what would have prevented the bug; where the real finding is
   that there's no good seam to lock it down, that's a job for **`/improve-codebase-architecture`**.
 
@@ -101,14 +101,14 @@ Not feature work, just upkeep.
 
 ## Vocabulary underneath
 
-Two model-invoked references that run *beneath* the other skills, each the single source of truth for its vocabulary.
+Two model-invoked references that run _beneath_ the other skills, each the single source of truth for its vocabulary.
 Reach for them directly when the **words**, not the process, are the problem; or let the skills above pull them in.
 
-- **`/domain-modeling`**: sharpen the project's *domain* language: challenge a fuzzy term, resolve an overloaded word
+- **`/domain-modeling`**: sharpen the project's _domain_ language: challenge a fuzzy term, resolve an overloaded word
   ("account" doing three jobs), record a hard-to-reverse decision as an ADR. It's the active discipline
   `/grill-with-docs` drives to keep `GLOSSARY.md` a clean glossary.
 - **`/codebase-design`** is the deep-module vocabulary (module, interface, depth, seam, adapter, leverage, locality) for
-  designing a module's *shape*: a lot of behaviour behind a small interface at a clean seam. `/tdd` and
+  designing a module's _shape_: a lot of behaviour behind a small interface at a clean seam. `/tdd` and
   `/improve-codebase-architecture` both speak it.
 
 ## Phase boundaries
@@ -147,7 +147,7 @@ Off the main flow entirely.
   for it any time a design question is hard to settle on paper.
 - **`/research`**: delegate reading legwork to a **background agent**: it investigates a question against **primary
   sources**, then leaves a cited Markdown file in the repo. Keep working while it reads. The file it produces is
-  something to take *into* the main flow at `/grill-with-docs`, since research feeds the thinking rather than replacing
+  something to take _into_ the main flow at `/grill-with-docs`, since research feeds the thinking rather than replacing
   it.
 - **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone
   else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you

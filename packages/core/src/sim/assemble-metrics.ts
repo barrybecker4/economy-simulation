@@ -86,6 +86,10 @@ function recordTenure(snapshot: MetricSnapshot, metrics: MetricSink, penalty: nu
     metrics.set('mortgageShare', tenure.mortgageCount / count);
     metrics.set('rentShare', tenure.rentCount / count);
     metrics.set('ownedShare', tenure.ownedCount / count);
+    metrics.set('mortgageOriginations', tenure.mortgageOriginations);
+    metrics.set('rentToMortgage', tenure.rentToMortgage);
+    metrics.set('mortgageToOwned', tenure.mortgageToOwned);
+    metrics.set('mortgageToRent', tenure.mortgageToRent);
     metrics.set(
       'consumerCreditToGdp',
       snapshot.nominalOutput > 0 ? tenure.consumerCredit / (snapshot.nominalOutput * 12) : 0,
@@ -101,6 +105,10 @@ function recordTenure(snapshot: MetricSnapshot, metrics: MetricSink, penalty: nu
   metrics.set('mortgageShare', 0);
   metrics.set('rentShare', 0);
   metrics.set('ownedShare', 0);
+  metrics.set('mortgageOriginations', 0);
+  metrics.set('rentToMortgage', 0);
+  metrics.set('mortgageToOwned', 0);
+  metrics.set('mortgageToRent', 0);
   metrics.set('consumerCreditToGdp', 0);
   metrics.set('newConsumerBorrowing', 0);
   metrics.set('medianDebtService', 0);

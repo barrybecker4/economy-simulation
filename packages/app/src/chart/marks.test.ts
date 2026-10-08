@@ -53,12 +53,12 @@ describe('runMarks', () => {
     ];
     const zeros = credit.map(() => 0);
     const marks = runMarks(singleRun(impulses(zeros, credit, zeros)), 0, 'variant');
-    expect(marks.bands.map((band) => ({ kind: band.kind, start: band.start, end: band.end }))).toEqual(
-      [
-        { kind: 'credit-expansion', start: 2, end: 4 },
-        { kind: 'credit-contraction', start: 5, end: 7 },
-      ],
-    );
+    expect(
+      marks.bands.map((band) => ({ kind: band.kind, start: band.start, end: band.end })),
+    ).toEqual([
+      { kind: 'credit-expansion', start: 2, end: 4 },
+      { kind: 'credit-contraction', start: 5, end: 7 },
+    ]);
     expect(marks.rules).toEqual([
       {
         kind: 'credit-write-off',
@@ -189,18 +189,18 @@ describe('eventsAt', () => {
     const baseline = runMarks(singleRun(impulses(demand, zeros, zeros)), 4, 'baseline');
     const variant = runMarks(singleRun(impulses(zeros, zeros, zeros)), 4, 'variant');
     const merged = mergeMarks(baseline, variant);
-    expect(eventsAt(merged, 3).map((event) => ({ label: event.label, style: event.style }))).toEqual(
-      [
-        { label: 'Demand expansion', style: 'baseline' },
-        { label: 'Fiat to bitcoin transition', style: 'baseline' },
-        { label: 'Bitcoin rebase', style: 'baseline' },
-        { label: 'Fiat to bitcoin transition', style: 'variant' },
-        { label: 'Bitcoin rebase', style: 'variant' },
-      ],
-    );
-    expect(eventsAt(merged, 5).map((event) => ({ label: event.label, style: event.style }))).toEqual(
-      [{ label: 'Demand contraction', style: 'baseline' }],
-    );
+    expect(
+      eventsAt(merged, 3).map((event) => ({ label: event.label, style: event.style })),
+    ).toEqual([
+      { label: 'Demand expansion', style: 'baseline' },
+      { label: 'Fiat to bitcoin transition', style: 'baseline' },
+      { label: 'Bitcoin rebase', style: 'baseline' },
+      { label: 'Fiat to bitcoin transition', style: 'variant' },
+      { label: 'Bitcoin rebase', style: 'variant' },
+    ]);
+    expect(
+      eventsAt(merged, 5).map((event) => ({ label: event.label, style: event.style })),
+    ).toEqual([{ label: 'Demand contraction', style: 'baseline' }]);
   });
 
   it('includes the write-off and rebase on their months', () => {

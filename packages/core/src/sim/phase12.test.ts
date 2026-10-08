@@ -34,7 +34,12 @@ describe('phase 12 household tenure and credit', () => {
   });
 
   it('cuts mortgages and consumer credit under stronger deflation while keeping the floor', () => {
-    const fromRenters = { 'housing.openingOwnerShare': 0 };
+    const fromRenters = {
+      'housing.openingOwnerShare': 0,
+      // Keep down payments out of reach so consumer credit is not crowded by
+      // same-tick mortgage draws when comparing deflation sensitivity.
+      'housing.mortgageLtv': 0.5,
+    };
     const mild = run({
       ...small,
       ...fromRenters,

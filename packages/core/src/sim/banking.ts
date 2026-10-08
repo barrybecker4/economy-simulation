@@ -27,12 +27,21 @@ export function totalLoans(economy: Economy): number {
 }
 
 export function loansAt(economy: Economy, bankId: number): number {
+  return firmLoansAt(economy, bankId) + householdLoansAt(economy, bankId);
+}
+
+export function firmLoansAt(economy: Economy, bankId: number): number {
   let total = 0;
   for (const firm of economy.firms) {
     if (firm.bank === bankId) {
       total += firm.loan;
     }
   }
+  return total;
+}
+
+export function householdLoansAt(economy: Economy, bankId: number): number {
+  let total = 0;
   for (const household of economy.households) {
     if (household.bank === bankId) {
       total += household.mortgage + household.consumerLoan;
@@ -79,8 +88,46 @@ export function bankCreditRoom(economy: Economy, bankId: number): number {
     return 0;
   }
   const capitalRoom = lendingRoom(economy, bankId, bank.equity);
+  const share = economy.params.householdMortgageShare;
+  const reserved = reservedMortgageRoom(economy, bankId, bank.equity, share);
+  const general = Math.max(0, capitalRoom - reserved);
   if (economy.params.regime === 'fiat') {
-    return capitalRoom;
+    return general;
   }
-  return Math.min(capitalRoom, savingsRoom(economy));
+  return Math.min(general, savingsRoom(economy));
+}
+
+/**
+ * Lending room reserved for household mortgages. At share 0, mortgages compete for
+ * the same capital room as firms (previous behavior).
+ */
+export function mortgageCreditRoom(economy: Economy, bankId: number): number {
+  const bank = economy.banks[bankId];
+  if (!bank || bank.failed) {
+    return 0;
+  }
+  const share = economy.params.householdMortgageShare;
+  if (share <= 0) {
+    return bankCreditRoom(economy, bankId);
+  }
+  const capitalRoom = lendingRoom(economy, bankId, bank.equity);
+  const reserved = reservedMortgageRoom(economy, bankId, bank.equity, share);
+  const room = Math.max(reserved, capitalRoom * share);
+  if (economy.params.regime === 'fiat') {
+    return room;
+  }
+  return Math.min(room, savingsRoom(economy));
+}
+
+function reservedMortgageRoom(
+  economy: Economy,
+  bankId: number,
+  bankEquity: number,
+  share: number,
+): number {
+  if (share <= 0 || bankEquity <= 0) {
+    return 0;
+  }
+  const cap = bankEquity / Math.max(economy.params.capitalRatio, 0.01);
+  return Math.max(0, share * cap - householdLoansAt(economy, bankId));
 }

@@ -16,9 +16,9 @@ describe('default wealth path', () => {
     const result = simulate(loadScenario({ name: 'wealth-smooth', seed: 1, ticks: 36 }));
     const wealth = series(result, 'totalRealWealth');
     const invest = series(result, 'realInvestment');
-    expect(invest.filter((value, index) => index > 0 && index % 12 !== 0 && value > 0).length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      invest.filter((value, index) => index > 0 && index % 12 !== 0 && value > 0).length,
+    ).toBeGreaterThan(0);
     const jumps = [];
     for (let index = 1; index < wealth.length; index += 1) {
       jumps.push((wealth[index] ?? 0) - (wealth[index - 1] ?? 0));
@@ -51,10 +51,8 @@ describe('default wealth path', () => {
         },
       }),
     );
-    const modestGain =
-      last(modest, 'totalRealWealth') / first(modest, 'totalRealWealth');
-    const strongGain =
-      last(substantial, 'totalRealWealth') / first(substantial, 'totalRealWealth');
+    const modestGain = last(modest, 'totalRealWealth') / first(modest, 'totalRealWealth');
+    const strongGain = last(substantial, 'totalRealWealth') / first(substantial, 'totalRealWealth');
     expect(strongGain).toBeGreaterThan(modestGain);
   });
 });

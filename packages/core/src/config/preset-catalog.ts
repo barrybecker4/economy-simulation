@@ -226,12 +226,12 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'modest',
         name: 'Modest',
         detail:
-          'Bullishness 0, slow adoption (midpoint year 20, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 20 over 16 years). This is the registry default.',
+          'Bullishness 0, medium-slow adoption (midpoint year 10, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 20 over 16 years). This is the registry default.',
         values: {
           'ai.bullishness': 0,
           'ai.automatableShareStart': 0.1,
           'ai.automatableShareEnd': 0.9,
-          'ai.adoptionMidpointYear': 20,
+          'ai.adoptionMidpointYear': 10,
           'ai.adoptionSteepness': 0.15,
           'ai.physicalTaskShare': 0.7,
           'ai.roboticsStartYear': 20,
@@ -242,12 +242,12 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'substantial',
         name: 'Substantial',
         detail:
-          'Bullishness 1, medium adoption (midpoint year 10, steepness 0.4), and typical reach (reachable share 70 percent, robotics from year 8 over 12 years).',
+          'Bullishness 1, medium adoption (midpoint year 5, steepness 0.4), and typical reach (reachable share 70 percent, robotics from year 8 over 12 years).',
         values: {
           'ai.bullishness': 1,
           'ai.automatableShareStart': 0.1,
           'ai.automatableShareEnd': 0.9,
-          'ai.adoptionMidpointYear': 10,
+          'ai.adoptionMidpointYear': 5,
           'ai.adoptionSteepness': 0.4,
           'ai.physicalTaskShare': 0.3,
           'ai.roboticsStartYear': 8,

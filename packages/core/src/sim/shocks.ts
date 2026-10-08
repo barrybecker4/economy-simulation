@@ -1,6 +1,6 @@
 import type { TickContext } from '../engine/engine.js';
 import { CREDIT_WRITEOFF, SHOCK_PHASE_MONTHS } from './rules.js';
-import { monthlyFromAnnual } from './stats.js';
+import { clamp, monthlyFromAnnual } from './stats.js';
 import type { Economy } from './economy.js';
 import { writeOffFirmLoan } from './money.js';
 import { ensureOpen } from './stocks.js';
@@ -8,7 +8,16 @@ import { ensureOpen } from './stocks.js';
 export function onShocks(economy: Economy, ctx: TickContext): void {
   ensureOpen(economy, ctx.ledger);
   economy.tick = ctx.tick;
-  economy.productivity *= 1 + monthlyFromAnnual(economy.params.prodGrowth);
+  const base = monthlyFromAnnual(economy.params.prodGrowth);
+  const weight = economy.params.endogenousProductivity;
+  if (weight <= 0) {
+    economy.productivity *= 1 + base;
+  } else {
+    const reference = Math.max(1, economy.households.length * 0.94);
+    const utilization = clamp(economy.realGdp / reference, 0.5, 1.5);
+    const endogenous = base * utilization;
+    economy.productivity *= 1 + (1 - weight) * base + weight * endogenous;
+  }
   economy.demandImpulse = 0;
   economy.productivityImpulse = 0;
   economy.creditImpulse = 0;

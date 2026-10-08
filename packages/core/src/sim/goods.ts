@@ -32,8 +32,7 @@ function demandBase(economy: Economy): number {
 
 function goodsMarket(economy: Economy): GoodsMarket {
   const inflationRate = expectedInflation(economy);
-  const depositYield =
-    economy.paidDepositRate > 0 ? economy.paidDepositRate : economy.depositRate;
+  const depositYield = economy.paidDepositRate > 0 ? economy.paidDepositRate : economy.depositRate;
   return {
     floorShare: subsistenceShare(),
     inflationGap: inflationRate - normalInflation(economy),
@@ -53,6 +52,7 @@ function shopHouseholds(economy: Economy, market: GoodsMarket): void {
       realReturn: market.realReturn,
       realReturnSensitivity: economy.params.realReturnSensitivity,
       floorShare: market.floorShare,
+      durableShare: economy.params.durableShare,
     });
     economy.desiredSpend += budget;
     const left = Math.max(0, Math.min(household.deposit, Math.round(budget)));

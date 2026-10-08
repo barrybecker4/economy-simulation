@@ -1,5 +1,5 @@
 import { splitProportional } from './allocate.js';
-import { equityFor, loansAt, savingsStock, totalDeposits, totalLoans } from './banking.js';
+import { savingsStock, totalDeposits, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
 import { expectedInflation, inflation, moneyAmount, outputGap } from './helpers.js';
 import { updateMoneyChoice } from './monies.js';
@@ -10,6 +10,7 @@ import {
   debitDeposit,
   injectBankCapital,
   payDepositInterest as creditDepositInterest,
+  subsidizeDepositInterest,
 } from './money.js';
 import { DEPOSIT_BUFFER_MONTHS, LOAN_SPREAD, THIN_OPENING_MONTHS } from './rules.js';
 import { clamp } from './stats.js';
@@ -91,12 +92,27 @@ export function growFiatMoney(economy: Economy): void {
     throw new Error('Fiat money growth needs a bank');
   }
   if (amount > 0) {
-    injectHouseholdDeposits(economy, amount);
-    addReserves(bank, amount);
+    injectNewMoney(economy, bank, amount);
     return;
   }
   const removed = drainHouseholdDeposits(economy, Math.min(-amount, reserveStock(economy)));
   releaseReserves(economy, removed);
+}
+
+function injectNewMoney(economy: Economy, bank: import('./types.js').Bank, amount: number): void {
+  const channel = economy.params.injectionChannel;
+  if (channel === 'governmentSpending') {
+    economy.govDeposits += amount;
+    addReserves(bank, amount);
+    return;
+  }
+  if (channel === 'newLoans' || channel === 'assetPurchase') {
+    creditFirms(economy, amount);
+    addReserves(bank, amount);
+    return;
+  }
+  injectHouseholdDeposits(economy, amount);
+  addReserves(bank, amount);
 }
 
 function reserveStock(economy: Economy): number {
@@ -166,17 +182,17 @@ function blendIdleMoney(
   household: { deposit: number; income: number; smoothed: number },
   flow: number,
 ): void {
-  if (
-    economy.params.trendWeight >= 1 ||
-    economy.params.openingDepositMonths >= THIN_OPENING_MONTHS ||
-    flow <= 0 ||
-    household.income <= 0
-  ) {
+  if (economy.params.trendWeight >= 1 || flow <= 0 || household.income <= 0) {
+    return;
+  }
+  const forced = clamp(economy.params.spendNewMoney, 0, 1);
+  if (forced <= 0 && economy.params.openingDepositMonths >= THIN_OPENING_MONTHS) {
     return;
   }
   const buffer = household.income * DEPOSIT_BUFFER_MONTHS;
   const shortfall = clamp((buffer - household.deposit) / buffer, 0, 1);
-  household.smoothed = Math.max(0, household.smoothed + flow * shortfall);
+  const weight = Math.max(forced, shortfall);
+  household.smoothed = Math.max(0, household.smoothed + flow * weight);
 }
 
 function setBlendedPolicy(economy: Economy): void {
@@ -243,28 +259,59 @@ function accommodateReserves(economy: Economy): void {
 }
 
 /**
- * Pay the posted deposit rate from bank equity, after borrower interest and
- * before dividends. Funding is borrower interest booked this tick plus equity
- * above the regulatory target. Records the annualized rate actually paid.
+ * Pay the posted deposit rate after borrower interest and before dividends.
+ * Funding order: equity already on the books (including this tick's borrower
+ * interest), then an optional fiat central-bank subsidy for any shortfall.
+ * Equity may fall to zero; dividends still require equity above the capital
+ * target afterward. Records the annualized rate actually paid.
  */
 export function payHouseholdDepositInterest(
   economy: Economy,
   borrowerInterestByBank: ReadonlyMap<number, number>,
 ): void {
   economy.depositInterestPaid = 0;
+  // Caller still passes this tick's borrower interest; funding uses equity that
+  // already includes those credits.
+  void borrowerInterestByBank;
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   if (economy.depositRate <= 0) {
     economy.paidDepositRate = 0;
     return;
   }
   const monthly = economy.depositRate / 12;
+  const dueByBank = new Map<number, number>();
+  for (const household of economy.households) {
+    const bank = economy.banks[household.bank];
+    if (!bank || bank.failed || household.deposit <= 0) {
+      continue;
+    }
+    const wanted = moneyAmount(economy, household.deposit * monthly);
+    if (wanted > 0) {
+      dueByBank.set(bank.id, (dueByBank.get(bank.id) ?? 0) + wanted);
+    }
+  }
   const roomByBank = new Map<number, number>();
   for (const bank of economy.banks) {
-    const target = equityFor(economy, loansAt(economy, bank.id));
-    const fromBorrowers = borrowerInterestByBank.get(bank.id) ?? 0;
-    const equityBeforeInterest = bank.equity - fromBorrowers;
-    const surplus = Math.max(0, equityBeforeInterest - target);
-    roomByBank.set(bank.id, surplus + fromBorrowers);
+    if (bank.failed) {
+      roomByBank.set(bank.id, 0);
+      continue;
+    }
+    const due = dueByBank.get(bank.id) ?? 0;
+    // Equity already includes this tick's borrower interest.
+    let room = Math.max(0, bank.equity);
+    const shortfall = Math.max(0, due - room);
+    if (
+      shortfall > 0 &&
+      economy.params.regime === 'fiat' &&
+      economy.params.depositInterestSubsidy > 0
+    ) {
+      const inject = moneyAmount(economy, shortfall * economy.params.depositInterestSubsidy);
+      if (inject > 0) {
+        subsidizeDepositInterest(bank, inject);
+        room += inject;
+      }
+    }
+    roomByBank.set(bank.id, room);
   }
   for (const household of economy.households) {
     const bank = economy.banks[household.bank];

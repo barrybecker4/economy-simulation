@@ -26,7 +26,7 @@ The route already exists. Variants are rendered **on the same route**, gated by 
 existing data fetching, params, and auth all stay. Only the rendering swaps. This is the default; pick it unless there's
 a specific reason not to.
 
-If the prototype is for something that doesn't yet have a page but *would naturally live inside one* (a new section of
+If the prototype is for something that doesn't yet have a page but _would naturally live inside one_ (a new section of
 the dashboard, a new card on the settings screen, a new step in an existing flow), it's still sub-shape A. Mount the
 variants inside the host page.
 
@@ -80,7 +80,7 @@ return (
     {variant === 'A' && <VariantA {...data} />}
     {variant === 'B' && <VariantB {...data} />}
     {variant === 'C' && <VariantC {...data} />}
-    <PrototypeSwitcher variants={['A','B','C']} current={variant} />
+    <PrototypeSwitcher variants={['A', 'B', 'C']} current={variant} />
   </>
 );
 ```

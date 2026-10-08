@@ -72,11 +72,21 @@ export function goodsBudget(input: {
   realReturn: number;
   realReturnSensitivity: number;
   floorShare: number;
+  durableShare?: number;
 }): number {
-  return discretionaryAfterRealReturn({
+  const afterReturn = discretionaryAfterRealReturn({
     uncutBudget: uncutGoodsBudget(input),
     realReturn: input.realReturn,
     sensitivity: input.realReturnSensitivity,
     floorShare: input.floorShare,
   });
+  const durableShare = clamp(input.durableShare ?? 0, 0, 0.5);
+  if (durableShare <= 0 || input.realReturn <= 0) {
+    return afterReturn;
+  }
+  const floor = afterReturn * clamp(input.floorShare, 0, 1);
+  const discretionary = Math.max(0, afterReturn - floor);
+  const durables = discretionary * durableShare;
+  const delayed = durables * Math.max(0, 1 - input.realReturn);
+  return floor + (discretionary - durables) + delayed;
 }

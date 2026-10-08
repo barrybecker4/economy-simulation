@@ -3,6 +3,7 @@ import { Ledger } from '../ledger/ledger.js';
 import {
   BITCOIN_AUDIT_ABSOLUTE_EPSILON,
   BITCOIN_AUDIT_RELATIVE_EPSILON,
+  bitcoinAmountsMatch,
   type MoneyUnit,
 } from '../money/amount.js';
 import { totalDeposits, totalLoans } from './banking.js';
@@ -42,7 +43,8 @@ export function postStocks(economy: Economy, ledger: Ledger): void {
   const equity = sumBank(economy, (bank) => bank.equity);
   alignPrivateEquity(economy, ledger.unit, vault, equity);
   assertBankBalance(economy, ledger.unit, deposits, loans, reserves, bonds, vault, equity);
-  const targets = stockTargets(
+  const targets = roundedStockTargets(
+    ledger.unit,
     deposits,
     loans,
     reserves,
@@ -69,15 +71,71 @@ export function bankBalanceIdentity(economy: Economy): number {
   return loans + reserves + bonds + vault - deposits - equity;
 }
 
+type StockLine = { accountId: string; side: EntrySide; amount: bigint | number };
+
 /** Post stock lines. A lone dust line is dropped; a balanced change posts. */
 export function postBalancedStockLines(
   ledger: Ledger,
-  lines: readonly { accountId: string; side: EntrySide; amount: bigint | number }[],
+  lines: readonly StockLine[],
 ): void {
-  const kept = lines.filter((line) => keepStockAmount(ledger.unit, line.amount));
+  let kept = lines.filter((line) => keepStockAmount(ledger.unit, line.amount));
+  if (ledger.unit === 'satoshi') {
+    kept = seatSatoshiStockResidual(kept);
+  }
   if (kept.length >= 2) {
     ledger.post(kept);
   }
+}
+
+/**
+ * Float drift between vault, bank equity, and private equity can leave satoshi
+ * stock deltas that are opposite but not bit-identical. Seat the imbalance on
+ * private-equity (the vault residual) so the journal passes debit=credit.
+ */
+function seatSatoshiStockResidual(lines: readonly StockLine[]): StockLine[] {
+  if (lines.length < 2) {
+    return [...lines];
+  }
+  const { debit, credit } = stockSideTotals(lines);
+  if (bitcoinAmountsMatch(debit, credit)) {
+    return [...lines];
+  }
+  const gap = debit - credit;
+  const peIndex = lines.findIndex((line) => line.accountId === 'private-equity');
+  if (peIndex < 0) {
+    return [...lines];
+  }
+  const seated = lines.map((line) => ({ ...line }));
+  const pe = seated[peIndex];
+  if (!pe || typeof pe.amount !== 'number') {
+    return seated;
+  }
+  let amount = pe.side === 'credit' ? pe.amount + gap : pe.amount - gap;
+  let side = pe.side;
+  if (amount < 0) {
+    amount = -amount;
+    side = side === 'credit' ? 'debit' : 'credit';
+  }
+  if (amount <= BITCOIN_AUDIT_ABSOLUTE_EPSILON) {
+    seated.splice(peIndex, 1);
+    return seatSatoshiStockResidual(seated);
+  }
+  seated[peIndex] = { accountId: pe.accountId, side, amount };
+  return seated;
+}
+
+function stockSideTotals(lines: readonly StockLine[]): { debit: number; credit: number } {
+  let debit = 0;
+  let credit = 0;
+  for (const line of lines) {
+    const amount = Number(line.amount);
+    if (line.side === 'debit') {
+      debit += amount;
+    } else {
+      credit += amount;
+    }
+  }
+  return { debit, credit };
 }
 
 function keepStockAmount(unit: MoneyUnit, amount: bigint | number): boolean {
@@ -89,6 +147,41 @@ function keepStockAmount(unit: MoneyUnit, amount: bigint | number): boolean {
 
 function sumBank(economy: Economy, read: (bank: Economy['banks'][number]) => number): number {
   return economy.banks.reduce((sum, bank) => sum + read(bank), 0);
+}
+
+/**
+ * Build stock targets. For cents, round each paired stock once and set
+ * private-equity as the residual so vault = bank equity + private equity after
+ * rounding (independent Math.round on half-cents can break that identity).
+ */
+export function roundedStockTargets(
+  unit: MoneyUnit,
+  deposits: number,
+  loans: number,
+  reserves: number,
+  bonds: number,
+  vault: number,
+  equity: number,
+  privateEquity: number,
+): Map<string, number> {
+  if (unit !== 'cent') {
+    return stockTargets(deposits, loans, reserves, bonds, vault, equity, privateEquity);
+  }
+  const roundDeposits = Math.round(deposits);
+  const roundLoans = Math.round(loans);
+  const roundReserves = Math.round(reserves);
+  const roundBonds = Math.round(bonds);
+  const roundVault = Math.round(vault);
+  const roundEquity = Math.round(equity);
+  return stockTargets(
+    roundDeposits,
+    roundLoans,
+    roundReserves,
+    roundBonds,
+    roundVault,
+    roundEquity,
+    roundVault - roundEquity,
+  );
 }
 
 function stockTargets(
@@ -156,14 +249,22 @@ function assertBankBalance(
 }
 
 function residualMatches(unit: MoneyUnit, kept: number, residual: number): boolean {
-  return withinUnitTolerance(unit, kept - residual, Math.max(1, Math.abs(kept), Math.abs(residual)));
+  return withinUnitTolerance(
+    unit,
+    kept - residual,
+    Math.max(1, Math.abs(kept), Math.abs(residual)),
+  );
 }
 
 function withinUnitTolerance(unit: MoneyUnit, gap: number, scale: number): boolean {
   if (unit === 'cent') {
-    return Math.abs(gap) < 0.5;
+    // Allow a full cent so half-cent floats that round apart still close.
+    return Math.abs(gap) <= 1;
   }
-  const tolerance = Math.max(BITCOIN_AUDIT_ABSOLUTE_EPSILON, BITCOIN_AUDIT_RELATIVE_EPSILON * scale);
+  const tolerance = Math.max(
+    BITCOIN_AUDIT_ABSOLUTE_EPSILON,
+    BITCOIN_AUDIT_RELATIVE_EPSILON * scale,
+  );
   return Math.abs(gap) <= tolerance;
 }
 
@@ -186,11 +287,10 @@ function stockLine(
   account: (typeof ACCOUNTS)[number],
   targets: ReadonlyMap<string, number>,
 ): { accountId: string; side: EntrySide; amount: bigint | number } | undefined {
-  const raw = targets.get(account.id);
-  if (raw === undefined) {
+  const target = targets.get(account.id);
+  if (target === undefined) {
     throw new Error(`Missing stock target for ${account.id}`);
   }
-  const target = ledger.unit === 'cent' ? Math.round(raw) : raw;
   const delta = target - Number(ledger.balance(account.id));
   const amount = postingAmount(ledger.unit, delta);
   if (amount === undefined) {

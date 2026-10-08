@@ -62,6 +62,10 @@ export interface Economy {
   paidDepositRate: number;
   depositInterestPaid: number;
   tenureChanges: number;
+  rentToMortgage: number;
+  mortgageToOwned: number;
+  mortgageToRent: number;
+  mortgageOriginations: number;
   newConsumerBorrowing: number;
   loanFinance: number;
   profitSharingFinance: number;
@@ -71,6 +75,8 @@ export interface Economy {
   creditStress: number;
   /** Housing price pressure. One leaves the formula price unchanged. */
   housingPressure: number;
+  /** Months unemployment has stayed more than five points above natural. */
+  slackMonths: number;
   /** Fractional households waiting to enter or exit. */
   populationCredit: number;
   moneyShares: MoneyShares;

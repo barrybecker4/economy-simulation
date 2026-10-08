@@ -29,11 +29,11 @@ for "adapter" when the seam is the topic; "implementation" otherwise.
 have to learn. A module is **deep** when a large amount of behaviour sits behind a small interface, **shallow** when the
 interface is nearly as complex as the implementation.
 
-**Seam** _(Michael Feathers)_: a place where you can alter behaviour without editing in that place; the *location* at
+**Seam** _(Michael Feathers)_: a place where you can alter behaviour without editing in that place; the _location_ at
 which a module's interface lives. Where to put the seam is its own design decision, distinct from what goes behind it.
 _Avoid_: boundary (overloaded with DDD's bounded context).
 
-**Adapter**: a concrete thing that satisfies an interface at a seam. Describes *role* (what slot it fills), not
+**Adapter**: a concrete thing that satisfies an interface at a seam. Describes _role_ (what slot it fills), not
 substance (what's inside).
 
 **Leverage**: what callers get from depth. More capability per unit of interface they learn. One implementation pays
@@ -79,7 +79,7 @@ When designing an interface, ask:
   its implementation, used by its own tests) as well as the **external seam** at its interface.
 - **The deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity
   reappears across N callers, it was earning its keep.
-- **The interface is the test surface.** Callers and tests cross the same seam. If you want to test *past* the
+- **The interface is the test surface.** Callers and tests cross the same seam. If you want to test _past_ the
   interface, the module is probably the wrong shape.
 - **One adapter means a hypothetical seam. Two adapters means a real one.** Don't introduce a seam unless something
   actually varies across it.

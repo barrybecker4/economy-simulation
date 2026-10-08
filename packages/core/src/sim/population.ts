@@ -1,6 +1,7 @@
+import { powerWeights, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { separate } from './helpers.js';
-import { chargeEquityForDefault, transferDeposit } from './money.js';
+import { chargeEquityForDefault, creditDeposit, transferDeposit } from './money.js';
 import { AI_INTERNET_TASK_GAIN, AI_UNBOUNDED_GROWTH } from './rules.js';
 import { clamp, monthlyFromAnnual } from './stats.js';
 import type { Household } from './types.js';
@@ -67,6 +68,17 @@ export function roboticsProgress(
   return clamp((years - roboticsStartYear) / roboticsRampYears, 0, 1);
 }
 
+/**
+ * Share of automatable tasks firms take up given compute cost versus the wage.
+ * At or above the wage nothing is adopted; far below, the full reachable span counts.
+ */
+export function computeAdoptionFactor(wage: number, computeCost: number): number {
+  if (!(wage > 0) || computeCost >= wage) {
+    return 0;
+  }
+  return clamp((wage - computeCost) / wage, 0, 1);
+}
+
 /** Capacity multiplier per adopted task, given bullishness and years elapsed. */
 export function taskGain(bullishness: number, years: number): number {
   const level = AI_INTERNET_TASK_GAIN + (1 - AI_INTERNET_TASK_GAIN) * Math.min(bullishness, 1);
@@ -106,7 +118,8 @@ export function onPopulation(economy: Economy): void {
   );
   const effectivePhysical = economy.params.physicalShare * (1 - robotics);
   const computeCost = economy.wageLevel * (1 - economy.params.computeDecline) ** years;
-  const adopted = computeCost < economy.wageLevel ? span * (1 - effectivePhysical) : 0;
+  const costFactor = computeAdoptionFactor(economy.wageLevel, computeCost);
+  const adopted = span * (1 - effectivePhysical) * costFactor;
   const gain = taskGain(economy.params.bullishness, years);
   economy.aiFactor = 1 + adopted * gain;
   economy.displacementFactor = 1 + adopted * Math.min(gain, 1);
@@ -170,7 +183,11 @@ function removeLastHousehold(economy: Economy): void {
     separate(economy, exiting);
   }
   if (exiting.deposit > 0) {
-    transferDeposit(exiting, heir, exiting.deposit);
+    if (economy.params.bequests === 'skillWeighted') {
+      distributeBequest(economy, exiting);
+    } else {
+      transferDeposit(exiting, heir, exiting.deposit);
+    }
   }
   const debt = exiting.mortgage + exiting.consumerLoan;
   if (debt > 0) {
@@ -184,6 +201,29 @@ function removeLastHousehold(economy: Economy): void {
     }
   }
   economy.households.pop();
+}
+
+function distributeBequest(economy: Economy, exiting: Household): void {
+  const heirs = economy.households.filter((household) => household.id !== exiting.id);
+  if (heirs.length === 0) {
+    return;
+  }
+  const estate = exiting.deposit;
+  exiting.deposit = 0;
+  const parts = splitProportional(
+    estate,
+    powerWeights(
+      heirs.map((household) => household.skill),
+      1,
+    ),
+  );
+  for (let index = 0; index < heirs.length; index += 1) {
+    const heir = heirs[index];
+    const share = parts[index] ?? 0;
+    if (heir && share > 0) {
+      creditDeposit(heir, share);
+    }
+  }
 }
 
 function spawnAgents(economy: Economy, progress: number): void {

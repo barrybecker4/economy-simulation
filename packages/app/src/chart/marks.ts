@@ -85,7 +85,12 @@ export function runMarks(
   if (result.kind === 'run') {
     addShockBands(marks, requireSeries(result.series, 'demandImpulse'), 'demand', style);
     addShockBands(marks, requireSeries(result.series, 'creditImpulse'), 'credit', style);
-    addShockBands(marks, requireSeries(result.series, 'productivityImpulse'), 'productivity', style);
+    addShockBands(
+      marks,
+      requireSeries(result.series, 'productivityImpulse'),
+      'productivity',
+      style,
+    );
   }
   addTransition(marks, result.ticks.length, transitionLength, style);
   return marks;
@@ -120,7 +125,12 @@ export function eventsAt(marks: ChartMarks, month: number): ChartEvent[] {
   return events;
 }
 
-function eventOf(mark: { kind: MarkKind; label: string; color: string; style: MarkStyle }): ChartEvent {
+function eventOf(mark: {
+  kind: MarkKind;
+  label: string;
+  color: string;
+  style: MarkStyle;
+}): ChartEvent {
   return { kind: mark.kind, label: mark.label, color: mark.color, style: mark.style };
 }
 

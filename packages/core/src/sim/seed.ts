@@ -77,6 +77,10 @@ export function blankEconomy(
     paidDepositRate: 0,
     depositInterestPaid: 0,
     tenureChanges: 0,
+    rentToMortgage: 0,
+    mortgageToOwned: 0,
+    mortgageToRent: 0,
+    mortgageOriginations: 0,
     newConsumerBorrowing: 0,
     loanFinance: 0,
     profitSharingFinance: 0,
@@ -84,6 +88,7 @@ export function blankEconomy(
     transitionDone: false,
     creditStress: 0,
     housingPressure: 1,
+    slackMonths: 0,
     populationCredit: 0,
     moneyShares: openingShares({
       bitcoin: BITCOIN_OPENING_SHARE,

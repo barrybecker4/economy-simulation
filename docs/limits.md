@@ -43,8 +43,7 @@ Expected deflation can cut only discretionary goods spending above the food and 
 the food and housing CPI weights. Credit-financed discretionary spending is a later mechanism. When `prices.trendWeight`
 is below 1, the fiat inflation target no longer fully writes the price path.
 
-An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The fixed stock is money growth
-0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0.8, `production.demandWeight` 1,
+An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The fixed stock is money growth 0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0.8, `production.demandWeight` 1,
 deposit pass-through 1, real-return sensitivity 1, bond rate 0.02, anchored expectations, tenure choice on, 12 months of
 opening deposits) so spending can move prices and output, discretionary spending responds to the real return on money,
 and treasury debt pays a coupon. Those thin balances sit under the 48-month spending buffer, so the new money is blended

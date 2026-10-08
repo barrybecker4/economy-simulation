@@ -22,7 +22,7 @@ Registry version: 12.
 - Label: AI adoption midpoint
 - Group: ai
 - Unit: years
-- Default: 20
+- Default: 10
 - Range: 1 to 40
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
@@ -193,6 +193,28 @@ Registry version: 12.
 - Source: The default is near the Basel III common-equity floor, applied here to all loans rather than risk-weighted assets.
 - Description: Minimum bank equity relative to loans. Lending room is equity divided by this ratio, minus loans already outstanding. A higher ratio leaves less room to lend from the same equity and a thicker cushion when loans are written off. A lower ratio does the opposite. Banks start with extra equity so they have room to lend. Equity at or below zero is recorded as a bank failure. The default is near the Basel III common-equity floor, applied here to every loan rather than to risk-weighted assets.
 
+## bank.depositHaircut
+
+- Label: Deposit haircut on resolution
+- Group: credit
+- Unit: share
+- Default: 0
+- Range: 0 to 0.2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of deposits written off when a failed bank is merged or bailed in. The write-down raises bank equity. At 0, merge transfers balances in full and a sole-bank bail-in writes down only as much as needed to restore positive equity. Unused when bank resolution is off.
+
+## bank.depositInterestSubsidy
+
+- Label: Deposit interest subsidy
+- Group: credit
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of any household deposit-interest shortfall the fiat central bank covers after the bank has used borrower interest and equity down to zero. The subsidy adds reserves and equity, then interest is paid to depositors. At 0 there is no subsidy and a thin bank may pay less than the posted rate. Bitcoin and hybrid ignore this slider.
+
 ## bank.depositPassThrough
 
 - Label: Deposit rate pass-through
@@ -215,6 +237,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of deposits that must be backed by central-bank reserves. In the fiat regime, if reserves are short of this share, the central bank creates the gap and credits it to the first bank. That is how fiat base money expands when the requirement binds. Bitcoin and hybrid regimes do not create reserves to meet this number, so the same setting does not expand their base money.
 
+## bank.resolution
+
+- Label: Bank resolution
+- Group: credit
+- Unit: mode
+- Default: off
+- Options: off, merge
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: What happens when bank equity falls to zero or below. Off only marks the bank failed so it stops lending (previous behavior). Merge transfers deposits and loans to a surviving bank by id, or bails in depositors at a sole bank until equity is positive again. Hybrid lender-of-last-resort injection still runs first when the regime is hybrid. The monetary preset uses merge.
+
 ## bitcoin.lendingModel
 
 - Label: Bitcoin lending model
@@ -225,6 +258,17 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How much of household deposits can fund loans when the regime is bitcoin or hybrid. Maturity matched treats 25 percent of household deposits as lendable savings. Full reserve treats 10 percent as lendable savings. New credit in those regimes cannot exceed savings minus loans already outstanding, and the loan rate moves toward the gap between loans and that savings stock. In the fiat regime the central bank sets the policy rate and lending room follows bank capital, so this choice does not change the fiat interest-rate rule.
+
+## bitcoin.marketPriceWeight
+
+- Label: Bitcoin market price weight
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How far the recorded bitcoin exchange rate can move with issuance and trust separately from the goods CPI in satoshis. At 0 the bitcoin price series stays on the previous path. Above 0 it also responds to that month’s issuance relative to coins outstanding and to money.bitcoinTrust.
 
 ## centralBank.bondPurchaseShare
 
@@ -259,6 +303,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How hard the fiat policy rate reacts when inflation misses the target. The rule adds this weight times (inflation minus the target), on top of an inflation term that already enters one-for-one. At 1.5, inflation one percentage point above target adds 1.5 points to the policy rate from this term alone. The weight is used only in the fiat regime. The policy rate cannot fall below zero.
 
+## centralBank.injectionChannel
+
+- Label: Money injection channel
+- Group: centralBank
+- Unit: channel
+- Default: proRataDeposits
+- Options: proRataDeposits, governmentSpending, newLoans, assetPurchase
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits by existing household balances (the previous path). governmentSpending credits the treasury for spending. newLoans credits firm deposits as if banks lent the new money. assetPurchase adds reserves and credits firm deposits like a bond purchase. Contractions still drain household deposits pro rata. Bitcoin and hybrid ignore this slider.
+
 ## centralBank.moneyGrowth
 
 - Label: Fiat money growth
@@ -281,6 +336,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How hard the fiat policy rate reacts when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity. The rule adds this weight times (natural unemployment minus the unemployment rate) times the human share of output. A slack labor market cuts the rate and a tight one raises it. At 0.5 with no AI, unemployment one point below the natural rate adds half a point to the policy rate. Late in adoption the same point gap moves the rate less. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
 
+## centralBank.spendNewMoney
+
+- Label: Spend new money
+- Group: centralBank
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of each household’s new fiat injection blended into smoothed income when prices.trendWeight is below 1, so the money is shopped rather than hoarded. At 0, blending still follows the thin-opening rule (opening deposits below 24 months). Raise it to spend new money even with thick opening deposits. Bitcoin and hybrid ignore this slider.
+
 ## credit.endogenousWeight
 
 - Label: Endogenous credit weight
@@ -292,6 +358,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed credit.leverageStart times household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. At 0 the previous credit path is unchanged.
 
+## credit.householdMortgageShare
+
+- Label: Household mortgage credit share
+- Group: credit
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of each bank’s capital capacity reserved for household mortgages and consumer loans. At 0, households compete with firms for the same lending room, which often leaves no room for new mortgages after the opening book. Above 0, that share of equity over the capital ratio is kept for household credit, and firm lending uses the remainder. The monetary preset uses 0.25.
+
 ## credit.leverageStart
 
 - Label: Credit leverage start
@@ -302,6 +379,17 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Loan-to-deposit ratio above which endogenous credit stress begins to build. At the default of 0.02, calm lending stops once loans exceed 2 percent of household deposits. Raise it toward 1 so calm banks can hold a loan book on the order of deposits before stress cuts lending. Unused when endogenous credit weight is 0.
+
+## credit.rateTransmission
+
+- Label: Policy-rate transmission
+- Group: credit
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How strongly the real policy rate cuts new consumer borrowing and firm capital installation. The factor is max(0, 1 − weight × max(0, policy rate − inflation)). At 0 the previous credit and investment path is unchanged.
 
 ## deflation.sensitivity
 
@@ -533,6 +621,17 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Fraction of the AI slice of monthly nominal GDP paid equally to every household. The AI slice is the AI share of output times price times real GDP. The grant starts at zero when no AI capacity is adopted and rises with that share, so it phases in along the adoption curve rather than as a fixed stipend. At 0.25 with an AI share of 0.36, about 9 percent of that month’s nominal GDP is paid out. Tax, including tax on AI agents, is collected first. If the treasury cannot cover the grant, it issues bonds to the first bank. Households only receive the grant. Agents do not. At 0 the grant is off even while AI is adopted.
+
+## household.durableShare
+
+- Label: Durable spending share
+- Group: behavior
+- Unit: share
+- Default: 0
+- Range: 0 to 0.5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of discretionary goods spending treated as durable purchases that can be delayed when the real return on money is high. At 0 all goods spending is nondurable as before.
 
 ## household.inflationTimePreference
 
@@ -776,6 +875,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of money balances that start as stablecoins. Stablecoin trust and friction are fixed in the model. At 0 none of the opening mix is a stablecoin.
 
+## population.bequests
+
+- Label: Bequest rule
+- Group: background
+- Unit: mode
+- Default: firstHousehold
+- Options: firstHousehold, skillWeighted
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Who receives a household’s deposit when population growth removes that household. firstHousehold keeps the previous transfer to household 0. skillWeighted splits the deposit across remaining households by skill weights.
+
 ## population.growth
 
 - Label: Population growth
@@ -830,6 +940,17 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin or hybrid money the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Category prices are measured against this baseline. Match a category productivity, or housing supply growth, to it and that unscaled price stays flat against the baseline. Set every one of them equal to it to put every price on the CPI.
+
+## productivity.endogenousWeight
+
+- Label: Endogenous productivity weight
+- Group: background
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of productivity growth that tracks capacity utilization (real GDP over a reference staffing path) instead of only the baseline rate. At 0 growth follows productivity.baseGrowth alone.
 
 ## regime.type
 
@@ -919,6 +1040,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of nominal firm loans, mortgages, and consumer loans written off at the conversion month of a transition. At 0 debts convert one-for-one with deposits. Unused when the transition length is 0.
 
+## transition.gradualWeight
+
+- Label: Gradual transition weight
+- Group: regime
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: When a transition window is positive, this share of the debt haircut and deposit reassignment is applied each month of the window instead of only at the last month. At 0 the previous one-step rebase at the end of the window is unchanged. At 1 the full conversion is spread evenly across the window.
+
 ## transition.holderConcentration
 
 - Label: Transition holder concentration
@@ -940,6 +1072,17 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Months of a one-time fiat-to-bitcoin rebase. At 0 there is no transition and regime.type selects a steady rule set. A positive length starts the run on fiat rules (with satoshi balances so holdings can be reassigned), and at the last transition month debts may be haircut, deposits are reassigned by holder concentration, government bonds on bank books are cleared, and the active regime becomes bitcoin. Monetization stays off afterward.
+
+## wage.emergencyFlex
+
+- Label: Emergency wage flexibility
+- Group: behavior
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Extra downward wage flexibility when unemployment stays high. After six months with unemployment more than five points above the natural rate, effective nominal rigidity is multiplied by one minus this value for downward gaps only. At 0 the sticky-wage path is unchanged. At 0.3, rigidity 0.95 behaves like about 0.665 for cuts during a deep slump.
 
 ## wage.nominalRigidity
 

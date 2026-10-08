@@ -14,9 +14,11 @@ import {
   displaced,
   employedCount,
   humanWeight,
+  naturalUnemployment,
   outputGap,
   priceTrend,
   separate,
+  unemploymentRate,
 } from './helpers.js';
 
 /** Monthly wage growth from trend, tightness, and nominal rigidity. */
@@ -66,7 +68,7 @@ export function onLabor(economy: Economy): void {
     hireUpTo(economy, target, vacancyLimit(economy, target));
   } else {
     const target = employmentTarget(economy);
-    shedDownTo(economy, target);
+    shedGradually(economy, target);
     hireUpTo(economy, target, vacancyLimit(economy, target));
   }
   updateWages(economy);
@@ -113,6 +115,9 @@ function vacancyLimit(economy: Economy, target: number): number {
 
 function firmEmploymentTarget(economy: Economy): number {
   const scale = wageHiringScale(economy);
+  // Match the economy-wide quota: an adverse productivity impulse cuts hiring
+  // even though lower capacity would otherwise raise workers-per-sales.
+  const supply = clamp(1 + economy.productivityImpulse, 0.5, 1.5);
   let wanted = 0;
   for (const firm of economy.firms) {
     wanted += workersForSales({
@@ -123,7 +128,7 @@ function firmEmploymentTarget(economy: Economy): number {
       humanWeight: humanWeight(economy),
     });
   }
-  return Math.round(wanted * scale);
+  return Math.round(wanted * scale * supply);
 }
 
 function wageHiringScale(economy: Economy): number {
@@ -149,23 +154,6 @@ function shedGradually(economy: Economy, target: number): void {
     separate(economy, household);
     employed -= 1;
     shed += 1;
-  }
-}
-
-function shedDownTo(economy: Economy, target: number): void {
-  let employed = employedCount(economy);
-  if (employed <= target) {
-    return;
-  }
-  for (const household of economy.households) {
-    if (employed <= target) {
-      break;
-    }
-    if (household.employer < 0) {
-      continue;
-    }
-    separate(economy, household);
-    employed -= 1;
   }
 }
 
@@ -198,10 +186,16 @@ function placeHousehold(economy: Economy, household: Household, perFirm: number)
 
 function updateWages(economy: Economy): void {
   const trend = priceTrend(economy) + monthlyFromAnnual(economy.params.prodGrowth);
+  const gap = unemploymentRate(economy) - naturalUnemployment(economy);
+  economy.slackMonths = gap > 0.05 ? economy.slackMonths + 1 : 0;
+  let rigidity = economy.params.rigidity;
+  if (economy.params.emergencyFlex > 0 && economy.slackMonths >= 6) {
+    rigidity *= 1 - clamp(economy.params.emergencyFlex, 0, 1);
+  }
   const growth = wageGrowth({
     trend,
     tightness: outputGap(economy),
-    rigidity: economy.params.rigidity,
+    rigidity,
   });
   economy.wageLevel *= 1 + growth;
   for (const firm of economy.firms) {

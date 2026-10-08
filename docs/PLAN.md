@@ -228,7 +228,7 @@ plain-language description and a status.
 | Contracts   | deflation.sensitivity                  | 1               | 0 to 5                       |
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
 | AI          | ai.automatableShareEnd                 | 0.9             | 0.3 to 1                     |
-| AI          | ai.adoptionMidpointYear                | 20              | 1 to 40                      |
+| AI          | ai.adoptionMidpointYear                | 10              | 1 to 40                      |
 | AI          | ai.adoptionSteepness                   | 0.15            | 0.1 to 1.5                   |
 | AI          | ai.computeCostDeclineRate (annual)     | 0.3             | 0 to 0.6                     |
 | AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7                     |     | AI  | ai.bullishness | 0   | 0 to 2 |     | AI  | ai.roboticsStartYear | 20  | 0 to 50 |     | AI  | ai.roboticsRampYears | 16  | 1 to 30 |
@@ -924,6 +924,224 @@ Acceptance:
 - With shocks off, unemployment stays within 8 points of the natural rate on the preset.
 - Shorter opening deposits raise velocity.
 
+### Phase 35: Integer-safe stock journal
+
+Goal: fiat stock posts never fail from independent cent rounding of half-cent balances.
+
+1. Firm cash receipts under cents split with a floor and a residual so firm deposits stay integers.
+2. Stock targets round each paired stock once. Private equity is the residual after rounding vault and bank
+   equity, so vault equals bank equity plus private equity in the journal.
+3. Satoshi stock posts seat float drift on private equity so debit equals credit after gradual transition.
+
+Acceptance:
+
+- A half-cent vault residual posts without throwing.
+- A monetary fiat run that previously crashed on seed 5 finishes with a passing audit.
+- A fiat gradual-transition run that previously threw `Debits must equal credits` after rebasing to satoshis finishes
+  with a passing audit.
+- Phase 28 neutral settings are unchanged.
+
+### Phase 36: Deposit interest pays the posted rate
+
+Goal: solvent banks pay nearly the posted deposit rate so the real-return channel is not starved.
+
+1. After firm loan interest, household deposit interest is due at the posted rate.
+2. Funding order: borrower interest, then equity above the capital target, then an optional fiat central-bank
+   interest subsidy (`bank.depositInterestSubsidy`, default 0).
+3. Dividends still wait until after deposit interest. Insolvent banks are left to Phase 38.
+
+Acceptance:
+
+- With pass-through 1 and a solvent bank, the paid deposit rate is at least 90 percent of the posted rate over a
+  calm 24-month window.
+- Pass-through 0 still matches Phase 35.
+
+### Phase 37: Mortgage origination ladder
+
+Goal: renters can originate new mortgages when banks have room, so credit is not only a run-off book.
+
+1. `credit.householdMortgageShare` reserves a fraction of lending room for household mortgages (default 0; monetary
+   preset 0.25).
+2. Tenure choice still compares monthly user costs. Originations and tenure transitions are recorded separately.
+3. Fiat mortgage draws still create matching deposits and loans through the ledger.
+
+Acceptance:
+
+- On the monetary preset, the median rent-to-mortgage count across five seeds is positive over 600 ticks.
+- Credit to GDP can rise after year 5 on a calm path.
+- Stronger expected deflation still lowers new mortgage originations.
+
+### Phase 38: Bank insolvency resolution
+
+Goal: failed banks no longer hold deposits forever. Fiat merges; hybrid keeps lender of last resort; bitcoin has no
+central-bank backstop.
+
+1. `bank.resolution` is `off` or `merge` (default `off`; monetary preset `merge`).
+2. `bank.depositHaircut` (default 0) optionally writes off a share of transferred deposits.
+3. On failure under merge: move deposits and loans to a surviving bank by id, wipe the failed bank's equity, and apply
+   the haircut. Hybrid still injects capital when equity is negative unless resolution is merge-only.
+4. A failed bank stops lending the same tick.
+
+Acceptance:
+
+- After a merge, deposits remain spendable and the ledger audit passes.
+- Aggregate bank equity stays non-negative far more often on the monetary fiat seed band.
+- Hybrid still differs from bitcoin under credit shocks (lender of last resort versus none).
+
+### Phase 39: Supply shock and firm-level hiring
+
+Goal: an adverse productivity shock raises unemployment on both hiring paths.
+
+1. Firm-level hiring scales labor demand with the productivity impulse the same way the economy-wide quota does.
+2. A negative productivity impulse raises unemployment while the shock is active.
+
+Acceptance:
+
+- Phase 34 acceptance tests still pass.
+- With firm-level hiring on, a negative productivity shock raises unemployment relative to the calm path.
+- The ledger audit still passes.
+
+### Phase 40: Money injection channel
+
+Goal: how new fiat money enters is a choice, so Cantillon effects can be tested.
+
+1. `centralBank.injectionChannel`: `proRataDeposits` (default), `governmentSpending`, `newLoans`, or `assetPurchase`.
+2. Neutral `proRataDeposits` matches Phase 39 money growth. Other channels keep the same annual growth rate but change
+   who first holds the new money.
+
+Acceptance:
+
+- `proRataDeposits` matches the previous fiat money-growth path.
+- Another channel changes wealth Gini or sector deposits at the same growth rate.
+- A helicopter raise still moves the CPI under the monetary preset.
+
+### Phase 41: Defaults, idle money, and inflation pursuit
+
+Goal: demand-led prices can chase the inflation target without hoarding every new dollar.
+
+1. Document that the registry default `prices.trendWeight` is 1 (money-irrelevant) while the app and monetary preset
+   use 0.
+2. `centralBank.spendNewMoney` (default 0) blends a share of new fiat into smoothed income when trend weight is below 1,
+   even with thick opening deposits.
+3. Recheck fiat inflation near target on the monetary preset with shocks off.
+
+Acceptance:
+
+- A 50 percent helicopter raise still lifts the CPI by more than 1 percent within two years on the monetary preset.
+- Velocity is higher than under the thick registry-default opening stock.
+- Bitcoin is unchanged by the fiat-only blend slider.
+
+### Phase 42: Extreme sticky-wage guard
+
+Goal: very sticky wages no longer drive near-total unemployment under routine shocks.
+
+1. `wage.emergencyFlex` (default 0) temporarily lowers effective nominal rigidity when unemployment sits above the
+   natural rate plus a gap for several months.
+2. At 0 the Phase 41 path is unchanged.
+
+Acceptance:
+
+- With rigidity 0.95 and emergency flex 0.3, unemployment stays below 50 percent on an E6-style demand-shock scenario.
+- Emergency flex 0 leaves the flexible-wage and sticky-wage Phase 41 paths unchanged.
+
+### Phase 43: Monetary transmission
+
+Goal: the policy rate affects spending and investment beyond deposit pass-through alone.
+
+1. Optional sliders scale firm investment and consumer credit with the real policy rate.
+2. Neutral settings match Phase 42.
+
+Acceptance:
+
+- A higher policy rate cuts new borrowing or investment when the transmission weight is positive.
+- Weight 0 matches Phase 42.
+
+### Phase 44: Gradual dual-currency transition
+
+Goal: a multi-month transition is not a one-step rebase delayed by the window length.
+
+1. Conversion and any debt haircut apply month by month over `transition.lengthMonths`.
+2. Lengths 1, 12, and 60 produce meaningfully different paths.
+
+Acceptance:
+
+- Length 0 still matches steady fiat or bitcoin.
+- Length 12 differs from length 1 in wealth Gini or credit within seed bands.
+- The ledger conserves at each conversion tick.
+
+### Phase 45: Bitcoin market price
+
+Goal: bitcoin can have an exchange rate against goods or fiat that is not identical to the satoshi CPI path.
+
+1. A market price for bitcoin is recorded separately from category goods prices in satoshis.
+2. Neutral settings keep today's single index.
+
+Acceptance:
+
+- Neutral settings match Phase 44.
+- A positive market-price channel moves the bitcoin exchange rate without breaking the ledger audit.
+
+### Phase 46: Durable purchases and money demand
+
+Goal: households time durable purchases with the real return on money and expected deflation.
+
+1. A durable budget sits beside nondurable goods spending.
+2. Neutral sensitivity 0 matches Phase 45.
+
+Acceptance:
+
+- Higher real returns delay durables when sensitivity is positive.
+- Sensitivity 0 matches Phase 45 spending.
+
+### Phase 47: Endogenous productivity
+
+Goal: productivity can respond to utilization or R&D effort instead of only `productivity.baseGrowth`.
+
+1. A slider mixes endogenous growth with the baseline path.
+2. Neutral weight 0 matches Phase 46.
+
+Acceptance:
+
+- Weight 0 matches Phase 46.
+- A positive weight raises productivity when utilization is high relative to a calm path.
+
+### Phase 48: Life cycle and bequests
+
+Goal: exits transfer wealth on purpose, and age or tenure cohorts can shape saving.
+
+1. Bequest rules on household exit replace the ad-hoc transfer to the first household when enabled.
+2. Neutral off matches Phase 47.
+
+Acceptance:
+
+- Off matches Phase 47.
+- On, exits raise recipient wealth and the ledger audit passes.
+
+### Phase 49: Inequality and velocity calibration
+
+Goal: opening distributions and equity claims can target higher wealth Gini and higher velocity without one magic knob.
+
+1. Calibrate opening wealth, equity valuation, and bequests against stated targets on the monetary preset.
+2. Morris screening reports which sliders move Gini and velocity.
+
+Acceptance:
+
+- Wealth Gini on the monetary preset can exceed 0.6 under concentrated ownership settings.
+- Velocity rises relative to the Phase 34 thick-deposit baseline when opening deposits are thin.
+
+### Phase 50: Design symmetry cleanup
+
+Goal: reduce fiat-only and opening-tenure asymmetries that block fair regime comparisons.
+
+1. Document or soft-enable bitcoin/hybrid fiscal limits as the counterpart to the fiat stabilizer.
+2. Optional endogenous opening tenure; payment-friction defaults stay labeled guesses.
+3. Hybrid versus bitcoin differences are documented when there is no bank failure.
+
+Acceptance:
+
+- Stabilizer 0 and friction defaults still match Phase 49 when untouched.
+- A methods note lists remaining asymmetries.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
@@ -957,5 +1175,7 @@ tests on a fixed set of seeds. Each test states a tolerance. Failures report the
   investment hurdle is on.
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
-- A bitcoin price separate from goods prices in satoshis.
-- Hypotheses beyond H1–H8.
+- Hypotheses beyond H1–H9.
+- Mechanisms sketched in Phases 43–50 until those phases land: rate transmission beyond deposits, a gradual dual-currency
+  transition, a bitcoin market price separate from goods prices in satoshis, durable purchase timing, endogenous
+  productivity, life-cycle bequests, inequality and velocity calibration, and design-symmetry cleanup.

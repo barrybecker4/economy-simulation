@@ -148,14 +148,16 @@ export function creditFirms(economy: Economy, amount: number): void {
   if (amount <= 0 || economy.firms.length === 0) {
     return;
   }
-  const each = amount / economy.firms.length;
+  const count = economy.firms.length;
+  const cents = economy.params.unit === 'cent';
+  const each = cents ? Math.floor(amount / count) : amount / count;
   let paid = 0;
-  for (let index = 0; index < economy.firms.length; index += 1) {
+  for (let index = 0; index < count; index += 1) {
     const firm = economy.firms[index];
     if (!firm) {
       continue;
     }
-    const share = index === economy.firms.length - 1 ? amount - paid : each;
+    const share = index === count - 1 ? amount - paid : each;
     firm.deposit += share;
     paid += share;
   }
@@ -170,6 +172,18 @@ export function payDepositInterest(
   bank.equity -= interest;
   household.deposit += interest;
   economy.privateEquity += interest;
+}
+
+/**
+ * Fiat central-bank cover for deposit interest: reserves and equity rise together
+ * so books stay closed, then payDepositInterest can move that equity to depositors.
+ */
+export function subsidizeDepositInterest(bank: Bank, amount: number): void {
+  if (amount <= 0) {
+    return;
+  }
+  bank.equity += amount;
+  bank.reserves += amount;
 }
 
 /**
@@ -199,9 +213,12 @@ export function clearBonds(bank: Bank): void {
  */
 export function resetFailedFirmAccounts(
   firm: Firm,
-  _bank: Bank | undefined,
-  _economy: Economy,
-  _deposit: number,
+  _bank?: Bank,
+  _economy?: Economy,
+  _deposit?: number,
 ): void {
+  void _bank;
+  void _economy;
+  void _deposit;
   firm.loan = 0;
 }

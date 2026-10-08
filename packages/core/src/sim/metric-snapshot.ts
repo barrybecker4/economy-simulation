@@ -16,6 +16,10 @@ export interface TenureReading {
   rentCount: number;
   ownedCount: number;
   tenureChanges: number;
+  mortgageOriginations: number;
+  rentToMortgage: number;
+  mortgageToOwned: number;
+  mortgageToRent: number;
   consumerCredit: number;
   medianDebtService: number;
   newConsumerBorrowing: number;

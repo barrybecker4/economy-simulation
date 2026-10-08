@@ -12,7 +12,6 @@ out of them.
 to, and what they need back. The questions in the document then target the **gap** between what the recipient knows and
 what the user needs.
 
-
 1. **Who is it going to?** Ask, in one exchange, the recipient's role, expertise, and relationship to the user. This
    fixes the questionnaire's tone and how much context it must carry. Done when you know who the recipient is and what
    they know that the user doesn't.
@@ -59,6 +58,7 @@ invite a throwaway answer.
 _Why this matters: it decides whether we provision for burst traffic now or defer it._
 
 >
+
 </question-example>
 
 ## Anything else?

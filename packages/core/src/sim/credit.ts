@@ -7,7 +7,9 @@ import {
   referenceWorkersPerFirm,
 } from './helpers.js';
 import { payHouseholdDepositInterest } from './central-bank.js';
+import { rateTransmissionFactor } from './contracts.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
+import { resolveInsolventBanks } from './resolution.js';
 import {
   CREDIT_IMPULSE_DRAW,
   DEFLATION_REPAY_RATE,
@@ -89,6 +91,7 @@ export function endogenousBorrowing(input: {
 }
 
 export function onCredit(economy: Economy): void {
+  resolveInsolventBanks(economy);
   economy.investmentSpend = 0;
   economy.realInvestment = 0;
   economy.interestPaid = 0;
@@ -216,6 +219,7 @@ function invest(
     economy.creditImpulse > 0
       ? gap
       : Math.min(gap, Math.max(firm.capital * MONTHLY_DEPRECIATION, gap / 12));
+  const transmission = rateTransmissionFactor(economy);
   const hurdleOn = economy.params.investmentHurdle === 'on';
   const clears =
     !hurdleOn ||
@@ -231,9 +235,9 @@ function invest(
       1,
       firm.workers.length * (1 + Math.max(0, economy.creditImpulse)),
     );
-    drawExpansionLoan(economy, firm, Math.max(0, borrowTarget - firm.capital));
+    drawExpansionLoan(economy, firm, Math.max(0, borrowTarget - firm.capital) * transmission);
   }
-  const decision = hurdleInvestment(monthInstall, clears);
+  const decision = hurdleInvestment(monthInstall * transmission, clears);
   firm.capital += decision.installed;
   economy.realInvestment += decision.installed;
   economy.investmentSpend += decision.installed * firm.price;

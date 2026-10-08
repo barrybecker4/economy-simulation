@@ -67,11 +67,7 @@ function seriesSentence(item: CaptionSeries): string | null {
   return `${body} ${verdict}`;
 }
 
-function endingBody(
-  item: CaptionSeries,
-  ending: CompareSide,
-  path: CompareSide,
-): string {
+function endingBody(item: CaptionSeries, ending: CompareSide, path: CompareSide): string {
   if (ending === 'same') {
     if (path === 'same') {
       return `${item.label} matches the baseline.`;

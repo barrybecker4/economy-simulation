@@ -9,7 +9,10 @@
     "housing.tenureChoice": "on",
     "credit.endogenousWeight": 1,
     "credit.leverageStart": 1,
+    "credit.householdMortgageShare": 0.25,
+    "housing.mortgageLtv": 0.95,
     "bank.capitalRatio": 0.04,
+    "bank.resolution": "merge",
     "household.openingDepositMonths": 12
   }
 }
