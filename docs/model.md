@@ -268,8 +268,14 @@ own, matching the approximate U.S. homeownership rate in 2026, and `housing.open
 holds the mortgages, and the rest rent. An opening mortgage is the loan-to-value share of 48 months of that household's
 income, at the opening loan rate and the mortgage term. It is outstanding principal, not a new deposit: the purchase
 was in the past. Each bank's book is scaled down if it would leave that bank's reserves short of the reserve
-requirement. A household whose principal rounds to zero owns outright. Each month a household then picks rent, a
-nominal mortgage, or cash ownership by the lowest expected real burden. Expected deflation raises the mortgage burden. Shelter stays inside the
+requirement. A household whose principal rounds to zero owns outright. Each month a household draws against `housing.adjustmentRate` (default 0.01). Only those who draw may switch
+tenure, so one cheap month cannot move the whole stock. A household who may switch picks rent, a nominal mortgage, or
+cash ownership by the lowest expected real burden. That burden adds the household's time preference minus the mean, so
+the median household is near the rent-mortgage margin at the neutral loan rate and impatient households keep renting.
+Expected deflation raises the mortgage burden. A new mortgage credits the principal to firms. The buyer pays only the
+down payment and does not keep the principal. Total deposits rise by the principal. A mortgagor does not sell the
+house back into firm deposits: that would pull working capital out of payroll. Tenure moves from mortgage to rent
+only when the loan is repaid or foreclosed. Shelter stays inside the
 food and housing floor. New consumer loans fund only discretionary spending and shrink with the penalty, down to zero.
 Household mortgages and consumer loans join total credit. When `housing.marketClearing` is off there is no separate
 housing quantity market; the category price stays the formula above. See [ADR 0004](adr/0004-housing-tenure-index.md).

@@ -72,9 +72,13 @@ export function payFirmInterest(firm: Firm, bank: Bank, economy: Economy, intere
   economy.privateEquity -= interest;
 }
 
-export function drawMortgage(household: Household, principal: number): void {
+/**
+ * New mortgage: the principal is a new deposit paid to firms, the sellers.
+ * The buyer does not keep it. The down payment is transferred separately.
+ */
+export function drawMortgage(household: Household, economy: Economy, principal: number): void {
   household.mortgage = principal;
-  household.deposit += principal;
+  creditFirms(economy, principal);
 }
 
 export function repayMortgage(household: Household, amount: number): void {

@@ -48,6 +48,7 @@ describe('phase 29 housing user cost', () => {
       ...small,
       'regime.type': 'bitcoin',
       'housing.tenureChoice': 'on',
+      'housing.adjustmentRate': 1,
       'deflation.sensitivity': 0,
       ticks: 60,
     });
@@ -55,6 +56,7 @@ describe('phase 29 housing user cost', () => {
       ...small,
       'regime.type': 'bitcoin',
       'housing.tenureChoice': 'on',
+      'housing.adjustmentRate': 1,
       'deflation.sensitivity': 5,
       ticks: 60,
     });

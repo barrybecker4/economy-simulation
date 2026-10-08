@@ -114,21 +114,25 @@ export function onContractChoice(economy: Economy): void {
     const homePrice = moneyAmount(economy, income * HOME_PRICE_MONTHS * scarcity);
     const downPayment = moneyAmount(economy, homePrice * (1 - ltv));
     const maxLoan = moneyAmount(economy, homePrice * ltv);
+    const impatience = (homePrice * (household.timePref - economy.params.timePrefMean)) / 12;
     const rentBurden = monthlyRentCost(homePrice);
-    const ownedBurden = monthlyOwnedCost(homePrice, loanRate, expectedDeflation);
+    const ownedBurden = monthlyOwnedCost(homePrice, loanRate, expectedDeflation) + impatience;
     // Burden uses loan rate plus expected deflation so deflation raises the real
     // cost of a long nominal mortgage. The booked payment uses the contractual
-    // loan rate only.
-    // Payment at the loan rate plus expected deflation, plus the opportunity
-    // cost of the down payment. Deflation raises the mortgage burden.
+    // loan rate only. Impatience is this household's time preference against the
+    // mean, so the median household stays near the rent-mortgage margin.
     const mortgageBurden =
       monthlyMortgagePayment(maxLoan, loanRate + expectedDeflation, termYears) +
-      monthlyOwnedCost(downPayment, loanRate, expectedDeflation);
+      monthlyOwnedCost(downPayment, loanRate, expectedDeflation) +
+      impatience;
     const choice = tenureFromBurdens({
       rent: rentBurden,
       mortgage: mortgageBurden,
       owned: ownedBurden,
     });
+    if (household.search.uniform() >= economy.params.housingAdjustment) {
+      continue;
+    }
     if (household.tenure !== choice) {
       economy.tenureChanges += 1;
     }
@@ -159,7 +163,7 @@ export function onContractChoice(economy: Economy): void {
         if (downPayment > 0) {
           payCashForHome(household, economy, downPayment);
         }
-        drawMortgage(household, principal);
+        drawMortgage(household, economy, principal);
         household.mortgagePayment = moneyAmount(
           economy,
           monthlyMortgagePayment(principal, loanRate, termYears),

@@ -721,6 +721,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How widely patience differs across households. Each household draws a normal rate around the mean time preference, then the draw is kept between 1 and 15 percent a year. A household above the mean spends a larger share of smoothed income; one below the mean saves more. A wider spread fans consumption and deposit balances apart. At zero, every household has the mean rate and no patience draw is used.
 
+## housing.adjustmentRate
+
+- Label: Tenure adjustment rate
+- Group: credit
+- Unit: 1/month
+- Default: 0.01
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of households who may switch tenure in one month when tenure choice is on. Each household draws against its own stream, so a cheap loan rate cannot move the whole eligible stock in the opening tick. Opening tenure is unchanged until a household draws a switch. At 1 every household reconsiders every month. At 0 tenure stays at the opening mix. Unused when tenure choice is off.
+
 ## housing.consumerCreditLimit
 
 - Label: Consumer credit limit

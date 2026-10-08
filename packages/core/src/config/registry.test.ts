@@ -68,6 +68,7 @@ const EXPECTED_IDS = [
   'goods.recreationProductivity',
   'deflation.sensitivity',
   'housing.tenureChoice',
+  'housing.adjustmentRate',
   'housing.openingOwnerShare',
   'housing.openingMortgageShareOfOwners',
   'housing.mortgageTermYears',

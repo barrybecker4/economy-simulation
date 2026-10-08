@@ -100,6 +100,16 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     'Whether households choose rent, a nominal mortgage, or cash ownership. Off keeps the penalty formulas for non-mortgage housing and property turnover, and households hold no mortgages or consumer loans. On: households open already housed at the opening owner share, then each month pick the tenure with the lowest expected real burden. Expected deflation raises the mortgage burden, so fewer new mortgages are taken. Shelter stays inside the food and housing spending floor. Consumer loans fund only discretionary spending above that floor and fall as the deflation penalty rises, down to zero. Household loans count in total credit and the bank capital rule.',
   ),
   numberSlider(
+    'housing.adjustmentRate',
+    'Tenure adjustment rate',
+    'credit',
+    '1/month',
+    0.01,
+    0,
+    1,
+    'Share of households who may switch tenure in one month when tenure choice is on. Each household draws against its own stream, so a cheap loan rate cannot move the whole eligible stock in the opening tick. Opening tenure is unchanged until a household draws a switch. At 1 every household reconsiders every month. At 0 tenure stays at the opening mix. Unused when tenure choice is off.',
+  ),
+  numberSlider(
     'housing.openingOwnerShare',
     'Opening owner share',
     'credit',

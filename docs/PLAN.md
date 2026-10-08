@@ -1211,6 +1211,26 @@ Acceptance:
 - On the monetary preset, fiat and bitcoin rates over ticks 0–6 do not include both 0 and a print above 10 percent.
 - A sustained inflation gap still lifts the published rate.
 
+### Phase 55: Mortgages are a housing trade
+
+Goal: a new mortgage pays the seller, the buyer does not keep the principal, and one cheap month cannot flip the
+whole tenure stock.
+
+1. The principal is credited to firms. The buyer pays the down payment.
+2. User cost includes the household's time preference relative to the mean.
+3. `housing.adjustmentRate` (default 0.01) is the share of households who may switch tenure in a month. A mortgagor
+   stays until the loan is repaid or foreclosed. Reselling into firm deposits pulls working capital out of payroll
+   and spikes unemployment. A value near 0.04 lets a decade of cheap-rate months move the renter share by more than
+   10 points, because those months convert renters and they do not switch back.
+
+Acceptance:
+
+- The buyer's deposit falls by the down payment. Firm deposits rise by the home price. Total deposits rise by the
+  principal.
+- Originations continue after the opening months, and the end renter share stays within 10 points of the opening share.
+- A higher expected deflation rate raises the contractual mortgage payment. Bitcoin foreclosures are not several times
+  the fiat count unless bitcoin debt service is higher.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
