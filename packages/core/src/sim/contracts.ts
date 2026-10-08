@@ -1,16 +1,16 @@
 import type { Economy } from './economy.js';
+import { bankCreditRoom, mortgageCreditRoom } from './banking.js';
+import { fundFromBitcoin } from './dual-currency.js';
 import {
   chargeEquityForDefault,
   drawConsumerLoan,
   drawMortgage,
-  fundFromBitcoin,
   payCashForHome,
   payMortgageInterest,
   repayConsumerLoan,
   repayMortgage,
   setMortgage,
 } from './money.js';
-import { bankCreditRoom, mortgageCreditRoom } from './banking.js';
 import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
 import { updateHousingPressure } from './housing.js';
 import { resolveInsolventBanks } from './resolution.js';

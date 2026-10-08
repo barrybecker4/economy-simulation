@@ -1,13 +1,8 @@
 import { powerWeights, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { separate } from './helpers.js';
-import {
-  chargeEquityForDefault,
-  creditDeposit,
-  foldBitcoinCash,
-  foldBitcoinLoan,
-  transferDeposit,
-} from './money.js';
+import { foldBitcoinCash, foldBitcoinLoan } from './dual-currency.js';
+import { chargeEquityForDefault, creditDeposit, transferDeposit } from './money.js';
 import { AI_INTERNET_TASK_GAIN, AI_UNBOUNDED_GROWTH } from './rules.js';
 
 /** Skill weights to this power, so an estate concentrates on the highest-skill heirs. */

@@ -1,5 +1,5 @@
 import { exactCentSum } from '../money/amount.js';
-import { adjustBankEquity } from './capital-identity.js';
+import { bitcoinDepositUnits, bitcoinLoanUnits } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import { clamp } from './stats.js';
 
@@ -16,7 +16,7 @@ export interface CentAggregates {
 export function moneyBalances(economy: Economy): { fiat: number; bitcoin: number } {
   return {
     fiat: fiatDeposits(economy),
-    bitcoin: bitcoinUnits(economy) * economy.bitcoinPrice,
+    bitcoin: bitcoinDepositUnits(economy) * economy.bitcoinPrice,
   };
 }
 
@@ -71,25 +71,6 @@ export function bondNumber(bank: Economy['banks'][number]): number {
   return bank.bonds + Number(bank.bondsOver);
 }
 
-/**
- * A bitcoin price move revalues units. Seat that gap on bank equity so
- * loans + reserves + bonds + vault still equals deposits + equity.
- */
-export function markBitcoinToMarket(economy: Economy): void {
-  const price = economy.bitcoinPrice;
-  if (!(price > 0)) {
-    return;
-  }
-  const deposits = bitcoinUnits(economy) * price;
-  const loans = bitcoinLoanUnits(economy) * price;
-  const equityGap = loans - economy.bitcoinLoanCarried - (deposits - economy.bitcoinCarried);
-  if (Math.abs(equityGap) > 1e-9) {
-    adjustBankEquity(economy.banks[0], economy, equityGap);
-  }
-  economy.bitcoinCarried = deposits;
-  economy.bitcoinLoanCarried = loans;
-}
-
 function fiatDeposits(economy: Economy): number {
   let total = economy.govDeposits;
   for (const household of economy.households) {
@@ -131,7 +112,7 @@ function* fiatDepositParts(economy: Economy): Iterable<number> {
   for (const agent of economy.agents) {
     yield agent.deposit;
   }
-  yield bitcoinUnits(economy) * economy.bitcoinPrice;
+  yield bitcoinDepositUnits(economy) * economy.bitcoinPrice;
 }
 
 function* fiatLoanParts(economy: Economy): Iterable<number> {
@@ -154,20 +135,6 @@ function* bankParts(
   }
 }
 
-function bitcoinUnits(economy: Economy): number {
-  let total = economy.govBitcoin;
-  for (const household of economy.households) {
-    total += household.bitcoin;
-  }
-  for (const firm of economy.firms) {
-    total += firm.bitcoin;
-  }
-  for (const agent of economy.agents) {
-    total += agent.bitcoin;
-  }
-  return total;
-}
-
 function fiatLoans(economy: Economy): number {
   let total = 0;
   for (const firm of economy.firms) {
@@ -175,17 +142,6 @@ function fiatLoans(economy: Economy): number {
   }
   for (const household of economy.households) {
     total += household.mortgage + household.consumerLoan;
-  }
-  return total;
-}
-
-function bitcoinLoanUnits(economy: Economy): number {
-  let total = 0;
-  for (const firm of economy.firms) {
-    total += firm.bitcoinLoan;
-  }
-  for (const household of economy.households) {
-    total += household.bitcoinMortgage + household.bitcoinConsumer;
   }
   return total;
 }

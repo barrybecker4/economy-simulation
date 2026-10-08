@@ -99,6 +99,10 @@ _Avoid_: savings rate, policy rate (those set the posted coupon; this is the pay
 Hybrid central-bank capital support for insolvent banks, run once per tick before resolution may merge or bail in.
 _Avoid_: bail-in, bank resolution (those happen after support if equity is still negative)
 
+**Carried bitcoin**:
+The ledger value of outstanding bitcoin units at the price they were acquired or last marked, so a price move can seat on bank equity.
+_Avoid_: bitcoin balance (that is the unit count; this is the value stock)
+
 ## Events
 
 **Shock**:

@@ -2,12 +2,14 @@ import { powerWeights, splitResidual } from './allocate.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import {
-  chargeEquityForDefault,
-  clearBonds,
   creditBitcoin,
   creditBitcoinLoan,
   foldBitcoinCash,
   foldBitcoinLoan,
+} from './dual-currency.js';
+import {
+  chargeEquityForDefault,
+  clearBonds,
   setConsumerLoan,
   setDeposit,
   setFirmLoan,

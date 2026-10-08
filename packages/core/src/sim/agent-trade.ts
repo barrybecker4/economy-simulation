@@ -1,12 +1,7 @@
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
-import {
-  collectBankFee,
-  creditDeposit,
-  debitDeposit,
-  payFromCash,
-  spendableCash,
-} from './money.js';
+import { payFromCash, spendableCash } from './dual-currency.js';
+import { collectBankFee, creditDeposit, debitDeposit } from './money.js';
 import { AI_SERVICE_PRICE_CAP, AI_SERVICE_WAGE_SHARE } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare } from './spending.js';

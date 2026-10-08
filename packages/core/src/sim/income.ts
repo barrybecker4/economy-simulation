@@ -1,7 +1,8 @@
 import { powerWeights, splitEqual, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { pay } from './helpers.js';
-import { availableCash, creditDeposit, debitDeposit, payFromCash } from './money.js';
+import { availableCash, payFromCash } from './dual-currency.js';
+import { creditDeposit, debitDeposit } from './money.js';
 import { PROFIT_SKILL_EXPONENT, UNEMPLOYED_TRANSFER } from './rules.js';
 import type { Firm } from './types.js';
 

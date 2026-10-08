@@ -2,7 +2,7 @@ import { tradeAgents, shopAgents, type GoodsMarket } from './agent-trade.js';
 import { firmCapacity } from './capacity.js';
 import type { Economy } from './economy.js';
 import { expectedInflation, normalInflation, pay, priceTrend } from './helpers.js';
-import { payFromCash, spendableCash } from './money.js';
+import { payFromCash, spendableCash } from './dual-currency.js';
 import { inventoryPressure, monthlyPriceMove } from './pricing.js';
 import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
 import { buyFromFirms } from './shop.js';
