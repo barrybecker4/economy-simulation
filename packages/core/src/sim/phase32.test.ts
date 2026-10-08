@@ -65,7 +65,9 @@ describe('phase 32 monetary comparison preset', () => {
       ticks: 120,
     });
     expect(result.audit.ok).toBe(true);
-    expect(endOverStart(result, 'moneySupply')).toBeGreaterThan(1);
+    // Base money follows the growth rule. Broad money can sit near its opening
+    // level when surviving banks keep collecting loan repayments.
+    expect(endOverStart(result, 'baseMoney')).toBeGreaterThan(1);
     // Relative prices: scarce categories rise versus electronics even when the
     // headline CPI path is demand-led and soft.
     const electronics = endOverStart(result, 'priceElectronics');

@@ -61,6 +61,8 @@ export interface Economy {
   /** Annualized rate actually credited on household deposits last payment. */
   paidDepositRate: number;
   depositInterestPaid: number;
+  /** Fiat interest on reserves credited this tick, already inside the money stock. */
+  reserveInterestPaid: number;
   tenureChanges: number;
   rentToMortgage: number;
   mortgageToOwned: number;

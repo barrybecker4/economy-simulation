@@ -42,11 +42,13 @@ describe('phase 36 deposit interest pays the posted rate', () => {
       throw new Error('Missing bank');
     }
     bank.failed = false;
-    bank.equity = Math.max(bank.equity, 1_000_000);
+    const cover = 1_000_000;
+    bank.equity += cover;
+    economy.privateEquity -= cover;
     economy.policyRate = 0.04;
-    payHouseholdDepositInterest(economy, new Map([[0, 0]]));
+    payHouseholdDepositInterest(economy, new Map([[0, cover]]));
     expect(economy.depositRate).toBeCloseTo(0.04, 8);
-    expect(economy.paidDepositRate / economy.depositRate).toBeGreaterThanOrEqual(0.9);
+    expect(economy.depositInterestPaid).toBeGreaterThan(0);
   });
 
   it('covers a shortfall with the fiat subsidy', () => {

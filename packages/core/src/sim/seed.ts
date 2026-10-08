@@ -76,6 +76,7 @@ export function blankEconomy(
     depositRate: 0,
     paidDepositRate: 0,
     depositInterestPaid: 0,
+    reserveInterestPaid: 0,
     tenureChanges: 0,
     rentToMortgage: 0,
     mortgageToOwned: 0,

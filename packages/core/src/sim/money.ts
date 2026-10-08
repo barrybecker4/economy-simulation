@@ -175,15 +175,16 @@ export function payDepositInterest(
 }
 
 /**
- * Fiat central-bank cover for deposit interest: reserves and equity rise together
- * so books stay closed, then payDepositInterest can move that equity to depositors.
+ * Fiat central-bank cover: reserves and equity rise together, and private equity
+ * falls so vault still equals equity plus private equity. Vault itself is unchanged.
  */
-export function subsidizeDepositInterest(bank: Bank, amount: number): void {
+export function subsidizeDepositInterest(bank: Bank, economy: Economy, amount: number): void {
   if (amount <= 0) {
     return;
   }
   bank.equity += amount;
   bank.reserves += amount;
+  economy.privateEquity -= amount;
 }
 
 /**

@@ -153,6 +153,11 @@ function repayStressedLoans(economy: Economy): void {
   }
 }
 
+/** New firm credit cannot push the loan above the capital value. */
+function loanHeadroom(firm: Firm): number {
+  return Math.max(0, Math.round(firm.capital * firm.price - firm.loan));
+}
+
 function drawEndogenousCredit(economy: Economy): void {
   const wanted = endogenousBorrowing({
     weight: economy.params.endogenousWeight,
@@ -169,7 +174,11 @@ function drawEndogenousCredit(economy: Economy): void {
       continue;
     }
     const room = bankCreditRoom(economy, firm.bank);
-    const borrowed = Math.min(moneyAmount(economy, share), Math.max(0, Math.round(room)));
+    const borrowed = Math.min(
+      moneyAmount(economy, share),
+      Math.max(0, Math.round(room)),
+      loanHeadroom(firm),
+    );
     if (borrowed <= 0) {
       continue;
     }

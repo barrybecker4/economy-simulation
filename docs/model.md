@@ -234,7 +234,7 @@ outstanding mortgage when tenure switches to owned.
 When `credit.endogenousWeight` is above zero, stress rises with loan losses and with loans above `credit.leverageStart`
 times household deposits (default 0.02), and decays otherwise. While stress is low, lending room is wider by
 `1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household deposits once a
-year, inside the wider room. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay. At
+year, inside the wider room and not above the firm's capital value. Expansion loans that fund new capital are outside that cap. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay. At
 weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The
 payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next from equity
 (including that borrower interest) down to zero, with an optional fiat central-bank subsidy for any shortfall, then
@@ -307,10 +307,13 @@ policy rate = max(0, time preference + inflation + inflationWeight * (inflation 
 ```
 
 `bank.depositPassThrough` times the policy rate is the posted deposit rate. Household interest is paid after firm loan
-interest and before bank dividends. Funding uses bank equity already on the books (including that tick's borrower
-interest) down to zero, then under fiat a `bank.depositInterestSubsidy` share of any shortfall is covered by new
-reserves and equity from the central bank. The annualized rate actually paid enters the real return on money in the
-goods budget. At pass-through 0, deposits pay nothing. At subsidy 0 a thin bank may still pay less than the posted rate.
+interest and before bank dividends. Funding is this tick's borrower interest, plus, under fiat, interest on reserves at
+the policy rate, and only up to the gap in the coupon and the steady-state money-growth budget. That reserve interest is new base money and is subtracted from the same tick's money-growth injection,
+so the growth rule still hits its annual path. The capital buffer is not spent. Under fiat, `bank.depositInterestSubsidy`
+can cover a share of any shortfall with new reserves and equity; private equity falls by the same amount so vault still
+equals bank equity plus private equity. The annualized rate actually paid enters the real return on money in the
+goods budget. At pass-through 0, deposits pay nothing. At subsidy 0 a bank pays only what loan interest and, under
+fiat, reserve interest cover. See [ADR 0011](adr/0011-deposit-interest-funding.md).
 `centralBank.moneyGrowth` (default 1) changes fiat deposits and bank reserves together by that weight times
 `(inflation target + baseline productivity + inflation gap) / 12` times deposits. On the 2 percent target with 1 percent
 productivity growth, that is about 3 percent a year when inflation is on target. A contraction draws reserves from banks

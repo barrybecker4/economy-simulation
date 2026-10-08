@@ -83,7 +83,9 @@ export function growFiatMoney(economy: Economy): void {
   }
   const raw = deposits * monthly;
   const capped = clamp(raw, -0.05 * deposits, 0.05 * deposits);
-  const amount = moneyAmount(economy, capped);
+  // Reserve interest was already created this tick. Net it out so the growth
+  // rule still hits the same annual path.
+  const amount = moneyAmount(economy, capped) - economy.reserveInterestPaid;
   if (amount === 0) {
     return;
   }
@@ -245,7 +247,10 @@ function setFiatPolicy(economy: Economy): void {
 
 function accommodateReserves(economy: Economy): void {
   const required = Math.round(economy.params.reserveRequirement * totalDeposits(economy));
-  const reserves = economy.banks.reduce((sum, bank) => sum + bank.reserves, 0);
+  // Reserve interest already added reserves this tick. Ignore that slice so the
+  // requirement still tops up the same lending gap as before the interest credit.
+  const reserves =
+    economy.banks.reduce((sum, bank) => sum + bank.reserves, 0) - economy.reserveInterestPaid;
   if (reserves >= required) {
     return;
   }
@@ -259,20 +264,17 @@ function accommodateReserves(economy: Economy): void {
 }
 
 /**
- * Pay the posted deposit rate after borrower interest and before dividends.
- * Funding order: equity already on the books (including this tick's borrower
- * interest), then an optional fiat central-bank subsidy for any shortfall.
- * Equity may fall to zero; dividends still require equity above the capital
- * target afterward. Records the annualized rate actually paid.
+ * Pay household deposit interest from this tick's asset income, not from the
+ * capital buffer. Fiat banks also earn the policy rate on reserves; that
+ * creation is recorded so money growth can net it out. A subsidy, if any, tops
+ * up the posted coupon without spending equity that was already on the books.
  */
 export function payHouseholdDepositInterest(
   economy: Economy,
   borrowerInterestByBank: ReadonlyMap<number, number>,
 ): void {
   economy.depositInterestPaid = 0;
-  // Caller still passes this tick's borrower interest; funding uses equity that
-  // already includes those credits.
-  void borrowerInterestByBank;
+  economy.reserveInterestPaid = 0;
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   if (economy.depositRate <= 0) {
     economy.paidDepositRate = 0;
@@ -291,14 +293,42 @@ export function payHouseholdDepositInterest(
     }
   }
   const roomByBank = new Map<number, number>();
+  let reserveBudget = Math.max(
+    0,
+    moneyAmount(
+      economy,
+      (totalDeposits(economy) *
+        economy.params.moneyGrowth *
+        (economy.params.inflationTarget + economy.params.prodGrowth)) /
+        12,
+    ),
+  );
   for (const bank of economy.banks) {
     if (bank.failed) {
       roomByBank.set(bank.id, 0);
       continue;
     }
     const due = dueByBank.get(bank.id) ?? 0;
-    // Equity already includes this tick's borrower interest.
-    let room = Math.max(0, bank.equity);
+    let room = Math.max(0, borrowerInterestByBank.get(bank.id) ?? 0);
+    if (
+      economy.params.regime === 'fiat' &&
+      economy.policyRate > 0 &&
+      bank.reserves > 0 &&
+      reserveBudget > 0
+    ) {
+      const gap = Math.max(0, due - room);
+      const reserveInterest = Math.min(
+        gap,
+        reserveBudget,
+        moneyAmount(economy, (bank.reserves * economy.policyRate) / 12),
+      );
+      reserveBudget -= Math.max(0, reserveInterest);
+      if (reserveInterest > 0) {
+        subsidizeDepositInterest(bank, economy, reserveInterest);
+        economy.reserveInterestPaid += reserveInterest;
+        room += reserveInterest;
+      }
+    }
     const shortfall = Math.max(0, due - room);
     if (
       shortfall > 0 &&
@@ -307,11 +337,11 @@ export function payHouseholdDepositInterest(
     ) {
       const inject = moneyAmount(economy, shortfall * economy.params.depositInterestSubsidy);
       if (inject > 0) {
-        subsidizeDepositInterest(bank, inject);
+        subsidizeDepositInterest(bank, economy, inject);
         room += inject;
       }
     }
-    roomByBank.set(bank.id, room);
+    roomByBank.set(bank.id, Math.min(room, Math.max(0, bank.equity)));
   }
   for (const household of economy.households) {
     const bank = economy.banks[household.bank];

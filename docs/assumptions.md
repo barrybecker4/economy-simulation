@@ -213,7 +213,7 @@ Registry version: 12.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of any household deposit-interest shortfall the fiat central bank covers after the bank has used borrower interest and equity down to zero. The subsidy adds reserves and equity, then interest is paid to depositors. At 0 there is no subsidy and a thin bank may pay less than the posted rate. Bitcoin and hybrid ignore this slider.
+- Description: Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. It does not spend the capital buffer. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.
 
 ## bank.depositPassThrough
 
@@ -224,7 +224,7 @@ Registry version: 12.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending, and banks pay that monthly interest from equity. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.
+- Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.
 
 ## bank.reserveRequirement
 

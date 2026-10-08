@@ -1142,6 +1142,26 @@ Acceptance:
 - Stabilizer 0 and friction defaults still match Phase 49 when untouched.
 - A methods note lists remaining asymmetries.
 
+### Phase 51: Deposit interest is a flow
+
+Goal: banks pay deposit interest from this tick's asset income. The capital buffer is not the funding source, and the
+fiat subsidy does not break the vault identity.
+
+1. Household deposit interest is limited to borrower interest plus, under fiat, interest on reserves at the policy rate.
+2. That reserve interest is subtracted from the same tick's fiat money-growth injection.
+3. `bank.depositInterestSubsidy` still tops up a shortfall under fiat. The credit lowers private equity by the same
+   amount and does not raise vault.
+4. The anniversary firm draw cannot push a loan above the firm's capital value. Expansion loans that fund new capital
+   stay outside that cap, so living banks do not lever every firm into replacement.
+
+Acceptance:
+
+- When borrower interest covers the coupon, the bank pays at least 90 percent of it and equity stays at or above the
+  capital target.
+- A shortfall is not funded by spending equity. Both regimes stay failure-free through the opening year with resolution
+  off. Calm monetary fiat stays failure-free for 120 months.
+- Subsidy 1 with pass-through 1 completes S0, S3, and monetary fiat. Pass-through 0 does not pay the subsidy.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
