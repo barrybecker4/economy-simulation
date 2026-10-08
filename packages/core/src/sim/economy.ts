@@ -65,6 +65,8 @@ export interface Economy {
   reserveInterestPaid: number;
   /** Firm loans booked by the newLoans injection and not yet repaid. */
   channelLoans: number;
+  /** Mortgage interest received this tick, by bank id, available to fund deposit interest. */
+  mortgageInterest: Map<number, number>;
   /** Hybrid lender-of-last-resort has already run this tick. */
   lenderOfLastResortRan: boolean;
   tenureChanges: number;

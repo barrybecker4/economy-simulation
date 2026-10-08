@@ -117,6 +117,9 @@ export function onCredit(economy: Economy): void {
     }
     invest(economy, firm, bank, expectedReturn, realReturn);
   }
+  for (const [bankId, interest] of economy.mortgageInterest) {
+    borrowerInterest.set(bankId, (borrowerInterest.get(bankId) ?? 0) + interest);
+  }
   payHouseholdDepositInterest(economy, borrowerInterest);
   for (const bank of economy.banks) {
     payDividend(economy, bank);

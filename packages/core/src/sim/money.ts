@@ -66,6 +66,18 @@ export function payBondCoupon(bank: Bank, economy: Economy, coupon: number): voi
   economy.privateEquity -= coupon;
 }
 
+/** Mortgage interest is bank income. Only principal repayment extinguishes the loan. */
+export function payMortgageInterest(
+  household: Household,
+  bank: Bank,
+  economy: Economy,
+  interest: number,
+): void {
+  household.deposit -= interest;
+  bank.equity += interest;
+  economy.privateEquity -= interest;
+}
+
 export function payFirmInterest(firm: Firm, bank: Bank, economy: Economy, interest: number): void {
   firm.deposit -= interest;
   bank.equity += interest;

@@ -4,6 +4,7 @@ import {
   drawConsumerLoan,
   drawMortgage,
   payCashForHome,
+  payMortgageInterest,
   repayConsumerLoan,
   repayMortgage,
   setMortgage,
@@ -92,6 +93,7 @@ export function onContractChoice(economy: Economy): void {
   economy.newConsumerBorrowing = 0;
   economy.newBorrowing = 0;
   economy.loanRepaid = 0;
+  economy.mortgageInterest = new Map();
   if (economy.params.tenureChoice === 'off') {
     updateHousingPressure(economy);
     return;
@@ -204,9 +206,23 @@ function serviceDebts(economy: Economy, household: Household): void {
   if (household.mortgage > 0 && household.mortgagePayment > 0) {
     const due = Math.min(household.mortgage, household.mortgagePayment);
     const pay = Math.min(due, household.deposit);
-    if (pay > 0) {
-      repayMortgage(household, pay);
-      economy.loanRepaid += pay;
+    const interestDue = Math.min(
+      due,
+      moneyAmount(economy, (household.mortgage * (economy.policyRate + LOAN_SPREAD)) / 12),
+    );
+    const interest = Math.min(pay, interestDue);
+    const principal = pay - interest;
+    const bank = economy.banks[household.bank];
+    if (interest > 0 && bank) {
+      payMortgageInterest(household, bank, economy, interest);
+      economy.mortgageInterest.set(
+        bank.id,
+        (economy.mortgageInterest.get(bank.id) ?? 0) + interest,
+      );
+    }
+    if (principal > 0) {
+      repayMortgage(household, principal);
+      economy.loanRepaid += principal;
     }
     if (pay + 1e-9 >= due) {
       household.mortgageArrears = 0;

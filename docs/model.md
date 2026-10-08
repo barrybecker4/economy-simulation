@@ -272,7 +272,7 @@ requirement. A household whose principal rounds to zero owns outright. Each mont
 tenure, so one cheap month cannot move the whole stock. A household who may switch picks rent, a nominal mortgage, or
 cash ownership by the lowest expected real burden. That burden adds the household's time preference minus the mean, so
 the median household is near the rent-mortgage margin at the neutral loan rate and impatient households keep renting.
-Expected deflation raises the mortgage burden. A new mortgage credits the principal to firms. The buyer pays only the
+Expected deflation raises the mortgage burden. The monthly payment splits into interest at the current loan rate, which is bank income and can fund deposit interest, and principal, which is the only part that extinguishes the loan. A new mortgage credits the principal to firms. The buyer pays only the
 down payment and does not keep the principal. Total deposits rise by the principal. A mortgagor does not sell the
 house back into firm deposits: that would pull working capital out of payroll. Tenure moves from mortgage to rent
 only when the loan is repaid or foreclosed. Shelter stays inside the

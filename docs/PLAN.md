@@ -1250,6 +1250,21 @@ Acceptance:
 - Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
   3. `spendNewMoney` on the default channel stays under 10 percent inflation.
 
+### Phase 57: Inflation after inside-money runoff
+
+Goal: calm fiat ends near the inflation target, and bitcoin does not destroy the deposit stock by treating mortgage interest as principal.
+
+1. A mortgage payment pays interest at the current loan rate into bank equity. Only the remainder reduces the principal.
+2. That interest counts as borrower interest, so it can be paid on deposits. `centralBank.spendNewMoney` stays off.
+
+Acceptance:
+
+- The principal falls by less than the payment when the loan rate is positive, and bank equity rises by the interest.
+- Calm monetary fiat ends the decade within 1 point of 2 percent inflation. Demand-led fiat stays within 2 points above the target.
+- Calm monetary bitcoin keeps broad money above half of its opening level. The old runoff repaid the whole coupon as principal and left money near 0.27×.
+- The channels still do not print the same price level.
+- With the default nominal rigidity, bitcoin inflation is still below minus productivity growth. Flexible wages reach that path, so the remainder is the labor market, not a missing money stock.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

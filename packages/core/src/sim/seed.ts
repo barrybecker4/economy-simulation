@@ -78,6 +78,7 @@ export function blankEconomy(
     depositInterestPaid: 0,
     reserveInterestPaid: 0,
     channelLoans: 0,
+    mortgageInterest: new Map(),
     lenderOfLastResortRan: false,
     tenureChanges: 0,
     rentToMortgage: 0,
