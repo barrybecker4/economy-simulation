@@ -78,7 +78,7 @@ A scenario held fixed so a later scenario can be compared with it.
 _Avoid_: Control, snapshot
 
 **Comparison frame**:
-The assumptions a scenario keeps at the baseline: scale, population growth, and trust in banks.
+The assumptions a scenario keeps at the baseline: scale and population growth.
 _Avoid_: Locked sliders, frozen parameters
 
 ## Events

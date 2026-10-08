@@ -22,12 +22,13 @@ Well-being is the log of human real consumption plus 0.5 times housing security.
 relative to the median, divided by one plus the housing price relative to the CPI, and kept between 0 and 1. There is no
 composite index.
 
-Population growth is a slider and is not used. Housing demand grows with productivity and is cut by the deflation
-penalty. Unemployment is pulled toward a natural rate that starts at 6 percent and rises with the AI share of output,
-because the hiring target shrinks with the human share. A shock that would raise unemployment in a search model may move
-it less here once that natural rate has risen. The hypothesis runner records that outcome instead of forcing the claim.
-The household UBI grant is a share of the AI slice of nominal GDP; it is an assumption, and a high share can expand
-public debt through bond finance.
+Population growth defaults to 0, so the household count stays at the Households slider. A positive rate adds people;
+a negative rate removes them. Housing demand grows with productivity and is cut by the deflation penalty. Unemployment
+is pulled toward a natural rate that starts at 6 percent and rises with the AI share of output, because the hiring
+target shrinks with the human share. A shock that would raise unemployment in a search model may move it less here once
+that natural rate has risen. The hypothesis runner records that outcome instead of forcing the claim. The household UBI
+grant is a share of the AI slice of nominal GDP; it is an assumption, and a high share can expand public debt through
+bond finance.
 
 The AI block is a single automatable-share path with a bullishness scale and a later robotics ramp. It does not split
 knowledge workers from other occupations, does not have a separate cognitive wage, and does not carry an ideas stock
@@ -43,11 +44,12 @@ the food and housing CPI weights. Credit-financed discretionary spending is a la
 is below 1, the fiat inflation target no longer fully writes the price path.
 
 An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The fixed stock is money growth
-0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0, `production.demandWeight` 1, deposit
-pass-through 1, anchored expectations, tenure choice on, 12 months of opening deposits) so spending can move prices and
-output. Those thin balances sit under the 48-month spending buffer, so the new money is blended into smoothed income and
-spent; scarce categories can rise while apparel and electronics cheapen. `scenarios/baseline.json` stays empty for CLI
-regression.
+0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0.8, `production.demandWeight` 1,
+deposit pass-through 1, real-return sensitivity 1, bond rate 0.02, anchored expectations, tenure choice on, 12 months of
+opening deposits) so spending can move prices and output, discretionary spending responds to the real return on money,
+and treasury debt pays a coupon. Those thin balances sit under the 48-month spending buffer, so the new money is blended
+into smoothed income and spent; scarce categories can rise while apparel and electronics cheapen.
+`scenarios/baseline.json` stays empty for CLI regression.
 
 Development runs of 1,000 households finish in about a second in Node, a little over the one-second target. Sweeps in
 the CLI run in this process at a small scale. A 50-seed development sweep is a manual command, not part of the default

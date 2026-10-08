@@ -36,11 +36,10 @@ const FRAME_IDS = [
   'scale.firms',
   'scale.banks',
   'population.growth',
-  'household.trustInBanks',
 ] as const;
 
 describe('comparisonFrame', () => {
-  it('marks scale and inert assumptions', () => {
+  it('marks scale and population growth', () => {
     for (const id of FRAME_IDS) {
       expect(comparisonFrame(id)).toBe(true);
     }
@@ -65,7 +64,6 @@ describe('alignComparisonFrame', () => {
         'scale.households': 2000,
         'scale.firms': 200,
         'population.growth': -0.005,
-        'household.trustInBanks': 0.2,
         'government.ubiShare': 0.4,
         'ai.bullishness': 2,
       },
@@ -81,9 +79,6 @@ describe('alignComparisonFrame', () => {
     expect(sliderValue(getSlider('population.growth'), aligned.regime, aligned.overrides)).toBe(
       0.01,
     );
-    expect(
-      sliderValue(getSlider('household.trustInBanks'), aligned.regime, aligned.overrides),
-    ).toBe(getSlider('household.trustInBanks').default);
     expect(aligned.overrides['government.ubiShare']).toBe(0.4);
     expect(aligned.overrides['ai.bullishness']).toBe(2);
   });

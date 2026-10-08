@@ -199,7 +199,6 @@ plain-language description and a status.
 | Behavior    | household.timePreferenceStd            | 0.02            | 0 to 0.08                    |
 | Behavior    | household.inflationTimePreference      | 0.1             | 0 to 0.5                     |
 | Behavior    | household.skillSigma                   | 0.5             | 0.1 to 1.2                   |
-| Behavior    | household.trustInBanks                 | 0.9             | 0 to 1                       |
 | Behavior    | firm.markup                            | 0.2             | 0.05 to 0.6                  |
 | Behavior    | firm.priceAdjustSpeed                  | 0.3             | 0.05 to 1                    |
 | Behavior    | wage.nominalRigidity                   | 0.7             | 0 to 0.95                    |
@@ -448,7 +447,7 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
 3. Regime toggle and a pinned-baseline overlay of the same seed:
    freeze a run (one seed or a multi-seed median), edit the scenario,
    and draw both on each chart with a solid baseline and a dashed scenario in the same color.
-   While a baseline is pinned, scale, population growth, and trust in banks stay at the baseline values.
+   While a baseline is pinned, scale and population growth stay at the baseline values.
    The legend lists each series once. Hovering that item highlights the baseline and the scenario together.
    A pinned pair also draws the month payment diagram as baseline beside scenario, with edge amounts on hover instead of
    a legend,

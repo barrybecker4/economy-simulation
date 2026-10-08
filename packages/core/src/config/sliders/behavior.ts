@@ -63,16 +63,6 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     'Spread of innate earning power, as the standard deviation of a lognormal skill draw. Draws are kept between 0.2 and 5, then divided by their average so mean skill is 1. A worker is paid the firm wage times skill. Starting deposits scale with skill squared, about three years of the base wage for a skill of 1, so wealth begins more unequal than pay. Profits are shared with weights of skill raised to 1.5 or more, which concentrates capital income on high-skill households. A larger value thickens the high-skill tail.',
   ),
   numberSlider(
-    'household.trustInBanks',
-    'Trust in banks',
-    'behavior',
-    'share',
-    0.9,
-    0,
-    1,
-    'Intended share of households willing to keep money in bank deposits rather than cash. The economy does not read this slider. Moving it does not change deposits, lending, or prices. It is stored with the scenario so the assumption stays visible.',
-  ),
-  numberSlider(
     'household.realReturnSensitivity',
     'Real-return spending sensitivity',
     'behavior',

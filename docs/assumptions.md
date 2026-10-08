@@ -600,17 +600,6 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How widely patience differs across households. Each household draws a normal rate around the mean time preference, then the draw is kept between 1 and 15 percent a year. A household above the mean spends a larger share of smoothed income; one below the mean saves more. A wider spread fans consumption and deposit balances apart. At zero, every household has the mean rate and no patience draw is used.
 
-## household.trustInBanks
-
-- Label: Trust in banks
-- Group: behavior
-- Unit: share
-- Default: 0.9
-- Range: 0 to 1
-- Status: guess
-- Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Intended share of households willing to keep money in bank deposits rather than cash. The economy does not read this slider. Moving it does not change deposits, lending, or prices. It is stored with the scenario so the assumption stays visible.
-
 ## housing.consumerCreditLimit
 
 - Label: Consumer credit limit

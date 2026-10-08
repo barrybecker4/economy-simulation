@@ -9,7 +9,6 @@ const EXPECTED_IDS = [
   'expectations.anchorWeight',
   'household.openingDepositMonths',
   'household.skillSigma',
-  'household.trustInBanks',
   'household.realReturnSensitivity',
   'firm.markup',
   'firm.priceAdjustSpeed',

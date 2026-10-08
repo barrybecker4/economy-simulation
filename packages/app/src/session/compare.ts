@@ -17,13 +17,12 @@ export interface CompareDiff {
   variant: number | string;
 }
 
-/** Scale and inert assumptions held fixed while a baseline is pinned. */
+/** Scale and population growth held fixed while a baseline is pinned. */
 const COMPARISON_FRAME = new Set([
   'scale.households',
   'scale.firms',
   'scale.banks',
   'population.growth',
-  'household.trustInBanks',
 ]);
 
 export function comparisonFrame(id: string): boolean {
@@ -83,10 +82,10 @@ export function compareDiffs(
 export const IDLE_STATUS = 'Set the parameters and run.';
 
 const FRAME_STATUS =
-  'Baseline pinned. Edit parameters and run a scenario. Scale, population growth, and trust in banks stay at the baseline.';
+  'Baseline pinned. Edit parameters and run a scenario. Scale and population growth stay at the baseline.';
 
 const PROMOTE_STATUS =
-  'Scenario is now the baseline. Scale, population growth, and trust in banks stay at the baseline.';
+  'Scenario is now the baseline. Scale and population growth stay at the baseline.';
 
 /** Census falls back here only when a resolved slider is not a finite number. */
 const CENSUS_HOUSEHOLDS_FALLBACK = 1000;

@@ -12,15 +12,17 @@ export interface PageState {
 
 /** Opening comparison: spending can move prices and output; fiat money growth stays at its default of 1. */
 export const MONETARY_OVERRIDES: Readonly<Record<string, number | string>> = {
-  'prices.trendWeight': 0,
+  'prices.trendWeight': 0.8,
   'production.demandWeight': 1,
   'bank.depositPassThrough': 1,
+  'household.realReturnSensitivity': 1,
   'expectations.anchorWeight': 0.5,
   'housing.tenureChoice': 'on',
   'credit.endogenousWeight': 1,
   'credit.leverageStart': 1,
   'bank.capitalRatio': 0.04,
   'household.openingDepositMonths': 12,
+  'government.bondRate': 0.02,
 };
 
 export function defaultPage(): PageState {
