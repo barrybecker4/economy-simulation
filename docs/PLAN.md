@@ -1179,6 +1179,25 @@ Acceptance:
   month 12.
 - Bitcoin bail-in does not destroy broad money beyond the credit losses already present with resolution off.
 
+### Phase 53: Treasury surplus is spent next month
+
+Goal: the treasury cannot hoard the gap between tax and the goods it actually buys. The rebate is next month's demand,
+not a claim that inflation is on target.
+
+1. `government.treasuryBufferMonths` defaults to 1. Cash above that many months of this tick's outlays is rebated.
+2. The rebate is credited to household deposits and added to income after tax, in proportion to that tick's income.
+3. Bitcoin uses the same rebate. A shortfall still issues bonds. The spending share does not rise.
+
+Acceptance:
+
+- Calm fiat and bitcoin runs keep the treasury well below half of deposits.
+- The rebate shows up in next month's smoothed-income demand base.
+- The ledger audit passes.
+- Goods spending leaves this month's debt service in the deposit.
+- Firm-level hiring on a mild productivity shock no longer has to raise unemployment once sales are funded. The
+  economy-wide hiring path still does. Bitcoin new lending can sit at zero while the opening mortgage book exceeds a
+  quarter of household deposits.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

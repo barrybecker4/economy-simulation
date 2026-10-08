@@ -103,13 +103,15 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
   {
     id: 'publicFinance',
     name: 'Public finance',
-    detail: 'Income tax, government purchases, the UBI grant, and the fiscal stabilizer.',
+    detail:
+      'Income tax, government purchases, the UBI grant, the fiscal stabilizer, and the treasury buffer.',
     group: 'publicFinance',
     owned: [
       'tax.incomeRate',
       'government.spendingShareOfGDP',
       'government.ubiShare',
       'government.stabilizer',
+      'government.treasuryBufferMonths',
     ],
     options: [
       {
@@ -121,6 +123,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'government.spendingShareOfGDP': 0.1,
           'government.ubiShare': 0,
           'government.stabilizer': 0,
+          'government.treasuryBufferMonths': 1,
         },
       },
       {
@@ -132,6 +135,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'government.spendingShareOfGDP': 0.2,
           'government.ubiShare': 0.25,
           'government.stabilizer': 0,
+          'government.treasuryBufferMonths': 1,
         },
       },
       {
@@ -143,6 +147,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'government.spendingShareOfGDP': 0.35,
           'government.ubiShare': 0.25,
           'government.stabilizer': 0,
+          'government.treasuryBufferMonths': 1,
         },
       },
       {
@@ -155,6 +160,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'government.spendingShareOfGDP': 0.35,
           'government.ubiShare': 0.25,
           'government.stabilizer': 1,
+          'government.treasuryBufferMonths': 1,
         },
       },
     ],

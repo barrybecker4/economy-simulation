@@ -1,4 +1,4 @@
-import { splitEqual } from './allocate.js';
+import { splitEqual, splitProportional } from './allocate.js';
 import { issueBonds } from './bank-books.js';
 import { savingsRoom } from './banking.js';
 import type { Economy } from './economy.js';
@@ -29,7 +29,8 @@ export function onGovernment(economy: Economy): void {
   buyGoods(economy);
   distributeIncome(economy);
   redistributeToUnemployed(economy);
-  addGrants(economy, grants);
+  const rebates = rebateSurplus(economy);
+  addGrants(economy, combineShares(grants, rebates));
   sweepAgents(economy);
   smoothIncomes(economy);
   payBondInterest(economy);
@@ -133,6 +134,62 @@ function effectiveSpendShare(economy: Economy): number {
   }
   const boosted = economy.params.spendShare + economy.params.stabilizer * unemploymentGap(economy);
   return clamp(boosted, 0, MAX_SPEND_SHARE);
+}
+
+/**
+ * Cash above one month of this tick's outlays goes back to households. It is
+ * added to income after tax, so it raises next month's demand and is not taxed
+ * in the collection that created it.
+ */
+function rebateSurplus(economy: Economy): number[] {
+  const rebates = new Array<number>(economy.households.length).fill(0);
+  if (economy.households.length === 0) {
+    return rebates;
+  }
+  const surplus = economy.govDeposits - treasuryBuffer(economy);
+  const rebate = moneyAmount(economy, surplus);
+  if (rebate <= 0) {
+    return rebates;
+  }
+  const weights = economy.households.map((household) => Math.max(0, household.income));
+  const parts = weights.some((weight) => weight > 0)
+    ? splitProportional(rebate, weights)
+    : splitEqual(rebate, economy.households.length);
+  let paid = 0;
+  for (let index = 0; index < economy.households.length; index += 1) {
+    const household = economy.households[index];
+    const share = parts[index] ?? 0;
+    if (!household || share <= 0) {
+      continue;
+    }
+    rebates[index] = share;
+    creditDeposit(household, share);
+    paid += share;
+  }
+  debitTreasury(economy, paid);
+  return rebates;
+}
+
+function treasuryBuffer(economy: Economy): number {
+  return Math.max(0, economy.params.treasuryBufferMonths) * monthlyOutlays(economy);
+}
+
+function monthlyOutlays(economy: Economy): number {
+  const monthly = economy.params.bondRate / 12;
+  let coupons = 0;
+  for (const bank of economy.banks) {
+    coupons += moneyAmount(economy, bank.bonds * monthly);
+  }
+  return economy.ubiOutlay + economy.govGoodsSpend + coupons;
+}
+
+function combineShares(left: readonly number[], right: readonly number[]): number[] {
+  const length = Math.max(left.length, right.length);
+  const combined = new Array<number>(length).fill(0);
+  for (let index = 0; index < length; index += 1) {
+    combined[index] = (left[index] ?? 0) + (right[index] ?? 0);
+  }
+  return combined;
 }
 
 function addGrants(economy: Economy, grants: readonly number[]): void {

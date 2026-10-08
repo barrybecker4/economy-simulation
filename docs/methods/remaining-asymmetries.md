@@ -8,6 +8,8 @@ Phases 35–49.
 `government.stabilizer` raises the fiat spending share with the unemployment
 gap. Under bitcoin and hybrid the boost is zero: spending cannot be financed by
 new base money. That is intentional for the hard-money comparison, not a bug.
+A tax surplus above `government.treasuryBufferMonths` is rebated in every
+regime, so the treasury does not sit on idle deposits.
 
 ## Payment friction
 

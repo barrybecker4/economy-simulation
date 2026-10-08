@@ -73,6 +73,16 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'Fraction of the AI slice of monthly nominal GDP paid equally to every household. The AI slice is the AI share of output times price times real GDP. The grant starts at zero when no AI capacity is adopted and rises with that share, so it phases in along the adoption curve rather than as a fixed stipend. At 0.25 with an AI share of 0.36, about 9 percent of that month’s nominal GDP is paid out. Tax, including tax on AI agents, is collected first. If the treasury cannot cover the grant, it issues bonds to the first bank. Households only receive the grant. Agents do not. At 0 the grant is off even while AI is adopted.',
   ),
   numberSlider(
+    'government.treasuryBufferMonths',
+    'Treasury buffer',
+    'publicFinance',
+    'months',
+    1,
+    0,
+    24,
+    'Months of this tick’s outlays the treasury keeps. Outlays are the household grant, goods the treasury actually bought, and bond coupons. Cash above that is paid to households in proportion to that tick’s income, after tax, and counted in their income, so it raises next month’s demand and is not taxed in the collection that funded it. The share follows income so the refund does not flatten the distribution. At 1 the treasury cannot build a stock of deposits. At 0 any surplus is rebated the same month. A shortfall still issues bonds.',
+  ),
+  numberSlider(
     'centralBank.inflationTarget',
     'Inflation target',
     'centralBank',

@@ -4,7 +4,7 @@ import type { Economy } from './economy.js';
 import { expectedInflation, normalInflation, pay, priceTrend } from './helpers.js';
 import { debitDeposit } from './money.js';
 import { inventoryPressure, monthlyPriceMove } from './pricing.js';
-import { EXCESS_DEMAND_CAP } from './rules.js';
+import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare, subsistenceShare } from './spending.js';
 import { clamp } from './stats.js';
@@ -55,7 +55,11 @@ function shopHouseholds(economy: Economy, market: GoodsMarket): void {
       durableShare: economy.params.durableShare,
     });
     economy.desiredSpend += budget;
-    const left = Math.max(0, Math.min(household.deposit, Math.round(budget)));
+    // Keep this month's debt service in the deposit. A larger goods budget,
+    // including a treasury rebate, would otherwise be spent before mortgages.
+    const reserved = household.mortgagePayment + household.consumerLoan * CONSUMER_LOAN_REPAY;
+    const spendable = Math.max(0, household.deposit - reserved);
+    const left = Math.max(0, Math.min(spendable, Math.round(budget)));
     const start =
       economy.firms.length > 0 ? household.search.uniformInt(0, economy.firms.length - 1) : 0;
     const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);

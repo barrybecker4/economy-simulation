@@ -22,14 +22,14 @@ describe('payment flows', () => {
       const profit = profits[index] ?? 0;
       expect(wage + profit).toBeGreaterThan(0);
     }
-    // Mean real income is wages+profits (+grant) over CPI and households.
-    // With UBI off, wages + profits equal total household income each tick.
+    // Mean real income is wages and profits, plus the treasury rebate, over CPI.
+    // With UBI off, household income is at least the wage and profit bill.
     const cpi = series(result, 'priceLevel');
     for (let index = 0; index < wages.length; index += 1) {
       const total = (wages[index] ?? 0) + (profits[index] ?? 0);
       const meanReal = incomes[index] ?? 0;
       const price = Math.max(cpi[index] ?? 1, 1);
-      expect(meanReal * price * 80).toBeCloseTo(total, 0);
+      expect(meanReal * price * 80).toBeGreaterThanOrEqual(total - 1);
     }
   });
 

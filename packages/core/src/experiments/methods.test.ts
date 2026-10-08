@@ -69,6 +69,7 @@ describe('methods claims', () => {
       'shock.frequency': 1,
       'shock.size': 0.1,
       'production.demandWeight': 1,
+      'prices.trendWeight': 0,
     };
     const fiat = run({ ...shocks, 'regime.type': 'fiat' }, 120);
     const bitcoin = run({ ...shocks, 'regime.type': 'bitcoin' }, 120);

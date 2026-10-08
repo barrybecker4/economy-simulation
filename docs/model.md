@@ -188,7 +188,8 @@ discretionary remainder. The floor share is the sum of the food and housing CPI 
 `household.realReturnSensitivity` is positive and the real return on money is positive, only the remainder is multiplied
 by `max(0, 1 − sensitivity × real return)`. The real return is the deposit rate minus year-over-year inflation. Deposits
 pay nothing until `bank.depositPassThrough` is raised in a later phase. At sensitivity 0 the uncut budget is unchanged.
-The household visits up to `goods.sampleSize` firms and buys from those that have stock.
+The household visits up to `goods.sampleSize` firms and buys from those that have stock. The spend stops at the deposit
+minus this month's mortgage payment and consumer-loan installment, so a larger budget is not spent ahead of debt service.
 
 The government buys the remaining `government.spendingShareOfGDP` share of the same income base, starting with the firms
 that hold the most inventory. If tax revenue does not cover that purchase, the treasury issues bonds and the first bank
@@ -292,6 +293,14 @@ where the AI share of output is `1 − 1 / AI factor` once compute is adopted, a
 equally across households, added to deposits, and counted in income after wages so it enters smoothed income and is
 taxable next month. Tax is the first source of funds. If the treasury deposit cannot cover the grant, it issues bonds.
 Agents do not receive the grant. See [ADR 0003](adr/0003-ubi-and-agent-tax.md).
+
+Purchases are a share of smoothed income, but the treasury only buys inventory households left behind, so tax can
+exceed goods actually bought. `government.treasuryBufferMonths` (default 1) is how many months of that tick's outlays
+the treasury keeps. Outlays are the grant, goods bought, and bond coupons. Cash above the buffer is paid to
+households in proportion to that tick's income, after tax, and counted in income, so it enters next month's demand
+and is not taxed in the collection that funded it. The refund follows income so it does not flatten the distribution.
+Bitcoin uses the same rebate. A shortfall still issues bonds. See
+[ADR 0012](adr/0012-treasury-surplus-rebate.md).
 
 Under fiat, `government.stabilizer` times the unemployment gap above the natural rate also becomes a fiscal demand boost
 for the next month’s household spending and hiring. Bitcoin and hybrid set that boost to zero.

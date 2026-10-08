@@ -46,12 +46,19 @@ function h1(): HypothesisResult {
 }
 
 function h2(): HypothesisResult {
-  const fiat = run({ ...base, 'regime.type': 'fiat', 'shock.frequency': 1, 'shock.size': 0.1 });
+  const fiat = run({
+    ...base,
+    'regime.type': 'fiat',
+    'shock.frequency': 1,
+    'shock.size': 0.1,
+    'prices.trendWeight': 0,
+  });
   const bitcoin = run({
     ...base,
     'regime.type': 'bitcoin',
     'shock.frequency': 1,
     'shock.size': 0.1,
+    'prices.trendWeight': 0,
   });
   return {
     id: 'H2',

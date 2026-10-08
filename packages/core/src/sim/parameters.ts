@@ -59,6 +59,7 @@ export interface Parameters {
   frictionBitcoin: number;
   marketDepth: number;
   ubiShare: number;
+  treasuryBufferMonths: number;
   shockFrequency: number;
   shockSize: number;
   householdCount: number;
@@ -169,6 +170,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     frictionBitcoin: slider(config, 'ai.paymentFrictionBitcoin'),
     marketDepth: slider(config, 'agent.marketDepth'),
     ubiShare: slider(config, 'government.ubiShare'),
+    treasuryBufferMonths: slider(config, 'government.treasuryBufferMonths'),
     shockFrequency: slider(config, 'shock.frequency'),
     shockSize: slider(config, 'shock.size'),
     householdCount: Math.round(slider(config, 'scale.households')),

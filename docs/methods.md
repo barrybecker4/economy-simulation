@@ -15,8 +15,8 @@ and sticky wages. Support means the fast run ends at a lower CPI.
 
 Claim: inflation targeting changes output relative to a fixed supply.
 
-Both regimes take the same demand, credit, and productivity shocks. Support means ending real GDP differs. The runner
-does not measure volatility with a filter.
+Both regimes take the same demand, credit, and productivity shocks, with price trend weight 0 so money can move
+prices. Support means ending real GDP differs. The runner does not measure volatility with a filter.
 
 ## H3
 

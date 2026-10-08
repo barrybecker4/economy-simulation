@@ -611,6 +611,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How much government goods spending responds to unemployment. Under fiat, the spending share rises by this coefficient times the gap of unemployment above the natural rate, capped at 0.8. Under bitcoin or hybrid, spending cannot exceed tax deposits plus bonds banks can hold from unused savings, so the stabilizer cannot expand base money. At 0 the spending share stays at the government spending slider.
 
+## government.treasuryBufferMonths
+
+- Label: Treasury buffer
+- Group: publicFinance
+- Unit: months
+- Default: 1
+- Range: 0 to 24
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Months of this tick’s outlays the treasury keeps. Outlays are the household grant, goods the treasury actually bought, and bond coupons. Cash above that is paid to households in proportion to that tick’s income, after tax, and counted in their income, so it raises next month’s demand and is not taxed in the collection that funded it. The share follows income so the refund does not flatten the distribution. At 1 the treasury cannot build a stock of deposits. At 0 any surplus is rebated the same month. A shortfall still issues bonds.
+
 ## government.ubiShare
 
 - Label: UBI share of AI GDP

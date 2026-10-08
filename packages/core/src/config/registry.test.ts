@@ -25,6 +25,7 @@ const EXPECTED_IDS = [
   'tax.incomeRate',
   'government.spendingShareOfGDP',
   'government.ubiShare',
+  'government.treasuryBufferMonths',
   'centralBank.inflationTarget',
   'centralBank.inflationWeight',
   'centralBank.outputWeight',
