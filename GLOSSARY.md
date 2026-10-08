@@ -91,6 +91,10 @@ _Avoid_: residual equity, balancing item
 A bank's capital stock on the liability side of its books.
 _Avoid_: capital buffer (when you mean the stock itself)
 
+**Deposit interest**:
+The coupon paid to household deposits from this tick's borrower interest, then fiat reserve interest and subsidy inside the money-growth budget.
+_Avoid_: savings rate, policy rate (those set the posted coupon; this is the payment)
+
 ## Events
 
 **Shock**:

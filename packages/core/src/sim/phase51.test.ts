@@ -4,7 +4,7 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { equityFor, loansAt } from './banking.js';
 import { adjustBankEquity } from './capital-identity.js';
-import { payHouseholdDepositInterest } from './central-bank.js';
+import { payHouseholdDepositInterest } from './deposit-interest.js';
 import { createEconomy } from './init.js';
 import { subsidizeDepositInterest } from './money.js';
 import { loadParameters } from './parameters.js';

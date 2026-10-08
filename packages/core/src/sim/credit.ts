@@ -6,7 +6,8 @@ import {
   moneyAmount,
   referenceWorkersPerFirm,
 } from './helpers.js';
-import { payHouseholdDepositInterest, repayChannelLoans } from './central-bank.js';
+import { repayChannelLoans } from './central-bank.js';
+import { payHouseholdDepositInterest } from './deposit-interest.js';
 import { rateTransmissionFactor } from './contracts.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import { resolveInsolventBanks } from './resolution.js';
