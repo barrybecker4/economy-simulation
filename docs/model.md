@@ -152,13 +152,13 @@ topped up outside measured output.
 
 Each month 2 percent of employed workers separate. Let `humanWeight = 1 / (1 + displacement)`, where displacement is the
 adopted task share times the capped task gain from the AI productivity section. When `labor.firmLevelHiring` is off,
-firms hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse, the productivity
-impulse, and by `labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed
-sales, capped so sales cannot move the target by more than half in one step, then the same productivity-impulse scale is
-applied so an adverse supply shock raises unemployment on both hiring paths. The wage scale applies to the sum, and firms
-shed at most 5 percent of employed workers that month. The wage scale is
+firms hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse and by
+`labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed
+sales, capped so sales cannot move the target by more than half in one step. A productivity impulse is not a second
+multiplier on that headcount. It lowers the reference real wage, so the wage scale cuts hiring when elasticity is
+positive. Firms shed at most 5 percent of employed workers that month. The wage scale is
 `clamp(1 − elasticity × (real wage / reference − 1), 0.5, 1.25)`, where the real wage is the money wage over the CPI and
-the reference is `1 / (1 + firm.markup)`, the opening real wage. The default elasticity is 0.5, so a real wage 10
+the reference is `1 / (1 + firm.markup)` times one plus the productivity impulse. The default elasticity is 0.5, so a real wage 10
 percent above that reference cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled quota
 is below current employment, firms separate workers down to it. A searcher applies to at most `labor.maxApplications`
 firms. The natural unemployment rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is zero and

@@ -95,17 +95,11 @@ function separateAtRandom(economy: Economy): void {
   }
 }
 
-function employmentTarget(economy: Economy): number {
+export function employmentTarget(economy: Economy): number {
   const scale = wageHiringScale(economy);
   const demand = clamp(1 + economy.demandImpulse + economy.fiscalBoost, 0.85, 1.1);
-  const supply = clamp(1 + economy.productivityImpulse, 0.5, 1.5);
   return Math.round(
-    economy.households.length *
-      (1 - NATURAL_UNEMPLOYMENT) *
-      humanWeight(economy) *
-      demand *
-      scale *
-      supply,
+    economy.households.length * (1 - NATURAL_UNEMPLOYMENT) * humanWeight(economy) * demand * scale,
   );
 }
 
@@ -115,9 +109,6 @@ function vacancyLimit(economy: Economy, target: number): number {
 
 function firmEmploymentTarget(economy: Economy): number {
   const scale = wageHiringScale(economy);
-  // Match the economy-wide quota: an adverse productivity impulse cuts hiring
-  // even though lower capacity would otherwise raise workers-per-sales.
-  const supply = clamp(1 + economy.productivityImpulse, 0.5, 1.5);
   let wanted = 0;
   for (const firm of economy.firms) {
     wanted += workersForSales({
@@ -128,14 +119,14 @@ function firmEmploymentTarget(economy: Economy): number {
       humanWeight: humanWeight(economy),
     });
   }
-  return Math.round(wanted * scale * supply);
+  return Math.round(wanted * scale);
 }
 
 function wageHiringScale(economy: Economy): number {
   const realWage = economy.priceLevel > 0 ? economy.wageLevel / economy.priceLevel : 1;
   return hiringScale({
     realWage,
-    referenceRealWage: 1 / (1 + economy.params.markup),
+    referenceRealWage: (1 / (1 + economy.params.markup)) * (1 + economy.productivityImpulse),
     elasticity: economy.params.wageElasticity,
   });
 }

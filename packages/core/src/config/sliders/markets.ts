@@ -20,7 +20,7 @@ export const MARKET_SLIDERS: readonly Slider[] = [
     0.5,
     0,
     3,
-    'How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.',
+    'How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage, times one plus the current productivity impulse. A negative impulse lowers the reference, so the quota falls when elasticity is positive. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so a productivity impulse does not scale hiring and sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.',
   ),
   enumSlider(
     'labor.firmLevelHiring',

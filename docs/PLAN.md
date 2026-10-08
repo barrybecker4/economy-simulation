@@ -1265,6 +1265,21 @@ Acceptance:
 - The channels still do not print the same price level.
 - With the default nominal rigidity, bitcoin inflation is still below minus productivity growth. Flexible wages reach that path, so the remainder is the labor market, not a missing money stock.
 
+### Phase 58: Productivity shock through costs
+
+Goal: a productivity impulse changes hiring through the real-wage reference, not through a second multiplier on the quota.
+
+1. Neither hiring target is scaled by `clamp(1 + productivityImpulse, 0.5, 1.5)`.
+2. The reference real wage is the opening real wage times one plus the impulse. Default elasticity then cuts the quota
+   when the impulse is negative. Elasticity 0 does not.
+
+Acceptance:
+
+- Elasticity 0 leaves the economy-wide quota unchanged when the impulse changes.
+- Default elasticity lowers the quota while a negative impulse is active.
+- A positive productivity shock raises output, and after the window a flexible-wage fiat run is closer to the calm path
+  than it was during the shock.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
