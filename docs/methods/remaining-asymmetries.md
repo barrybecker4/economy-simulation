@@ -3,6 +3,12 @@
 Phase 50 note. These asymmetries still shape regime comparisons even after
 Phases 35–49.
 
+## Transition window
+
+A positive `transition.gradualWeight` converts deposits and debts into bitcoin units month by month. Goods can be paid
+from either balance while the window is open. Weight 0 is still a one-step rebase on the last month. The fiscal
+stabilizer stays fiat-only during and after the window.
+
 ## Fiscal stabilizer
 
 `government.stabilizer` raises the fiat spending share with the unemployment

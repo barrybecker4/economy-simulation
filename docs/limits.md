@@ -5,10 +5,11 @@ beverages, housing, energy, apparel, transportation, medical care, education, re
 accounting split. Households do not shop in separate markets, and a category's productivity slider does not change how
 many goods are made.
 
-There is no international trade and no second currency price. Fiat, bitcoin, and hybrid are alternative units for the
-same economy, not countries trading with each other. A positive `transition.lengthMonths` rebases one closed economy
-from fiat rules into bitcoin; it is not a model of the United States converting, and it does not introduce a second
-goods price.
+There is no international trade and no second goods price. Fiat, bitcoin, and hybrid are alternative units for the
+same economy, not countries trading with each other. A positive `transition.lengthMonths` changes one closed economy
+from fiat rules into bitcoin. With `transition.gradualWeight` at 0 that change is a rebase on the last month. With a
+positive weight, deposits and debts convert into a bitcoin balance month by month and goods can be paid from either
+balance. It is not a model of the United States converting.
 
 There is no market for firm shares. When `housing.tenureChoice` is off, the model reports a higher profit-sharing share
 and a higher non-mortgage housing share as functions of the deflation penalty. Those figures change how profits are

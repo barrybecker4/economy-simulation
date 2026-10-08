@@ -383,11 +383,16 @@ loans, cuts housing demand, and raises the recorded shares of profit-sharing and
 are still formula-based. The penalty is zero when sensitivity is zero or inflation is positive, so the fiat path is
 unchanged.
 
-When `transition.lengthMonths` is positive, the run starts on fiat rules with satoshi balances. At the last transition
-month, `transition.debtHaircut` writes off that share of firm and household debts, household deposits are reassigned
-with skill weights raised by `transition.holderConcentration`, bank-held government bonds are cleared, and the active
-regime becomes bitcoin. When `transition.gradualWeight` is positive, that haircut and reassignment are spread across
-the window instead of only the last month. See [ADR 0005](adr/0005-fiat-bitcoin-transition.md).
+When `transition.lengthMonths` is positive, the run starts on fiat rules with satoshi balances. With
+`transition.gradualWeight` at 0, the last transition month writes off `transition.debtHaircut` of firm and household
+debts, reassigns household deposits with skill weights raised by `transition.holderConcentration`, clears bank-held
+government bonds, and switches the active regime to bitcoin. See
+[ADR 0005](adr/0005-fiat-bitcoin-transition.md). With a positive gradual weight, each month converts
+`weight / months remaining` of every deposit, and the same fraction of firm loans, mortgages, and consumer loans, into
+bitcoin units at the current bitcoin price. The haircut writes off that share of the slice being converted. Both
+balances stay in use through a 12-month window, and goods can be paid from either. The regime still flips at the end
+of the window, when the bitcoin units are folded back into the single balance. See
+[ADR 0014](adr/0014-dual-currency-window.md).
 
 `credit.rateTransmission` scales new consumer borrowing and firm capital installation by
 `max(0, 1 − weight × max(0, policy rate − inflation))`. `household.durableShare` delays a slice of discretionary

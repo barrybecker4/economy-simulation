@@ -1,7 +1,7 @@
 import { powerWeights, splitEqual, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
-import { pay, spendableDeposit } from './helpers.js';
-import { creditDeposit, debitDeposit } from './money.js';
+import { pay } from './helpers.js';
+import { availableCash, creditDeposit, debitDeposit, payFromCash } from './money.js';
 import { PROFIT_SKILL_EXPONENT, UNEMPLOYED_TRANSFER } from './rules.js';
 import type { Firm } from './types.js';
 
@@ -62,9 +62,9 @@ function payUnemployed(unemployed: Economy['households'], taken: number): void {
 
 function payFirm(firm: Firm, wagePaid: number[], economy: Economy): number {
   const claims = wageClaims(economy, firm);
-  const available = spendableDeposit(economy, firm.deposit);
+  const available = availableCash(economy, firm);
   const paid = layWages(claims, available, wagePaid);
-  debitDeposit(firm, available);
+  payFromCash(economy, firm, available, 0);
   return available - paid;
 }
 

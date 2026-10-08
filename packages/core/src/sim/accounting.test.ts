@@ -60,7 +60,7 @@ function agentSpend(sensitivity: number): number {
     household.smoothed = 0;
     household.income = 0;
   }
-  economy.agents.push({ id: 0, owner: 0, deposit: 5_000, income: 100, smoothed: 100 });
+  economy.agents.push({ id: 0, owner: 0, deposit: 5_000, bitcoin: 0, income: 100, smoothed: 100 });
   economy.params.realReturnSensitivity = sensitivity;
   economy.params.depositPassThrough = 1;
   economy.policyRate = 0.1;

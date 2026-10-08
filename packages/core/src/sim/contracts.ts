@@ -3,6 +3,7 @@ import {
   chargeEquityForDefault,
   drawConsumerLoan,
   drawMortgage,
+  fundFromBitcoin,
   payCashForHome,
   payMortgageInterest,
   repayConsumerLoan,
@@ -205,6 +206,7 @@ export function onContractChoice(economy: Economy): void {
 function serviceDebts(economy: Economy, household: Household): void {
   if (household.mortgage > 0 && household.mortgagePayment > 0) {
     const due = Math.min(household.mortgage, household.mortgagePayment);
+    fundFromBitcoin(economy, household, due);
     const pay = Math.min(due, household.deposit);
     const interestDue = Math.min(
       due,
@@ -239,11 +241,9 @@ function serviceDebts(economy: Economy, household: Household): void {
     }
   }
   if (household.consumerLoan > 0) {
-    const pay = Math.min(
-      household.consumerLoan,
-      household.deposit,
-      moneyAmount(economy, household.consumerLoan * CONSUMER_LOAN_REPAY),
-    );
+    const cap = moneyAmount(economy, household.consumerLoan * CONSUMER_LOAN_REPAY);
+    fundFromBitcoin(economy, household, Math.min(household.consumerLoan, cap));
+    const pay = Math.min(household.consumerLoan, household.deposit, cap);
     if (pay > 0) {
       repayConsumerLoan(household, pay);
       economy.loanRepaid += pay;

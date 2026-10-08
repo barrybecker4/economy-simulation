@@ -54,6 +54,12 @@ export interface Economy {
   sawBoom: boolean;
   privateEquity: number;
   govDeposits: number;
+  /** Treasury bitcoin units. */
+  govBitcoin: number;
+  /** Ledger value of bitcoin deposit units at the last mark. */
+  bitcoinCarried: number;
+  /** Ledger value of bitcoin loan units at the last mark. */
+  bitcoinLoanCarried: number;
   tick: number;
   demandBase: number;
   desiredSpend: number;

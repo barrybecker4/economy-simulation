@@ -1,6 +1,12 @@
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
-import { collectBankFee, creditDeposit, debitDeposit } from './money.js';
+import {
+  collectBankFee,
+  creditDeposit,
+  debitDeposit,
+  payFromCash,
+  spendableCash,
+} from './money.js';
 import { AI_SERVICE_PRICE_CAP, AI_SERVICE_WAGE_SHARE } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare } from './spending.js';
@@ -69,7 +75,7 @@ function buyAgentGoods(economy: Economy, agent: Agent, market: GoodsMarket, shar
   const budget = goodsBudget({
     smoothed: agent.smoothed,
     income: agent.income,
-    deposit: agent.deposit,
+    deposit: agent.deposit + (agent.bitcoin > 0 ? agent.bitcoin * economy.bitcoinPrice : 0),
     spendingShare: share,
     demandFactor: market.demandFactor,
     realReturn: market.realReturn,
@@ -78,7 +84,7 @@ function buyAgentGoods(economy: Economy, agent: Agent, market: GoodsMarket, shar
   });
   economy.desiredSpend += budget;
   const reserve = moneyAmount(economy, economy.params.taxRate * agent.income);
-  const cash = Math.max(0, agent.deposit - reserve);
+  const cash = spendableCash(economy, agent, reserve);
   const left = Math.max(0, Math.min(cash, Math.round(budget)));
   const { spent } = buyFromFirms(
     economy.firms,
@@ -86,7 +92,7 @@ function buyAgentGoods(economy: Economy, agent: Agent, market: GoodsMarket, shar
     agent.id % economy.firms.length,
     economy.params.sampleSize,
   );
-  debitDeposit(agent, spent);
+  payFromCash(economy, agent, spent, reserve);
   economy.agentGoodsSpend += spent;
   economy.consumptionSpend += spent;
 }

@@ -38,7 +38,7 @@ describe('household census', () => {
   it('reports no owner-wealth share until an agent exists', () => {
     const economy = economyWith(20, 4);
     expect(ownerWealthShare(economy)).toBe(0);
-    economy.agents.push({ id: 0, owner: 0, deposit: 0, income: 0, smoothed: 0 });
+    economy.agents.push({ id: 0, owner: 0, deposit: 0, bitcoin: 0, income: 0, smoothed: 0 });
     expect(ownerWealthShare(economy)).toBeGreaterThan(0);
     expect(ownerWealthShare(economy)).toBeLessThanOrEqual(1);
   });

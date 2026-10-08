@@ -47,8 +47,8 @@ export function measureHouseholds(economy: Economy): HouseholdMeasures {
 
 /** Agent deposits over household deposits plus agent deposits. */
 export function aiShareOfWealth(economy: Economy): number {
-  const householdWealth = sumDeposits(economy.households);
-  const agentWealth = sumDeposits(economy.agents);
+  const householdWealth = sumCash(economy.households, economy.bitcoinPrice);
+  const agentWealth = sumCash(economy.agents, economy.bitcoinPrice);
   const total = householdWealth + agentWealth;
   return total > 0 ? agentWealth / total : 0;
 }
@@ -62,7 +62,7 @@ export function ownerWealthShare(economy: Economy): number {
   let ownerWealth = 0;
   let total = 0;
   for (const household of economy.households) {
-    const deposit = Math.max(0, household.deposit);
+    const deposit = Math.max(0, household.deposit + household.bitcoin * economy.bitcoinPrice);
     total += deposit;
     if (owners.has(household.id)) {
       ownerWealth += deposit;
@@ -105,12 +105,15 @@ export function jobShares(economy: Economy): {
 }
 
 function householdWealth(economy: Economy): number[] {
+  const price = economy.bitcoinPrice;
+  const cash = (household: { deposit: number; bitcoin: number }) =>
+    household.deposit + household.bitcoin * price;
   if (economy.params.equityMarket !== 'on') {
-    return economy.households.map((household) => household.deposit);
+    return economy.households.map((household) => cash(household));
   }
   refreshEquityClaims(economy);
   return economy.households.map(
-    (household, index) => household.deposit + (economy.equityClaims[index] ?? 0),
+    (household, index) => cash(household) + (economy.equityClaims[index] ?? 0),
   );
 }
 
@@ -154,10 +157,10 @@ function shareBelow(values: readonly number[], floor: number): number {
   return below / values.length;
 }
 
-function sumDeposits(holders: readonly { deposit: number }[]): number {
+function sumCash(holders: readonly { deposit: number; bitcoin: number }[], price: number): number {
   let total = 0;
   for (const holder of holders) {
-    total += holder.deposit;
+    total += holder.deposit + holder.bitcoin * price;
   }
   return total;
 }

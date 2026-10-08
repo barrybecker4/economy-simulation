@@ -1,7 +1,13 @@
 import { powerWeights, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { separate } from './helpers.js';
-import { chargeEquityForDefault, creditDeposit, transferDeposit } from './money.js';
+import {
+  chargeEquityForDefault,
+  creditDeposit,
+  foldBitcoinCash,
+  foldBitcoinLoan,
+  transferDeposit,
+} from './money.js';
 import { AI_INTERNET_TASK_GAIN, AI_UNBOUNDED_GROWTH } from './rules.js';
 
 /** Skill weights to this power, so an estate concentrates on the highest-skill heirs. */
@@ -161,6 +167,7 @@ function addHousehold(economy: Economy): void {
     skill,
     timePref,
     deposit: 0,
+    bitcoin: 0,
     employer: -1,
     income: 0,
     consumption: 0,
@@ -169,9 +176,11 @@ function addHousehold(economy: Economy): void {
     search: economy.populationRng.fork(id),
     tenure: 'none',
     mortgage: 0,
+    bitcoinMortgage: 0,
     mortgagePayment: 0,
     mortgageArrears: 0,
     consumerLoan: 0,
+    bitcoinConsumer: 0,
   };
   economy.households.push(household);
 }
@@ -185,6 +194,27 @@ function removeLastHousehold(economy: Economy): void {
   if (exiting.employer >= 0) {
     separate(economy, exiting);
   }
+  foldBitcoinCash(economy, exiting);
+  foldBitcoinLoan(
+    economy,
+    exiting.bitcoinMortgage,
+    (value) => {
+      exiting.mortgage += value;
+    },
+    () => {
+      exiting.bitcoinMortgage = 0;
+    },
+  );
+  foldBitcoinLoan(
+    economy,
+    exiting.bitcoinConsumer,
+    (value) => {
+      exiting.consumerLoan += value;
+    },
+    () => {
+      exiting.bitcoinConsumer = 0;
+    },
+  );
   if (exiting.deposit > 0) {
     if (economy.params.bequests === 'skillWeighted') {
       distributeBequest(economy, exiting);
@@ -249,7 +279,7 @@ function spawnAgents(economy: Economy, progress: number): void {
   while (economy.agents.length < target && slots > 0) {
     const owner = shortestOwner(counts, slots);
     const id = economy.agents.length;
-    economy.agents.push({ id, owner, deposit: 0, income: 0, smoothed: 0 });
+    economy.agents.push({ id, owner, deposit: 0, bitcoin: 0, income: 0, smoothed: 0 });
     counts.set(owner, (counts.get(owner) ?? 0) + 1);
   }
 }

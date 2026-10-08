@@ -2,17 +2,24 @@ import type { TickContext } from '../engine/engine.js';
 import { FAILURE_TICKS, INITIAL_WAGE, SHOCK_PHASE_MONTHS } from './rules.js';
 import type { Economy } from './economy.js';
 import type { Firm } from './types.js';
-import { totalLoans } from './banking.js';
+import { markBitcoinToMarket, totalLoans } from './banking.js';
 import { chargeEquityForDefault, resetFailedFirmAccounts } from './money.js';
 import { resolveInsolventBanks } from './resolution.js';
 import { postStocks } from './stocks.js';
 
 export function onBookkeeping(economy: Economy, ctx: TickContext): void {
+  markBitcoinToMarket(economy);
   postStocks(economy, ctx.ledger);
   // Catch losses booked after the pre-credit pass (for example write-offs).
   resolveInsolventBanks(economy);
   for (const firm of economy.firms) {
-    const equity = firm.deposit + firm.capital * firm.price - firm.loan;
+    const price = economy.bitcoinPrice;
+    const equity =
+      firm.deposit +
+      firm.bitcoin * price +
+      firm.capital * firm.price -
+      firm.loan -
+      firm.bitcoinLoan * price;
     firm.negTicks = equity < 0 ? firm.negTicks + 1 : 0;
     if (firm.negTicks >= FAILURE_TICKS) {
       replaceFirm(economy, firm);
@@ -27,8 +34,11 @@ export function onBookkeeping(economy: Economy, ctx: TickContext): void {
 
 function replaceFirm(economy: Economy, firm: Firm): void {
   const bank = economy.banks[firm.bank];
-  economy.defaultsThisTick += firm.loan;
-  chargeEquityForDefault(bank, economy, firm.loan);
+  const bitcoinDebt = firm.bitcoinLoan * economy.bitcoinPrice;
+  economy.bitcoinLoanCarried -= bitcoinDebt;
+  firm.bitcoinLoan = 0;
+  economy.defaultsThisTick += firm.loan + bitcoinDebt;
+  chargeEquityForDefault(bank, economy, firm.loan + bitcoinDebt);
   for (const workerId of firm.workers) {
     const worker = economy.households[workerId];
     if (worker) {

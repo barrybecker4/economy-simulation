@@ -1247,8 +1247,7 @@ Acceptance:
 - At the same amount, only `newLoans` raises firm loans, only `assetPurchase` raises bonds, and a government-spending
   injection is spent on firms in that tick.
 - A `newLoans` contraction reduces firm deposits and firm loans.
-- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
-  3. `spendNewMoney` on the default channel stays under 10 percent inflation.
+- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is 3. `spendNewMoney` on the default channel stays under 10 percent inflation.
 
 ### Phase 57: Inflation after inside-money runoff
 
@@ -1308,6 +1307,24 @@ Acceptance:
 - A skill-weighted exit does not lower the deposit Gini.
 - On the monetary preset, wealth Gini exceeds 0.6 and the top 10 percent exceeds 36 percent.
 - Velocity with 12 months of opening deposits stays above the slow baseline's velocity.
+
+### Phase 61: Transition circulates bitcoin
+
+Goal: a gradual fiat-to-bitcoin window holds both balances, and a debt haircut changes credit.
+
+1. Each month of `transition.lengthMonths`, when `transition.gradualWeight` is positive, convert
+   `weight / months remaining` of every deposit and the same fraction of firm and household debt into bitcoin units at
+   the current bitcoin price.
+2. Goods can be paid from either balance. The haircut writes off that share of the slice converted that month.
+3. `transition.gradualWeight` 0 keeps the one-step rebase at the end of the window.
+
+Acceptance:
+
+- In the middle of a 12-month window both the fiat balance and the bitcoin balance are positive.
+- A household can buy goods with either balance.
+- A debt haircut of 0.3 moves credit by more than 2 points versus a haircut of 0.
+- The ledger balances on each conversion tick.
+- Gradual weight 0 does not create a bitcoin balance before the last month.
 
 ## Validation
 

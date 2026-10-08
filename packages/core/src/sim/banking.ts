@@ -1,7 +1,47 @@
 import type { Economy } from './economy.js';
 import { clamp } from './stats.js';
 
+/** Fiat deposit stock and the ledger value of bitcoin deposit units. */
+export function moneyBalances(economy: Economy): { fiat: number; bitcoin: number } {
+  return {
+    fiat: fiatDeposits(economy),
+    bitcoin: bitcoinUnits(economy) * economy.bitcoinPrice,
+  };
+}
+
 export function totalDeposits(economy: Economy): number {
+  const balances = moneyBalances(economy);
+  return balances.fiat + balances.bitcoin;
+}
+
+export function totalLoans(economy: Economy): number {
+  return fiatLoans(economy) + bitcoinLoanUnits(economy) * economy.bitcoinPrice;
+}
+
+/**
+ * A bitcoin price move revalues units. Seat that gap on bank equity so
+ * loans + reserves + bonds + vault still equals deposits + equity.
+ */
+export function markBitcoinToMarket(economy: Economy): void {
+  const price = economy.bitcoinPrice;
+  if (!(price > 0)) {
+    return;
+  }
+  const deposits = bitcoinUnits(economy) * price;
+  const loans = bitcoinLoanUnits(economy) * price;
+  const equityGap = loans - economy.bitcoinLoanCarried - (deposits - economy.bitcoinCarried);
+  if (Math.abs(equityGap) > 1e-9) {
+    const bank = economy.banks[0];
+    if (bank) {
+      bank.equity += equityGap;
+    }
+    economy.privateEquity -= equityGap;
+  }
+  economy.bitcoinCarried = deposits;
+  economy.bitcoinLoanCarried = loans;
+}
+
+function fiatDeposits(economy: Economy): number {
   let total = economy.govDeposits;
   for (const household of economy.households) {
     total += household.deposit;
@@ -15,13 +55,38 @@ export function totalDeposits(economy: Economy): number {
   return total;
 }
 
-export function totalLoans(economy: Economy): number {
+function bitcoinUnits(economy: Economy): number {
+  let total = economy.govBitcoin;
+  for (const household of economy.households) {
+    total += household.bitcoin;
+  }
+  for (const firm of economy.firms) {
+    total += firm.bitcoin;
+  }
+  for (const agent of economy.agents) {
+    total += agent.bitcoin;
+  }
+  return total;
+}
+
+function fiatLoans(economy: Economy): number {
   let total = 0;
   for (const firm of economy.firms) {
     total += firm.loan;
   }
   for (const household of economy.households) {
     total += household.mortgage + household.consumerLoan;
+  }
+  return total;
+}
+
+function bitcoinLoanUnits(economy: Economy): number {
+  let total = 0;
+  for (const firm of economy.firms) {
+    total += firm.bitcoinLoan;
+  }
+  for (const household of economy.households) {
+    total += household.bitcoinMortgage + household.bitcoinConsumer;
   }
   return total;
 }

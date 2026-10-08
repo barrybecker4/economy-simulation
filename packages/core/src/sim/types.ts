@@ -8,6 +8,8 @@ export interface Household {
   skill: number;
   timePref: number;
   deposit: number;
+  /** Bitcoin units. The bank liability is these units times the bitcoin price. */
+  bitcoin: number;
   employer: number;
   income: number;
   consumption: number;
@@ -16,10 +18,14 @@ export interface Household {
   search: Rng;
   tenure: Tenure;
   mortgage: number;
+  /** Mortgage principal denominated in bitcoin units. */
+  bitcoinMortgage: number;
   mortgagePayment: number;
   /** Months the household has missed a full mortgage payment. */
   mortgageArrears: number;
   consumerLoan: number;
+  /** Consumer principal denominated in bitcoin units. */
+  bitcoinConsumer: number;
 }
 
 export interface Firm {
@@ -32,7 +38,11 @@ export interface Firm {
   wage: number;
   workers: number[];
   deposit: number;
+  /** Bitcoin units. The bank liability is these units times the bitcoin price. */
+  bitcoin: number;
   loan: number;
+  /** Firm loan principal denominated in bitcoin units. */
+  bitcoinLoan: number;
   output: number;
   /** Agent compute units bought last month. They raise capacity when compute productivity is positive. */
   computeReady: number;
@@ -47,6 +57,8 @@ export interface Agent {
   id: number;
   owner: number;
   deposit: number;
+  /** Bitcoin units. The bank liability is these units times the bitcoin price. */
+  bitcoin: number;
   income: number;
   smoothed: number;
 }

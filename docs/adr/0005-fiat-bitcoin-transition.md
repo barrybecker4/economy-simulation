@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted
+Accepted. A positive `transition.gradualWeight` is decided in
+[ADR 0014](0014-dual-currency-window.md). Weight 0 remains the rebase below.
 
 ## Context
 

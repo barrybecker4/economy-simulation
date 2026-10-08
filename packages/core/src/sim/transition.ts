@@ -4,6 +4,10 @@ import { moneyAmount } from './helpers.js';
 import {
   chargeEquityForDefault,
   clearBonds,
+  creditBitcoin,
+  creditBitcoinLoan,
+  foldBitcoinCash,
+  foldBitcoinLoan,
   setConsumerLoan,
   setDeposit,
   setFirmLoan,
@@ -13,8 +17,8 @@ import type { Household } from './types.js';
 
 /**
  * Fiat-to-bitcoin transition. With gradual weight 0, one-shot rebase at the end
- * of the window. With weight > 0, a share of the haircut and deposit reassignment
- * runs each month of the window, and the regime flips on the last month.
+ * of the window. With weight > 0, each month converts a slice of deposits and
+ * debt into bitcoin units, and the regime flips on the last month.
  */
 export function onTransition(economy: Economy): void {
   const length = economy.params.transitionLength;
@@ -35,14 +39,18 @@ export function onTransition(economy: Economy): void {
     return;
   }
   const step = gradual / length;
-  applyDebtHaircut(economy, economy.params.debtHaircut * step);
+  const monthsLeft = Math.max(1, length - economy.tick);
+  const fraction = Math.min(1, gradual / monthsLeft);
   redistributeDeposits(economy, step);
+  convertDeposits(economy, fraction);
+  convertDebts(economy, fraction);
   if (economy.tick >= length - 1) {
     finishTransition(economy);
   }
 }
 
 function finishTransition(economy: Economy): void {
+  foldBitcoinBalances(economy);
   for (const bank of economy.banks) {
     clearBonds(bank);
   }
@@ -50,6 +58,206 @@ function finishTransition(economy: Economy): void {
   economy.params.unit = 'satoshi';
   economy.params.bondPurchaseShare = 0;
   economy.transitionDone = true;
+}
+
+function convertDeposits(economy: Economy, fraction: number): void {
+  if (fraction <= 0) {
+    return;
+  }
+  const price = bitcoinPrice(economy);
+  for (const household of economy.households) {
+    moveDeposit(economy, household, fraction, price);
+  }
+  for (const firm of economy.firms) {
+    moveDeposit(economy, firm, fraction, price);
+  }
+  for (const agent of economy.agents) {
+    moveDeposit(economy, agent, fraction, price);
+  }
+  const treasurySlice = moneyAmount(economy, Math.max(0, economy.govDeposits) * fraction);
+  if (treasurySlice > 0) {
+    economy.govDeposits -= treasurySlice;
+    creditBitcoin(economy, treasuryBitcoin(economy), treasurySlice / price);
+  }
+}
+
+function convertDebts(economy: Economy, fraction: number): void {
+  if (fraction <= 0) {
+    return;
+  }
+  const price = bitcoinPrice(economy);
+  const haircut = economy.params.debtHaircut;
+  for (const firm of economy.firms) {
+    const kept = convertClaim(
+      economy,
+      firm.loan,
+      fraction,
+      haircut,
+      (next) => {
+        setFirmLoan(firm, next);
+      },
+      economy.banks[firm.bank],
+    );
+    if (kept > 0) {
+      creditBitcoinLoan(economy, firm, kept / price);
+    }
+  }
+  for (const household of economy.households) {
+    const mortgageKept = convertClaim(
+      economy,
+      household.mortgage,
+      fraction,
+      haircut,
+      (next) => {
+        setMortgage(household, next);
+      },
+      economy.banks[household.bank],
+    );
+    if (mortgageKept > 0) {
+      creditBitcoinLoan(economy, mortgageBook(household), mortgageKept / price);
+    }
+    const consumerKept = convertClaim(
+      economy,
+      household.consumerLoan,
+      fraction,
+      haircut,
+      (next) => {
+        setConsumerLoan(household, next);
+      },
+      economy.banks[household.bank],
+    );
+    if (consumerKept > 0) {
+      creditBitcoinLoan(economy, consumerBook(household), consumerKept / price);
+    }
+    if (household.mortgage <= 0 && household.bitcoinMortgage <= 0) {
+      household.mortgagePayment = 0;
+      if (household.tenure === 'mortgage') {
+        household.tenure = 'owned';
+      }
+    }
+  }
+}
+
+/** Write off the haircut and return the value that becomes bitcoin debt. */
+function convertClaim(
+  economy: Economy,
+  balance: number,
+  fraction: number,
+  haircut: number,
+  write: (next: number) => void,
+  bank: Economy['banks'][number] | undefined,
+): number {
+  const slice = moneyAmount(economy, Math.max(0, balance) * fraction);
+  if (slice <= 0) {
+    return 0;
+  }
+  const cut = moneyAmount(economy, slice * haircut);
+  write(Math.max(0, balance - slice));
+  if (cut > 0) {
+    chargeEquityForDefault(bank, economy, cut);
+  }
+  return slice - cut;
+}
+
+function moveDeposit(
+  economy: Economy,
+  account: { deposit: number; bitcoin: number },
+  fraction: number,
+  price: number,
+): void {
+  const slice = moneyAmount(economy, Math.max(0, account.deposit) * fraction);
+  if (slice <= 0) {
+    return;
+  }
+  account.deposit -= slice;
+  creditBitcoin(economy, account, slice / price);
+}
+
+function foldBitcoinBalances(economy: Economy): void {
+  for (const household of economy.households) {
+    foldBitcoinCash(economy, household);
+    foldBitcoinLoan(
+      economy,
+      household.bitcoinMortgage,
+      (value) => {
+        household.mortgage += value;
+      },
+      () => {
+        household.bitcoinMortgage = 0;
+      },
+    );
+    foldBitcoinLoan(
+      economy,
+      household.bitcoinConsumer,
+      (value) => {
+        household.consumerLoan += value;
+      },
+      () => {
+        household.bitcoinConsumer = 0;
+      },
+    );
+  }
+  for (const firm of economy.firms) {
+    foldBitcoinCash(economy, firm);
+    foldBitcoinLoan(
+      economy,
+      firm.bitcoinLoan,
+      (value) => {
+        firm.loan += value;
+      },
+      () => {
+        firm.bitcoinLoan = 0;
+      },
+    );
+  }
+  for (const agent of economy.agents) {
+    foldBitcoinCash(economy, agent);
+  }
+  const treasury = treasuryBitcoin(economy);
+  foldBitcoinCash(economy, treasury);
+}
+
+function treasuryBitcoin(economy: Economy): { deposit: number; bitcoin: number } {
+  return {
+    get deposit() {
+      return economy.govDeposits;
+    },
+    set deposit(value: number) {
+      economy.govDeposits = value;
+    },
+    get bitcoin() {
+      return economy.govBitcoin;
+    },
+    set bitcoin(value: number) {
+      economy.govBitcoin = value;
+    },
+  };
+}
+
+function mortgageBook(household: Household): { bitcoinLoan: number } {
+  return {
+    get bitcoinLoan() {
+      return household.bitcoinMortgage;
+    },
+    set bitcoinLoan(value: number) {
+      household.bitcoinMortgage = value;
+    },
+  };
+}
+
+function consumerBook(household: Household): { bitcoinLoan: number } {
+  return {
+    get bitcoinLoan() {
+      return household.bitcoinConsumer;
+    },
+    set bitcoinLoan(value: number) {
+      household.bitcoinConsumer = value;
+    },
+  };
+}
+
+function bitcoinPrice(economy: Economy): number {
+  return economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 1e-12;
 }
 
 function applyDebtHaircut(economy: Economy, haircut: number): void {

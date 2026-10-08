@@ -248,7 +248,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     0,
     1,
-    'When a transition window is positive, this share of the debt haircut and deposit reassignment is applied each month of the window instead of only at the last month. At 0 the previous one-step rebase at the end of the window is unchanged. At 1 the full conversion is spread evenly across the window.',
+    'When a transition window is positive and this weight is positive, each month converts one over the months still left, times this weight, of every deposit and of firm and household debt into bitcoin units at the current bitcoin price. Goods can be paid from either balance. The debt haircut writes off that share of the slice converted that month. At 1 the stock converts in equal monthly slices and both balances are in use through the window. At 0 the one-step rebase at the end of the window is unchanged.',
   ),
   numberSlider(
     'bank.depositPassThrough',
@@ -337,7 +337,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     0,
     120,
-    'Months of a one-time fiat-to-bitcoin rebase. At 0 there is no transition and regime.type selects a steady rule set. A positive length starts the run on fiat rules (with satoshi balances so holdings can be reassigned), and at the last transition month debts may be haircut, deposits are reassigned by holder concentration, government bonds on bank books are cleared, and the active regime becomes bitcoin. Monetization stays off afterward.',
+    'Months of a one-time fiat-to-bitcoin change. At 0 there is no transition and regime.type selects a steady rule set. A positive length starts the run on fiat rules with satoshi balances. When gradual weight is 0, the last month may haircut debts, reassign deposits by holder concentration, clear government bonds on bank books, and switch the active regime to bitcoin. When gradual weight is positive, deposits and debts convert into bitcoin over the window and the regime flips at the end. Monetization stays off afterward.',
   ),
   numberSlider(
     'transition.debtHaircut',
@@ -347,7 +347,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     0,
     0.5,
-    'Share of nominal firm loans, mortgages, and consumer loans written off at the conversion month of a transition. At 0 debts convert one-for-one with deposits. Unused when the transition length is 0.',
+    'Share of the firm loans, mortgages, and consumer loans converted in a transition month that is written off. At 0 that slice converts one-for-one into bitcoin debt. When gradual weight is 0 the whole stock is converted on the last month. Unused when the transition length is 0.',
   ),
   numberSlider(
     'transition.holderConcentration',

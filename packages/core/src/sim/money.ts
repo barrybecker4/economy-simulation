@@ -1,4 +1,5 @@
 import type { Economy } from './economy.js';
+import { spendableDeposit } from './helpers.js';
 import type { Bank, Firm, Household } from './types.js';
 
 /** Household, firm, or agent cash balance. */
@@ -228,6 +229,138 @@ export function clearBonds(bank: Bank): void {
  * Reset a failed firm. Loan is already written off against equity. The deposit
  * balance is left unchanged so the banking system neither creates nor destroys money.
  */
+export interface BitcoinAccount {
+  bitcoin: number;
+}
+
+/** Coin units acquired at the current bitcoin price. The carried value matches that price. */
+export function creditBitcoin(economy: Economy, account: BitcoinAccount, units: number): void {
+  if (!(units > 0)) {
+    return;
+  }
+  account.bitcoin += units;
+  economy.bitcoinCarried += units * economy.bitcoinPrice;
+}
+
+export function debitBitcoin(economy: Economy, account: BitcoinAccount, units: number): void {
+  if (!(units > 0) || account.bitcoin <= 0) {
+    return;
+  }
+  const taken = Math.min(account.bitcoin, units);
+  account.bitcoin -= taken;
+  economy.bitcoinCarried -= taken * economy.bitcoinPrice;
+}
+
+export function creditBitcoinLoan(
+  economy: Economy,
+  account: { bitcoinLoan: number },
+  units: number,
+): void {
+  if (!(units > 0)) {
+    return;
+  }
+  account.bitcoinLoan += units;
+  economy.bitcoinLoanCarried += units * economy.bitcoinPrice;
+}
+
+/** Cash that can be spent while leaving `reserved` aside for debt service. */
+export function spendableCash(
+  economy: Economy,
+  account: DepositAccount & BitcoinAccount,
+  reserved: number,
+): number {
+  const coins = coinValue(economy, account);
+  return Math.max(0, Math.max(0, account.deposit) + coins - reserved);
+}
+
+/** Firm receipts, floored to a spendable cent when the unit is cents. */
+export function availableCash(economy: Economy, account: DepositAccount & BitcoinAccount): number {
+  return spendableDeposit(economy, account.deposit + coinValue(economy, account));
+}
+
+/**
+ * Pay `amount` from fiat above `reserved`, then from bitcoin.
+ * Bitcoin spent is valued at the current price and leaves the carried stock.
+ */
+export function payFromCash(
+  economy: Economy,
+  account: DepositAccount & BitcoinAccount,
+  amount: number,
+  reserved: number,
+): void {
+  if (!(amount > 0)) {
+    return;
+  }
+  const price = economy.bitcoinPrice;
+  const fiatFree = Math.max(0, account.deposit - reserved);
+  const fromFiat = Math.min(fiatFree, amount);
+  account.deposit -= fromFiat;
+  let rest = amount - fromFiat;
+  if (!(rest > 0)) {
+    return;
+  }
+  const coins = coinValue(economy, account);
+  const reserveShort = Math.max(0, reserved - Math.max(0, account.deposit + fromFiat));
+  const coinFree = Math.max(0, coins - reserveShort);
+  const take = Math.min(coinFree, rest);
+  if (take > 0 && price > 0) {
+    debitBitcoin(economy, account, take / price);
+    rest -= take;
+  }
+  if (rest > 0) {
+    account.deposit -= rest;
+  }
+}
+
+/** Turn bitcoin units into fiat deposits, up to `amount` of value, so a fiat debit can pay. */
+export function fundFromBitcoin(
+  economy: Economy,
+  account: DepositAccount & BitcoinAccount,
+  amount: number,
+): void {
+  const price = economy.bitcoinPrice;
+  const short = amount - Math.max(0, account.deposit);
+  if (!(short > 0) || account.bitcoin <= 0 || !(price > 0)) {
+    return;
+  }
+  const take = Math.min(short, account.bitcoin * price);
+  debitBitcoin(economy, account, take / price);
+  account.deposit += take;
+}
+
+/** Move bitcoin units back into the fiat deposit at the current price. */
+export function foldBitcoinCash(economy: Economy, account: DepositAccount & BitcoinAccount): void {
+  const units = account.bitcoin;
+  if (!(units > 0)) {
+    return;
+  }
+  account.deposit += units * economy.bitcoinPrice;
+  account.bitcoin = 0;
+  economy.bitcoinCarried -= units * economy.bitcoinPrice;
+}
+
+export function foldBitcoinLoan(
+  economy: Economy,
+  units: number,
+  addFiat: (value: number) => void,
+  clear: () => void,
+): void {
+  if (!(units > 0)) {
+    return;
+  }
+  const value = units * economy.bitcoinPrice;
+  addFiat(value);
+  clear();
+  economy.bitcoinLoanCarried -= value;
+}
+
+function coinValue(economy: Economy, account: BitcoinAccount): number {
+  if (account.bitcoin <= 0 || !(economy.bitcoinPrice > 0)) {
+    return 0;
+  }
+  return account.bitcoin * economy.bitcoinPrice;
+}
+
 export function resetFailedFirmAccounts(
   firm: Firm,
   _bank?: Bank,
