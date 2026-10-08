@@ -186,6 +186,48 @@ describe('plotOptions', () => {
     expect(paired(plot, 9, 2, 1)).toBe('2.5k dollars → 9 satoshis');
   });
 
+  it('highlights the hovered legend line when the chart is not a comparison', () => {
+    const options = plotOptions(640, [
+      { label: 'CPI', color: '#246' },
+      { label: 'Food', color: '#9a3412' },
+    ]);
+    const rows = ['Month', 'CPI', 'Food'].map(() => ({
+      style: { display: '', opacity: '' },
+      listeners: new Map<string, EventListener>(),
+      addEventListener(type: string, listener: EventListener) {
+        this.listeners.set(type, listener);
+      },
+    }));
+    const table = {
+      listeners: new Map<string, EventListener>(),
+      addEventListener(type: string, listener: EventListener) {
+        this.listeners.set(type, listener);
+      },
+    };
+    const focused: { index: number | null; opts: { focus?: boolean } | null } = {
+      index: null,
+      opts: null,
+    };
+    const plot = {
+      root: {
+        querySelectorAll: () => rows,
+        querySelector: () => table,
+      },
+      setSeries(index: number | null, opts: { focus?: boolean }) {
+        focused.index = index;
+        focused.opts = opts;
+      },
+    } as unknown as uPlot;
+
+    options.hooks?.ready?.[0]?.(plot);
+    rows[1]?.listeners.get('mouseenter')?.(new Event('mouseenter'));
+    expect(focused).toEqual({ index: 1, opts: { focus: true } });
+    rows[2]?.listeners.get('mouseenter')?.(new Event('mouseenter'));
+    expect(focused).toEqual({ index: 2, opts: { focus: true } });
+    table.listeners.get('mouseleave')?.(new Event('mouseleave'));
+    expect(focused).toEqual({ index: null, opts: { focus: true } });
+  });
+
   it('hides the baseline legend row and highlights both lines on hover', () => {
     const lines = [
       { label: 'CPI', color: '#1e3a8a', omitLegend: true, pair: 'priceLevel' },

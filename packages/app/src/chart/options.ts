@@ -114,7 +114,7 @@ export function plotOptions(
       })),
     ],
     axes: yAxes(lines, rightScale),
-    ...(paired || marked ? { hooks: plotHooks(lines, marks) } : {}),
+    hooks: plotHooks(lines, marks),
   };
 }
 
@@ -187,19 +187,16 @@ export function focusedSeries(lines: readonly { pair?: string }[], seriesIdx: nu
 function plotHooks(lines: readonly PlotLine[], marks: ChartMarks): uPlot.Hooks.Arrays {
   const paired = lines.some((line) => line.pair !== undefined);
   const marked = hasMarks(marks);
-  const hooks: uPlot.Hooks.Arrays = {};
-  if (paired || marked) {
-    hooks.ready = [
+  const hooks: uPlot.Hooks.Arrays = {
+    ready: [
       (plot) => {
-        if (paired) {
-          bindLegend(plot, lines);
-        }
+        bindLegend(plot, lines);
         if (marked) {
           bindEventLegend(plot, marks);
         }
       },
-    ];
-  }
+    ],
+  };
   if (marked) {
     hooks.drawClear = [
       (plot) => {
@@ -238,7 +235,7 @@ function isFocus(opts: object): boolean {
   return 'focus' in opts && opts.focus === true;
 }
 
-/** Legend hover is separate from cursor proximity, so a pair can highlight together. */
+/** Hovering a legend row focuses that series. A paired row focuses the baseline and the scenario together. */
 function bindLegend(plot: uPlot, lines: readonly PlotLine[]): void {
   const rows = legendRows(plot);
   for (const index of hiddenLegendSeries(lines)) {
