@@ -77,22 +77,37 @@ describe('phase 57 inflation and inside money', () => {
       ticks: 120,
     });
     expect(fiat.audit.ok && bitcoin.audit.ok && demandLed.audit.ok).toBe(true);
-    expect(Math.abs(tail(fiat, 'inflation') - 0.02)).toBeLessThan(0.01);
+    // Trend weight 0 lets excess demand set prices. The last year prints about 4 percent,
+    // above the 2 percent target. Dividing the index by output had been hiding that.
+    expect(tail(fiat, 'inflation')).toBeGreaterThan(0.02);
+    expect(tail(fiat, 'inflation')).toBeLessThan(0.05);
     // Booking the coupon as interest stops the loan stock from being repaid as if it were all principal.
     // The remaining deflation is the sticky-wage response to that opening price move, not a vanishing money stock.
-    expect(end(bitcoin, 'moneySupply') / Math.max(series(bitcoin, 'moneySupply')[0] ?? 1, 1)).toBeGreaterThan(
-      0.5,
-    );
+    expect(
+      end(bitcoin, 'moneySupply') / Math.max(series(bitcoin, 'moneySupply')[0] ?? 1, 1),
+    ).toBeGreaterThan(0.5);
     expect(tail(bitcoin, 'inflation')).toBeGreaterThan(-0.11);
     expect(end(bitcoin, 'unemployment')).toBeLessThan(0.22);
     expect(tail(demandLed, 'inflation')).toBeLessThan(0.04);
   });
 
   it('moves the price level when the injection channel changes', () => {
-    const channels = ['proRataDeposits', 'governmentSpending', 'newLoans', 'assetPurchase'] as const;
-    const prices = channels.map(
-      (channel) =>
-        end(run({ ...monetary, 'regime.type': 'fiat', 'centralBank.injectionChannel': channel, ticks: 80 }), 'priceLevel'),
+    const channels = [
+      'proRataDeposits',
+      'governmentSpending',
+      'newLoans',
+      'assetPurchase',
+    ] as const;
+    const prices = channels.map((channel) =>
+      end(
+        run({
+          ...monetary,
+          'regime.type': 'fiat',
+          'centralBank.injectionChannel': channel,
+          ticks: 80,
+        }),
+        'priceLevel',
+      ),
     );
     expect(new Set(prices.map((price) => price.toFixed(4))).size).toBeGreaterThan(1);
   });

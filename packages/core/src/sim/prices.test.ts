@@ -55,6 +55,20 @@ describe('relative prices', () => {
     expect(fast.audit.ok && tight.audit.ok).toBe(true);
   });
 
+  it('does not jump the CPI when firms produce below capacity', () => {
+    const result = run({
+      'shock.frequency': 0,
+      'production.demandWeight': 1,
+      'prices.trendWeight': 0.8,
+      'household.openingDepositMonths': 12,
+    });
+    const cpi = series(result, 'priceLevel');
+    const first = cpi[0] ?? 0;
+    const second = cpi[1] ?? 0;
+    expect(first).toBeGreaterThan(0);
+    expect(Math.abs(second / first - 1)).toBeLessThan(0.08);
+  });
+
   it('holds the CPI near target while electronics and housing move apart', () => {
     const result = run({ 'shock.frequency': 0, 'labor.wageElasticity': 0 });
     const inflation = series(result, 'inflation');

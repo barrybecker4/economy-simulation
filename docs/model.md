@@ -204,7 +204,8 @@ spending this month relative to nominal capacity, minus one, clamped to ±0.2. M
 times the trend plus one minus that weight times excess demand, plus a small cost nudge of at most 0.1 percent a month
 toward unit labor cost times `1 + firm.markup` times a tight inventory pressure term, plus a shock tilt. At trend weight
 1 the path follows the regime trend as before. A demand impulse adds to that growth and a productivity impulse
-subtracts. The basket price is the capacity-weighted average of firm prices. That basket price is the CPI. Twelve-month
+subtracts. The basket price is the capacity-weighted average of firm prices, with capacity in both the weights and the total. 
+Output below capacity does not raise it. That basket price is the CPI. Twelve-month
 inflation uses it. The history is prefilled so the first year already sits on the target path.
 
 The basket is nine categories whose expenditure-weighted average is the CPI. The shares follow the U.S. CPI-U relative

@@ -90,14 +90,19 @@ function spendingShare(economy: Economy, timePref: number, inflationGap: number)
 function updatePrices(economy: Economy): void {
   const excessDemand = excessDemandRatio(economy);
   let output = 0;
+  let weight = 0;
   let weightedPrice = 0;
   for (const firm of economy.firms) {
     reprice(economy, firm, excessDemand);
+    const capacity = Math.max(firmCapacity(economy, firm), 0);
     output += firm.output;
-    weightedPrice += firm.price * Math.max(firmCapacity(economy, firm), 0);
+    weight += capacity;
+    weightedPrice += firm.price * capacity;
   }
   economy.realGdp = output;
-  economy.priceLevel = output > 0 ? weightedPrice / output : economy.priceLevel;
+  // Capacity weights, not output. Output can sit below capacity, and dividing by it
+  // would print a price jump no firm posted.
+  economy.priceLevel = weight > 0 ? weightedPrice / weight : economy.priceLevel;
   economy.priceHistory.push(economy.priceLevel);
   economy.gdpHistory.push(economy.realGdp);
 }

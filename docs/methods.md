@@ -9,7 +9,9 @@ moves, not a test of the real economy. See [limits.md](limits.md).
 Claim: fixed money and rapid AI adoption lower the price level.
 
 The runner compares a bitcoin economy with AI held at a constant automatable share to one with a steep adoption curve
-and sticky wages. Support means the fast run ends at a lower CPI.
+and sticky wages. Support means the fast run ends at a lower CPI. On the 120-month methods check the two ending
+levels stay within 2 percent, so that ordering is not stable once the CPI is the capacity-weighted average of posted
+prices.
 
 ## H2
 

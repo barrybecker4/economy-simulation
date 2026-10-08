@@ -1259,7 +1259,7 @@ Goal: calm fiat ends near the inflation target, and bitcoin does not destroy the
 Acceptance:
 
 - The principal falls by less than the payment when the loan rate is positive, and bank equity rises by the interest.
-- Calm monetary fiat ends the decade within 1 point of 2 percent inflation. Demand-led fiat stays within 2 points above the target.
+- Calm monetary fiat, with trend weight 0, ends the decade above the 2 percent target and under 5 percent. The index is the capacity-weighted average of posted prices, so a shortfall in output does not inflate it. Demand-led fiat stays within 2 points above the target.
 - Calm monetary bitcoin keeps broad money above half of its opening level. The old runoff repaid the whole coupon as principal and left money near 0.27×.
 - The channels still do not print the same price level.
 - With the default nominal rigidity, bitcoin inflation is still below minus productivity growth. Flexible wages reach that path, so the remainder is the labor market, not a missing money stock.
