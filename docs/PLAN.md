@@ -48,9 +48,10 @@ Layout:
 
 - Read this file and `docs/model.md` before changing simulation behavior.
 - Write tests first for ledger, accounting, and regime logic.
-- Fiat money is integer cents, checked for overflow. Bitcoin money is an IEEE-754 double in satoshis and may be
-  fractional. The fiat audit is exact. The bitcoin audit uses a relative epsilon. Output hashes use a canonical decimal
-  format. Ratios, rates, and productivity may be floating point.
+- Fiat money is integer cents, checked for overflow. One balance stays inside 2^53 − 1. An aggregate ledger account
+  may hold the sum up to 2^63 − 1. Bitcoin money is an IEEE-754 double in satoshis and may be fractional. The fiat audit
+  is exact. The bitcoin audit uses a relative epsilon. Output hashes use a canonical decimal format. Ratios, rates,
+  and productivity may be floating point.
 - Use the seeded RNG and pass it explicitly. Iterate agents by numeric id. Give agents independent streams so one
   agent's draws do not move another's.
 - Keep every tunable in the slider registry.
@@ -61,10 +62,9 @@ Layout:
 ## Time and scale
 
 - One tick is one month. A default run is 50 years (600 ticks). Both are configuration.
-- Development population: 1,000 households, 100 firms, 3 banks. Release target: 10,000 households and 500 firms.
+- Development population: 4,000 households, 200 firms, 4 banks, about 20 households per firm. Release target: 10,000 households and 500 firms.
 - The agent count is a share of households, not a hard cap.
-- Performance, measured and adjusted as phases land: a development run of 600 ticks in under one second in Node, and a
-  release-size run in under 15 seconds.
+- Performance, measured and adjusted as phases land: a development run of 600 ticks finishes in about 7 seconds in Node. A release-size run stays under 15 seconds.
 
 ## Domain model
 

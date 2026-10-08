@@ -262,7 +262,7 @@ describe('comparison session', () => {
       finishedRun(),
     );
     session = pinBaseline(session, sliders).session;
-    const frozen = editSlider(session, getSlider('scale.households'), '4000');
+    const frozen = editSlider(session, getSlider('scale.households'), '8000');
     expect(frozen).toBe(session);
     const edited = editSlider(session, getSlider('government.ubiShare'), '0.4');
     expect(edited.overrides['government.ubiShare']).toBe(0.4);

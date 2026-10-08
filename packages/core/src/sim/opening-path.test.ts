@@ -49,7 +49,7 @@ describe('monetary opening path', () => {
       }
       expect(Math.max(...unemployment), preset).toBeLessThan(0.35);
     }
-  });
+  }, 30_000);
 });
 
 function series(result: SimulationResult, id: MetricId): number[] {

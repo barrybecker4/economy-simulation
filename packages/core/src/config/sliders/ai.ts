@@ -110,7 +110,7 @@ export const AI_SLIDERS: readonly Slider[] = [
     0.95,
     0,
     1,
-    'Highest fraction of households that own an agent. The owner share rises along the adoption curve from zero to this ceiling. Households become owners in id order, lowest first. At 0.95 with 1,000 households, 950 households can own an agent once the curve has finished. At zero, no agents are created. The curve stays at zero when the start and end automatable shares are equal.',
+    'Highest fraction of households that own an agent. The owner share rises along the adoption curve from zero to this ceiling. Households become owners in id order, lowest first. At 0.95 with 4,000 households, 3,800 households can own an agent once the curve has finished. At zero, no agents are created. The curve stays at zero when the start and end automatable shares are equal.',
   ),
   numberSlider(
     'ai.agentsPerOwnerCeiling',

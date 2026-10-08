@@ -193,7 +193,8 @@ describe('phase 17 AI bullishness and robotics', () => {
     expect(result.audit.ok).toBe(true);
   });
 
-  it('finishes 1200 months at high bullishness with a finite ledger', () => {
+  it('finishes 1200 months at high bullishness with a finite ledger', async () => {
+    await new Promise((resolve) => setImmediate(resolve));
     const result = simulate(
       loadScenario({
         name: 'high-bullishness',
@@ -205,9 +206,10 @@ describe('phase 17 AI bullishness and robotics', () => {
     expect(result.audit.ok).toBe(true);
     const gdp = result.metrics.series.realGdp;
     expect(gdp.every((value) => value !== null && Number.isFinite(value))).toBe(true);
-  }, 30_000);
+  }, 60_000);
 
-  it('finishes 1200 months at extreme AI bullishness with closed bank books', () => {
+  it('finishes 1200 months at extreme AI bullishness with closed bank books', async () => {
+    await new Promise((resolve) => setImmediate(resolve));
     const overrides = applyCategoryOption('aiBullishness', 'extreme', {});
     const result = simulate(
       loadScenario({ name: 'extreme-bullishness', seed: 1, ticks: 1200, sliders: overrides }),

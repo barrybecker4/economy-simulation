@@ -1,5 +1,29 @@
-/** Largest fiat amount stored in the ledger. JSON numbers stay exact inside this range. */
-export const MAX_CENT = BigInt(Number.MAX_SAFE_INTEGER);
+/**
+ * Largest fiat balance stored in the ledger.
+ * One household, firm, or bank balance must stay inside `Number.MAX_SAFE_INTEGER`.
+ * An aggregate account may hold the sum of those balances up to this limit.
+ */
+export const MAX_CENT = (1n << 63n) - 1n;
+
+/** Add finite cent components. Each component must stay inside the safe integer range. */
+export function exactCentSum(values: Iterable<number>): bigint {
+  let total = 0n;
+  let fraction = 0;
+  for (const value of values) {
+    if (!Number.isFinite(value) || Math.abs(value) > Number.MAX_SAFE_INTEGER) {
+      throw new Error('Fiat amount exceeds the safe integer range');
+    }
+    const whole = Math.trunc(value);
+    fraction += value - whole;
+    total += BigInt(whole);
+    if (fraction >= 1 || fraction <= -1) {
+      const carry = Math.trunc(fraction);
+      fraction -= carry;
+      total += BigInt(carry);
+    }
+  }
+  return total + BigInt(Math.round(fraction));
+}
 
 /**
  * Bitcoin audit tolerance relative to the largest balance.

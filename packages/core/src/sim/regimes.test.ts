@@ -107,7 +107,7 @@ describe('regimes', () => {
     expect(result.audit.ok).toBe(true);
     expect(result.metrics.ticks).toHaveLength(360);
     expect(series(result, 'auditOk').every((value) => value === 1)).toBe(true);
-  });
+  }, 60_000);
 });
 
 function run(sliders: Record<string, number | string>): SimulationResult {

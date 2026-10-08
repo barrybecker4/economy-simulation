@@ -1,4 +1,4 @@
-import { equityFor, loansAt } from './banking.js';
+import { addBonds, equityFor, loansAt } from './banking.js';
 import { moneyAmount } from './helpers.js';
 import type { Economy } from './economy.js';
 import type { Bank } from './types.js';
@@ -64,11 +64,15 @@ function mergeInto(economy: Economy, failed: Bank, survivor: Bank): void {
     writeDownDeposit(economy, failed, treasury, haircut);
   }
   survivor.reserves += Math.max(0, failed.reserves);
-  survivor.bonds += Math.max(0, failed.bonds);
+  addBonds(survivor, Math.max(0, failed.bonds));
+  survivor.bondsOver += failed.bondsOver > 0n ? failed.bondsOver : 0n;
+  failed.bonds = 0;
+  failed.bondsOver = 0n;
   survivor.vault += Math.max(0, failed.vault);
   survivor.equity += failed.equity;
   failed.reserves = 0;
   failed.bonds = 0;
+  failed.bondsOver = 0n;
   failed.vault = 0;
   failed.equity = 0;
 }

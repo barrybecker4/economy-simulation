@@ -1,4 +1,4 @@
-import { equityFor, loansAt } from './banking.js';
+import { addBonds, equityFor, loansAt } from './banking.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import { clamp } from './stats.js';
@@ -13,7 +13,7 @@ export function issueBonds(economy: Economy, amount: number): void {
   }
   const placed = bondPlacement(economy, amount);
   economy.govDeposits += amount;
-  buyer.bonds += placed.marketed;
+  addBonds(buyer, placed.marketed);
   if (placed.monetized > 0) {
     buyer.reserves += placed.monetized;
   }
@@ -34,6 +34,7 @@ export function capitalizeBanks(economy: Economy): void {
     bank.vault = equity;
     bank.equity = equity;
     bank.bonds = 0;
+    bank.bondsOver = 0n;
     bank.reserves = moneyAmount(economy, Math.max(0, deposits - loans));
   }
   economy.privateEquity = 0;

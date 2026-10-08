@@ -1,5 +1,5 @@
 import { splitProportional } from './allocate.js';
-import { savingsStock, totalDeposits, totalLoans } from './banking.js';
+import { addBonds, bondNumber, savingsStock, totalDeposits, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
 import { expectedInflation, inflation, moneyAmount, outputGap } from './helpers.js';
 import { updateMoneyChoice } from './monies.js';
@@ -124,7 +124,7 @@ export function placeInjection(economy: Economy, amount: number): void {
     return;
   }
   if (channel === 'assetPurchase') {
-    bank.bonds += amount;
+    addBonds(bank, amount);
     creditFirms(economy, amount);
     blendChannelReceipts(economy, amount);
     return;
@@ -213,9 +213,10 @@ function unwindPurchasedClaims(economy: Economy, amount: number): number {
     if (left <= 0) {
       break;
     }
-    const claim = Math.min(Math.max(0, bank.bonds), left);
+    const available = bondNumber(bank);
+    const claim = available <= 0 ? 0 : Math.min(left, available);
     const removed = drainFirmDeposits(economy, claim);
-    bank.bonds -= removed;
+    addBonds(bank, -removed);
     left -= removed;
   }
   return amount - left;
@@ -553,9 +554,7 @@ export function payHouseholdDepositInterest(
     if (holders.length === 0) {
       continue;
     }
-    const wants = holders.map((household) =>
-      moneyAmount(economy, household.deposit * monthly),
-    );
+    const wants = holders.map((household) => moneyAmount(economy, household.deposit * monthly));
     const due = wants.reduce((sum, want) => sum + want, 0);
     const payTotal = Math.min(room, due);
     if (payTotal <= 0) {

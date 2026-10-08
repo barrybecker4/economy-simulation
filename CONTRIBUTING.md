@@ -25,7 +25,7 @@ Hypotheses:
 pnpm sim hypotheses --out hypotheses.json
 ```
 
-The development-size economy is 1,000 households, 100 firms, and 3 banks. The sweep command above uses a smaller scale
+The development-size economy is 4,000 households, 200 firms, and 4 banks. The sweep command above uses a smaller scale
 so it finishes quickly. Raise seeds only when you mean to wait. Fifty development-size seeds across several regimes can
 take several minutes.
 

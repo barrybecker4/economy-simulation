@@ -51,6 +51,6 @@ and treasury debt pays a coupon. Those thin balances sit under the 48-month spen
 into smoothed income and spent; scarce categories can rise while apparel and electronics cheapen.
 `scenarios/baseline.json` stays empty for CLI regression.
 
-Development runs of 1,000 households finish in about a second in Node, a little over the one-second target. Sweeps in
+Development runs of 4,000 households, 200 firms, and 4 banks finish in about 7 seconds in Node for 600 ticks. Sweeps in
 the CLI run in this process at a small scale. A 50-seed development sweep is a manual command, not part of the default
 test suite.

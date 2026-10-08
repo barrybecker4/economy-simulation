@@ -88,7 +88,7 @@ const PROMOTE_STATUS =
   'Scenario is now the baseline. Scale and population growth stay at the baseline.';
 
 /** Census falls back here only when a resolved slider is not a finite number. */
-const CENSUS_HOUSEHOLDS_FALLBACK = 1000;
+const CENSUS_HOUSEHOLDS_FALLBACK = 4000;
 
 export interface ComparisonSession {
   seed: number;

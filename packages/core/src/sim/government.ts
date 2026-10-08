@@ -1,6 +1,6 @@
 import { splitEqual, splitProportional } from './allocate.js';
 import { issueBonds } from './bank-books.js';
-import { savingsRoom } from './banking.js';
+import { bondNumber, savingsRoom } from './banking.js';
 import type { Economy } from './economy.js';
 import { moneyAmount, spendableDeposit, unemploymentGap } from './helpers.js';
 import { distributeIncome, redistributeToUnemployed } from './income.js';
@@ -178,7 +178,7 @@ function monthlyOutlays(economy: Economy): number {
   const monthly = economy.params.bondRate / 12;
   let coupons = 0;
   for (const bank of economy.banks) {
-    coupons += moneyAmount(economy, bank.bonds * monthly);
+    coupons += moneyAmount(economy, bondNumber(bank) * monthly);
   }
   return economy.ubiOutlay + economy.govGoodsSpend + coupons;
 }
@@ -228,10 +228,10 @@ function payBondInterest(economy: Economy): void {
   }
   const monthly = economy.params.bondRate / 12;
   for (const bank of economy.banks) {
-    if (bank.bonds <= 0) {
+    if (bondNumber(bank) <= 0) {
       continue;
     }
-    const coupon = moneyAmount(economy, bank.bonds * monthly);
+    const coupon = moneyAmount(economy, bondNumber(bank) * monthly);
     if (coupon <= 0) {
       continue;
     }

@@ -4,9 +4,10 @@ import {
   BITCOIN_AUDIT_ABSOLUTE_EPSILON,
   BITCOIN_AUDIT_RELATIVE_EPSILON,
   bitcoinAmountsMatch,
+  exactCentSum,
   type MoneyUnit,
 } from '../money/amount.js';
-import { totalDeposits, totalLoans } from './banking.js';
+import { centAggregates, centIdentityGap, totalDeposits, totalLoans } from './banking.js';
 import type { Economy } from './economy.js';
 
 const ACCOUNTS: { id: string; kind: 'asset' | 'liability' | 'equity' }[] = [
@@ -35,10 +36,14 @@ export function ensureOpen(economy: Economy, ledger: Ledger): void {
 }
 
 export function postStocks(economy: Economy, ledger: Ledger): void {
+  if (ledger.unit === 'cent') {
+    postCentStocks(economy, ledger);
+    return;
+  }
   const deposits = totalDeposits(economy);
   const loans = totalLoans(economy);
   const reserves = sumBank(economy, (bank) => bank.reserves);
-  const bonds = sumBank(economy, (bank) => bank.bonds);
+  const bonds = sumBank(economy, (bank) => bank.bonds + Number(bank.bondsOver));
   const vault = sumBank(economy, (bank) => bank.vault);
   const equity = sumBank(economy, (bank) => bank.equity);
   alignPrivateEquity(economy, ledger.unit, vault, equity);
@@ -73,7 +78,7 @@ export function bankBalanceIdentity(economy: Economy): number {
   const deposits = totalDeposits(economy);
   const loans = totalLoans(economy);
   const reserves = sumBank(economy, (bank) => bank.reserves);
-  const bonds = sumBank(economy, (bank) => bank.bonds);
+  const bonds = sumBank(economy, (bank) => bank.bonds + Number(bank.bondsOver));
   const vault = sumBank(economy, (bank) => bank.vault);
   const equity = sumBank(economy, (bank) => bank.equity);
   return loans + reserves + bonds + vault - deposits - equity;
@@ -271,6 +276,75 @@ function assertBankBalance(
   throw new Error(
     `Bank books do not close at tick ${economy.tick}: assets ${assets} vs deposits plus equity ${claims}`,
   );
+}
+
+function postCentStocks(economy: Economy, ledger: Ledger): void {
+  const stocks = centAggregates(economy);
+  const residual = stocks.vault - stocks.equity;
+  alignPrivateEquityCents(economy, residual);
+  assertCentBooks(economy);
+  const targets = new Map<string, bigint>([
+    ['deposits', stocks.deposits],
+    ['bank-deposits', stocks.deposits],
+    ['bank-loans', stocks.loans],
+    ['borrower-loans', stocks.loans],
+    ['reserves', stocks.reserves],
+    ['cb-base', stocks.reserves],
+    ['bonds', stocks.bonds],
+    ['gov-bonds', stocks.bonds],
+    ['vault', stocks.vault],
+    ['bank-equity', stocks.equity],
+    ['private-equity', residual],
+  ]);
+  postBalancedStockLines(ledger, centStockLines(ledger, targets));
+}
+
+function alignPrivateEquityCents(economy: Economy, residual: bigint): void {
+  const kept = exactCentSum([economy.privateEquity]);
+  const gap = kept - residual;
+  if (gap > 1n || gap < -1n) {
+    throw new Error(
+      `Private equity ${economy.privateEquity} does not match vault minus bank equity ${residual}`,
+    );
+  }
+  if (residual > BigInt(Number.MAX_SAFE_INTEGER) || residual < -BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error('Private equity exceeds the safe integer range');
+  }
+  economy.privateEquity = Number(residual);
+}
+
+function assertCentBooks(economy: Economy): void {
+  const gap = centIdentityGap(economy);
+  if (gap <= 1n && gap >= -1n) {
+    return;
+  }
+  throw new Error(`Bank books do not close at tick ${economy.tick}: cent gap ${gap}`);
+}
+
+function centStockLines(
+  ledger: Ledger,
+  targets: ReadonlyMap<string, bigint>,
+): { accountId: string; side: EntrySide; amount: bigint }[] {
+  const lines: { accountId: string; side: EntrySide; amount: bigint }[] = [];
+  for (const account of ACCOUNTS) {
+    const target = targets.get(account.id);
+    if (target === undefined) {
+      throw new Error(`Missing stock target for ${account.id}`);
+    }
+    const current = ledger.balance(account.id);
+    if (typeof current !== 'bigint') {
+      throw new Error(`Account ${account.id} is not a cent balance`);
+    }
+    const delta = target - current;
+    if (delta === 0n) {
+      continue;
+    }
+    const increase = delta > 0n;
+    const side: EntrySide =
+      account.kind === 'asset' ? (increase ? 'debit' : 'credit') : increase ? 'credit' : 'debit';
+    lines.push({ accountId: account.id, side, amount: delta > 0n ? delta : -delta });
+  }
+  return lines;
 }
 
 function residualMatches(unit: MoneyUnit, kept: number, residual: number): boolean {

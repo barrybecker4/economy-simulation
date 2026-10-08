@@ -28,7 +28,7 @@ describe('handleRequest', () => {
     expect(result.series.creditToGdp).toHaveLength(360);
     expect(result.series.giniWealth).toHaveLength(360);
     expect(result.series.priceGeneral).toBeUndefined();
-  });
+  }, 60_000);
 
   it('reports every tick of a run and a band', () => {
     const updates: Array<[number, number]> = [];

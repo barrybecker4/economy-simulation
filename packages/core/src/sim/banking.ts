@@ -1,5 +1,15 @@
+import { exactCentSum } from '../money/amount.js';
 import type { Economy } from './economy.js';
 import { clamp } from './stats.js';
+
+export interface CentAggregates {
+  deposits: bigint;
+  loans: bigint;
+  reserves: bigint;
+  bonds: bigint;
+  vault: bigint;
+  equity: bigint;
+}
 
 /** Fiat deposit stock and the ledger value of bitcoin deposit units. */
 export function moneyBalances(economy: Economy): { fiat: number; bitcoin: number } {
@@ -16,6 +26,48 @@ export function totalDeposits(economy: Economy): number {
 
 export function totalLoans(economy: Economy): number {
   return fiatLoans(economy) + bitcoinLoanUnits(economy) * economy.bitcoinPrice;
+}
+
+/** Cent stocks summed so the total stays exact after it passes the safe integer range. */
+export function centAggregates(economy: Economy): CentAggregates {
+  return {
+    deposits: exactCentSum(fiatDepositParts(economy)),
+    loans: exactCentSum(fiatLoanParts(economy)),
+    reserves: exactCentSum(bankParts(economy, (bank) => bank.reserves)),
+    bonds:
+      economy.banks.reduce((total, bank) => total + bank.bondsOver, 0n) +
+      exactCentSum(bankParts(economy, (bank) => bank.bonds)),
+    vault: exactCentSum(bankParts(economy, (bank) => bank.vault)),
+    equity: exactCentSum(bankParts(economy, (bank) => bank.equity)),
+  };
+}
+
+/** Rounded assets minus rounded claims. Zero when the cent books close. */
+export function centIdentityGap(economy: Economy): bigint {
+  const assets =
+    exactCentSum(assetParts(economy)) +
+    economy.banks.reduce((total, bank) => total + bank.bondsOver, 0n);
+  return assets - exactCentSum(claimParts(economy));
+}
+
+/** Add `amount` to the bond stock. Small balances stay numbers; the overflow is exact. */
+export function addBonds(bank: Economy['banks'][number], amount: number): void {
+  if (bank.bondsOver !== 0n) {
+    bank.bondsOver += exactCentSum([amount]);
+    return;
+  }
+  const next = bank.bonds + amount;
+  if (Math.abs(next) <= Number.MAX_SAFE_INTEGER) {
+    bank.bonds = next;
+    return;
+  }
+  bank.bondsOver = exactCentSum([bank.bonds, amount]);
+  bank.bonds = 0;
+}
+
+/** Bond stock as a number. Imprecise once `bondsOver` is in use. */
+export function bondNumber(bank: Economy['banks'][number]): number {
+  return bank.bonds + Number(bank.bondsOver);
 }
 
 /**
@@ -53,6 +105,56 @@ function fiatDeposits(economy: Economy): number {
     total += agent.deposit;
   }
   return total;
+}
+
+function* assetParts(economy: Economy): Iterable<number> {
+  yield* fiatLoanParts(economy);
+  for (const bank of economy.banks) {
+    yield bank.reserves;
+    yield bank.vault;
+    yield bank.bonds;
+  }
+}
+
+function* claimParts(economy: Economy): Iterable<number> {
+  yield* fiatDepositParts(economy);
+  for (const bank of economy.banks) {
+    yield bank.equity;
+  }
+}
+
+function* fiatDepositParts(economy: Economy): Iterable<number> {
+  yield economy.govDeposits;
+  for (const household of economy.households) {
+    yield household.deposit;
+  }
+  for (const firm of economy.firms) {
+    yield firm.deposit;
+  }
+  for (const agent of economy.agents) {
+    yield agent.deposit;
+  }
+  yield bitcoinUnits(economy) * economy.bitcoinPrice;
+}
+
+function* fiatLoanParts(economy: Economy): Iterable<number> {
+  for (const firm of economy.firms) {
+    yield firm.loan;
+  }
+  for (const household of economy.households) {
+    yield household.mortgage;
+    yield household.consumerLoan;
+  }
+  yield bitcoinLoanUnits(economy) * economy.bitcoinPrice;
+}
+
+function* bankParts(
+  economy: Economy,
+  read: (bank: Economy['banks'][number]) => number,
+): Iterable<number> {
+  for (const bank of economy.banks) {
+    yield read(bank);
+  }
 }
 
 function bitcoinUnits(economy: Economy): number {

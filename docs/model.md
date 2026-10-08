@@ -7,8 +7,10 @@ Sources and guesses are named here, and slider status lives in the registry.
 
 Implemented in Phase 1. See [ADR 0002](adr/0002-money-agents-prices-welfare.md).
 
-A ledger holds one unit. Fiat amounts are integer cents, stored as integers and rejected above `Number.MAX_SAFE_INTEGER`
-(2^53 − 1). Bitcoin amounts are IEEE-754 doubles in satoshis and may be a fraction of a satoshi.
+A ledger holds one unit. Fiat amounts are integer cents. One household, firm, or bank balance is rejected above
+`Number.MAX_SAFE_INTEGER` (2^53 − 1). An aggregate ledger account may hold the sum of those balances up to 2^63 − 1, so
+the books still close when that sum no longer fits in a JavaScript number. Bitcoin amounts are IEEE-754 doubles in
+satoshis and may be a fraction of a satoshi.
 
 Each account is an asset, a liability, or equity. A debit increases an asset and decreases a liability or equity. A
 credit does the opposite. A transaction has at least two lines, and its debits equal its credits. The books update only
@@ -125,9 +127,11 @@ by their mean so the mean skill is 1. Time preference is a normal draw around `h
 standard deviation `household.timePreferenceStd`, clamped to [0.01, 0.15]. Initial deposits are proportional to skill
 squared, so wealth starts more unequal than income. That order holds when the automatable share does not rise. Once most
 households own an agent, ownership follows household id, and wealth can be less concentrated than income. Households are
-assigned to banks round-robin. `population.growth` adds or removes households at the monthly rate, carrying a fractional
-remainder. Entrants are unemployed, unfunded, and take the next id. An exit transfers its deposit to the first household
-and writes its loans off against bank equity. A rate of 0 leaves the count fixed.
+assigned to banks round-robin. The default population is 4,000 households, 200 firms, and 4 banks, about 20 households
+per firm. The release target is 10,000 households and 500 firms. `population.growth` adds or removes households at the
+monthly rate, carrying a fractional remainder. Entrants are unemployed, unfunded, and take the next id. An exit
+transfers its deposit to the first household and writes its loans off against bank equity. A rate of 0 leaves the count
+fixed.
 
 ## Production
 
@@ -211,7 +215,7 @@ spending this month relative to nominal capacity, minus one, clamped to ±0.2. M
 times the trend plus one minus that weight times excess demand, plus a small cost nudge of at most 0.1 percent a month
 toward unit labor cost times `1 + firm.markup` times a tight inventory pressure term, plus a shock tilt. At trend weight
 1 the path follows the regime trend as before. A demand impulse adds to that growth and a productivity impulse
-subtracts. The basket price is the capacity-weighted average of firm prices, with capacity in both the weights and the total. 
+subtracts. The basket price is the capacity-weighted average of firm prices, with capacity in both the weights and the total.
 Output below capacity does not raise it. That basket price is the CPI. Twelve-month
 inflation uses it. The history is prefilled so the first year already sits on the target path.
 

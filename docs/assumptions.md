@@ -114,7 +114,7 @@ Registry version: 12.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Highest fraction of households that own an agent. The owner share rises along the adoption curve from zero to this ceiling. Households become owners in id order, lowest first. At 0.95 with 1,000 households, 950 households can own an agent once the curve has finished. At zero, no agents are created. The curve stays at zero when the start and end automatable shares are equal.
+- Description: Highest fraction of households that own an agent. The owner share rises along the adoption curve from zero to this ceiling. Households become owners in id order, lowest first. At 0.95 with 4,000 households, 3,800 households can own an agent once the curve has finished. At zero, no agents are created. The curve stays at zero when the start and end automatable shares are equal.
 
 ## ai.ownershipConcentration
 
@@ -1001,33 +1001,33 @@ Registry version: 12.
 - Label: Banks
 - Group: scale
 - Unit: agents
-- Default: 3
+- Default: 4
 - Range: 1 to 10
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Number of commercial banks. The run rounds this to a whole number. Households and firms are assigned to banks in turn, by id. Lending room, reserves, and failures are tracked per bank. In the fiat regime, newly created reserves and government bonds are booked at the first bank.
+- Description: Number of commercial banks. The run rounds this to a whole number. Households and firms are assigned to banks in turn, by id. Lending room, reserves, and failures are tracked per bank. In the fiat regime, newly created reserves and government bonds are booked at the first bank. The default of 4 leaves that first bank and three ordinary books.
 
 ## scale.firms
 
 - Label: Firms
 - Group: scale
 - Unit: agents
-- Default: 100
+- Default: 200
 - Range: 4 to 500
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Number of firms. The run rounds this to a whole number and keeps it fixed. Each firm produces, sets a price, hires, and invests on its own. More firms mean a thinner workforce at each firm and more sellers for a shopper to land on.
+- Description: Number of firms. The run rounds this to a whole number and keeps it fixed. Each firm produces, sets a price, hires, and invests on its own. The default keeps about 20 households per firm, so a typical firm employs about 19 people. More firms mean a thinner workforce at each firm and more sellers for a shopper to land on. The release target is 500.
 
 ## scale.households
 
 - Label: Households
 - Group: scale
 - Unit: agents
-- Default: 1000
+- Default: 4000
 - Range: 20 to 10000
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Number of household agents. The run rounds this to a whole number and keeps it fixed; population growth does not add people. Skill, patience, and job search are drawn once per household from the seed, so a larger population makes averages smoother and a run slower. Development runs use about 1,000 households. The release target is 10,000.
+- Description: Number of household agents. The run rounds this to a whole number and keeps it fixed; population growth does not add people. Skill, patience, and job search are drawn once per household from the seed, so a larger population makes averages smoother and a run slower. Development runs use 4,000 households. The release target is 10,000.
 
 ## shock.frequency
 

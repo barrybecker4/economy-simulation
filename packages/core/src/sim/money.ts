@@ -1,3 +1,4 @@
+import { bondNumber } from './banking.js';
 import type { Economy } from './economy.js';
 import { spendableDeposit } from './helpers.js';
 import type { Bank, Firm, Household } from './types.js';
@@ -221,8 +222,9 @@ export function addReserves(bank: Bank, amount: number): void {
 
 /** Transition write-off: bond assets become reserves so total bank assets are unchanged. */
 export function clearBonds(bank: Bank): void {
-  bank.reserves += bank.bonds;
+  bank.reserves += bondNumber(bank);
   bank.bonds = 0;
+  bank.bondsOver = 0n;
 }
 
 /**

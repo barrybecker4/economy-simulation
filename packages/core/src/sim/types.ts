@@ -69,6 +69,8 @@ export interface Bank {
   equity: number;
   reserves: number;
   bonds: number;
+  /** Whole cents above `bonds` once that balance no longer fits in a safe integer. */
+  bondsOver: bigint;
   failed: boolean;
 }
 

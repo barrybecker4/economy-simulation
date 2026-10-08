@@ -166,6 +166,7 @@ function seedBanks(economy: Economy): void {
       equity: 0,
       reserves: 0,
       bonds: 0,
+      bondsOver: 0n,
       failed: false,
     });
   }

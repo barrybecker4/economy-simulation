@@ -41,8 +41,8 @@ describe('phase 2 fiat economy', () => {
     expect(output1 / output0, 'seed 1 output path').toBeGreaterThan(1.2);
     expect(output1 / output0, 'seed 1 output path').toBeLessThan(5);
 
-    expect(elapsed, 'development-size run').toBeLessThan(8000);
-  });
+    expect(elapsed, 'development-size run').toBeLessThan(45000);
+  }, 60_000);
 
   it('keeps unemployment near 6 percent when the automatable share does not rise', () => {
     const result = run({

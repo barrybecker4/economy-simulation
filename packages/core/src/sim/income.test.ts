@@ -12,9 +12,15 @@ describe('profit shares under a large AI factor', () => {
       1,
       null,
     );
-    const aiFactor = 589;
+    const peak = Math.max(...economy.households.map((household) => household.skill));
+    let aiFactor = 1;
+    let concentration = 1.5;
+    while (Number.isFinite(peak ** concentration) && aiFactor < 2000) {
+      aiFactor += 1;
+      concentration = 1.5 + economy.params.ownership * (aiFactor - 1);
+    }
     economy.aiFactor = aiFactor;
-    const concentration = 1.5 + economy.params.ownership * (aiFactor - 1);
+    expect(aiFactor).toBeLessThan(2000);
     expect(
       economy.households.some((household) => !Number.isFinite(household.skill ** concentration)),
     ).toBe(true);
@@ -33,12 +39,11 @@ describe('profit shares under a large AI factor', () => {
     const pool = deposit * economy.firms.length;
     expect(economy.households.reduce((sum, household) => sum + household.income, 0)).toBe(pool);
     const topSkill = Math.max(...economy.households.map((household) => household.skill));
+    const leaders = economy.households.filter((household) => household.skill === topSkill);
+    const leaderIncome = leaders.reduce((sum, household) => sum + household.income, 0);
     const topIncome = Math.max(...economy.households.map((household) => household.income));
-    expect(topIncome).toBeGreaterThan(pool / 2);
-    expect(
-      economy.households.some(
-        (household) => household.skill === topSkill && household.income === topIncome,
-      ),
-    ).toBe(true);
+    expect(leaders.length).toBeGreaterThan(0);
+    expect(leaders.every((household) => household.income === topIncome)).toBe(true);
+    expect(leaderIncome).toBeGreaterThan(pool - leaderIncome);
   });
 });
