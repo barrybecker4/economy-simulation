@@ -7,7 +7,7 @@ Vitest, and Zod. `packages/core` is the simulation, `packages/cli` runs it, and 
 application.
 
 Read [docs/PLAN.md](docs/PLAN.md) and [docs/model.md](docs/model.md) before changing simulation behavior. Decisions that
-override the original design notes are recorded in `docs/adr/` .
+override the original design notes are recorded in `docs/adr/`.
 
 ## Phase discipline
 
@@ -44,8 +44,8 @@ Issues and specs live as GitHub issues. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Default role labels: `needs-triage` , `needs-info` , `ready-for-agent` , `ready-for-human` , `wontfix` . See
-`docs/agents/triage-labels.md` .
+Default role labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See
+`docs/agents/triage-labels.md`.
 
 ### Domain docs
 

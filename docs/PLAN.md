@@ -1,33 +1,44 @@
 # Agent-based economy simulator
 
-This is the specification for the repository. It starts from the design note at <https://docs.google.com/document/d/12w2ni7WsYEOZ_c9pAwSWFjAKsSMPBAEgOaM7XEYCwDQ/edit>. Where that note and this file disagree, this file wins. Those disagreements are recorded in [ADR 0002](adr/0002-money-agents-prices-welfare.md).
+This is the specification for the repository. It starts from the design note at
+<https://docs.google.com/document/d/12w2ni7WsYEOZ_c9pAwSWFjAKsSMPBAEgOaM7XEYCwDQ/edit>. Where that note and this file
+disagree, this file wins. Those disagreements are recorded in [ADR 0002](adr/0002-money-agents-prices-welfare.md).
 
-The simulation cannot show that one monetary system is better in the real world. It shows which assumptions a conclusion depends on.
+The simulation cannot show that one monetary system is better in the real world. It shows which assumptions a conclusion
+depends on.
 
-Give an implementer one phase at a time. Example: "Implement Phase 1 of docs/PLAN.md. Follow AGENTS.md. Do not start Phase 2."
+Give an implementer one phase at a time. Example: "Implement Phase 1 of docs/PLAN.md. Follow AGENTS.md. Do not start
+Phase 2."
 
 ## Principles
 
-- Determinism: the same seed and configuration produce the same output. `packages/core` never calls `Math.random`, `Date.now`, or any other source of nondeterminism.
-- Stock-flow consistency: every movement of money or debt goes through a double-entry ledger. No agent creates or destroys money except through the active regime.
-- Questions decide roles: a variable used to draw a conclusion is an output, never a slider. A variable the user wants to assume is a slider.
+- Determinism: the same seed and configuration produce the same output. `packages/core` never calls `Math.random`,
+  `Date.now`, or any other source of nondeterminism.
+- Stock-flow consistency: every movement of money or debt goes through a double-entry ledger. No agent creates or
+  destroys money except through the active regime.
+- Questions decide roles: a variable used to draw a conclusion is an output, never a slider. A variable the user wants
+  to assume is a slider.
 - Every slider is documented: units, range, default, justification, and a status of sourced, calibrated, or guess.
-- Simple first: each phase adds one mechanism, validates it, and only then moves on. Each mechanism has a neutral setting that reproduces the previous phase.
-- Core logic is independent of the user interface. The simulation runs in Node and in a browser worker with identical results on the same runtime.
+- Simple first: each phase adds one mechanism, validates it, and only then moves on. Each mechanism has a neutral
+  setting that reproduces the previous phase.
+- Core logic is independent of the user interface. The simulation runs in Node and in a browser worker with identical
+  results on the same runtime.
 
 ## Technology and layout
 
 - TypeScript strict, pnpm workspaces, Vitest, fast-check, Zod.
 - Web application: Svelte and Vite, charts with uPlot, simulation in a Web Worker.
 - Continuous integration: GitHub Actions runs lint, format check, typecheck, and tests.
-- Deployment, in the last phase: manual upload of the static application build (`packages/app/dist`) to a static host. No server for the first release.
+- Deployment, in the last phase: manual upload of the static application build (`packages/app/dist`) to a static host.
+  No server for the first release.
 - Optional analysis notebooks live in `packages/analysis` when the experiment phase needs them.
 
 Layout:
 
 - `AGENTS.md` and `.cursor/rules/`
 - `docs/PLAN.md`, `docs/model.md`, `docs/assumptions.md` (generated in Phase 1), `docs/adr/`
-- `packages/core`: `rng`, `ledger`, `config`, `engine`, `agents`, `markets`, `goods`, `contracts`, `regimes`, `ai`, `shocks`, `metrics`
+- `packages/core`: `rng`, `ledger`, `config`, `engine`, `agents`, `markets`, `goods`, `contracts`, `regimes`, `ai`,
+  `shocks`, `metrics`
 - `packages/cli`
 - `packages/app`
 - `scenarios/`
@@ -37,8 +48,11 @@ Layout:
 
 - Read this file and `docs/model.md` before changing simulation behavior.
 - Write tests first for ledger, accounting, and regime logic.
-- Fiat money is integer cents, checked for overflow. Bitcoin money is an IEEE-754 double in satoshis and may be fractional. The fiat audit is exact. The bitcoin audit uses a relative epsilon. Output hashes use a canonical decimal format. Ratios, rates, and productivity may be floating point.
-- Use the seeded RNG and pass it explicitly. Iterate agents by numeric id. Give agents independent streams so one agent's draws do not move another's.
+- Fiat money is integer cents, checked for overflow. Bitcoin money is an IEEE-754 double in satoshis and may be
+  fractional. The fiat audit is exact. The bitcoin audit uses a relative epsilon. Output hashes use a canonical decimal
+  format. Ratios, rates, and productivity may be floating point.
+- Use the seeded RNG and pass it explicitly. Iterate agents by numeric id. Give agents independent streams so one
+  agent's draws do not move another's.
 - Keep every tunable in the slider registry.
 - Agents decide in `decide()` and act through the ledger and markets.
 - Do not add a dependency without noting why.
@@ -49,13 +63,15 @@ Layout:
 - One tick is one month. A default run is 50 years (600 ticks). Both are configuration.
 - Development population: 1,000 households, 100 firms, 3 banks. Release target: 10,000 households and 500 firms.
 - The agent count is a share of households, not a hard cap.
-- Performance, measured and adjusted as phases land: a development run of 600 ticks in under one second in Node, and a release-size run in under 15 seconds.
+- Performance, measured and adjusted as phases land: a development run of 600 ticks in under one second in Node, and a
+  release-size run in under 15 seconds.
 
 ## Domain model
 
 ### Actors
 
-A household is one human. An agent is an autonomous actor owned by one household. One household may own many agents, and many households own none.
+A household is one human. An agent is an autonomous actor owned by one household. One household may own many agents, and
+many households own none.
 
 | Actor        | Role                                                                    | Main decisions                                                                      |
 | ------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -79,13 +95,20 @@ A household is one human. An agent is an autonomous actor owned by one household
 
 These are starting rules. Mark each as sourced or as a guess when it is implemented.
 
-- Production: output equals productivity A times capital K to the power alpha times effective labor L to the power one minus alpha. Alpha defaults to 0.33.
-- Wage setting: a firm's target wage moves with labor-market tightness and its price level. The actual wage moves toward the target by an amount reduced by nominal rigidity, so a high rigidity means wages adjust slowly, especially downward.
+- Production: output equals productivity A times capital K to the power alpha times effective labor L to the power one
+  minus alpha. Alpha defaults to 0.33.
+- Wage setting: a firm's target wage moves with labor-market tightness and its price level. The actual wage moves toward
+  the target by an amount reduced by nominal rigidity, so a high rigidity means wages adjust slowly, especially
+  downward.
 - Pricing: unit cost times one plus a markup, adjusted up when inventory is low and down when inventory is high.
-- Consumption: a household consumes a fraction of expected income plus a smaller fraction of wealth. The fractions depend on time preference.
-- Investment: firms invest when expected demand exceeds capacity, financed first from retained earnings and then by loans.
-- Failure: a firm with negative equity for a set number of ticks goes bankrupt, its loans are written off against the bank's capital, and a new firm may enter.
-- Central bank, fiat: policy rate equals the neutral real rate plus inflation plus a weight on the inflation gap plus a weight on the output gap.
+- Consumption: a household consumes a fraction of expected income plus a smaller fraction of wealth. The fractions
+  depend on time preference.
+- Investment: firms invest when expected demand exceeds capacity, financed first from retained earnings and then by
+  loans.
+- Failure: a firm with negative equity for a set number of ticks goes bankrupt, its loans are written off against the
+  bank's capital, and a new firm may enter.
+- Central bank, fiat: policy rate equals the neutral real rate plus inflation plus a weight on the inflation gap plus a
+  weight on the output gap.
 
 ### The same variable changes role by regime
 
@@ -99,13 +122,18 @@ These are starting rules. Mark each as sourced or as a guess when it is implemen
 
 ### Relative prices
 
-Phase 2 uses one consumption good. The current basket is the nine CPI categories in [docs/model.md](model.md): food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. Each has a price in the regime's unit. Housing supply and the category productivity rates move those prices apart. The expenditure-weighted average is the CPI.
+Phase 2 uses one consumption good. The current basket is the nine CPI categories in [docs/model.md](model.md): food and
+beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. Each has a
+price in the regime's unit. Housing supply and the category productivity rates move those prices apart. The
+expenditure-weighted average is the CPI.
 
-Headline inflation is the change in that index. It can sit near the fiat target, or fall under bitcoin, while electronics and apparel cheapen and housing, energy, medical care, and education rise.
+Headline inflation is the change in that index. It can sit near the fiat target, or fall under bitcoin, while
+electronics and apparel cheapen and housing, energy, medical care, and education rise.
 
 ### Deflation and contracts
 
-Expected inflation is the recent change in the headline index. Deflation `d` is zero when that change is positive, and the absolute value when it is negative. A sensitivity slider scales behavior by `d`:
+Expected inflation is the recent change in the headline index. Deflation `d` is zero when that change is positive, and
+the absolute value when it is negative. A sensitivity slider scales behavior by `d`:
 
 - Loan demand, bank willingness to lend, and speculative bids for property fall as `d` rises.
 - Nominal debt, including mortgages and tradeable equity, loses weight as `d` rises.
@@ -113,41 +141,57 @@ Expected inflation is the recent change in the headline index. Deflation `d` is 
 
 First contract families:
 
-- Profit-sharing. A firm raises funds by promising a fraction of future profits. The claim is not a share with a speculative price. With sensitivity at zero, or with no deflation, firms use retained earnings and ordinary loans, and profit-sharing stays unused.
+- Profit-sharing. A firm raises funds by promising a fraction of future profits. The claim is not a share with a
+  speculative price. With sensitivity at zero, or with no deflation, firms use retained earnings and ordinary loans, and
+  profit-sharing stays unused.
 - Housing, chosen per household:
   - Nominal mortgage, in the fiat regime.
   - Bitcoin-collateralized loan, with a loan-to-value limit and liquidation if the collateral ratio breaks.
   - Targeted savings cooperative: members save toward a home and take turns drawing the pool.
   - Rent-to-own: rent accumulates a claim without a large nominal debt.
 
-Agents choose the contract with the lowest expected real burden given `d`. These two families are the first entries. The menu can grow later.
+Agents choose the contract with the lowest expected real burden given `d`. These two families are the first entries. The
+menu can grow later.
 
 ### How outcomes are judged
 
-Every tick records level and distribution. Human metrics use human agents only. AI agents are reported through composition metrics, not through well-being.
+Every tick records level and distribution. Human metrics use human agents only. AI agents are reported through
+composition metrics, not through well-being.
 
-- Inequality: Gini of wealth, income, and consumption; top-decile wealth share; bottom-quintile wealth share; total real wealth (the pie those shares divide).
+- Inequality: Gini of wealth, income, and consumption; top-decile wealth share; bottom-quintile wealth share; total real
+  wealth (the pie those shares divide).
 - Wealth and income: mean and median real wealth; mean and median real income.
 - Consumption: mean and median real consumption; share of humans below a consumption floor.
-- Well-being: log real consumption plus 0.5 times a housing-security score. Security is lowest when unhoused, higher when renting or waiting in a cooperative, higher as rent-to-own vests, and highest when the home is owned. Report mean, median, and the consumption-floor share.
+- Well-being: log real consumption plus 0.5 times a housing-security score. Security is lowest when unhoused, higher
+  when renting or waiting in a cooperative, higher as rent-to-own vests, and highest when the home is owned. Report
+  mean, median, and the consumption-floor share.
 - Composition: AI share of agents, wealth, output, and transactions.
 - Stability: unemployment, defaults, bank failures, credit relative to GDP, boom and bust length.
 
 The default comparison shows these side by side. There is no composite index.
 
-Other outputs recorded every tick: real GDP and growth, productivity per human, price level and category prices, inflation, interest rates, money supply, velocity, labor share, share of tasks automated.
+Other outputs recorded every tick: real GDP and growth, productivity per human, price level and category prices,
+inflation, interest rates, money supply, velocity, labor share, share of tasks automated.
 
 ### How AI enters
 
 Three channels, each with its own sliders.
 
-1. Productivity through task automation. The automatable share follows an S-curve from `ai.automatableShareStart` to `ai.automatableShareEnd`. A stored block `ai.physicalTaskShare` keeps part of that rise out of firm capacity until robotics. The control shows the reachable share, one minus the block. Effective labor is human hours plus AI labor-equivalents, limited by the automatable share.
-2. AI capital, cost, and ownership. Compute cost falls at `ai.computeCostDeclineRate`. Firms adopt AI when its cost per task is below the wage. Returns go to owners. `ai.ownershipConcentration` sets how steeply those profits skew across owners.
-3. AI agents as economic actors. Owner share and agents per owner follow the same adoption curve toward `ai.ownerShareCeiling` and `ai.agentsPerOwnerCeiling`. Earnings accrue to a household owner. Payment friction is `ai.paymentFrictionFiat` or `ai.paymentFrictionBitcoin`. Those friction defaults are guesses.
+1. Productivity through task automation. The automatable share follows an S-curve from `ai.automatableShareStart` to
+   `ai.automatableShareEnd`. A stored block `ai.physicalTaskShare` keeps part of that rise out of firm capacity until
+   robotics. The control shows the reachable share, one minus the block. Effective labor is human hours plus AI
+   labor-equivalents, limited by the automatable share.
+2. AI capital, cost, and ownership. Compute cost falls at `ai.computeCostDeclineRate`. Firms adopt AI when its cost per
+   task is below the wage. Returns go to owners. `ai.ownershipConcentration` sets how steeply those profits skew across
+   owners.
+3. AI agents as economic actors. Owner share and agents per owner follow the same adoption curve toward
+   `ai.ownerShareCeiling` and `ai.agentsPerOwnerCeiling`. Earnings accrue to a household owner. Payment friction is
+   `ai.paymentFrictionFiat` or `ai.paymentFrictionBitcoin`. Those friction defaults are guesses.
 
 ### Initial slider registry
 
-Defaults are placeholders. The calibration phase sources them or labels them as guesses. Each slider also has a plain-language description and a status.
+Defaults are placeholders. The calibration phase sources them or labels them as guesses. Each slider also has a
+plain-language description and a status.
 
 | Group       | Slider id                              | Default         | Range                        |
 | ----------- | -------------------------------------- | --------------- | ---------------------------- |
@@ -185,10 +229,10 @@ Defaults are placeholders. The calibration phase sources them or labels them as 
 | Contracts   | deflation.sensitivity                  | 1               | 0 to 5                       |
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
 | AI          | ai.automatableShareEnd                 | 0.9             | 0.3 to 1                     |
-| AI          | ai.adoptionMidpointYear                | 10              | 1 to 40                      |
-| AI          | ai.adoptionSteepness                   | 0.4             | 0.1 to 1.5                   |
+| AI          | ai.adoptionMidpointYear                | 20              | 1 to 40                      |
+| AI          | ai.adoptionSteepness                   | 0.15             | 0.1 to 1.5                   |
 | AI          | ai.computeCostDeclineRate (annual)     | 0.3             | 0 to 0.6                     |
-| AI          | ai.physicalTaskShare                   | 0.3             | 0 to 0.7                     |
+| AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7 | | AI | ai.bullishness | 0 | 0 to 2 | | AI | ai.roboticsStartYear | 20 | 0 to 50 | | AI | ai.roboticsRampYears | 16 | 1 to 30                     |
 | AI          | ai.ownershipConcentration              | 0.8             | 0.1 to 0.99                  |
 | AI          | ai.ownerShareCeiling                   | 0.95            | 0 to 1                       |
 | AI          | ai.agentsPerOwnerCeiling               | 20              | 0 to 50                      |
@@ -232,11 +276,15 @@ Acceptance:
 
 Goal: random numbers, the ledger, configuration, the scheduler, and metrics. No agents, markets, or regimes.
 
-1. Seeded RNG (sfc32 or similar) with uniform, normal, lognormal, Poisson, and weighted choice. Support splitting into independent streams.
-2. Double-entry ledger. Fiat uses integer cents and an exact audit. Bitcoin uses floating-point satoshis and a relative-epsilon audit.
-3. Slider registry: id, label, group, unit, default, min, max, description, source, and status. Validate scenarios with Zod.
+1. Seeded RNG (sfc32 or similar) with uniform, normal, lognormal, Poisson, and weighted choice. Support splitting into
+   independent streams.
+2. Double-entry ledger. Fiat uses integer cents and an exact audit. Bitcoin uses floating-point satoshis and a
+   relative-epsilon audit.
+3. Slider registry: id, label, group, unit, default, min, max, description, source, and status. Validate scenarios with
+   Zod.
 4. Scenario loader that merges a preset, overrides, and the seed, and records the resolved configuration.
-5. Tick scheduler in a fixed order: shocks, population mix, labor market, production, goods and asset markets, contract choice, credit, government, central bank, bookkeeping, welfare metrics. Later phases fill the empty steps.
+5. Tick scheduler in a fixed order: shocks, population mix, labor market, production, goods and asset markets, contract
+   choice, credit, government, central bank, bookkeeping, welfare metrics. Later phases fill the empty steps.
 6. Metrics recorder for the welfare series and the other outputs, exportable to JSON and CSV.
 7. CLI: `run --scenario file --seed n --out file`.
 8. Generator for `docs/assumptions.md`. CI fails if the file is stale.
@@ -250,14 +298,16 @@ Acceptance:
 
 ### Phase 2: Minimal fiat economy
 
-Goal: a stable single-good fiat economy with human agents, firms, one commercial bank, a government, and a central bank. AI share is fixed at zero.
+Goal: a stable single-good fiat economy with human agents, firms, one commercial bank, a government, and a central bank.
+AI share is fixed at zero.
 
 1. Households with skill, time preference, wealth, labor supply, and consumption.
 2. Firms with production, pricing, wages, hiring, investment, borrowing, and bankruptcy with entry.
 3. Labor market with limited search and random matching.
 4. Goods market with sampled shopping and inventories.
 5. Commercial bank with deposit creation, a reserve requirement, and a capital ratio.
-6. Government with income tax, spending, transfers, and bonds. Central bank with the rate rule and optional bond purchases.
+6. Government with income tax, spending, transfers, and bonds. Central bank with the rate rule and optional bond
+   purchases.
 7. Shocks: productivity, demand, and credit, from the seeded generator.
 8. Write `docs/model.md` for every rule, with equations and the reason for each choice.
 9. Record inequality, mean and median real wealth, mean and median real consumption, and consumption well-being.
@@ -266,7 +316,9 @@ Goal: a stable single-good fiat economy with human agents, firms, one commercial
 Acceptance:
 
 - The ledger audit passes at every tick.
-- With the automatable start and end shares equal and no shocks, unemployment stays between 3 and 12 percent. With default sliders and no shocks, final unemployment sits above 6 percent as AI raises the natural rate, inflation stays within 2 points of the target, and no variable grows without bound over 600 ticks.
+- With the automatable start and end shares equal and no shocks, unemployment stays between 3 and 12 percent. With
+  default sliders and no shocks, final unemployment sits above 6 percent as AI raises the natural rate, inflation stays
+  within 2 points of the target, and no variable grows without bound over 600 ticks.
 - The stylized-facts tests pass for fiat.
 - Development-size runs meet the performance target.
 
@@ -276,9 +328,12 @@ Out of scope: bitcoin, relative prices, contract switching, and AI.
 
 Goal: different goods can inflate differently inside the fiat economy.
 
-1. Split the CPI into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics.
-2. CPI is the expenditure-weighted average of those categories. Housing security uses the housing price relative to the CPI.
-3. A neutral setting with every category productivity and housing supply growth equal to baseline productivity reproduces one price.
+1. Split the CPI into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation,
+   and electronics.
+2. CPI is the expenditure-weighted average of those categories. Housing security uses the housing price relative to the
+   CPI.
+3. A neutral setting with every category productivity and housing supply growth equal to baseline productivity
+   reproduces one price.
 
 Acceptance:
 
@@ -291,12 +346,15 @@ Acceptance:
 
 Goal: a second rule set selected by `regime.type`, plus financing that responds to deflation.
 
-1. A regime interface for base-money creation, the lending constraint, the interest-rate mechanism, and government financing. Move fiat behind it without changing behavior when `deflation.sensitivity` is zero.
-2. Bitcoin: base money follows a fixed schedule (zero growth by default), balances are fractional satoshis, no central bank, government borrows only at market rates.
+1. A regime interface for base-money creation, the lending constraint, the interest-rate mechanism, and government
+   financing. Move fiat behind it without changing behavior when `deflation.sensitivity` is zero.
+2. Bitcoin: base money follows a fixed schedule (zero growth by default), balances are fractional satoshis, no central
+   bank, government borrows only at market rates.
 3. Lending models: maturity-matched time deposits, and full-reserve loans from explicit savings.
 4. Interest rate discovery: move the loan rate toward the level that equates supplied savings with loan demand.
 5. Hybrid: a fixed-supply base asset and a central bank limited to lender of last resort.
-6. Deflation penalty and the contract menu (profit-sharing, mortgage, bitcoin-collateralized loan, savings cooperative, rent-to-own).
+6. Deflation penalty and the contract menu (profit-sharing, mortgage, bitcoin-collateralized loan, savings cooperative,
+   rent-to-own).
 7. CLI comparison of the same seeds under two regimes, including the welfare dashboard.
 8. Extend `docs/model.md` and the stylized-facts tests where the facts apply.
 
@@ -305,9 +363,11 @@ Acceptance:
 - The ledger audit passes in every regime.
 - Fiat results from Phase 3 are unchanged when deflation sensitivity is zero.
 - Total base money never exceeds the bitcoin schedule, and credit never exceeds savings made available to lend.
-- With default productivity growth and no shocks, the CPI trends down under bitcoin and up under fiat, and both economies stay stable.
+- With default productivity growth and no shocks, the CPI trends down under bitcoin and up under fiat, and both
+  economies stay stable.
 - Category prices still diverge inside that trend.
-- A larger deflation rate lowers credit relative to GDP and property turnover, and raises the share of profit-sharing and non-mortgage housing.
+- A larger deflation rate lowers credit relative to GDP and property turnover, and raises the share of profit-sharing
+  and non-mortgage housing.
 
 Out of scope: AI mechanisms.
 
@@ -320,25 +380,31 @@ Goal: channels 1 and 2. AI raises productivity and can displace workers. AI agen
 3. AI capital income across owners, skewed by `ai.ownershipConcentration`.
 4. Displaced workers search less effectively when their skills match automated tasks.
 5. Outputs: labor share, AI share of output, share of tasks automated, Gini, top decile.
-6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and extreme.
-   AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling together.
+6. Presets as category compositions: no-AI (AI bullishness none), modest / slow adoption, high / fast adoption, and
+   extreme.
+   AI bullishness is one category that sets the productivity gain, the adoption curve, and the physical-task ceiling
+   together.
 7. Write the channel 1 and 2 sections of `docs/model.md`.
 
 Acceptance:
 
 - Setting `ai.automatableShareEnd` equal to `ai.automatableShareStart` matches Phase 4 for the same seeds.
-- In the fast-adoption preset, productivity per human rises, the labor share falls, and unemployment rises without cutting real GDP, in both regimes.
+- In the fast-adoption preset, productivity per human rises, the labor share falls, and unemployment rises without
+  cutting real GDP, in both regimes.
 - Raising `ai.physicalTaskShare` lowers the growth benefit of AI (monotonicity).
-- The household grant is zero when the AI share of output is zero or `government.ubiShare` is zero, and positive under fast adoption.
+- The household grant is zero when the AI share of output is zero or `government.ubiShare` is zero, and positive under
+  fast adoption.
 - The ledger audit passes in all regimes with AI enabled.
 
 ### Phase 6: AI agents as economic actors
 
 Goal: channel 3. An increasing share of the agent population transacts on its own account.
 
-1. AI agents have an owner, a balance in the regime's unit, a compute budget, and a service price. They sell services to firms, buy goods, and pay income tax.
+1. AI agents have an owner, a balance in the regime's unit, a compute budget, and a service price. They sell services to
+   firms, buy goods, and pay income tax.
 2. Owner share, agents per owner, and agent output follow the adoption curve toward their ceilings.
-3. Each agent transaction pays the regime's friction slider. The fee goes to banks under fiat and to the network under bitcoin.
+3. Each agent transaction pays the regime's friction slider. The fee goes to banks under fiat and to the network under
+   bitcoin.
 4. An agent-to-agent market discovers a price for services.
 5. Outputs: AI transaction share, payment volume, fee revenue, and the share of GDP that is agent-to-agent trade.
 6. After tax and shopping, earnings above a retained compute share sweep to human owners each tick.
@@ -360,9 +426,11 @@ Goal: test hypotheses across seeds and parameter values.
 
 1. CLI batch runner for a sweep file: sliders, regimes, and seed count, in worker threads.
 2. Store JSON lines with the resolved configuration and git commit.
-3. For every welfare series: mean, median, and 5th and 95th percentiles across seeds, and paired differences between regimes for the same seed.
+3. For every welfare series: mean, median, and 5th and 95th percentiles across seeds, and paired differences between
+   regimes for the same seed.
 4. Morris screening in TypeScript. Optional Python notebook for Sobol indices.
-5. Presets as category compositions: Austrian-leaning (bitcoin, tight credit, small public finance), Keynesian-leaning (fiat, deficit spending, employment-leaning central bank), and neutral (every category at its default).
+5. Presets as category compositions: Austrian-leaning (bitcoin, tight credit, small public finance), Keynesian-leaning
+   (fiat, deficit spending, employment-leaning central bank), and neutral (every category at its default).
 6. A hypothesis runner for H1–H8.
 
 Acceptance:
@@ -382,28 +450,36 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
    and draw both on each chart with a solid baseline and a dashed scenario in the same color.
    While a baseline is pinned, scale, population growth, and trust in banks stay at the baseline values.
    The legend lists each series once. Hovering that item highlights the baseline and the scenario together.
-   A pinned pair also draws the month payment diagram as baseline beside scenario, with edge amounts on hover instead of a legend,
+   A pinned pair also draws the month payment diagram as baseline beside scenario, with edge amounts on hover instead of
+   a legend,
    and stacks the scenario wealth-by-fifth and job-mix bars directly under the baseline bars.
    This month also shows total real wealth (the stock those shares divide) and real GDP (the output pie) side by side.
    Those legends read the baseline share, then the scenario. Under each comparison chart,
-   a caption states how the scenario differs at the last month, mentions the rest of the path only when a strict majority of months disagrees,
-   and calls the change an improvement or worse only for well-being, unemployment, inequality, total wealth, living standards, real GDP,
+   a caption states how the scenario differs at the last month, mentions the rest of the path only when a strict
+   majority of months disagrees,
+   and calls the change an improvement or worse only for well-being, unemployment, inequality, total wealth, living
+   standards, real GDP,
    and productivity per human. When a money chart's baseline and scenario use different units,
-   dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does not score that pair.
+   dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does
+   not score that pair.
 4. Charts with uPlot for the welfare dashboard and category prices.
+   Hovering a legend item highlights that line.
    The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed.
-   Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median, and CPI also shows the 5th to the 95th percentile when no baseline is overlaid.
+   Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median,
+   and CPI also shows the 5th to the 95th percentile when no baseline is overlaid.
    Shaded bands and vertical rules mark demand, credit, and productivity shocks and a fiat-to-bitcoin transition;
    the cursor legend names the event under the pointer.
 5. Shareable links encode the resolved configuration.
 6. Assumption ledger: sliders that differ from the default, with guesses flagged.
-7. Orthogonal category selectors on each collapsible parameter group (central bank, public finance, credit, AI bullishness), each rewriting only its owned sliders. Groups start collapsed so the presets are visible first.
+7. Orthogonal category selectors on each collapsible parameter group (central bank, public finance, credit, AI
+   bullishness), each rewriting only its owned sliders. Groups start collapsed so the presets are visible first.
 8. Keyboard-operable controls and chart descriptions.
 
 Acceptance:
 
 - A development-size run finishes in the browser in under three seconds.
-- A shared link reproduces the same series on another computer. Date labels follow the month when that computer views the page.
+- A shared link reproduces the same series on another computer. Date labels follow the month when that computer views
+  the page.
 - The application works without a server.
 
 ### Phase 9: Calibration, documentation, and release
@@ -411,10 +487,13 @@ Acceptance:
 Goal: make the model credible enough to share.
 
 1. For each slider, record a source, a calibrated target, or the label guess. Guesses are marked in the application.
-2. Finish `docs/model.md`, including every equation, and write a one-page limits note: a few goods rather than every product, no international trade, no firm-share exchange, and well-being adds housing security at a fixed weight of 0.5.
+2. Finish `docs/model.md`, including every equation, and write a one-page limits note: a few goods rather than every
+   product, no international trade, no firm-share exchange, and well-being adds housing security at a fixed weight of
+   0.5.
 3. A methods note for each hypothesis.
 4. A gallery of example scenarios.
-5. Build the static application (`pnpm --filter @economy-simulation/app build`) and deploy `packages/app/dist` manually to a static host.
+5. Build the static application (`pnpm --filter @economy-simulation/app build`) and deploy `packages/app/dist` manually
+   to a static host.
 6. Contribution guide and an issue template for new assumptions, contract types, or hypotheses.
 
 Acceptance:
@@ -425,16 +504,22 @@ Acceptance:
 
 ### Phase 10: Spending and prices respond to deflation
 
-Goal: expected deflation can cut discretionary spending, and prices can follow excess demand, without emptying the food and housing floor.
+Goal: expected deflation can cut discretionary spending, and prices can follow excess demand, without emptying the food
+and housing floor.
 
-1. Split each household's goods budget into a food and housing floor (the sum of those CPI weights) and a discretionary remainder.
-2. `household.realReturnSensitivity` multiplies only the remainder by `max(0, 1 − sensitivity × real return)` when the real return on money is positive. The real return is the deposit rate minus year-over-year inflation. Deposits pay nothing until a later phase. At sensitivity 0 the budget is unchanged.
-3. `prices.trendWeight` mixes the regime price trend with excess demand (desired goods spending relative to nominal capacity). At 1 the posted-price rule is unchanged.
+1. Split each household's goods budget into a food and housing floor (the sum of those CPI weights) and a discretionary
+   remainder.
+2. `household.realReturnSensitivity` multiplies only the remainder by `max(0, 1 − sensitivity × real return)` when the
+   real return on money is positive. The real return is the deposit rate minus year-over-year inflation. Deposits pay
+   nothing until a later phase. At sensitivity 0 the budget is unchanged.
+3. `prices.trendWeight` mixes the regime price trend with excess demand (desired goods spending relative to nominal
+   capacity). At 1 the posted-price rule is unchanged.
 
 Acceptance:
 
 - Sensitivity 0 and trend weight 1 match the previous phase for the same seeds.
-- Under deflation, a higher sensitivity cuts household goods spending, and spending stays at or above the food and housing floor.
+- Under deflation, a higher sensitivity cuts household goods spending, and spending stays at or above the food and
+  housing floor.
 - With trend weight 0, a negative demand impulse ends at a lower CPI than the same seed at trend weight 1.
 - The ledger audit still passes.
 
@@ -444,25 +529,32 @@ Out of scope: household credit, wage-driven hiring, fiscal monetization, and a t
 
 Goal: sticky money wages can raise unemployment when prices fall.
 
-1. `labor.wageElasticity` scales the hiring quota when the real wage is high or low relative to productivity. The default is 0.5. At 0 the quota is unchanged.
+1. `labor.wageElasticity` scales the hiring quota when the real wage is high or low relative to productivity. The
+   default is 0.5. At 0 the quota is unchanged.
 
 Acceptance:
 
 - Elasticity 0 matches Phase 10 for the same seeds.
-- Under a falling price level with high nominal wage rigidity and elasticity above 0, unemployment ends higher than in the flexible-wage run.
+- Under a falling price level with high nominal wage rigidity and elasticity above 0, unemployment ends higher than in
+  the flexible-wage run.
 
 ### Phase 12: Household debts and housing tenure
 
-Goal: households choose tenure and borrow for discretionary spending; deflation raises the burden of nominal mortgages and cuts new consumer credit without removing the food and housing floor.
+Goal: households choose tenure and borrow for discretionary spending; deflation raises the burden of nominal mortgages
+and cuts new consumer credit without removing the food and housing floor.
 
-1. `housing.tenureChoice` defaults to `off`. Off keeps the penalty formulas for profit-sharing, non-mortgage housing, and property turnover.
-2. On: each household picks rent, mortgage, or owned by expected real burden. Shelter payments stay inside the Phase 10 floor. Consumer loans fund only discretionary spending and fall as expected deflation rises.
-3. Measured shares and debt-service series replace the penalty formulas when the switch is on. Household loans join `totalLoans`.
+1. `housing.tenureChoice` defaults to `off`. Off keeps the penalty formulas for profit-sharing, non-mortgage housing,
+   and property turnover.
+2. On: each household picks rent, mortgage, or owned by expected real burden. Shelter payments stay inside the Phase 10
+   floor. Consumer loans fund only discretionary spending and fall as expected deflation rises.
+3. Measured shares and debt-service series replace the penalty formulas when the switch is on. Household loans join
+   `totalLoans`.
 
 Acceptance:
 
 - `off` matches Phase 11, and H7 still holds.
-- `on`, stronger expected deflation lowers the mortgage share and new consumer borrowing, keeps goods spending at or above the floor, and raises debt service for existing mortgages.
+- `on`, stronger expected deflation lowers the mortgage share and new consumer borrowing, keeps goods spending at or
+  above the floor, and raises debt service for existing mortgages.
 - Household loan creation and repayment pass the ledger audit.
 
 ### Phase 13: Investment clears a hurdle
@@ -470,50 +562,66 @@ Acceptance:
 Goal: firms invest only when expected return beats the real return on money plus a premium.
 
 1. `firm.investmentHurdle` defaults to `off`. Off keeps the scheduled capital rule and the profit-sharing formula.
-2. On: install capital only when expected profit clears the hurdle; otherwise fund with a profit-sharing claim. `profitSharingShare` becomes the measured finance share.
+2. On: install capital only when expected profit clears the hurdle; otherwise fund with a profit-sharing claim.
+   `profitSharingShare` becomes the measured finance share.
 
 Acceptance:
 
 - `off` matches Phase 12.
-- `on`, higher expected deflation cuts real investment and new firm borrowing and raises the measured profit-sharing share.
+- `on`, higher expected deflation cuts real investment and new firm borrowing and raises the measured profit-sharing
+  share.
 - Bitcoin credit still cannot exceed unused savings.
 
 ### Phase 14: Fiscal policy has different constraints
 
-Goal: fiat can monetize bonds and stabilize spending; bitcoin cannot; the policy rate can pull discretionary spending through deposit interest.
+Goal: fiat can monetize bonds and stabilize spending; bitcoin cannot; the policy rate can pull discretionary spending
+through deposit interest.
 
-1. `bank.depositPassThrough` pays a fraction of the policy rate on deposits. It can cut discretionary spending and new consumer credit, not the food and housing floor.
-2. `centralBank.bondPurchaseShare` lets the fiat central bank buy a share of new bonds with new reserves. Bitcoin and hybrid ignore it.
-3. `government.stabilizer` raises the fiat spending share with the unemployment gap. Under bitcoin, spending is limited to tax revenue plus bonds banks can hold without new base money.
+1. `bank.depositPassThrough` pays a fraction of the policy rate on deposits. It can cut discretionary spending and new
+   consumer credit, not the food and housing floor.
+2. `centralBank.bondPurchaseShare` lets the fiat central bank buy a share of new bonds with new reserves. Bitcoin and
+   hybrid ignore it.
+3. `government.stabilizer` raises the fiat spending share with the unemployment gap. Under bitcoin, spending is limited
+   to tax revenue plus bonds banks can hold without new base money.
 
 Acceptance:
 
 - All three at 0 match Phase 13.
-- Under fiat, a demand shock with higher stabilizer and bond purchases ends with a smaller output drop and higher base money.
+- Under fiat, a demand shock with higher stabilizer and bond purchases ends with a smaller output drop and higher base
+  money.
 - The same shock under bitcoin does not raise base money, and spending does not rise with the stabilizer.
-- Pass-through above 0 lets a higher fiat policy rate cut discretionary spending and new consumer credit while leaving the floor in place.
+- Pass-through above 0 lets a higher fiat policy rate cut discretionary spending and new consumer credit while leaving
+  the floor in place.
 
 ### Phase 15: A one-time transition
 
-Goal: a separate scenario rebases a fiat economy into bitcoin over a window, including existing debts and the distribution of new base-money holdings.
+Goal: a separate scenario rebases a fiat economy into bitcoin over a window, including existing debts and the
+distribution of new base-money holdings.
 
-1. `transition.lengthMonths` defaults to 0 (no transition). A positive length starts on fiat and rebases into satoshis over those months.
-2. Nominal debts convert at the same rate as deposits unless `transition.debtHaircut` writes part of them off. `transition.holderConcentration` assigns new base-money balances.
+1. `transition.lengthMonths` defaults to 0 (no transition). A positive length starts on fiat and rebases into satoshis
+   over those months.
+2. Nominal debts convert at the same rate as deposits unless `transition.debtHaircut` writes part of them off.
+   `transition.holderConcentration` assigns new base-money balances.
 3. After the window the regime is bitcoin and Phase 14 monetization is off. There is no second goods price.
 
 Acceptance:
 
 - Length 0 matches steady fiat and bitcoin from Phase 14.
-- A positive length conserves the ledger at conversion ticks, puts base money on the bitcoin schedule afterward, and raises wealth Gini when holder concentration is higher.
+- A positive length conserves the ledger at conversion ticks, puts base money on the bitcoin schedule afterward, and
+  raises wealth Gini when holder concentration is higher.
 - A methods note compares 120-month runs across steady fiat, steady bitcoin, and the transition, with seed bands.
 
 ### Phase 16: Inflation raises impatience a little
 
-Goal: goods spending rises slightly when inflation is above the regime's normal path, while the time-preference slider and the fiat policy rate stay fixed.
+Goal: goods spending rises slightly when inflation is above the regime's normal path, while the time-preference slider
+and the fiat policy rate stay fixed.
 
-1. `household.inflationTimePreference` defaults to 0.1. The goods spending share rises by this coefficient times (year-over-year inflation minus normal inflation).
-2. Normal inflation is the inflation target under fiat and minus `productivity.baseGrowth` under bitcoin and hybrid. At sensitivity 0 the spending share ignores inflation.
-3. Household draws of time preference and the fiat policy rate still use `household.timePreferenceMean` alone. AI agents shop at the mean plus the same common addend.
+1. `household.inflationTimePreference` defaults to 0.1. The goods spending share rises by this coefficient times
+   (year-over-year inflation minus normal inflation).
+2. Normal inflation is the inflation target under fiat and minus `productivity.baseGrowth` under bitcoin and hybrid. At
+   sensitivity 0 the spending share ignores inflation.
+3. Household draws of time preference and the fiat policy rate still use `household.timePreferenceMean` alone. AI agents
+   shop at the mean plus the same common addend.
 
 Acceptance:
 
@@ -526,9 +634,14 @@ Acceptance:
 
 Goal: the size of the AI productivity gain is a slider, and mass robotics later opens the physical-task ceiling.
 
-1. `ai.bullishness` defaults to 1. At 0 the gain on each adopted task is one tenth of the default and saturates with the adoption curve. At 1 the AI factor is `1 + adopted`, matching Phase 16 when robotics has not started. Above 1 the task gain compounds at `0.15 × (bullishness − 1)` per year with no ceiling.
-2. `ai.roboticsStartYear` defaults to 8 and `ai.roboticsRampYears` defaults to 12. From the start year the effective physical-task block falls in a straight line to zero. A start year at or past the last year of the run leaves the block intact.
-3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain does not drive unemployment to one. The AI share of output and the household grant track `1 − 1 / AI factor`.
+1. `ai.bullishness` defaults to 0 (Modest). At 0 the gain on each adopted task is one tenth of the unit reference and
+   saturates with the adoption curve. At 1 the AI factor is `1 + adopted`, matching Phase 16 when robotics has not
+   started. Above 1 the task gain compounds at `0.15 × (bullishness − 1)` per year with no ceiling.
+2. `ai.roboticsStartYear` defaults to 20 and `ai.roboticsRampYears` defaults to 16. From the start year the effective
+   physical-task block falls in a straight line to zero. A start year at or past the last year of the run leaves the
+   block intact.
+3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain does not drive unemployment to one. The
+   AI share of output and the household grant track `1 − 1 / AI factor`.
 
 Acceptance:
 
@@ -536,42 +649,52 @@ Acceptance:
 - Bullishness 0 ends with a smaller productivity and unemployment gap than bullishness 1.
 - Bullishness 2 keeps productivity per human rising after adoption and the robotics ramp have flattened.
 - Equal automatable shares still ignore bullishness and robotics.
-- With robotics delayed, a higher physical-task share still lowers the gain. After a finished ramp that gap shrinks sharply.
+- With robotics delayed, a higher physical-task share still lowers the gain. After a finished ramp that gap shrinks
+  sharply.
 - The ledger audit passes at bullishness 2 with the default ramp.
-- A 1,200-month run at bullishness 1.5 keeps the ledger finite. Profit-share weights stay finite when `skill` raised to the ownership exponent overflows.
+- A 1,200-month run at bullishness 1.5 keeps the ledger finite. Profit-share weights stay finite when `skill` raised to
+  the ownership exponent overflows.
 
 ### Phase 18: Demand sets output and firms hire
 
 Goal: a demand shortfall lowers output and hours, not just inventory and bankruptcies.
 
-1. `production.demandWeight` defaults to 0. At 0 every firm produces capacity. Above 0, desired output is smoothed sales plus the inventory gap, capped at capacity, and output mixes that quantity with capacity.
-2. `labor.firmLevelHiring` defaults to `off`. Off keeps the economy-wide hiring quota. On, each firm posts vacancies from smoothed sales versus capacity, and sheds at most 5 percent of employed workers in a month.
+1. `production.demandWeight` defaults to 0. At 0 every firm produces capacity. Above 0, desired output is smoothed sales
+   plus the inventory gap, capped at capacity, and output mixes that quantity with capacity.
+2. `labor.firmLevelHiring` defaults to `off`. Off keeps the economy-wide hiring quota. On, each firm posts vacancies
+   from smoothed sales versus capacity, and sheds at most 5 percent of employed workers in a month.
 
 Acceptance:
 
 - Demand weight 0 and firm-level hiring off match Phase 17 for the same seeds.
 - Under a demand contraction, demand weight 1 ends that window with lower real GDP than demand weight 0.
-- With demand weight 1, firm-level hiring ends the same contraction with higher unemployment than the economy-wide quota.
+- With demand weight 1, firm-level hiring ends the same contraction with higher unemployment than the economy-wide
+  quota.
 - The ledger audit still passes.
 
 ### Phase 19: Anchored expectations
 
 Goal: expected inflation can sit on the regime path instead of the last year of prices.
 
-1. `expectations.anchorWeight` defaults to 0. Expected inflation is that weight times the regime path plus the rest times trailing inflation. Spending, the real return, the deflation penalty, tenure choice, and the fiat policy rate use it. At 0 they keep using the trailing rate, and posted prices and wages keep the regime path.
+1. `expectations.anchorWeight` defaults to 0. Expected inflation is that weight times the regime path plus the rest
+   times trailing inflation. Spending, the real return, the deflation penalty, tenure choice, and the fiat policy rate
+   use it. At 0 they keep using the trailing rate, and posted prices and wages keep the regime path.
 
 Acceptance:
 
 - Anchor weight 0 matches Phase 18 for the same seeds.
-- Under a demand-led price decline, a higher anchor weight ends with a higher price level than a purely trailing expectation.
+- Under a demand-led price decline, a higher anchor weight ends with a higher price level than a purely trailing
+  expectation.
 - The ledger audit still passes.
 
 ### Phase 20: Endogenous credit and government debt service
 
 Goal: credit booms and busts can come from balance sheets, and government bonds pay a coupon.
 
-1. `credit.endogenousWeight` defaults to 0. Above 0, calm periods lend a share of household deposits and stress from leverage or defaults cuts lending and repays loans.
-2. `government.bondRate` defaults to 0. Above 0, the treasury pays that annual rate on bank-held bonds. The coupon goes through the ledger. At 0 no coupon is paid.
+1. `credit.endogenousWeight` defaults to 0. Above 0, calm periods lend a share of household deposits and stress from
+   leverage or defaults cuts lending and repays loans.
+2. `government.bondRate` defaults to 0. Above 0, the treasury pays that annual rate on bank-held bonds. The coupon goes
+   through the ledger. At 0 no coupon is paid.
 
 Acceptance:
 
@@ -583,8 +706,11 @@ Acceptance:
 
 Goal: housing scarcity can clear against tenure demand and supply, instead of only a time formula.
 
-1. `housing.marketClearing` defaults to `off`. Off keeps the formula category price and a home price of 48 months of income.
-2. On: a scarcity index starts at 1 and moves with the share of owners and mortgage holders and with housing supply growth. It multiplies the housing category price and the home price. Tenure choice off holds demand at the neutral share.
+1. `housing.marketClearing` defaults to `off`. Off keeps the formula category price and a home price of 48 months of
+   income.
+2. On: a scarcity index starts at 1 and moves with the share of owners and mortgage holders and with housing supply
+   growth. It multiplies the housing category price and the home price. Tenure choice off holds demand at the neutral
+   share.
 
 Acceptance:
 
@@ -596,8 +722,10 @@ Acceptance:
 
 Goal: population growth changes the household count, and agent compute can raise the buyer’s capacity.
 
-1. `population.growth` now changes the number of households. The default is 0, which holds the count fixed. The previous default of 0.005 was stored and not applied.
-2. `ai.computeProductivity` defaults to 0. Above 0, each compute unit a firm buys multiplies next month’s capacity by one plus that rate times the units.
+1. `population.growth` now changes the number of households. The default is 0, which holds the count fixed. The previous
+   default of 0.005 was stored and not applied.
+2. `ai.computeProductivity` defaults to 0. Above 0, each compute unit a firm buys multiplies next month’s capacity by
+   one plus that rate times the units.
 
 Acceptance:
 
@@ -610,7 +738,8 @@ Acceptance:
 
 Goal: several monies can be posted and audited separately. A run that still uses one money is unchanged.
 
-1. `MultiLedger` holds one ledger per money. Fiat books stay integer cents. Other books use fractional satoshis. An exchange posts both sides, so neither money is created by the trade.
+1. `MultiLedger` holds one ledger per money. Fiat books stay integer cents. Other books use fractional satoshis. An
+   exchange posts both sides, so neither money is created by the trade.
 2. The economy’s existing stock journal stays on its single ledger. This phase does not move household deposits.
 
 Acceptance:
@@ -623,8 +752,11 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
-2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each digital share. Bitcoin issuance is the halving schedule, not a slider.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to
+   0. Fiat is the residual.
+2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
+   return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each
+   digital share. Bitcoin issuance is the halving schedule, not a slider.
 
 Acceptance:
 
@@ -634,7 +766,8 @@ Acceptance:
 
 ### Phase 25: Regime labels are opening conditions
 
-Goal: a conclusion about money can depend on emergent shares. `regime.type` still selects the opening rule set so the existing comparisons keep running. It does not freeze the mix once `money.choiceSpeed` is positive.
+Goal: a conclusion about money can depend on emergent shares. `regime.type` still selects the opening rule set so the
+existing comparisons keep running. It does not freeze the mix once `money.choiceSpeed` is positive.
 
 1. Hypothesis H9 runs the same trust and legal-tender settings from a fiat opening and from a bitcoin opening.
 2. Both runs are supported when the bitcoin share rises above its start. The opening label does not decide the share.
@@ -650,8 +783,12 @@ Acceptance:
 Goal: capital income can show up as wealth, not only as a flow of profit.
 
 1. `equity.marketOn` defaults to `on`. Off counts only deposits.
-2. On: firm capital at posted prices, scaled by a wealth valuation multiplier, is split by the profit weights, including the extra concentration from AI ownership. Wealth Gini uses deposits plus those claims. Capital share is profits over wages plus profits.
-3. Desired capital tracks reference staffing times productivity and the AI factor, not current headcount, so AI displacement does not shrink the capital stock and stronger AI raises measured wealth. Investment tops up every month. Default total real wealth rises over a decade.
+2. On: firm capital at posted prices, scaled by a wealth valuation multiplier, is split by the profit weights, including
+   the extra concentration from AI ownership. Wealth Gini uses deposits plus those claims. Capital share is profits over
+   wages plus profits.
+3. Desired capital tracks reference staffing times productivity and the AI factor, not current headcount, so AI
+   displacement does not shrink the capital stock and stronger AI raises measured wealth. Investment tops up every
+   month. Default total real wealth rises over a decade.
 
 Acceptance:
 
@@ -664,8 +801,10 @@ Acceptance:
 
 Goal: the price of agent compute can rise when agents crowd firms.
 
-1. `agent.marketDepth` defaults to 0. At 0 the ask is adoption progress times 4 percent of the wage, marked up by payment friction.
-2. Above 0 the ask is multiplied by one plus depth times agents per firm. Firms still refuse an ask at or above 4.2 percent of the wage.
+1. `agent.marketDepth` defaults to 0. At 0 the ask is adoption progress times 4 percent of the wage, marked up by
+   payment friction.
+2. Above 0 the ask is multiplied by one plus depth times agents per firm. Firms still refuse an ask at or above 4.2
+   percent of the wage.
 
 Acceptance:
 
@@ -675,12 +814,15 @@ Acceptance:
 
 ### Phase 28: Conservation
 
-Goal: money is not destroyed by tenure choice, inventory matches measured output, satoshi dust does not crash the stock journal, and bank books close.
+Goal: money is not destroyed by tenure choice, inventory matches measured output, satoshi dust does not crash the stock
+journal, and bank books close.
 
-1. Bitcoin stock lines inside the audit absolute epsilon are dropped. A one-line stock journal is dropped instead of posted.
+1. Bitcoin stock lines inside the audit absolute epsilon are dropped. A one-line stock journal is dropped instead of
+   posted.
 2. Cash home purchase requires a full home price and pays firms, so total deposits are unchanged.
 3. Firms add only measured output to inventory.
-4. Opening reserves fill `deposits − loans − bonds` so `loans + reserves + bonds + vault = deposits + bank equity`. The tick fails when that identity is outside the unit tolerance.
+4. Opening reserves fill `deposits − loans − bonds` so `loans + reserves + bonds + vault = deposits + bank equity`. The
+   tick fails when that identity is outside the unit tolerance.
 
 Acceptance:
 
@@ -694,7 +836,8 @@ Goal: tenure choice compares monthly user costs with interest and a down payment
 
 1. Rent cost is the monthly rent rate times the home price.
 2. Owned cost is the home price times the loan rate plus expected deflation, as a monthly opportunity cost.
-3. Mortgage cost is the amortizing payment on the LTV loan at the loan rate, plus the opportunity cost of the down payment. The down payment is cash paid to firms.
+3. Mortgage cost is the amortizing payment on the LTV loan at the loan rate, plus the opportunity cost of the down
+   payment. The down payment is cash paid to firms.
 
 Acceptance:
 
@@ -704,11 +847,14 @@ Acceptance:
 
 ### Phase 30: Rates that match cash
 
-Goal: deposit interest is paid before equity dividends, the paid rate enters the real return, and the bitcoin loan rate is a level around time preference.
+Goal: deposit interest is paid before equity dividends, the paid rate enters the real return, and the bitcoin loan rate
+is a level around time preference.
 
-1. Household deposit interest is paid after firm loan interest and before bank dividends, funded by borrower interest plus equity above the capital target.
+1. Household deposit interest is paid after firm loan interest and before bank dividends, funded by borrower interest
+   plus equity above the capital target.
 2. The annualized paid deposit rate enters goods spending’s real return.
-3. Bitcoin and hybrid set the policy rate to `max(0, timePrefMean + LOAN_SPREAD × pressure)` with pressure clamped, not a ratchet toward zero.
+3. Bitcoin and hybrid set the policy rate to `max(0, timePrefMean + LOAN_SPREAD × pressure)` with pressure clamped, not
+   a ratchet toward zero.
 
 Acceptance:
 
@@ -719,7 +865,8 @@ Acceptance:
 
 Goal: fiat broad money grows with the inflation target and productivity by default.
 
-1. `centralBank.moneyGrowth` defaults to 1. Fiat deposits and reserves change together by that weight times `(inflationTarget + productivity.baseGrowth + inflation gap) / 12` times deposits.
+1. `centralBank.moneyGrowth` defaults to 1. Fiat deposits and reserves change together by that weight times
+   `(inflationTarget + productivity.baseGrowth + inflation gap) / 12` times deposits.
 2. Bitcoin and hybrid ignore the slider. At 0 the fiat stock stays fixed for regression tests.
 
 Acceptance:
@@ -731,22 +878,29 @@ Acceptance:
 
 Goal: the web app opens on settings where spending can move prices and output.
 
-1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5, and tenure choice on. Money growth stays at its default of 1.
-2. The app’s default page overrides match that preset.
+1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5,
+   and tenure choice on. Money growth stays at its default of 1.
+2. The app’s default page overrides match that preset. 3. The preset's 12-month opening deposits sit under the spending
+   buffer, so with trend weight 0 the new money would otherwise sit idle and pull every category price down. That new
+   money is blended into smoothed income and spent. Energy, medical care, and education then rise over a decade, and
+   apparel and electronics fall, while the money stock rises.
 
 Acceptance:
 
 - A 50 percent helicopter raise in deposits raises the CPI by more than 1 percent within two years under the preset.
 - Fiat broad money ends higher when the inflation target is higher.
 - Fiat and bitcoin shock unemployment paths differ.
-- The ledger identity holds with tenure choice on.
+- The ledger identity holds with tenure choice on. - On the preset, after 10 years, the money stock is higher, energy,
+  medical care, and education cost more, and apparel and electronics cost less.
 
 ### Phase 33: Credit stock and foreclosure
 
 Goal: calm lending can reach a larger loan book, and unpaid mortgages can be written off.
 
-1. `credit.leverageStart` defaults to 0.02. The monetary preset sets it to 1 with endogenous credit weight 1 and a 4 percent capital ratio.
-2. `housing.mortgageDefaultShare` defaults to 0.4. After three missed full payments while the payment exceeds that share of income, the unpaid mortgage is written off against bank equity and the household returns to rent.
+1. `credit.leverageStart` defaults to 0.02. The monetary preset sets it to 1 with endogenous credit weight 1 and a 4
+   percent capital ratio.
+2. `housing.mortgageDefaultShare` defaults to 0.4. After three missed full payments while the payment exceeds that share
+   of income, the unpaid mortgage is written off against bank equity and the household returns to rent.
 
 Acceptance:
 
@@ -768,10 +922,13 @@ Acceptance:
 
 ## Validation
 
-Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.
+Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
+tests on a fixed set of seeds. Each test states a tolerance. Failures report the seed.
 
 - Credit-driven expansions are followed by contractions of comparable duration.
-- When the automatable share does not rise, wealth is more unequally distributed than income, and income is more unequally distributed than skill. After the adoption curve finishes, agent ownership follows household id, so wealth can be less concentrated than income.
+- When the automatable share does not rise, wealth is more unequally distributed than income, and income is more
+  unequally distributed than skill. After the adoption curve finishes, agent ownership follows household id, so wealth
+  can be less concentrated than income.
 - In the fiat regime, there is a short-run negative relationship between unemployment and inflation under sticky wages.
 - Output is more volatile than consumption, and investment is more volatile than output.
 - A positive productivity shock raises output and lowers prices in the short run.
@@ -779,16 +936,21 @@ Before testing a new idea in a regime, the model should reproduce facts economis
 
 ## Risks
 
-- Results may reflect the builder's assumptions more than the economy. Mitigations: the assumption ledger, presets from different views, seed sweeps, and sensitivity analysis.
-- The model may become too complex to test. Mitigation: one mechanism per phase, with a neutral setting that reproduces the previous phase.
+- Results may reflect the builder's assumptions more than the economy. Mitigations: the assumption ledger, presets from
+  different views, seed sweeps, and sensitivity analysis.
+- The model may become too complex to test. Mitigation: one mechanism per phase, with a neutral setting that reproduces
+  the previous phase.
 - Interactions may be unstable. Mitigation: the ledger audit every tick, replayable seeds, and logging of failing ticks.
-- AI sliders have little history. Mitigation: label them as guesses, sweep wide ranges, and report where conclusions change.
+- AI sliders have little history. Mitigation: label them as guesses, sweep wide ranges, and report where conclusions
+  change.
 - Floating-point satoshis can drift. Mitigation: a relative audit tolerance and canonical output formatting.
-- Performance may miss the release target. Mitigation: measure each phase, use typed arrays for agent state, and run sweeps on Node worker threads.
+- Performance may miss the release target. Mitigation: measure each phase, use typed arrays for agent state, and run
+  sweeps on Node worker threads.
 
 ## Still deferred
 
-- A market for firm shares. Profit-sharing is the substitute in this release, measured from finance flows when the investment hurdle is on.
+- A market for firm shares. Profit-sharing is the substitute in this release, measured from finance flows when the
+  investment hurdle is on.
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
 - A bitcoin price separate from goods prices in satoshis.

@@ -10,7 +10,7 @@ Break a plan, spec, or conversation into a set of **tickets**: tracer-bullet ver
 that **block** it.
 
 The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run
-`/setup-matt-pocock-skills` .
+`/setup-matt-pocock-skills`.
 
 ## Process
 
@@ -74,7 +74,7 @@ Iterate until the user approves the breakdown.
 Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the
 same either way, only the shape of the blocking edges changes:
 
-- **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md` , numbered from `01`
+- **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
   in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the
   per-ticket file template below: one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so

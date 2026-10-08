@@ -15,7 +15,7 @@ Then run a beat-by-beat journey, choose-your-own-adventure style:
 
 1. **Establish the prerequisites.** Before any beats, settle with the user what the audience already knows walking in:
    the concepts that are **grounded** from the start. Everything else must be grounded by a beat before a later beat can
-   use it. See [Grounding](#grounding) .
+   use it. See [Grounding](#grounding).
 2. Write 2–3 candidate **starting beats**, drawn from the raw material. Each is a different entry point into the
    article. Each may only lean on grounded concepts; note what new concepts each one grounds. Show the user the beats
    before writing to the article file. The user picks one. Preview what beats that pick unlocks, as if the user is

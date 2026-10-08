@@ -1,19 +1,53 @@
 # Limits
 
-The simulation is a small closed economy with one consumption basket. Category prices split that basket into food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. They are an accounting split. Households do not shop in separate markets, and a category's productivity slider does not change how many goods are made.
+The simulation is a small closed economy with one consumption basket. Category prices split that basket into food and
+beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics. They are an
+accounting split. Households do not shop in separate markets, and a category's productivity slider does not change how
+many goods are made.
 
-There is no international trade and no second currency price. Fiat, bitcoin, and hybrid are alternative units for the same economy, not countries trading with each other. A positive `transition.lengthMonths` rebases one closed economy from fiat rules into bitcoin; it is not a model of the United States converting, and it does not introduce a second goods price.
+There is no international trade and no second currency price. Fiat, bitcoin, and hybrid are alternative units for the
+same economy, not countries trading with each other. A positive `transition.lengthMonths` rebases one closed economy
+from fiat rules into bitcoin; it is not a model of the United States converting, and it does not introduce a second
+goods price.
 
-There is no market for firm shares. When `housing.tenureChoice` is off, the model reports a higher profit-sharing share and a higher non-mortgage housing share as functions of the deflation penalty. Those figures change how profits are weighted and how property turnover is scored. They are not a stock exchange, a mortgage menu, or a cooperative that agents join. When tenure choice is on, non-mortgage housing and property turnover are measured from household tenures, mortgages, and tenure changes. Shelter remains inside the food and housing spending floor. Consumer credit funds only discretionary spending.
+There is no market for firm shares. When `housing.tenureChoice` is off, the model reports a higher profit-sharing share
+and a higher non-mortgage housing share as functions of the deflation penalty. Those figures change how profits are
+weighted and how property turnover is scored. They are not a stock exchange, a mortgage menu, or a cooperative that
+agents join. When tenure choice is on, non-mortgage housing and property turnover are measured from household tenures,
+mortgages, and tenure changes. Shelter remains inside the food and housing spending floor. Consumer credit funds only
+discretionary spending.
 
-Well-being is the log of human real consumption plus 0.5 times housing security. Housing security is real income relative to the median, divided by one plus the housing price relative to the CPI, and kept between 0 and 1. There is no composite index.
+Well-being is the log of human real consumption plus 0.5 times housing security. Housing security is real income
+relative to the median, divided by one plus the housing price relative to the CPI, and kept between 0 and 1. There is no
+composite index.
 
-Population growth is a slider and is not used. Housing demand grows with productivity and is cut by the deflation penalty. Unemployment is pulled toward a natural rate that starts at 6 percent and rises with the AI share of output, because the hiring target shrinks with the human share. A shock that would raise unemployment in a search model may move it less here once that natural rate has risen. The hypothesis runner records that outcome instead of forcing the claim. The household UBI grant is a share of the AI slice of nominal GDP; it is an assumption, and a high share can expand public debt through bond finance.
+Population growth is a slider and is not used. Housing demand grows with productivity and is cut by the deflation
+penalty. Unemployment is pulled toward a natural rate that starts at 6 percent and rises with the AI share of output,
+because the hiring target shrinks with the human share. A shock that would raise unemployment in a search model may move
+it less here once that natural rate has risen. The hypothesis runner records that outcome instead of forcing the claim.
+The household UBI grant is a share of the AI slice of nominal GDP; it is an assumption, and a high share can expand
+public debt through bond finance.
 
-The AI block is a single automatable-share path with a bullishness scale and a later robotics ramp. It does not split knowledge workers from other occupations, does not have a separate cognitive wage, and does not carry an ideas stock that feeds back into automation. Korinek et al. 2026 stop before robots and before 2030 for that reason. Here the physical-task block begins to lift at `ai.roboticsStartYear` (default 8, about 2034 when month 0 is read as late 2026) and falls to zero across `ai.roboticsRampYears` (default 12). The core does not read the calendar, so opening the page in another year moves the chart labels and does not move the ramp. Bullishness above 1 lets the task gain compound without a ceiling; that path is a scenario assumption, not a forecast. Wages and the regime price trend still follow baseline productivity growth, so a very high setting pulls real output away from the wage bill.
+The AI block is a single automatable-share path with a bullishness scale and a later robotics ramp. It does not split
+knowledge workers from other occupations, does not have a separate cognitive wage, and does not carry an ideas stock
+that feeds back into automation. Korinek et al. 2026 stop before robots and before 2030 for that reason. Here the
+physical-task block begins to lift at `ai.roboticsStartYear` (default 20, about 2046 when month 0 is read as late 2026)
+and falls to zero across `ai.roboticsRampYears` (default 16). The core does not read the calendar, so opening the page
+in another year moves the chart labels and does not move the ramp. Bullishness defaults to 0 (Modest); above 1 the task
+gain compounds without a ceiling, and that path is a scenario assumption, not a forecast. Wages and the regime price
+trend still follow baseline productivity growth, so a very high setting pulls real output away from the wage bill.
 
-Expected deflation can cut only discretionary goods spending above the food and housing floor. That floor is the sum of the food and housing CPI weights. Credit-financed discretionary spending is a later mechanism. When `prices.trendWeight` is below 1, the fiat inflation target no longer fully writes the price path.
+Expected deflation can cut only discretionary goods spending above the food and housing floor. That floor is the sum of
+the food and housing CPI weights. Credit-financed discretionary spending is a later mechanism. When `prices.trendWeight`
+is below 1, the fiat inflation target no longer fully writes the price path.
 
-An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The fixed stock is money growth 0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0, `production.demandWeight` 1, deposit pass-through 1, anchored expectations, tenure choice on) so spending can move prices and output. `scenarios/baseline.json` stays empty for CLI regression.
+An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The fixed stock is money growth
+0. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0, `production.demandWeight` 1, deposit
+pass-through 1, anchored expectations, tenure choice on, 12 months of opening deposits) so spending can move prices and
+output. Those thin balances sit under the 48-month spending buffer, so the new money is blended into smoothed income and
+spent; scarce categories can rise while apparel and electronics cheapen. `scenarios/baseline.json` stays empty for CLI
+regression.
 
-Development runs of 1,000 households finish in about a second in Node, a little over the one-second target. Sweeps in the CLI run in this process at a small scale. A 50-seed development sweep is a manual command, not part of the default test suite.
+Development runs of 1,000 households finish in about a second in Node, a little over the one-second target. Sweeps in
+the CLI run in this process at a small scale. A 50-seed development sweep is a manual command, not part of the default
+test suite.

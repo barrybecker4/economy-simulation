@@ -7,8 +7,8 @@ The economy has households, firms, banks, a government, and a central bank. You 
 with a lender of last resort. Category prices split the CPI into food and beverages, housing, energy, apparel,
 transportation, medical care, education, recreation, and electronics, so some of those prices can cheapen while others
 rise. AI adoption and autonomous agents are sliders with neutral settings that turn them off. The specification is
-[docs/PLAN.md](docs/PLAN.md) . The equations are in [docs/model.md](docs/model.md) . Limits are in
-[docs/limits.md](docs/limits.md) . Working agreements are in [AGENTS.md](AGENTS.md) .
+[docs/PLAN.md](docs/PLAN.md). The equations are in [docs/model.md](docs/model.md). Limits are in
+[docs/limits.md](docs/limits.md). Working agreements are in [AGENTS.md](AGENTS.md).
 
 ## Requirements
 
@@ -40,7 +40,7 @@ pnpm sim compare --scenario scenarios/baseline.json --seed 1 --left fiat --right
 ```
 
 Sweep seeds and regimes. This uses a small population so it returns quickly. The line format and the hypothesis checks
-are described in [CONTRIBUTING.md](CONTRIBUTING.md) .
+are described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```sh
 pnpm sim sweep --seeds 4 --ticks 24 --regimes fiat,bitcoin --preset neutral --out sweep.jsonl
@@ -55,7 +55,7 @@ pnpm run assumptions:check
 ```
 
 The web app runs the same simulation in a worker. Presets, the assumption ledger, and the scenario gallery are in
-[docs/gallery.md](docs/gallery.md) . Methods for H1–H8 are in [docs/methods.md](docs/methods.md) .
+[docs/gallery.md](docs/gallery.md). Methods for H1–H8 are in [docs/methods.md](docs/methods.md).
 
 ```sh
 pnpm --filter @economy-simulation/app dev
@@ -68,14 +68,14 @@ pnpm --filter @economy-simulation/app build
 pnpm --filter @economy-simulation/app preview
 ```
 
-The build writes `packages/app/dist` . Asset paths are relative to that directory, so the same files work at the root of
+The build writes `packages/app/dist`. Asset paths are relative to that directory, so the same files work at the root of
 a site or in a subdirectory. Copy the contents of `dist` into the website repository, including `assets/` and
-`favicon.svg` alongside `index.html` , then commit and push. Files placed in `economy/` are served at
-`https://example.github.io/economy/` .
+`favicon.svg` alongside `index.html`, then commit and push. Files placed in `economy/` are served at
+`https://example.github.io/economy/`.
 
-Open the page on the site, or use `preview` . The app is an ES module, so opening `index.html` as a file will not run
-it. A link keeps the seed and sliders in the query string. A query parameter whose name starts with `_` is ignored,
-including `_ijt` , which an editor adds when it opens the page.
+Open the page on the site, or use `preview`. The app is an ES module, so opening `index.html` as a file will not run it.
+A link keeps the seed and sliders in the query string. A query parameter whose name starts with `_` is ignored,
+including `_ijt`, which an editor adds when it opens the page.
 
 ## Dependencies added for the engine
 

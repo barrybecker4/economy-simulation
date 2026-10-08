@@ -45,10 +45,10 @@ Every triaged issue should carry exactly one category role and one state role. I
 the maintainer before doing anything else.
 
 These are canonical role names. The actual label strings used in the issue tracker may differ. The mapping should have
-been provided to you. If not, tell the user to run `/setup-matt-pocock-skills` .
+been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
 
-State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info` ,
-`ready-for-agent` , `ready-for-human` , or `wontfix` . `needs-info` returns to `needs-triage` once the reporter replies.
+State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`,
+`ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies.
 The maintainer can override at any time; flag transitions that look unusual and ask before proceeding.
 
 ## Invocation
@@ -69,7 +69,7 @@ Query the issue tracker and present three buckets, oldest first:
 2. **`needs-triage`**: evaluation in progress.
 3. **`needs-info` with reporter activity since the last triage notes**: needs re-evaluation.
 
-When PRs are in scope, include external PRs in these buckets and tag each line `[PR]` or `[issue]` . Discovery surfaces
+When PRs are in scope, include external PRs in these buckets and tag each line `[PR]` or `[issue]`. Discovery surfaces
 only *external* PRs (the tracker config defines who counts as external), so a collaborator's in-flight PR is not triage
 work. This filter is discovery-only; an explicitly named PR is always triaged regardless of author.
 
@@ -94,19 +94,19 @@ Show counts and a one-line summary per item. Let the maintainer pick.
 
 4. **Grill (if needed).** If the request needs fleshing out, call the Skill tool twice, for "grilling" and
    "domain-modeling", and grill it into shape a round of questions at a time, sharpening domain terms and updating
-   `GLOSSARY.md` /ADRs inline as decisions land.
+   `GLOSSARY.md`/ADRs inline as decisions land.
 
 5. **Apply the outcome:**
    - `ready-for-agent`: post an agent brief comment ([AGENT-BRIEF.md](AGENT-BRIEF.md)).
-   - `ready-for-human` : same structure as an agent brief, but note why it can't be delegated (judgment calls, external
+   - `ready-for-human`: same structure as an agent brief, but note why it can't be delegated (judgment calls, external
      access, design decisions, manual testing).
    - `needs-info`: post triage notes (template below).
    - For `wontfix`, close the issue, with the comment depending on *why*:
      - **Already implemented**: the change already exists in the codebase. Point to where it lives; do **not** write to
        `.out-of-scope/` (that KB is for *rejected* requests, not built ones).
      - **Rejected (bug)**: give a polite explanation, then close.
-     - **Rejected (enhancement)**: write to `.out-of-scope/` , link to it from a comment, then close (
-       [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md) ).
+     - **Rejected (enhancement)**: write to `.out-of-scope/`, link to it from a comment, then close
+       ([OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)).
    - `needs-triage`: apply the role. Optional comment if there's partial progress.
 
 ## Quick state override

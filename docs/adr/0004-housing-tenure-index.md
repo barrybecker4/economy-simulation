@@ -14,9 +14,9 @@ and the single-good shopping rule.
 
 - Housing stays an expenditure weight and relative price inside the CPI basket. Households still buy one consumption
   good.
-- When `housing.tenureChoice` is on, each household holds a tenure ( `rent` , `mortgage` , or `owned` ), a nominal
-  mortgage, and an optional consumer loan. Shelter cost stays inside the food and housing spending floor from Phase 10.
-  Consumer loans fund only discretionary spending above that floor.
+- When `housing.tenureChoice` is on, each household holds a tenure (`rent`, `mortgage`, or `owned`), a nominal mortgage,
+  and an optional consumer loan. Shelter cost stays inside the food and housing spending floor from Phase 10. Consumer
+  loans fund only discretionary spending above that floor.
 - Tenure shares, property turnover, and debt service are measured from those stocks. When the switch is off, the older
   deflation-penalty formulas remain.
 - There is no stock of vacant homes, no landlord agent type, and no separate rent market. Paying cash for a home moves

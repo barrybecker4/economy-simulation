@@ -75,7 +75,7 @@ A reaction to it.
 - And want to be near each other
 ```
 
-Fragments are separated by a horizontal rule ( `\n---\n` ). No headings inside the body. No tags. No order beyond the
+Fragments are separated by a horizontal rule (`\n---\n`). No headings inside the body. No tags. No order beyond the
 order they were added.
 
 ## Writing rhythm

@@ -26,9 +26,9 @@ This command is _informed_ by the project's domain model and built on a shared d
 on the parts of the codebase that have recently changed. Decide *where* to look before you look:
 
 - If the user named a direction (a module, a subsystem, a pain point), take it, and skip the inference below.
-- Otherwise, walk back a good stretch of the commit history ( `git log --oneline` ) to find the codebase's hot spots,
-  the files and areas that keep coming up, and let those paths pull your attention first. If the changes are scattered
-  with no clear hot spot, widen the net.
+- Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots, the
+  files and areas that keep coming up, and let those paths pull your attention first. If the changes are scattered with
+  no clear hot spot, widen the net.
 
 Read the project's domain glossary (`GLOSSARY.md`) and any ADRs in the area you're touching first.
 
@@ -48,9 +48,9 @@ it? A "yes, concentrates" is the signal you want.
 ### 2. Present candidates as an HTML report
 
 Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from
-`$TMPDIR` , falling back to `/tmp` (or `%TEMP%` on Windows), and write to
-`<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user ( `xdg-open <path>`
-on Linux, `open <path>` on macOS, `start <path>` on Windows) and tell them the absolute path.
+`$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html`
+so each run gets a fresh file. Open it for the user (`xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>`
+on Windows) and tell them the absolute path.
 
 The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a
 graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals: use Mermaid when
@@ -89,7 +89,7 @@ dependencies, the shape of the deepened module, what sits behind the seam, what 
 Side effects happen inline as decisions crystallize; call the Skill tool with "domain-modeling" to keep the domain model
 current as you go:
 
-- **Naming a deepened module after a concept not in `GLOSSARY.md` ?** Add the term to `GLOSSARY.md` . Create the file
+- **Naming a deepened module after a concept not in `GLOSSARY.md`?** Add the term to `GLOSSARY.md`. Create the file
   lazily if it doesn't exist.
 - **Sharpening a fuzzy term during the conversation?** Update `GLOSSARY.md` right there.
 - **User rejects the candidate with a load-bearing reason?** Offer an ADR, framed as: _"Want me to record this as an ADR

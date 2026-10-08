@@ -13,7 +13,7 @@ base and the goods market.
 
 ## Decision
 
-- The household grant each month is `government.ubiShare × AI share of output × nominal GDP` , split equally across
+- The household grant each month is `government.ubiShare × AI share of output × nominal GDP`, split equally across
   households. It phases in with AI adoption and scales with the size of the economy. It is not a fixed stipend.
 - The default `government.ubiShare` is 0.25. At zero, or when no AI capacity is adopted, the grant is off and the rest
   of the path matches the previous phase.

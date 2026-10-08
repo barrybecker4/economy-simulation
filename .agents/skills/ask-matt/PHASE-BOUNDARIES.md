@@ -27,7 +27,7 @@ for the next phase to fit. Grilling → implementation is the standard yes: the 
 verbatim, not a summary of it. Continue costs nothing and loses nothing, so rule it out before anything else.
 
 **2. Is the context irrelevant to what comes next?** Is everything in this session (the exploration, the decisions, the
-dead ends) disposable? If so, ** `/clear` **. It is the cheapest move on the board: it takes no time and hands back the
+dead ends) disposable? If so, **`/clear`**. It is the cheapest move on the board: it takes no time and hands back the
 whole window. `/clear` also isn't terminal: the old session stays resumable.
 
 The cost of getting this wrong is one-way. Clear a *relevant* context and you lose the **why** behind what you built,
@@ -47,8 +47,8 @@ you don't need it.
 send it to a **subagent** and leave this session untouched. Automated review is the standard case: the agent reads the
 diff and reports, and you aren't needed while it does.
 
-**5. Otherwise, `/compact` .** Relevant context, same harness, same directory, and you need to stay in the loop: this is
-where the tree lands, and it lands here often. Pass it an instruction ( `/compact we're going to QA this area` ) so the
+**5. Otherwise, `/compact`.** Relevant context, same harness, same directory, and you need to stay in the loop: this is
+where the tree lands, and it lands here often. Pass it an instruction (`/compact we're going to QA this area`) so the
 summary keeps what the next phase needs.
 
 `/compact` is the **default, not the first reach**. It sits at the bottom because the four questions above it are all

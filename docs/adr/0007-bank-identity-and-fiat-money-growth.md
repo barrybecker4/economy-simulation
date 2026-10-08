@@ -12,7 +12,7 @@ not grow with the inflation target, so a higher target meant an imposed price pa
 
 ## Decision
 
-- Every tick enforces `loans + reserves + bonds + vault = deposits + bank equity` , with vault equal to bank equity plus
+- Every tick enforces `loans + reserves + bonds + vault = deposits + bank equity`, with vault equal to bank equity plus
   the private-equity residual.
 - Opening reserves fill `deposits − loans − bonds`.
 - `centralBank.moneyGrowth` defaults to 1. Under fiat, deposits and reserves change together by that weight times
@@ -20,9 +20,9 @@ not grow with the inflation target, so a higher target meant an imposed price pa
   Setting the slider to 0 freezes the fiat stock for regression tests.
 
 There is still no multi-period forecast or durable-goods timing model. Expected inflation remains the trailing rate
-blended with `expectations.anchorWeight` .
+blended with `expectations.anchorWeight`.
 
 ## Consequences
 
-`docs/PLAN.md` , `docs/model.md` , and `docs/assumptions.md` follow this ADR. Regime comparisons that need a fixed fiat
+`docs/PLAN.md`, `docs/model.md`, and `docs/assumptions.md` follow this ADR. Regime comparisons that need a fixed fiat
 stock must set `centralBank.moneyGrowth` to 0.

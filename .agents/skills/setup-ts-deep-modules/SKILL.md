@@ -25,8 +25,8 @@ src/packages/
     tests/          ← co-located tests + fixtures (a subfolder, so private).
 ```
 
-The public surface is the package's **root files**, not one designated `index.ts` . By convention implementation lives
-in `lib/` and tests in `tests/` , giving every package the same two-folder shape. The rule itself is general, though:
+The public surface is the package's **root files**, not one designated `index.ts`. By convention implementation lives in
+`lib/` and tests in `tests/`, giving every package the same two-folder shape. The rule itself is general, though:
 *anything* in *any* subfolder is private, so you never extend the config to add a folder.
 
 Four rules, all `error`:
@@ -40,7 +40,7 @@ Four rules, all `error`:
 4. **No cycles**: no dependency cycles.
 
 **Entry points, not a barrel.** Because the public surface is *every* root file, a package can expose several small
-entry points ( `index.ts` , `client.ts` , `server.ts` ) instead of funnelling everything through one giant `index.ts` .
+entry points (`index.ts`, `client.ts`, `server.ts`) instead of funnelling everything through one giant `index.ts`.
 Barrel files that re-export a whole subtree are discouraged; keep entry points small and hide implementation in
 subfolders.
 
@@ -52,9 +52,9 @@ this repo to fill in.
 ### 1. Detect the environment
 
 - **Package manager**: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `bun.lockb` → bun, else npm. Use it for every
-  command below ( `pnpm` / `yarn` / `npm run` / `bunx` ).
-- **Packages root**: if `src/` exists use `src/packages` , else `packages` . Confirm the choice with the user if the
-  repo already has a different obvious convention.
+  command below (`pnpm`/`yarn`/`npm run`/`bunx`).
+- **Packages root**: if `src/` exists use `src/packages`, else `packages`. Confirm the choice with the user if the repo
+  already has a different obvious convention.
 - **Existing config**: check for a `.dependency-cruiser.*` file. If one exists, do **not** overwrite it: merge the four
   rules and the options in, and tell the user what you added.
 
@@ -68,11 +68,11 @@ Install `dependency-cruiser` as a devDependency with the detected package manage
 
 ### 3. Write the config
 
-Copy [ `dependency-cruiser.config.cjs` ](./dependency-cruiser.config.cjs) to the repo root as `.dependency-cruiser.cjs`
-. Set `PACKAGES_ROOT` to the root detected in step 1. The rules are path-depth based and extension-agnostic, so nothing
+Copy [`dependency-cruiser.config.cjs`](./dependency-cruiser.config.cjs) to the repo root as `.dependency-cruiser.cjs`.
+Set `PACKAGES_ROOT` to the root detected in step 1. The rules are path-depth based and extension-agnostic, so nothing
 else needs adapting.
 
-**Done when:** `.dependency-cruiser.cjs` exists with the correct `PACKAGES_ROOT` , and the four forbidden rules are
+**Done when:** `.dependency-cruiser.cjs` exists with the correct `PACKAGES_ROOT`, and the four forbidden rules are
 present.
 
 ### 4. Wire it into the checks
@@ -103,8 +103,8 @@ subfolder.
 This is the completion criterion for the whole skill: a config that doesn't fail on a violation is worthless.
 
 1. Run `lint:boundaries`. It must **pass** on the clean example.
-2. Temporarily add a deep import to `tests/example.test.ts` (e.g. `import { thing } from "../lib/impl"` ). Run
-   `lint:boundaries` again; it must **fail** with `tests-through-entrypoints` .
+2. Temporarily add a deep import to `tests/example.test.ts` (e.g. `import { thing } from "../lib/impl"`). Run
+   `lint:boundaries` again; it must **fail** with `tests-through-entrypoints`.
 3. Revert the deep import. Run once more, and it must **pass**.
 
 **Done when:** you have observed a pass, then a fail on the deep import, then a pass again. If step 2 does not fail, the
@@ -112,28 +112,28 @@ rules are not wired correctly, so fix before finishing.
 
 ### 7. Document the convention
 
-Write a `README.md` **in the packages folder** ( `<packages-root>/README.md` , next to the packages it governs)
-covering: the `src/packages/<name>/` layout (entry points at the root, `lib/` for implementation, `tests/` for tests),
-"import only through a package's entry points (its root files)", and how to run `lint:boundaries` . **Discourage barrel
-files** explicitly: expose several small entry points instead of re-exporting a whole subtree through one index. Keep it
-to the copy-me snippet plus the four rules in one paragraph each.
+Write a `README.md` **in the packages folder** (`<packages-root>/README.md`, next to the packages it governs) covering:
+the `src/packages/<name>/` layout (entry points at the root, `lib/` for implementation, `tests/` for tests), "import
+only through a package's entry points (its root files)", and how to run `lint:boundaries`. **Discourage barrel files**
+explicitly: expose several small entry points instead of re-exporting a whole subtree through one index. Keep it to the
+copy-me snippet plus the four rules in one paragraph each.
 
-Then add a **context pointer** to it from the repo's agent-instructions file ( `CLAUDE.md` if present, else `AGENTS.md`
-, creating `AGENTS.md` if neither exists). One line is enough, e.g.
+Then add a **context pointer** to it from the repo's agent-instructions file (`CLAUDE.md` if present, else `AGENTS.md`,
+creating `AGENTS.md` if neither exists). One line is enough, e.g.
 `Packages are deep modules: see [src/packages/README.md](./src/packages/README.md) before adding or importing one.` This
 is what makes an agent discover the boundary rule instead of tripping over it.
 
-**Done when:** `<packages-root>/README.md` exists and discourages barrels, and the repo's `CLAUDE.md` / `AGENTS.md`
-links to it.
+**Done when:** `<packages-root>/README.md` exists and discourages barrels, and the repo's `CLAUDE.md`/`AGENTS.md` links
+to it.
 
 ## Notes
 
 - The config's `$1` back-references (dependency-cruiser's group matching) are what let a package reach its own internals
   while outsiders can't. Don't flatten them into separate per-package rules.
 - Public vs private is decided by **depth**: a package's root files are entry points; anything in a subfolder is
-  private. The conventional subfolders are `lib/` (implementation) and `tests/` , but the rule doesn't hardcode them:
-  any subfolder is private, so a new folder never needs a config change. Adding an entry point is just adding a root
-  file (no barrel).
+  private. The conventional subfolders are `lib/` (implementation) and `tests/`, but the rule doesn't hardcode them: any
+  subfolder is private, so a new folder never needs a config change. Adding an entry point is just adding a root file
+  (no barrel).
 - Packages are **flat**: one tier of immediate children under the root. A package's internals may nest as deep as you
   like; a package may not contain another package.
 - Use `.cjs` (not `.js`) so the config's `module.exports` works even in `"type": "module"` repos.

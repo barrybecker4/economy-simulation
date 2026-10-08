@@ -25,7 +25,7 @@ If the user did not say where to save the article, ask once and remember the pat
 1. **Read the pile.** Read the input file in full. Form a sense of what's in it.
 2. **Establish the prerequisites.** Settle with the user what the reader knows walking in: the concepts that are
    **grounded** from the start. Everything else must be grounded by a block before a later block can lean on it. See
-   [Grounding](#grounding) .
+   [Grounding](#grounding).
 3. **Draft 2–3 candidate openings.** Each opening should imply a different thesis or angle for the article. Show all of
    them. Force the user to pick or compose a hybrid. The chosen opening defines what the rest of the article must do.
 4. **Grow paragraph by paragraph.** After the opening lands, ask "given this opening, what does the reader need to hear
@@ -86,7 +86,7 @@ When choosing how to render a block, weigh these tradeoffs out loud with the use
 
 - **Prose vs. list.** Prose carries argument; lists carry parallel items. If items aren't truly parallel, prose is
   better. If they are, a list is faster to scan.
-- **Inline vs. callout.** Tips, warnings, and asides go in callouts ( `> [!TIP]` , `> [!NOTE]` ), but only if they'd
+- **Inline vs. callout.** Tips, warnings, and asides go in callouts (`> [!TIP]`, `> [!NOTE]`), but only if they'd
   genuinely derail the main argument inline. Otherwise leave them inline.
 - **Table vs. repeated structure.** If the same shape repeats 3+ times with the same fields, a table. Otherwise prose
   with bold leads.

@@ -47,7 +47,7 @@ is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
 ### Challenge against the glossary
 
-When the user uses a term that conflicts with the existing language in `GLOSSARY.md` , call it out immediately. "Your
+When the user uses a term that conflicts with the existing language in `GLOSSARY.md`, call it out immediately. "Your
 glossary defines 'cancellation' as X, but you seem to mean Y. Which is it?"
 
 ### Sharpen fuzzy language
@@ -68,7 +68,7 @@ code cancels entire Orders, but you just said partial cancellation is possible. 
 ### Update GLOSSARY.md inline
 
 When a term is resolved, update `GLOSSARY.md` right there. Don't batch these up: capture them as they happen. Use the
-format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md) .
+format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md).
 
 `GLOSSARY.md` should be totally devoid of implementation details. Do not treat `GLOSSARY.md` as a spec, a scratch pad,
 or a repository for implementation decisions. It is a glossary and nothing else.

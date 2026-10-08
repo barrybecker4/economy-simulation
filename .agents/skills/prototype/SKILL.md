@@ -12,10 +12,10 @@ A prototype is **throwaway code that answers a question**. The question decides 
 Identify which question is being answered, using the user's prompt, the surrounding code, or by asking if the user is
 around:
 
-- **"Does this logic / state model feel right?"** → [LOGIC.md](LOGIC.md) . Build a single shareable HTML file (free-play
+- **"Does this logic / state model feel right?"** → [LOGIC.md](LOGIC.md). Build a single shareable HTML file (free-play
   buttons plus tabbed guided walkthroughs) that pushes the state machine through cases that are hard to reason about on
   paper, and that a non-developer can drive.
-- **"What should this look like?"** → [UI.md](UI.md) . Generate several radically different UI variations on a single
+- **"What should this look like?"** → [UI.md](UI.md). Generate several radically different UI variations on a single
   route, switchable via a URL search param and a floating bottom bar.
 
 The two branches produce very different artifacts, so getting this wrong wastes the whole prototype. If the question is
@@ -28,8 +28,8 @@ backend module → logic; a page or component → UI) and state the assumption a
    used (next to the module or page it's prototyping for) so context is obvious, but name it so a casual reader can see
    it's a prototype, not production. For throwaway UI routes, obey whatever routing convention the project already uses;
    don't invent a new top-level structure.
-2. **Trivial to run.** A UI prototype starts from one command in the project's task runner: `pnpm <name>` ,
-   `python <path>` , `bun <path>` , etc. A logic demo is a single HTML file the user double-clicks. Either way, no
+2. **Trivial to run.** A UI prototype starts from one command in the project's task runner: `pnpm <name>`,
+   `python <path>`, `bun <path>`, etc. A logic demo is a single HTML file the user double-clicks. Either way, no
    thinking required to start it.
 3. **No persistence by default.** State lives in memory. Persistence is the thing the prototype is _checking_, not
    something it should depend on. If the question explicitly involves a database, hit a scratch DB or a local file with
