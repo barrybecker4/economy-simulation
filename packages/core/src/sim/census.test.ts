@@ -35,6 +35,25 @@ describe('household census', () => {
     expect(measured.wellbeingMedian).toBeCloseTo(1.25);
   });
 
+  it('partitions non-negative wealth into cash and claims that sum to the wealth total', () => {
+    const economy = economyWith(20, 4);
+    for (const household of economy.households) {
+      household.deposit = 10;
+      household.bitcoin = 0;
+    }
+    economy.params.equityMarket = 'off';
+    const off = measureHouseholds(economy);
+    expect(off.claimWealthTotal).toBe(0);
+    expect(off.cashWealthTotal).toBe(off.wealth.total);
+
+    economy.params.equityMarket = 'on';
+    economy.households[0]!.deposit = -2;
+    const on = measureHouseholds(economy);
+    expect(on.cashWealthTotal + on.claimWealthTotal).toBeCloseTo(on.wealth.total);
+    expect(on.claimWealthTotal).toBeGreaterThan(0);
+    expect(on.cashWealthTotal).toBeLessThan(on.wealth.total);
+  });
+
   it('reports no owner-wealth share until an agent exists', () => {
     const economy = economyWith(20, 4);
     expect(ownerWealthShare(economy)).toBe(0);

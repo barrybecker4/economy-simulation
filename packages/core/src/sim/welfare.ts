@@ -20,6 +20,8 @@ function metricSnapshot(economy: Economy): MetricSnapshot {
     ...flows(economy),
     income: measured.income,
     wealth: measured.wealth,
+    cashWealthTotal: measured.cashWealthTotal,
+    claimWealthTotal: measured.claimWealthTotal,
     skill: measured.skill,
     consumption: measured.consumption,
     wellbeingMean: measured.wellbeingMean,

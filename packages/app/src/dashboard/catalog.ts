@@ -12,7 +12,7 @@ export interface ChartPanel {
   key: string;
   title: string;
   group: string;
-  unit: 'money' | 'share' | 'log' | 'output';
+  unit: 'money' | 'share' | 'log' | 'output' | 'count' | 'index';
   description: string;
   lines: readonly ChartLineSpec[];
 }
@@ -79,6 +79,18 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'earnings',
+    title: 'Who earns the output',
+    group: 'Labor',
+    unit: 'share',
+    description:
+      'Labor share is the wage bill over nominal GDP. Capital share is profits over wages plus profits. More than one seed draws each median.',
+    lines: [
+      { id: 'laborShare', label: 'Labor share', color: '#0f766e' },
+      { id: 'capitalShare', label: 'Capital share', color: '#7c3aed' },
+    ],
+  },
+  {
     key: 'ubi',
     title: 'Household grant',
     group: 'Public accounts',
@@ -105,8 +117,38 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Credit',
     unit: 'share',
     description:
-      "Private credit relative to annualized nominal GDP: firm and household loans divided by twelve times this month's nominal output. Government bonds are not in this ratio. More than one seed draws the median.",
-    lines: [{ id: 'creditToGdp', label: 'Credit to GDP', color: '#7c3aed' }],
+      "Private credit relative to annualized nominal GDP: firm and household loans divided by twelve times this month's nominal output. Consumer credit is household consumer loans alone over the same output. Government bonds are not in these ratios. More than one seed draws each median.",
+    lines: [
+      { id: 'creditToGdp', label: 'Credit to GDP', color: '#7c3aed' },
+      { id: 'consumerCreditToGdp', label: 'Consumer credit to GDP', color: '#c2410c' },
+    ],
+  },
+  {
+    key: 'defaults',
+    title: 'Defaults',
+    group: 'Credit',
+    unit: 'money',
+    description:
+      'Loan balances written off that month from failed firms and foreclosed mortgages. More than one seed draws the median.',
+    lines: [{ id: 'defaults', label: 'Defaults', color: '#be123c', better: 'lower' }],
+  },
+  {
+    key: 'bank-failures',
+    title: 'Bank failures',
+    group: 'Credit',
+    unit: 'count',
+    description:
+      'Running count of insolvent banks that were resolved. More than one seed draws the median.',
+    lines: [{ id: 'bankFailures', label: 'Bank failures', color: '#7c2d12', better: 'lower' }],
+  },
+  {
+    key: 'consumer-borrowing',
+    title: 'New consumer borrowing',
+    group: 'Credit',
+    unit: 'money',
+    description:
+      'New household consumer loans that month. Stays at zero until Housing tenure choice is on. More than one seed draws the median.',
+    lines: [{ id: 'newConsumerBorrowing', label: 'New consumer loans', color: '#a16207' }],
   },
   {
     key: 'ai',
@@ -151,6 +193,15 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'growth',
+    title: 'Growth',
+    group: 'Output',
+    unit: 'share',
+    description:
+      'Twelve-month change in real GDP: this month over the same month a year earlier, minus one. Stays at zero until a year of history exists. More than one seed draws the median.',
+    lines: [{ id: 'growth', label: 'Real GDP growth', color: '#1e3a8a', better: 'higher' }],
+  },
+  {
     key: 'living',
     title: 'Living standards',
     group: 'Living standards',
@@ -189,6 +240,32 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'tenure-moves',
+    title: 'Housing moves',
+    group: 'Living standards',
+    unit: 'count',
+    description:
+      'Households who switched tenure that month: new mortgages, rent to mortgage, mortgage to owned outright, and mortgage to rent. All stay at zero until Housing tenure choice is on. More than one seed draws each median.',
+    lines: [
+      { id: 'mortgageOriginations', label: 'Originations', color: '#7c3aed' },
+      { id: 'rentToMortgage', label: 'Rent to mortgage', color: '#0369a1' },
+      { id: 'mortgageToOwned', label: 'Mortgage to owned', color: '#0f766e' },
+      { id: 'mortgageToRent', label: 'Mortgage to rent', color: '#be123c' },
+    ],
+  },
+  {
+    key: 'housing-pressure',
+    title: 'Housing pressure',
+    group: 'Living standards',
+    unit: 'share',
+    description:
+      'Property turnover is tenure changes that month divided by households. Median debt service is the median of mortgage payment plus the consumer-loan installment, over income. Debt service stays at zero until Housing tenure choice is on. More than one seed draws each median.',
+    lines: [
+      { id: 'propertyTurnover', label: 'Property turnover', color: '#a16207' },
+      { id: 'medianDebtService', label: 'Median debt service', color: '#be123c', better: 'lower' },
+    ],
+  },
+  {
     key: 'inequality',
     title: 'Inequality',
     group: 'Inequality',
@@ -220,9 +297,23 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Inequality',
     unit: 'money',
     description:
-      'Sum of household wealth divided by CPI — the stock the wealth-by-fifth shares divide. Wealth is deposits plus equity claims on firm capital when the equity market is on (claims use a valuation scale so capital is a material share of wealth). Negative holdings count as zero. Agent deposits are not included. For the output pie that grows like historical real GDP, see the Output chart. More than one seed draws the median.',
+      'Sum of household wealth divided by CPI — the stock the wealth-by-fifth shares divide. Cash and capital claims partition that stock: cash is deposits (and bitcoin valued at the exchange rate), and claims are equity claims on firm capital when the equity market is on. Negative holdings count as zero. Agent deposits are not included. For the output pie that grows like historical real GDP, see the Output chart. More than one seed draws the median.',
     lines: [
       { id: 'totalRealWealth', label: 'Total real wealth', color: '#9f1239', better: 'higher' },
+      { id: 'realCashWealth', label: 'Cash wealth', color: '#1d4ed8' },
+      { id: 'realClaimWealth', label: 'Capital claims', color: '#0f766e' },
+    ],
+  },
+  {
+    key: 'typical-wealth',
+    title: 'Typical wealth',
+    group: 'Inequality',
+    unit: 'money',
+    description:
+      'Mean and median household wealth divided by CPI. Households only; agent deposits are not included. More than one seed draws each median.',
+    lines: [
+      { id: 'meanRealWealth', label: 'Mean real wealth', color: '#9f1239', better: 'higher' },
+      { id: 'medianRealWealth', label: 'Median real wealth', color: '#be123c', better: 'higher' },
     ],
   },
   {
@@ -251,6 +342,29 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'money-mix',
+    title: 'Money mix',
+    group: 'Money',
+    unit: 'share',
+    description:
+      'Shares of money balances in fiat, bitcoin, stablecoin, and CBDC. They sum to one. On a fiat default the last three stay at zero. More than one seed draws each median.',
+    lines: [
+      { id: 'fiatShare', label: 'Fiat', color: '#1e3a8a' },
+      { id: 'bitcoinShare', label: 'Bitcoin', color: '#a16207' },
+      { id: 'stablecoinShare', label: 'Stablecoin', color: '#0f766e' },
+      { id: 'cbdcShare', label: 'CBDC', color: '#7c3aed' },
+    ],
+  },
+  {
+    key: 'bitcoin-price',
+    title: 'Bitcoin exchange rate',
+    group: 'Money',
+    unit: 'index',
+    description:
+      'Bitcoin exchange rate against the goods unit. Opens at 1 and stays between 0.05 and 20. Moves with the bitcoin money share and issuance when monetary choice or the market-price weight is on. More than one seed draws the median.',
+    lines: [{ id: 'bitcoinPrice', label: 'Bitcoin price', color: '#a16207' }],
+  },
+  {
     key: 'shocks',
     title: 'Shocks',
     group: 'Shocks',
@@ -261,6 +375,18 @@ export const CHART_PANELS: readonly ChartPanel[] = [
       { id: 'demandImpulse', label: 'Demand', color: '#b45309' },
       { id: 'creditImpulse', label: 'Credit', color: '#7c3aed' },
       { id: 'productivityImpulse', label: 'Productivity', color: '#0f766e' },
+    ],
+  },
+  {
+    key: 'cycle',
+    title: 'Boom and bust',
+    group: 'Shocks',
+    unit: 'count',
+    description:
+      'After the first 24-month credit window that rises at least 2 percent and then falls, boom length and bust length jump to 12 and stay there. They are not a running clock. More than one seed draws each median.',
+    lines: [
+      { id: 'boomLength', label: 'Boom length', color: '#0f766e' },
+      { id: 'bustLength', label: 'Bust length', color: '#be123c' },
     ],
   },
   {

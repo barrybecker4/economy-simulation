@@ -125,9 +125,13 @@ describe('assembleMetrics', () => {
           quintiles: [0.05, 0.1, 0.15, 0.2, 0.5],
           total: 100,
         },
+        cashWealthTotal: 100,
+        claimWealthTotal: 0,
       }),
     );
     expect(withPrice.get('totalRealWealth')).toBe(50);
+    expect(withPrice.get('realCashWealth')).toBe(50);
+    expect(withPrice.get('realClaimWealth')).toBe(0);
     expect(
       recorded(
         snapshot({
@@ -141,16 +145,47 @@ describe('assembleMetrics', () => {
             quintiles: [0.2, 0.2, 0.2, 0.2, 0.2],
             total: 100,
           },
+          cashWealthTotal: 60,
+          claimWealthTotal: 40,
         }),
       ).get('totalRealWealth'),
     ).toBe(0);
   });
+
+  it('divides cash and claim wealth by CPI so they partition total real wealth', () => {
+    const values = recorded(
+      snapshot({
+        priceLevel: 2,
+        wealth: {
+          gini: 0.3,
+          mean: 50,
+          median: 40,
+          topDecile: 0.4,
+          bottomQuintile: 0.1,
+          quintiles: [0.1, 0.15, 0.2, 0.25, 0.3],
+          total: 100,
+        },
+        cashWealthTotal: 60,
+        claimWealthTotal: 40,
+      }),
+    );
+    expect(values.get('totalRealWealth')).toBe(50);
+    expect(values.get('realCashWealth')).toBe(30);
+    expect(values.get('realClaimWealth')).toBe(20);
+    expect((values.get('realCashWealth') ?? 0) + (values.get('realClaimWealth') ?? 0)).toBe(
+      values.get('totalRealWealth'),
+    );
+  });
 });
 
 function snapshot(
-  overrides: Partial<TestInput> & { wealth?: MetricSnapshot['wealth'] } = {},
+  overrides: Partial<TestInput> & {
+    wealth?: MetricSnapshot['wealth'];
+    cashWealthTotal?: number;
+    claimWealthTotal?: number;
+  } = {},
 ): MetricSnapshot {
-  const { wealth, ...rest } = overrides;
+  const { wealth, cashWealthTotal, claimWealthTotal, ...rest } = overrides;
   const input = { ...defaults(), ...rest };
   const nominalOutput = input.priceLevel * input.realGdp;
   return {
@@ -220,6 +255,8 @@ function snapshot(
     nominalOutput,
     income: dist(),
     wealth: wealth ?? dist(),
+    cashWealthTotal: cashWealthTotal ?? wealth?.total ?? 0,
+    claimWealthTotal: claimWealthTotal ?? 0,
     skill: dist(),
     consumption: dist(),
     wellbeingMean: input.wellbeingMean,

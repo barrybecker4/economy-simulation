@@ -79,6 +79,8 @@ export const METRIC_IDS = [
   'meanRealWealth',
   'medianRealWealth',
   'totalRealWealth',
+  'realCashWealth',
+  'realClaimWealth',
   'meanRealIncome',
   'medianRealIncome',
   'meanRealConsumption',

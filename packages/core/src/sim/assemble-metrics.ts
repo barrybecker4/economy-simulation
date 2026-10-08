@@ -169,6 +169,8 @@ function recordDistributions(snapshot: MetricSnapshot, metrics: MetricSink): voi
   metrics.set('meanRealWealth', price > 0 ? snapshot.wealth.mean / price : 0);
   metrics.set('medianRealWealth', price > 0 ? snapshot.wealth.median / price : 0);
   metrics.set('totalRealWealth', price > 0 ? snapshot.wealth.total / price : 0);
+  metrics.set('realCashWealth', price > 0 ? snapshot.cashWealthTotal / price : 0);
+  metrics.set('realClaimWealth', price > 0 ? snapshot.claimWealthTotal / price : 0);
   metrics.set('meanRealIncome', price > 0 ? snapshot.income.mean / price : 0);
   metrics.set('medianRealIncome', price > 0 ? snapshot.income.median / price : 0);
   metrics.set('meanRealConsumption', snapshot.consumption.mean);

@@ -13,6 +13,10 @@ export interface HouseholdMeasures {
   employed: number;
   income: ReturnType<typeof distributionOf>;
   wealth: ReturnType<typeof distributionOf>;
+  /** Nominal sum of the cash part of non-negative household wealth. */
+  cashWealthTotal: number;
+  /** Nominal sum of the capital-claim part of non-negative household wealth. */
+  claimWealthTotal: number;
   skill: ReturnType<typeof distributionOf>;
   consumption: ReturnType<typeof distributionOf>;
   wellbeingMean: number;
@@ -31,12 +35,15 @@ export function measureHouseholds(economy: Economy): HouseholdMeasures {
   const wellbeing = wellbeingOf(consumption, securities);
   const consumptionStats = distributionOf(consumption);
   const wellbeingStats = distributionOf(wellbeing);
+  const holdings = householdHoldings(economy);
   return {
     categories,
     housingSecurity: mean(securities),
     employed: employedCount(economy),
     income: distributionOf(incomes),
-    wealth: distributionOf(householdWealth(economy)),
+    wealth: distributionOf(holdings.map((holding) => holding.combined)),
+    cashWealthTotal: holdings.reduce((sum, holding) => sum + holding.cashPart, 0),
+    claimWealthTotal: holdings.reduce((sum, holding) => sum + holding.claimPart, 0),
     skill: distributionOf(economy.households.map((household) => household.skill)),
     consumption: consumptionStats,
     wellbeingMean: wellbeingStats.mean,
@@ -104,17 +111,32 @@ export function jobShares(economy: Economy): {
   };
 }
 
-function householdWealth(economy: Economy): number[] {
+interface WealthHolding {
+  /** Non-negative combined cash plus claim. */
+  combined: number;
+  cashPart: number;
+  claimPart: number;
+}
+
+/**
+ * Partition each household's non-negative wealth into cash and capital claims.
+ * Combined is max(0, cash + claim). Cash part is min(combined, max(cash, 0));
+ * the rest is the claim part.
+ */
+function householdHoldings(economy: Economy): WealthHolding[] {
   const price = economy.bitcoinPrice;
-  const cash = (household: { deposit: number; bitcoin: number }) =>
+  const cashOf = (household: { deposit: number; bitcoin: number }) =>
     household.deposit + household.bitcoin * price;
-  if (economy.params.equityMarket !== 'on') {
-    return economy.households.map((household) => cash(household));
+  if (economy.params.equityMarket === 'on') {
+    refreshEquityClaims(economy);
   }
-  refreshEquityClaims(economy);
-  return economy.households.map(
-    (household, index) => cash(household) + (economy.equityClaims[index] ?? 0),
-  );
+  return economy.households.map((household, index) => {
+    const cash = cashOf(household);
+    const claim = economy.params.equityMarket === 'on' ? (economy.equityClaims[index] ?? 0) : 0;
+    const combined = Math.max(0, cash + claim);
+    const cashPart = Math.min(combined, Math.max(cash, 0));
+    return { combined, cashPart, claimPart: combined - cashPart };
+  });
 }
 
 function categoryPrices(economy: Economy): BasketSplit {

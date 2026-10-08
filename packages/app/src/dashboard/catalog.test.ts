@@ -9,8 +9,8 @@ import {
   FLOW_EDGES,
 } from './catalog.js';
 
-/** Series the worker copied before the catalog became the only list. */
-const PREVIOUS_WORKER_SERIES = [
+/** Series the worker copies for charts, flows, and census. */
+const EXPECTED_WORKER_SERIES = [
   'meanWellbeing',
   'medianWellbeing',
   'priceLevel',
@@ -26,7 +26,13 @@ const PREVIOUS_WORKER_SERIES = [
   'unemployment',
   'naturalUnemployment',
   'interestRate',
+  'laborShare',
+  'capitalShare',
   'creditToGdp',
+  'consumerCreditToGdp',
+  'defaults',
+  'bankFailures',
+  'newConsumerBorrowing',
   'ubiOutlay',
   'tasksAutomated',
   'aiShareOfAgents',
@@ -41,6 +47,7 @@ const PREVIOUS_WORKER_SERIES = [
   'bottomQuintileWealthShare',
   'consumptionFloorShare',
   'realGdp',
+  'growth',
   'productivityPerHuman',
   'realInvestment',
   'realWage',
@@ -51,11 +58,22 @@ const PREVIOUS_WORKER_SERIES = [
   'rentShare',
   'mortgageShare',
   'ownedShare',
+  'mortgageOriginations',
+  'rentToMortgage',
+  'mortgageToOwned',
+  'mortgageToRent',
+  'propertyTurnover',
+  'medianDebtService',
   'inflation',
   'velocity',
   'loanToSavings',
   'moneySupply',
   'baseMoney',
+  'fiatShare',
+  'bitcoinShare',
+  'stablecoinShare',
+  'cbdcShare',
+  'bitcoinPrice',
   'taxRevenue',
   'agentTaxRevenue',
   'wageBill',
@@ -71,6 +89,8 @@ const PREVIOUS_WORKER_SERIES = [
   'demandImpulse',
   'creditImpulse',
   'productivityImpulse',
+  'boomLength',
+  'bustLength',
   'wealthQuintile1',
   'wealthQuintile2',
   'wealthQuintile3',
@@ -81,6 +101,10 @@ const PREVIOUS_WORKER_SERIES = [
   'jobLargeFirmShare',
   'ownerWealthShare',
   'totalRealWealth',
+  'realCashWealth',
+  'realClaimWealth',
+  'meanRealWealth',
+  'medianRealWealth',
 ];
 
 describe('dashboard catalog', () => {
@@ -98,8 +122,8 @@ describe('dashboard catalog', () => {
     expect(sent).toHaveLength(new Set(sent).size);
   });
 
-  it('matches the series the worker copied before this catalog', () => {
-    expect([...CHART_METRICS].sort()).toEqual([...PREVIOUS_WORKER_SERIES].sort());
+  it('matches the expected chart, flow, and census series', () => {
+    expect([...CHART_METRICS].sort()).toEqual([...EXPECTED_WORKER_SERIES].sort());
     expect(CHART_METRICS).not.toContain('priceGeneral');
   });
 });

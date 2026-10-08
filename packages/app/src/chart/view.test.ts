@@ -42,19 +42,30 @@ describe('chartViews', () => {
       'wellbeing',
       'prices',
       'labor',
+      'earnings',
       'ubi',
       'tax',
       'credit',
+      'defaults',
+      'bank-failures',
+      'consumer-borrowing',
       'ai',
       'ai-spend',
       'output',
+      'growth',
       'living',
       'tenure',
+      'tenure-moves',
+      'housing-pressure',
       'inequality',
       'total-wealth',
+      'typical-wealth',
       'turnover',
       'money',
+      'money-mix',
+      'bitcoin-price',
       'shocks',
+      'cycle',
       'flows',
     ]);
     expect(fiat.find((view) => view.key === 'prices')?.unit).toBe('cents');
@@ -294,7 +305,7 @@ describe('chartViews', () => {
       'Every series matches the baseline.',
     );
     expect(views.find((view) => view.key === 'total-wealth')?.caption).toBe(
-      'Total real wealth ends higher (10 → 15). That is an improvement.',
+      'Total real wealth ends higher (10 → 15). That is an improvement. Cash wealth and Capital claims match the baseline.',
     );
   });
 

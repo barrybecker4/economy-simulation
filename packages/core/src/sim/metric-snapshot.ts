@@ -88,6 +88,10 @@ export interface MetricSnapshot {
   nominalOutput: number;
   income: DistributionReading;
   wealth: DistributionReading;
+  /** Nominal sum of the cash part of non-negative household wealth. */
+  cashWealthTotal: number;
+  /** Nominal sum of the capital-claim part of non-negative household wealth. */
+  claimWealthTotal: number;
   skill: DistributionReading;
   consumption: DistributionReading;
   wellbeingMean: number;

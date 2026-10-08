@@ -280,6 +280,12 @@ function unitText(unit: ChartPanel['unit'], regime: string): string {
   if (unit === 'output') {
     return 'real units';
   }
+  if (unit === 'count') {
+    return 'count';
+  }
+  if (unit === 'index') {
+    return 'index';
+  }
   return 'log points';
 }
 

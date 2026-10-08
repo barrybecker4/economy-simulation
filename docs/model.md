@@ -97,8 +97,11 @@ keys are sorted and every number is written in exponential form with 12 digits a
 `log(max(real consumption, 0.01))` plus 0.5 times housing security, as defined in the welfare section. AI shares and
 `tasksAutomated` stay at 0 when the automatable shares are equal. Household wealth, income, and consumption series use
 households only. `totalRealWealth` is the sum of non-negative household wealth divided by the CPI, the stock that
-`wealthQuintile1` through `wealthQuintile5` divide. `realGdp` is the sum of firm capacities. `aiShareOfWealth` is agent
-deposits divided by household deposits plus agent deposits, and 0 when that total is not positive.
+`wealthQuintile1` through `wealthQuintile5` divide. That stock partitions into `realCashWealth` and `realClaimWealth`:
+for each household, combined wealth is `max(0, cash + claim)`, the cash part is `min(combined, max(cash, 0))`, and the
+rest is the claim part; both sums are then divided by the CPI. With the equity market off, claims are zero and cash
+wealth equals total real wealth. `realGdp` is the sum of firm capacities. `aiShareOfWealth` is agent deposits divided
+by household deposits plus agent deposits, and 0 when that total is not positive.
 
 Payment-flow series are observations of money that already moved that tick. `householdGoodsSpend` is household shopping
 only (`consumptionSpend` minus `agentGoodsSpend`). `wageBill` and `profitPaid` are the wage and profit shares from firm
