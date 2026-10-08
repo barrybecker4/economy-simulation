@@ -218,7 +218,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'mode',
     'firstHousehold',
     ['firstHousehold', 'skillWeighted'],
-    'Who receives a household’s deposit when population growth removes that household. firstHousehold keeps the previous transfer to household 0. skillWeighted splits the deposit across remaining households by skill weights.',
+    'Who receives a household’s deposit when population growth removes that household. firstHousehold keeps the previous transfer to household 0. skillWeighted gives the estate to the remaining households in proportion to skill to the 16th, so it concentrates on the highest-skill heirs instead of spreading the estate evenly.',
   ),
   numberSlider(
     'bitcoin.marketPriceWeight',

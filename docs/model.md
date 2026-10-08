@@ -392,7 +392,10 @@ the window instead of only the last month. See [ADR 0005](adr/0005-fiat-bitcoin-
 `credit.rateTransmission` scales new consumer borrowing and firm capital installation by
 `max(0, 1 − weight × max(0, policy rate − inflation))`. `household.durableShare` delays a slice of discretionary
 spending when the real return on money is positive. `productivity.endogenousWeight` mixes baseline productivity growth
-with a utilization term. `population.bequests` chooses first-household or skill-weighted transfers on exit.
+with a utilization term. `population.bequests` chooses first-household or skill-weighted transfers on exit. Skill weights are skill to the 16th,
+so the estate concentrates on the highest-skill heirs instead of being spread evenly. There is no age-specific saving
+or retirement; an exit is only a deposit transfer. The monetary preset draws opening deposits from a wider skill
+distribution (`household.skillSigma` 1.1) so wealth starts more concentrated than the registry default.
 `bitcoin.marketPriceWeight` lets the recorded bitcoin exchange rate move with issuance and trust separately from the
 goods CPI. Remaining regime asymmetries are listed in [docs/methods/remaining-asymmetries.md](methods/remaining-asymmetries.md).
 

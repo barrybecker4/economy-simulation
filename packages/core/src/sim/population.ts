@@ -3,6 +3,9 @@ import type { Economy } from './economy.js';
 import { separate } from './helpers.js';
 import { chargeEquityForDefault, creditDeposit, transferDeposit } from './money.js';
 import { AI_INTERNET_TASK_GAIN, AI_UNBOUNDED_GROWTH } from './rules.js';
+
+/** Skill weights to this power, so an estate concentrates on the highest-skill heirs. */
+const BEQUEST_SKILL_EXPONENT = 16;
 import { clamp, monthlyFromAnnual } from './stats.js';
 import type { Household } from './types.js';
 
@@ -214,7 +217,7 @@ function distributeBequest(economy: Economy, exiting: Household): void {
     estate,
     powerWeights(
       heirs.map((household) => household.skill),
-      1,
+      BEQUEST_SKILL_EXPONENT,
     ),
   );
   for (let index = 0; index < heirs.length; index += 1) {

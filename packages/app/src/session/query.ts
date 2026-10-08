@@ -22,6 +22,7 @@ export const MONETARY_OVERRIDES: Readonly<Record<string, number | string>> = {
   'credit.leverageStart': 1,
   'bank.capitalRatio': 0.04,
   'household.openingDepositMonths': 12,
+  'household.skillSigma': 1.1,
   'government.bondRate': 0.02,
 };
 

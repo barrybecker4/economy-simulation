@@ -917,7 +917,7 @@ Registry version: 12.
 - Options: firstHousehold, skillWeighted
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Who receives a household’s deposit when population growth removes that household. firstHousehold keeps the previous transfer to household 0. skillWeighted splits the deposit across remaining households by skill weights.
+- Description: Who receives a household’s deposit when population growth removes that household. firstHousehold keeps the previous transfer to household 0. skillWeighted gives the estate to the remaining households in proportion to skill to the 16th, so it concentrates on the highest-skill heirs instead of spreading the estate evenly.
 
 ## population.growth
 

@@ -1294,6 +1294,21 @@ Acceptance:
   the natural rate. It does not finish near 0.3 percent, and it does not finish near 80 percent with median consumption
   at 0.
 
+### Phase 60: Inequality and velocity on the preset
+
+Goal: the monetary preset itself is unequal and spends faster than the slow baseline, and a skill-weighted bequest does
+not flatten wealth.
+
+1. Skill-weighted bequests use skill to the 16th, so the estate goes to the highest-skill heirs.
+2. The monetary preset sets `household.skillSigma` to 1.1. Opening deposits are still skill squared times that wider
+   draw. There is no extra slider.
+
+Acceptance:
+
+- A skill-weighted exit does not lower the deposit Gini.
+- On the monetary preset, wealth Gini exceeds 0.6 and the top 10 percent exceeds 36 percent.
+- Velocity with 12 months of opening deposits stays above the slow baseline's velocity.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
