@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
+import { equityFor, loansAt } from './banking.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 import { resolveInsolventBanks } from './resolution.js';
@@ -75,7 +76,7 @@ describe('phase 38 bank resolution', () => {
     }
     bank.equity = -50_000;
     resolveInsolventBanks(economy);
-    expect(bank.equity).toBeGreaterThan(0);
+    expect(bank.equity).toBeGreaterThanOrEqual(equityFor(economy, loansAt(economy, bank.id)));
     expect(bank.failed).toBe(false);
   });
 

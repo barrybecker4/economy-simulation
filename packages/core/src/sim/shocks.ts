@@ -8,6 +8,7 @@ import { ensureOpen } from './stocks.js';
 export function onShocks(economy: Economy, ctx: TickContext): void {
   ensureOpen(economy, ctx.ledger);
   economy.tick = ctx.tick;
+  economy.lenderOfLastResortRan = false;
   const base = monthlyFromAnnual(economy.params.prodGrowth);
   const weight = economy.params.endogenousProductivity;
   if (weight <= 0) {

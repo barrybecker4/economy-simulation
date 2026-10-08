@@ -15,17 +15,20 @@ regime comparisons stay meaningful.
 
 - `bank.resolution` is `off` (prior behavior) or `merge` (monetary preset).
 - On merge, deposits and loans move to the lowest-id surviving bank. A sole bank
-  is bailed in: deposits are written down until equity is positive, then the
-  failed flag clears.
+  is bailed in until equity meets the capital target from `equityFor`, then the
+  failed flag clears. A bank already at that target is not bailed in again.
+- The treasury deposit at bank 0 takes the same write-down as other deposits.
 - `bank.depositHaircut` optionally writes off a share of deposits on merge or
   before the residual bail-in.
 - Insolvency is checked before contract choice and credit, and again in
   bookkeeping after late losses, so a failed bank cannot lend the same tick.
-- Hybrid still runs lender-of-last-resort injection in the central-bank step
-  before those checks when equity is negative.
+- Hybrid still runs lender-of-last-resort injection first. If equity is still
+  negative after that support, hybrid uses the same merge or bail-in.
 
 ## Consequences
 
 Fiat and bitcoin can clear failed banks without a central-bank backstop. Hybrid
-still differs when injection prevents failure. Sole-bank monetary runs use
-bail-in rather than requiring multiple banks.
+still gets lender-of-last-resort support first, and is resolved the same way if
+that support leaves equity negative. Sole-bank monetary runs use bail-in rather
+than requiring multiple banks. One loss refills the capital target instead of
+repeating a write-down to a token of equity.

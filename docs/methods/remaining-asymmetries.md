@@ -24,8 +24,8 @@ Endogenous opening tenure remains deferred.
 
 With no bank failure and choice speed 0, hybrid matches bitcoin except that
 hybrid can inject capital as lender of last resort when equity goes negative.
-Bank resolution (`bank.resolution`) is available in every regime; hybrid still
-tries injection first.
+If that injection leaves equity negative, hybrid uses the same merge or bail-in
+as the other regimes, and the treasury deposit at bank 0 is included.
 
 ## Registry versus app defaults
 

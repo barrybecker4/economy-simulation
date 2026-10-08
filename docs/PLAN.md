@@ -1162,6 +1162,23 @@ Acceptance:
   off. Calm monetary fiat stays failure-free for 120 months.
 - Subsidy 1 with pass-through 1 completes S0, S3, and monetary fiat. Pass-through 0 does not pay the subsidy.
 
+### Phase 52: Resolution once, and every depositor
+
+Goal: a sole-bank bail-in restores the capital target once, and the treasury deposit is not exempt. Hybrid is not
+exempt after lender-of-last-resort support.
+
+1. Treasury deposits at bank 0 take the same proportional write-down as household deposits.
+2. A bail-in restores `equityFor`, not a token of equity. A bank already at that target is left alone.
+3. Hybrid waits for lender-of-last-resort injection. If equity is still negative, it uses the same merge or bail-in.
+
+Acceptance:
+
+- Treasury and household deposits fall by the same share.
+- One forced insolvency does not repeat on the next calm tick.
+- A calm monetary run does not record on the order of 82 or 228 failures, and new borrowing is still positive after
+  month 12.
+- Bitcoin bail-in does not destroy broad money beyond the credit losses already present with resolution off.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

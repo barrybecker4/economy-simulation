@@ -1,3 +1,4 @@
+import { equityFor, loansAt } from './banking.js';
 import { moneyAmount } from './helpers.js';
 import type { Economy } from './economy.js';
 import type { Bank } from './types.js';
@@ -12,9 +13,9 @@ export function resolveInsolventBanks(economy: Economy): void {
     if (bank.failed || bank.equity > 0) {
       continue;
     }
-    // Hybrid lender of last resort injects in the central-bank step. Do not
-    // mark those banks failed before that support runs.
-    if (economy.params.regime === 'hybrid') {
+    // Hybrid lender of last resort runs in the central-bank step. Resolution
+    // waits until that support has had its turn, then uses the same bail-in.
+    if (economy.params.regime === 'hybrid' && !economy.lenderOfLastResortRan) {
       continue;
     }
     bank.failed = true;
@@ -58,6 +59,10 @@ function mergeInto(economy: Economy, failed: Bank, survivor: Bank): void {
     }
     writeDownDeposit(economy, failed, agent, haircut);
   }
+  const treasury = treasuryAccount(economy, failed.id);
+  if (treasury) {
+    writeDownDeposit(economy, failed, treasury, haircut);
+  }
   survivor.reserves += Math.max(0, failed.reserves);
   survivor.bonds += Math.max(0, failed.bonds);
   survivor.vault += Math.max(0, failed.vault);
@@ -69,8 +74,9 @@ function mergeInto(economy: Economy, failed: Bank, survivor: Bank): void {
 }
 
 /**
- * Sole-bank resolution: write down deposits until equity is positive, then clear
- * the failed flag so the bank can operate again.
+ * Sole-bank resolution: write deposits down until equity meets the capital
+ * target, then clear the failed flag. A bank already at that target is left
+ * alone, so one loss does not bail depositors in every month.
  */
 function bailIn(economy: Economy, bank: Bank): void {
   const haircut = clampHaircut(economy.params.depositHaircut);
@@ -78,7 +84,8 @@ function bailIn(economy: Economy, bank: Bank): void {
   for (const account of accounts) {
     writeDownDeposit(economy, bank, account, haircut);
   }
-  const need = moneyAmount(economy, Math.max(0, 1 - bank.equity));
+  const target = equityFor(economy, loansAt(economy, bank.id));
+  const need = moneyAmount(economy, Math.max(0, target - bank.equity));
   const deposits = accounts.reduce((sum, account) => sum + Math.max(0, account.deposit), 0);
   if (need > 0 && deposits > 0) {
     let left = need;
@@ -120,7 +127,26 @@ function depositAccountsAt(economy: Economy, bankId: number): { deposit: number 
       accounts.push(agent);
     }
   }
+  const treasury = treasuryAccount(economy, bankId);
+  if (treasury) {
+    accounts.push(treasury);
+  }
   return accounts;
+}
+
+/** Treasury cash is held at bank 0. The holder writes through to govDeposits. */
+function treasuryAccount(economy: Economy, bankId: number): { deposit: number } | undefined {
+  if (bankId !== 0 || economy.govDeposits <= 0) {
+    return undefined;
+  }
+  return {
+    get deposit() {
+      return economy.govDeposits;
+    },
+    set deposit(value: number) {
+      economy.govDeposits = value;
+    },
+  };
 }
 
 function writeDownDeposit(

@@ -226,6 +226,7 @@ function setMarketRate(economy: Economy): void {
 }
 
 function supportInsolventBanks(economy: Economy): void {
+  economy.lenderOfLastResortRan = true;
   for (const bank of economy.banks) {
     if (bank.equity < 0) {
       injectBankCapital(bank, economy, -bank.equity + 1);

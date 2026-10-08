@@ -129,7 +129,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'mode',
     'off',
     ['off', 'merge'],
-    'What happens when bank equity falls to zero or below. Off only marks the bank failed so it stops lending (previous behavior). Merge transfers deposits and loans to a surviving bank by id, or bails in depositors at a sole bank until equity is positive again. Hybrid lender-of-last-resort injection still runs first when the regime is hybrid. The monetary preset uses merge.',
+    'What happens when bank equity falls to zero or below. Off only marks the bank failed so it stops lending (previous behavior). Merge transfers deposits and loans to a surviving bank by id, or bails in depositors at a sole bank, including the treasury deposit at bank 0, until equity meets the capital target. A bank already at that target is not bailed in again. Hybrid lender-of-last-resort injection still runs first; if equity is still negative, hybrid uses the same resolution. The monetary preset uses merge.',
   ),
   numberSlider(
     'bank.depositHaircut',
@@ -139,7 +139,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     0,
     0.2,
-    'Share of deposits written off when a failed bank is merged or bailed in. The write-down raises bank equity. At 0, merge transfers balances in full and a sole-bank bail-in writes down only as much as needed to restore positive equity. Unused when bank resolution is off.',
+    'Share of deposits written off when a failed bank is merged or bailed in. The write-down raises bank equity. At 0, merge transfers balances in full and a sole-bank bail-in writes down only as much as needed to restore the capital target. Unused when bank resolution is off.',
   ),
   numberSlider(
     'credit.endogenousWeight',

@@ -352,8 +352,10 @@ savings. Savings are 25 percent of household deposits under maturity-matched len
 New bitcoin credit cannot exceed the unused savings. The government still finances a shortfall by selling bonds to
 banks, not by central-bank money. A hybrid central bank does not target inflation. If a bank's equity is negative it
 injects enough reserves and vault cash to make that equity positive. That is the only base-money growth in the hybrid
-regime. When `bank.resolution` is `merge`, an insolvent bank that is still negative after any hybrid support transfers
-deposits and loans to a surviving bank, or bails in depositors at a sole bank until equity is positive. See
+regime. When `bank.resolution` is `merge`, an insolvent bank that is still negative after hybrid lender-of-last-resort
+support transfers deposits and loans to a surviving bank, or bails in every depositor at a sole bank, including the
+treasury balance at bank 0, until equity meets the capital target. A bank already at that target is left alone, so
+one loss does not bail depositors in every month. See
 [ADR 0009](adr/0009-bank-resolution.md). At `off`, a failed bank only stops lending. Expected deflation is `max(0, −inflation)`. `deflation.sensitivity` times that rate, capped at 0.9, repays
 loans, cuts housing demand, and raises the recorded shares of profit-sharing and non-mortgage housing when those shares
 are still formula-based. The penalty is zero when sensitivity is zero or inflation is positive, so the fiat path is
