@@ -407,23 +407,32 @@
 
 <style>
   :global(html),
-  :global(body) {
+  :global(body),
+  :global(#app) {
     height: 100%;
   }
   :global(body) {
     background: #f7f4ef;
     color: #1c1917;
     margin: 0;
+    overflow: hidden;
+  }
+  :global(#app) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
   main {
     display: flex;
+    flex: 1;
     flex-direction: column;
     font-family: Georgia, serif;
-    height: 100%;
     margin: 0 auto;
     max-width: 1400px;
-    min-height: 100vh;
+    min-height: 0;
+    overflow: hidden;
     padding: 0 1rem 1rem;
+    width: 100%;
   }
   .bar {
     background: #f7f4ef;
@@ -526,8 +535,18 @@
     margin: 0 0 0.4rem;
   }
   @media (max-width: 899px) {
-    main {
+    :global(html),
+    :global(body),
+    :global(#app) {
       height: auto;
+    }
+    :global(body) {
+      overflow: auto;
+    }
+    main {
+      flex: none;
+      min-height: 100vh;
+      overflow: visible;
     }
     .workspace {
       display: block;
