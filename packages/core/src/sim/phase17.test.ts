@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
+import { applyCategoryOption } from '../config/presets.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate } from './simulate.js';
@@ -205,6 +206,14 @@ describe('phase 17 AI bullishness and robotics', () => {
     const gdp = result.metrics.series.realGdp;
     expect(gdp.every((value) => value !== null && Number.isFinite(value))).toBe(true);
   }, 30_000);
+
+  it('finishes 1200 months at extreme AI bullishness with closed bank books', () => {
+    const overrides = applyCategoryOption('aiBullishness', 'extreme', {});
+    const result = simulate(
+      loadScenario({ name: 'extreme-bullishness', seed: 1, ticks: 1200, sliders: overrides }),
+    );
+    expect(result.audit.ok).toBe(true);
+  }, 120_000);
 });
 
 function run(

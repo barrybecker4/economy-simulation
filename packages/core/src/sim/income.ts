@@ -1,6 +1,6 @@
 import { powerWeights, splitEqual, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
-import { pay } from './helpers.js';
+import { pay, spendableDeposit } from './helpers.js';
 import { creditDeposit, debitDeposit } from './money.js';
 import { PROFIT_SKILL_EXPONENT, UNEMPLOYED_TRANSFER } from './rules.js';
 import type { Firm } from './types.js';
@@ -25,7 +25,7 @@ export function distributeIncome(economy: Economy): void {
   const wagePaid = new Array<number>(economy.households.length).fill(0);
   let profitPool = 0;
   for (const firm of economy.firms) {
-    profitPool += payFirm(economy, firm, wagePaid);
+    profitPool += payFirm(firm, wagePaid, economy);
   }
   economy.wageBill = wagePaid.reduce((sum, amount) => sum + amount, 0);
   const profits = splitProportional(profitPool, ownershipWeights(economy));
@@ -60,9 +60,9 @@ function payUnemployed(unemployed: Economy['households'], taken: number): void {
   }
 }
 
-function payFirm(economy: Economy, firm: Firm, wagePaid: number[]): number {
+function payFirm(firm: Firm, wagePaid: number[], economy: Economy): number {
   const claims = wageClaims(economy, firm);
-  const available = Math.max(0, Math.round(firm.deposit));
+  const available = spendableDeposit(economy, firm.deposit);
   const paid = layWages(claims, available, wagePaid);
   debitDeposit(firm, available);
   return available - paid;

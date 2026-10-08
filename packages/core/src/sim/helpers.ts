@@ -121,3 +121,11 @@ export function displaced(economy: Economy, household: Household): boolean {
 export function moneyAmount(economy: Economy, raw: number): number {
   return economy.params.unit === 'cent' ? Math.round(raw) : raw;
 }
+
+/** Cash an account can spend without overdrawing integer cents. */
+export function spendableDeposit(economy: Economy, deposit: number): number {
+  if (deposit <= 0) {
+    return 0;
+  }
+  return economy.params.unit === 'cent' ? Math.floor(deposit) : deposit;
+}

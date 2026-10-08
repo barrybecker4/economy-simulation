@@ -2,7 +2,7 @@ import { splitEqual } from './allocate.js';
 import { issueBonds } from './bank-books.js';
 import { savingsRoom } from './banking.js';
 import type { Economy } from './economy.js';
-import { moneyAmount, unemploymentGap } from './helpers.js';
+import { moneyAmount, spendableDeposit, unemploymentGap } from './helpers.js';
 import { distributeIncome, redistributeToUnemployed } from './income.js';
 import {
   creditDeposit,
@@ -194,7 +194,7 @@ function sweepAgents(economy: Economy): void {
   economy.agentSweep = 0;
   const retain = economy.wageLevel * AI_RETAINED_WAGE_SHARE;
   for (const agent of economy.agents) {
-    const sweep = agent.deposit - retain;
+    const sweep = spendableDeposit(economy, agent.deposit - retain);
     if (sweep <= 0) {
       continue;
     }
