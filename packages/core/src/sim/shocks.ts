@@ -3,12 +3,13 @@ import { CREDIT_WRITEOFF, SHOCK_PHASE_MONTHS } from './rules.js';
 import { clamp, monthlyFromAnnual } from './stats.js';
 import type { Economy } from './economy.js';
 import { writeOffFirmLoan } from './money.js';
+import { clearLenderOfLastResort } from './resolution.js';
 import { ensureOpen } from './stocks.js';
 
 export function onShocks(economy: Economy, ctx: TickContext): void {
   ensureOpen(economy, ctx.ledger);
   economy.tick = ctx.tick;
-  economy.lenderOfLastResortRan = false;
+  clearLenderOfLastResort(economy);
   const base = monthlyFromAnnual(economy.params.prodGrowth);
   const weight = economy.params.endogenousProductivity;
   if (weight <= 0) {

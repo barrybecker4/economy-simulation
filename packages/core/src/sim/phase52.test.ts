@@ -5,7 +5,7 @@ import type { SimulationResult } from '../engine/engine.js';
 import { equityFor, loansAt } from './banking.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
-import { resolveInsolventBanks } from './resolution.js';
+import { markLenderOfLastResort, resolveInsolventBanks } from './resolution.js';
 import { simulate } from './simulate.js';
 import type { Economy } from './economy.js';
 
@@ -72,7 +72,7 @@ describe('phase 52 resolution once, every depositor', () => {
     const bank = requireBank(economy);
     const deposit = economy.households[0]?.deposit;
     bank.equity = 1;
-    economy.lenderOfLastResortRan = true;
+    markLenderOfLastResort(economy);
     resolveInsolventBanks(economy);
     expect(economy.cumulativeFailures).toBe(0);
     expect(economy.households[0]?.deposit).toBe(deposit);
@@ -87,7 +87,7 @@ describe('phase 52 resolution once, every depositor', () => {
     expect(bank.failed).toBe(false);
     expect(bank.equity).toBe(-1_000);
     expect(economy.households[0]?.deposit).toBe(before);
-    economy.lenderOfLastResortRan = true;
+    markLenderOfLastResort(economy);
     resolveInsolventBanks(economy);
     expect(bank.failed).toBe(false);
     expect(bank.equity).toBeGreaterThanOrEqual(equityFor(economy, loansAt(economy, bank.id)));

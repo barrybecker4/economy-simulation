@@ -4,10 +4,28 @@ import { moneyAmount } from './helpers.js';
 import type { Economy } from './economy.js';
 import type { Bank } from './types.js';
 
+/** Clear the hybrid lender-of-last-resort gate at the start of each tick. */
+export function clearLenderOfLastResort(economy: Economy): void {
+  economy.lenderOfLastResortRan = false;
+}
+
+/**
+ * Record that hybrid lender-of-last-resort support has run. Early resolution
+ * passes no-op until this runs; the bookkeeping pass may then merge or bail in.
+ */
+export function markLenderOfLastResort(economy: Economy): void {
+  economy.lenderOfLastResortRan = true;
+}
+
+function awaitingLenderOfLastResort(economy: Economy): boolean {
+  return economy.params.regime === 'hybrid' && !economy.lenderOfLastResortRan;
+}
+
 /**
  * Mark insolvent banks failed and, when resolution is merge, transfer their
  * books to a survivor or bail in depositors at a sole bank. Called before
  * contract choice and credit so a failed bank cannot lend the same tick.
+ * Keep those early passes; do not collapse them into one call site.
  */
 export function resolveInsolventBanks(economy: Economy): void {
   for (const bank of economy.banks) {
@@ -16,7 +34,7 @@ export function resolveInsolventBanks(economy: Economy): void {
     }
     // Hybrid lender of last resort runs in the central-bank step. Resolution
     // waits until that support has had its turn, then uses the same bail-in.
-    if (economy.params.regime === 'hybrid' && !economy.lenderOfLastResortRan) {
+    if (awaitingLenderOfLastResort(economy)) {
       continue;
     }
     bank.failed = true;

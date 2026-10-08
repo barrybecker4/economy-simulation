@@ -15,6 +15,7 @@ import {
   payFromTreasury,
   repayFirmLoan,
 } from './money.js';
+import { markLenderOfLastResort } from './resolution.js';
 import { DEPOSIT_BUFFER_MONTHS, LOAN_SPREAD, THIN_OPENING_MONTHS } from './rules.js';
 import { clamp } from './stats.js';
 
@@ -400,7 +401,7 @@ function setMarketRate(economy: Economy): void {
 }
 
 function supportInsolventBanks(economy: Economy): void {
-  economy.lenderOfLastResortRan = true;
+  markLenderOfLastResort(economy);
   for (const bank of economy.banks) {
     if (bank.equity < 0) {
       injectBankCapital(bank, economy, -bank.equity + 1);

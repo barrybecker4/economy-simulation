@@ -95,6 +95,10 @@ _Avoid_: capital buffer (when you mean the stock itself)
 The coupon paid to household deposits from this tick's borrower interest, then fiat reserve interest and subsidy inside the money-growth budget.
 _Avoid_: savings rate, policy rate (those set the posted coupon; this is the payment)
 
+**Lender of last resort**:
+Hybrid central-bank capital support for insolvent banks, run once per tick before resolution may merge or bail in.
+_Avoid_: bail-in, bank resolution (those happen after support if equity is still negative)
+
 ## Events
 
 **Shock**:
