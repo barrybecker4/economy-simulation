@@ -17,19 +17,9 @@ const sticky = {
 };
 
 describe('phase 42 extreme sticky-wage guard', () => {
-  it('keeps unemployment below 50 percent with emergency flex under a demand shock', () => {
-    const result = run(
-      { ...sticky, 'wage.emergencyFlex': 0.3, ticks: 120 },
-      { tick: 24, kind: 'demand', size: 0.15 },
-    );
-    const peak = Math.max(...series(result, 'unemployment'));
-    expect(peak).toBeLessThan(0.5);
-  });
-
-  it('leaves the path unchanged when emergency flex is 0', () => {
-    const a = run({ ...sticky, 'wage.emergencyFlex': 0, ticks: 48 });
-    const b = run({ ...sticky, ticks: 48 });
-    expect(series(a, 'unemployment')).toEqual(series(b, 'unemployment'));
+  it('keeps unemployment below 50 percent under a demand shock', () => {
+    const result = run({ ...sticky, ticks: 120 }, { tick: 24, kind: 'demand', size: 0.15 });
+    expect(Math.max(...series(result, 'unemployment'))).toBeLessThan(0.5);
   });
 });
 

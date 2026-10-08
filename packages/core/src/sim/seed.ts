@@ -92,7 +92,6 @@ export function blankEconomy(
     transitionDone: false,
     creditStress: 0,
     housingPressure: 1,
-    slackMonths: 0,
     populationCredit: 0,
     moneyShares: openingShares({
       bitcoin: BITCOIN_OPENING_SHARE,

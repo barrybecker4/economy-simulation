@@ -1106,17 +1106,6 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Months of a one-time fiat-to-bitcoin rebase. At 0 there is no transition and regime.type selects a steady rule set. A positive length starts the run on fiat rules (with satoshi balances so holdings can be reassigned), and at the last transition month debts may be haircut, deposits are reassigned by holder concentration, government bonds on bank books are cleared, and the active regime becomes bitcoin. Monetization stays off afterward.
 
-## wage.emergencyFlex
-
-- Label: Emergency wage flexibility
-- Group: behavior
-- Unit: share
-- Default: 0
-- Range: 0 to 1
-- Status: guess
-- Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Extra downward wage flexibility when unemployment stays high. After six months with unemployment more than five points above the natural rate, effective nominal rigidity is multiplied by one minus this value for downward gaps only. At 0 the sticky-wage path is unchanged. At 0.3, rigidity 0.95 behaves like about 0.665 for cuts during a deep slump.
-
 ## wage.nominalRigidity
 
 - Label: Nominal wage rigidity

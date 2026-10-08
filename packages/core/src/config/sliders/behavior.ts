@@ -131,16 +131,6 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0.95,
     'How sticky the money wage is when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity, because the hiring target shrinks with the human share of output. Wages still follow monthly inflation and productivity growth. An extra gap opens when the labor market is tight or slack relative to that natural rate, the gap is scaled by the human share of output, and this rigidity shrinks it further. Upward pressure is multiplied by one minus the rigidity. Downward pressure is multiplied by the square of that remainder, so cuts pass through less than raises. At 0.7, a tight market passes through 30 percent of the upward gap and 9 percent of a downward gap. At 0, the gap passes through in full. The monthly wage change is still capped.',
   ),
-  numberSlider(
-    'wage.emergencyFlex',
-    'Emergency wage flexibility',
-    'behavior',
-    'share',
-    0,
-    0,
-    1,
-    'Extra downward wage flexibility when unemployment stays high. After six months with unemployment more than five points above the natural rate, effective nominal rigidity is multiplied by one minus this value for downward gaps only. At 0 the sticky-wage path is unchanged. At 0.3, rigidity 0.95 behaves like about 0.665 for cuts during a deep slump.',
-  ),
   enumSlider(
     'equity.marketOn',
     'Equity market',

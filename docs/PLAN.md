@@ -1280,6 +1280,20 @@ Acceptance:
 - A positive productivity shock raises output, and after the window a flexible-wage fiat run is closer to the calm path
   than it was during the shock.
 
+### Phase 59: Sticky wages stay sticky
+
+Goal: remove the emergency flexibility override, and stop firm-level hiring from shedding the labor force when sales fall.
+
+1. `wage.emergencyFlex` is gone. Downward wage gaps stay scaled by the square of `1 − rigidity`.
+2. Firm-level hiring's aggregate target is the economy-wide cost quota. A lower sales target cannot pull employment
+   below that quota. The quota still falls when the real wage is above the productivity-adjusted reference.
+
+Acceptance:
+
+- After the same demand shock, rigidity 0.95 has higher unemployment than rigidity 0, and that unemployment stays above
+  the natural rate. It does not finish near 0.3 percent, and it does not finish near 80 percent with median consumption
+  at 0.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

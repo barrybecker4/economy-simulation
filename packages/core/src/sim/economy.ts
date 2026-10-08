@@ -84,7 +84,6 @@ export interface Economy {
   /** Housing price pressure. One leaves the formula price unchanged. */
   housingPressure: number;
   /** Months unemployment has stayed more than five points above natural. */
-  slackMonths: number;
   /** Fractional households waiting to enter or exit. */
   populationCredit: number;
   moneyShares: MoneyShares;

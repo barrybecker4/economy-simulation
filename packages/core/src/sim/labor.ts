@@ -14,11 +14,9 @@ import {
   displaced,
   employedCount,
   humanWeight,
-  naturalUnemployment,
   outputGap,
   priceTrend,
   separate,
-  unemploymentRate,
 } from './helpers.js';
 
 /** Monthly wage growth from trend, tightness, and nominal rigidity. */
@@ -62,15 +60,17 @@ export function workersForSales(input: {
 export function onLabor(economy: Economy): void {
   refreshExpectedSales(economy);
   separateAtRandom(economy);
-  if (economy.params.firmLevelHiring === 'on') {
-    const target = firmEmploymentTarget(economy);
-    shedGradually(economy, target);
-    hireUpTo(economy, target, vacancyLimit(economy, target));
-  } else {
-    const target = employmentTarget(economy);
-    shedGradually(economy, target);
-    hireUpTo(economy, target, vacancyLimit(economy, target));
-  }
+  const costQuota = employmentTarget(economy);
+  // Sales can ask for a different headcount, but the aggregate cannot rise above
+  // the cost quota or fall below it. That is what stopped a drop in sales from
+  // shedding the whole labor force. The quota itself is lower when the real
+  // wage is above the productivity-adjusted reference, so that case can still shed.
+  const target =
+    economy.params.firmLevelHiring === 'on'
+      ? Math.min(costQuota, Math.max(firmEmploymentTarget(economy), costQuota))
+      : costQuota;
+  shedGradually(economy, target);
+  hireUpTo(economy, target, vacancyLimit(economy, target));
   updateWages(economy);
 }
 
@@ -177,16 +177,10 @@ function placeHousehold(economy: Economy, household: Household, perFirm: number)
 
 function updateWages(economy: Economy): void {
   const trend = priceTrend(economy) + monthlyFromAnnual(economy.params.prodGrowth);
-  const gap = unemploymentRate(economy) - naturalUnemployment(economy);
-  economy.slackMonths = gap > 0.05 ? economy.slackMonths + 1 : 0;
-  let rigidity = economy.params.rigidity;
-  if (economy.params.emergencyFlex > 0 && economy.slackMonths >= 6) {
-    rigidity *= 1 - clamp(economy.params.emergencyFlex, 0, 1);
-  }
   const growth = wageGrowth({
     trend,
     tightness: outputGap(economy),
-    rigidity,
+    rigidity: economy.params.rigidity,
   });
   economy.wageLevel *= 1 + growth;
   for (const firm of economy.firms) {

@@ -10,7 +10,6 @@ export interface Parameters {
   markup: number;
   priceSpeed: number;
   rigidity: number;
-  emergencyFlex: number;
   maxApplications: number;
   sampleSize: number;
   taxRate: number;
@@ -112,7 +111,6 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     markup: slider(config, 'firm.markup'),
     priceSpeed: slider(config, 'firm.priceAdjustSpeed'),
     rigidity: slider(config, 'wage.nominalRigidity'),
-    emergencyFlex: slider(config, 'wage.emergencyFlex'),
     maxApplications: Math.round(slider(config, 'labor.maxApplications')),
     sampleSize: Math.round(slider(config, 'goods.sampleSize')),
     taxRate: slider(config, 'tax.incomeRate'),

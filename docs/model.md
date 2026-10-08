@@ -167,9 +167,9 @@ rises as adopted tasks grow.
 The money wage grows at the monthly inflation target plus monthly productivity growth. Tightness is
 `(natural unemployment − unemployment) × humanWeight`. A positive tightness adds a further wage term and a negative one
 subtracts. `wage.nominalRigidity` shrinks that gap, and it shrinks a negative gap by the square of the remaining
-flexibility, so wages are stickier downward. After six months with unemployment more than five points above the natural
-rate, `wage.emergencyFlex` multiplies effective rigidity by one minus that value, so deep slumps can un-stick wages. The
-contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
+flexibility, so wages are stickier downward. There is no emergency override of that rigidity. When firm-level hiring is
+on, the aggregate target is still the economy-wide cost quota, so a fall in sales cannot shed the labor force below it.
+The contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
 worker's skill.
 
 ## Goods and relative prices
