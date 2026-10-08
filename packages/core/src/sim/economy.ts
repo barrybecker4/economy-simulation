@@ -63,6 +63,8 @@ export interface Economy {
   depositInterestPaid: number;
   /** Fiat interest on reserves credited this tick, already inside the money stock. */
   reserveInterestPaid: number;
+  /** Firm loans booked by the newLoans injection and not yet repaid. */
+  channelLoans: number;
   /** Hybrid lender-of-last-resort has already run this tick. */
   lenderOfLastResortRan: boolean;
   tenureChanges: number;

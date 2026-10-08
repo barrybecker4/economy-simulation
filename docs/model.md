@@ -333,16 +333,19 @@ can cover a share of any shortfall with new reserves and equity; private equity 
 equals bank equity plus private equity. The annualized rate actually paid enters the real return on money in the
 goods budget. At pass-through 0, deposits pay nothing. At subsidy 0 a bank pays only what loan interest and, under
 fiat, reserve interest cover. See [ADR 0011](adr/0011-deposit-interest-funding.md).
-`centralBank.moneyGrowth` (default 1) changes fiat deposits and bank reserves together by that weight times
+`centralBank.moneyGrowth` (default 1) changes fiat deposits by that weight times
 `(inflation target + baseline productivity + inflation gap) / 12` times deposits. On the 2 percent target with 1 percent
-productivity growth, that is about 3 percent a year when inflation is on target. A contraction draws reserves from banks
-in id order, starting with the first, and stops when those reserves are used up, so deposits never fall by more than
-reserves on the books. `centralBank.injectionChannel` chooses who first holds an expansion: pro-rata household deposits
-(default), the treasury, firm deposits as new loans, or firm deposits as an asset purchase. See
+productivity growth, that is about 3 percent a year when inflation is on target. `centralBank.injectionChannel` chooses
+the offsetting stock. Pro-rata deposits (default) and government spending also create reserves. A new-loan injection
+books firm loans and does not create reserves; those loans are repaid before the cash is paid as wages. An asset
+purchase books a bond claim instead of a loan. Government spending buys goods from firms in the same tick, so the new
+money does not sit in the treasury. A contraction withdraws from the sector that channel credits, and only up to the
+balances that exist. Reserve-backed channels still cannot withdraw more than reserves on the books. See
 [ADR 0010](adr/0010-injection-channel.md). When `prices.trendWeight` is below 1 and opening deposits are shorter than
 half the 48-month spending buffer, each household's share of pro-rata new money is added to smoothed income in
 proportion to how far the deposit sits under the buffer. `centralBank.spendNewMoney` forces that blend even with thick
-opening deposits. A trend weight of 1 leaves the blend off. Bitcoin and hybrid ignore money growth. If bank reserves are below
+opening deposits, and it is the only blend applied to loan, bond, and treasury receipts. A trend weight of 1 leaves the
+blend off. Bitcoin and hybrid ignore money growth. If bank reserves are below
 `bank.reserveRequirement` times deposits, the central bank issues the gap to the first bank and credits matching firm
 deposits. Bitcoin and hybrid do not create reserves to meet the requirement. The hybrid lender of last resort is
 described under regimes.

@@ -1231,6 +1231,25 @@ Acceptance:
 - A higher expected deflation rate raises the contractual mortgage payment. Bitcoin foreclosures are not several times
   the fiat count unless bitcoin debt service is higher.
 
+### Phase 56: Injection channels do different things
+
+Goal: `newLoans`, `assetPurchase`, and `governmentSpending` move different stocks, and a contraction withdraws from the
+sector that was credited.
+
+1. `newLoans` books firm loans and firm deposits. It does not create reserves. The loan is repaid before that cash is
+   paid out as wages.
+2. `assetPurchase` credits firm deposits and a bond claim. The loan stock stays put.
+3. `governmentSpending` credits the treasury and buys goods from firms in the same tick.
+4. A contraction withdraws from the credited sector, and only up to the balances that exist.
+
+Acceptance:
+
+- At the same amount, only `newLoans` raises firm loans, only `assetPurchase` raises bonds, and a government-spending
+  injection is spent on firms in that tick.
+- A `newLoans` contraction reduces firm deposits and firm loans.
+- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
+  3. `spendNewMoney` on the default channel stays under 10 percent inflation.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

@@ -77,6 +77,7 @@ export function blankEconomy(
     paidDepositRate: 0,
     depositInterestPaid: 0,
     reserveInterestPaid: 0,
+    channelLoans: 0,
     lenderOfLastResortRan: false,
     tenureChanges: 0,
     rentToMortgage: 0,

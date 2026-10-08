@@ -7,9 +7,14 @@ import {
   addReserves,
   creditDeposit,
   creditFirms,
+  creditTreasury,
   debitDeposit,
+  debitTreasury,
+  drawFirmLoan,
   injectBankCapital,
   payDepositInterest as creditDepositInterest,
+  payFromTreasury,
+  repayFirmLoan,
   subsidizeDepositInterest,
 } from './money.js';
 import { DEPOSIT_BUFFER_MONTHS, LOAN_SPREAD, THIN_OPENING_MONTHS } from './rules.js';
@@ -64,8 +69,8 @@ export function onCentralBank(economy: Economy): void {
 
 /**
  * Grow or shrink fiat broad money toward the inflation target plus productivity.
- * Deposits and reserves change by the same amount. A contraction takes reserves in
- * bank id order and stops when they are used up, so books stay closed.
+ * The injection channel chooses the offsetting stock. A contraction withdraws
+ * from that same sector, and only up to the balances that exist.
  */
 export function growFiatMoney(economy: Economy): void {
   if (economy.params.regime !== 'fiat' || economy.params.moneyGrowth <= 0) {
@@ -89,32 +94,201 @@ export function growFiatMoney(economy: Economy): void {
   if (amount === 0) {
     return;
   }
+  if (amount > 0) {
+    placeInjection(economy, amount);
+    return;
+  }
+  withdrawInjection(economy, -amount);
+}
+
+/** Book one positive injection on the economy's channel. */
+export function placeInjection(economy: Economy, amount: number): void {
+  if (amount <= 0) {
+    return;
+  }
   const bank = economy.banks[0];
   if (!bank) {
     throw new Error('Fiat money growth needs a bank');
   }
-  if (amount > 0) {
-    injectNewMoney(economy, bank, amount);
-    return;
-  }
-  const removed = drainHouseholdDeposits(economy, Math.min(-amount, reserveStock(economy)));
-  releaseReserves(economy, removed);
-}
-
-function injectNewMoney(economy: Economy, bank: import('./types.js').Bank, amount: number): void {
   const channel = economy.params.injectionChannel;
   if (channel === 'governmentSpending') {
-    economy.govDeposits += amount;
+    creditTreasury(economy, amount);
     addReserves(bank, amount);
+    spendTreasuryInjection(economy, amount);
+    blendChannelReceipts(economy, amount);
     return;
   }
-  if (channel === 'newLoans' || channel === 'assetPurchase') {
+  if (channel === 'newLoans') {
+    economy.channelLoans += bookFirmLoans(economy, amount);
+    blendChannelReceipts(economy, amount);
+    return;
+  }
+  if (channel === 'assetPurchase') {
+    bank.bonds += amount;
     creditFirms(economy, amount);
-    addReserves(bank, amount);
+    blendChannelReceipts(economy, amount);
     return;
   }
   injectHouseholdDeposits(economy, amount);
   addReserves(bank, amount);
+}
+
+/**
+ * Withdraw a contraction from the sector the channel credits. Returns the
+ * amount actually removed.
+ */
+export function withdrawInjection(economy: Economy, amount: number): number {
+  if (amount <= 0) {
+    return 0;
+  }
+  const channel = economy.params.injectionChannel;
+  if (channel === 'newLoans') {
+    const removed = repayInjectedLoans(economy, amount);
+    economy.channelLoans = Math.max(0, economy.channelLoans - removed);
+    return removed;
+  }
+  if (channel === 'assetPurchase') {
+    return unwindPurchasedClaims(economy, amount);
+  }
+  if (channel === 'governmentSpending') {
+    const fromTreasury = Math.min(Math.max(0, economy.govDeposits), amount);
+    if (fromTreasury > 0) {
+      debitTreasury(economy, fromTreasury);
+    }
+    const fromFirms = drainFirmDeposits(economy, amount - fromTreasury);
+    const removed = fromTreasury + fromFirms;
+    releaseReserves(economy, Math.min(removed, reserveStock(economy)));
+    return removed;
+  }
+  const removed = drainHouseholdDeposits(economy, Math.min(amount, reserveStock(economy)));
+  releaseReserves(economy, removed);
+  return removed;
+}
+
+function bookFirmLoans(economy: Economy, amount: number): number {
+  const parts = splitProportional(
+    amount,
+    economy.firms.map(() => 1),
+  );
+  let booked = 0;
+  for (let index = 0; index < economy.firms.length; index += 1) {
+    const firm = economy.firms[index];
+    const share = parts[index] ?? 0;
+    if (firm && share > 0) {
+      drawFirmLoan(firm, share);
+      booked += share;
+    }
+  }
+  return booked;
+}
+
+/** Repay last tick's injection loans before wages, so the cash is not a gift. */
+export function repayChannelLoans(economy: Economy): void {
+  if (economy.channelLoans <= 0) {
+    return;
+  }
+  const repaid = repayInjectedLoans(economy, economy.channelLoans);
+  economy.channelLoans -= repaid;
+  economy.loanRepaid += repaid;
+}
+
+function repayInjectedLoans(economy: Economy, amount: number): number {
+  let left = amount;
+  for (const firm of economy.firms) {
+    if (left <= 0) {
+      break;
+    }
+    const take = Math.min(Math.max(0, firm.loan), Math.max(0, firm.deposit), left);
+    if (take > 0) {
+      repayFirmLoan(firm, take);
+      left -= take;
+    }
+  }
+  return amount - left;
+}
+
+function unwindPurchasedClaims(economy: Economy, amount: number): number {
+  let left = amount;
+  for (const bank of economy.banks) {
+    if (left <= 0) {
+      break;
+    }
+    const claim = Math.min(Math.max(0, bank.bonds), left);
+    const removed = drainFirmDeposits(economy, claim);
+    bank.bonds -= removed;
+    left -= removed;
+  }
+  return amount - left;
+}
+
+/** Spend a fresh treasury credit on firms. Does not spend the balance that was already there. */
+function spendTreasuryInjection(economy: Economy, amount: number): void {
+  let left = amount;
+  const firms = economy.firms;
+  if (firms.length === 0) {
+    return;
+  }
+  const each = Math.floor(amount / firms.length);
+  for (let index = 0; index < firms.length; index += 1) {
+    const firm = firms[index];
+    if (!firm || left <= 0) {
+      continue;
+    }
+    const share = index === firms.length - 1 ? left : Math.min(left, each);
+    const bill = Math.min(share, Math.max(0, economy.govDeposits));
+    if (bill > 0) {
+      payFromTreasury(firm, economy, bill);
+      economy.govGoodsSpend += bill;
+      left -= bill;
+    }
+  }
+}
+
+function drainFirmDeposits(economy: Economy, amount: number): number {
+  if (amount <= 0) {
+    return 0;
+  }
+  const weights = economy.firms.map((firm) => Math.max(0, firm.deposit));
+  const parts = splitProportional(amount, weights);
+  let removed = 0;
+  for (let index = 0; index < economy.firms.length; index += 1) {
+    const firm = economy.firms[index];
+    const share = parts[index] ?? 0;
+    if (!firm || share <= 0) {
+      continue;
+    }
+    const take = Math.min(Math.max(0, firm.deposit), share);
+    if (take > 0) {
+      firm.deposit -= take;
+      removed += take;
+    }
+  }
+  return removed;
+}
+
+/**
+ * Blend receipts that landed at firms or the treasury into household demand.
+ * The household channel already blends inside the deposit credit. A zero
+ * spendNewMoney weight leaves these channels unblended.
+ */
+function blendChannelReceipts(economy: Economy, amount: number): void {
+  if (economy.params.trendWeight >= 1 || amount <= 0 || economy.households.length === 0) {
+    return;
+  }
+  const forced = clamp(economy.params.spendNewMoney, 0, 1);
+  if (forced <= 0) {
+    return;
+  }
+  const incomes = economy.households.map((household) => Math.max(0, household.income));
+  const weights = incomes.some((income) => income > 0) ? incomes : economy.households.map(() => 1);
+  const parts = splitProportional(moneyAmount(economy, amount * forced), weights);
+  for (let index = 0; index < economy.households.length; index += 1) {
+    const household = economy.households[index];
+    const share = parts[index] ?? 0;
+    if (household && share > 0) {
+      household.smoothed = Math.max(0, household.smoothed + share);
+    }
+  }
 }
 
 function reserveStock(economy: Economy): number {

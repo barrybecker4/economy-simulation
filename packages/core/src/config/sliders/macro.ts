@@ -297,7 +297,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'channel',
     'proRataDeposits',
     ['proRataDeposits', 'governmentSpending', 'newLoans', 'assetPurchase'],
-    'Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits by existing household balances (the previous path). governmentSpending credits the treasury for spending. newLoans credits firm deposits as if banks lent the new money. assetPurchase adds reserves and credits firm deposits like a bond purchase. Contractions still drain household deposits pro rata. Bitcoin and hybrid ignore this slider.',
+    'Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys goods from firms in the same tick. newLoans books firm loans and firm deposits and does not create reserves; those loans are repaid before the cash is paid out as wages. assetPurchase credits firm deposits and a bond claim, and does not book a loan. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.spendNewMoney',
@@ -307,7 +307,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0,
     0,
     1,
-    'Share of each household’s new fiat injection blended into smoothed income when prices.trendWeight is below 1, so the money is shopped rather than hoarded. At 0, blending still follows the thin-opening rule (opening deposits below 24 months). Raise it to spend new money even with thick opening deposits. Bitcoin and hybrid ignore this slider.',
+    'Share of new fiat blended into household smoothed income when prices.trendWeight is below 1. On the household channel, 0 still blends a thin opening (deposits below 24 months). On the loan, bond, and treasury channels, only this share is blended, so those receipts are not a silent hoard. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'government.stabilizer',

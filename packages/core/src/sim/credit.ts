@@ -6,7 +6,7 @@ import {
   moneyAmount,
   referenceWorkersPerFirm,
 } from './helpers.js';
-import { payHouseholdDepositInterest } from './central-bank.js';
+import { payHouseholdDepositInterest, repayChannelLoans } from './central-bank.js';
 import { rateTransmissionFactor } from './contracts.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import { resolveInsolventBanks } from './resolution.js';
@@ -91,6 +91,7 @@ export function endogenousBorrowing(input: {
 }
 
 export function onCredit(economy: Economy): void {
+  repayChannelLoans(economy);
   resolveInsolventBanks(economy);
   economy.investmentSpend = 0;
   economy.realInvestment = 0;
