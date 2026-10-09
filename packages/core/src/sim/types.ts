@@ -21,6 +21,8 @@ export interface Household {
   /** Mortgage principal denominated in bitcoin units. */
   bitcoinMortgage: number;
   mortgagePayment: number;
+  /** True when the rebase stamped this mortgage as a real claim. */
+  mortgageIndexed: boolean;
   /** Months the household has missed a full mortgage payment. */
   mortgageArrears: number;
   consumerLoan: number;

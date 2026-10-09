@@ -380,6 +380,15 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'How concentrated the post-conversion deposit distribution is. Household deposits are reassigned with weights of skill raised to one plus four times this value. At 0 the weights are skill itself. At 0.99 high-skill households receive almost all deposits. Unused when the transition length is 0.',
   ),
   enumSlider(
+    'transition.realMortgage',
+    'Real mortgage at rebase',
+    'regime',
+    'mode',
+    'off',
+    ['off', 'on'],
+    'Whether mortgages that still exist when a fiat-to-bitcoin transition finishes are restated as a real claim. Off leaves those loans fixed in satoshis. On stamps them at the rebase: afterward the principal and payment scale with the price level so the real payment stays at its rebase value. Each month the capital-ratio share of the principal change seats on bank equity and the rest seats on deposits at that bank. Mortgages originated after the flip stay nominal. Firm loans and consumer loans stay nominal. Unused when the transition length is 0.',
+  ),
+  enumSlider(
     'regime.type',
     'Monetary regime',
     'regime',

@@ -13,6 +13,7 @@ import {
 } from './money.js';
 import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
 import { housingPriceFactors, updateHousingPressure } from './housing.js';
+import { revalueRealMortgages } from './real-mortgage.js';
 import { resolveInsolventBanks } from './resolution.js';
 import {
   CONSUMER_LOAN_REPAY,
@@ -114,6 +115,7 @@ export function tenureFromBurdens(burdens: {
 
 export function onContractChoice(economy: Economy): void {
   resolveInsolventBanks(economy);
+  revalueRealMortgages(economy);
   economy.tenureChanges = 0;
   economy.rentToMortgage = 0;
   economy.mortgageToOwned = 0;
@@ -185,6 +187,7 @@ export function onContractChoice(economy: Economy): void {
         economy.loanRepaid += payoff;
         household.mortgagePayment = 0;
         household.mortgageArrears = 0;
+        household.mortgageIndexed = false;
         household.tenure = 'owned';
         economy.mortgageToOwned += 1;
         economy.tenureChanges += 1;
@@ -201,6 +204,7 @@ export function onContractChoice(economy: Economy): void {
     }
     if (choice === 'owned' && household.tenure === 'mortgage' && household.mortgage <= 0) {
       household.mortgagePayment = 0;
+      household.mortgageIndexed = false;
       household.tenure = 'owned';
       economy.mortgageToOwned += 1;
     } else if (
@@ -213,6 +217,7 @@ export function onContractChoice(economy: Economy): void {
       payCashForHome(household, economy, homePrice);
       setMortgage(household, 0);
       household.mortgagePayment = 0;
+      household.mortgageIndexed = false;
       household.tenure = 'owned';
     } else if (
       (choice === 'mortgage' || choice === 'owned') &&
@@ -232,6 +237,7 @@ export function onContractChoice(economy: Economy): void {
           economy,
           monthlyMortgagePayment(principal, loanRate, termYears),
         );
+        household.mortgageIndexed = false;
         household.tenure = 'mortgage';
         economy.newBorrowing += principal;
         economy.mortgageOriginations += 1;
@@ -244,6 +250,7 @@ export function onContractChoice(economy: Economy): void {
     } else if (choice === 'rent' && household.tenure === 'mortgage' && household.mortgage <= 0) {
       household.tenure = 'rent';
       household.mortgagePayment = 0;
+      household.mortgageIndexed = false;
     } else if (household.tenure === 'none' || household.tenure === undefined) {
       household.tenure = 'rent';
     }
@@ -305,6 +312,7 @@ function serviceDebts(economy: Economy, household: Household): void {
       setMortgage(household, 0);
       household.mortgagePayment = 0;
       household.mortgageArrears = 0;
+      household.mortgageIndexed = false;
       household.tenure = 'owned';
     } else if (shouldForeclose(economy, household)) {
       forecloseMortgage(economy, household);
@@ -338,6 +346,7 @@ function forecloseMortgage(economy: Economy, household: Household): void {
   setMortgage(household, 0);
   household.mortgagePayment = 0;
   household.mortgageArrears = 0;
+  household.mortgageIndexed = false;
   household.tenure = 'rent';
 }
 

@@ -1424,6 +1424,30 @@ Acceptance:
 - The same premium lowers bitcoin `priceHousing / CPI` and raises housing security relative to premium 0.
 - The ledger audit still passes.
 
+### Phase 66: Real mortgage at the rebase
+
+Goal: a transition can restate inherited mortgages as a real claim so the satoshi payment scales with the price level
+and creditors keep today's real burden instead of a growing one under bitcoin deflation.
+
+1. `transition.realMortgage` defaults to `off`. Off leaves mortgages fixed in satoshis after the flip, matching Phase 65.
+2. On: at the end of the transition window, after any debt haircut and after bitcoin loan units fold back, every positive
+   household mortgage is stamped. From the next month, principal and payment multiply by this month's price level over
+   the last stamped price. Scheduled amortization still reduces the balance. Mortgages originated after the flip stay
+   nominal. Firm loans and consumer loans stay nominal.
+3. Each month the principal change `d` seats `bank.capitalRatio × d` on bank equity and the rest on deposits at that bank,
+   pro rata. The mark is not a default. The ledger stays closed and the bank does not fail from the mark alone.
+
+Acceptance:
+
+- Slider off: a price fall leaves principal, payment, equity, and deposits unchanged.
+- A 10 percent price fall scales an indexed principal and payment by 0.9. Equity moves by the capital-ratio share,
+  deposits by the rest, the ledger audit passes, and the bank does not fail. A price rise scales the other way.
+- An illiquid mortgagor whose payment starts inside `housing.mortgageDefaultShare` is not foreclosed when prices and
+  income fall and the claim is indexed. The same household, unindexed, still trips the three-month rule once the payment
+  share is high enough.
+- A short transition with the slider on stamps only mortgages that exist at the flip. A mortgage originated afterward
+  stays fixed in satoshis.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

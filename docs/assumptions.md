@@ -1139,6 +1139,17 @@ Registry version: 12.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Months of a one-time fiat-to-bitcoin change. At 0 there is no transition and regime.type selects a steady rule set. A positive length starts the run on fiat rules with satoshi balances. When gradual weight is 0, the last month may haircut debts, reassign deposits by holder concentration, clear government bonds on bank books, and switch the active regime to bitcoin. When gradual weight is positive, deposits and debts convert into bitcoin over the window and the regime flips at the end. Monetization stays off afterward.
 
+## transition.realMortgage
+
+- Label: Real mortgage at rebase
+- Group: regime
+- Unit: mode
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Whether mortgages that still exist when a fiat-to-bitcoin transition finishes are restated as a real claim. Off leaves those loans fixed in satoshis. On stamps them at the rebase: afterward the principal and payment scale with the price level so the real payment stays at its rebase value. Each month the capital-ratio share of the principal change seats on bank equity and the rest seats on deposits at that bank. Mortgages originated after the flip stay nominal. Firm loans and consumer loans stay nominal. Unused when the transition length is 0.
+
 ## wage.nominalRigidity
 
 - Label: Nominal wage rigidity

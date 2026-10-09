@@ -154,3 +154,8 @@ _Avoid_: Regime change, conversion window
 The last month of a transition, when debts may be haircut, deposits are reassigned, bank-held government bonds are
 cleared, and the active regime becomes bitcoin.
 _Avoid_: Switch, conversion, monetary change
+
+**Real mortgage claim**:
+A mortgage stamped at the rebase whose satoshi principal and payment scale with the price level so the real payment
+stays at its rebase value.
+_Avoid_: Indexation, inflation-linked loan

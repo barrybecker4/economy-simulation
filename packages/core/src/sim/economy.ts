@@ -96,6 +96,11 @@ export interface Economy {
    */
   readonly contractionPressure: number[];
   transitionDone: boolean;
+  /**
+   * Price level when indexed mortgages were last marked. Zero means none are
+   * stamped yet.
+   */
+  realMortgagePrice: number;
   /** Leverage and default pressure. Unused while endogenous credit weight is 0. */
   creditStress: number;
   /** Housing price pressure. One leaves the formula price unchanged. */

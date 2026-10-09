@@ -173,6 +173,7 @@ function addHousehold(economy: Economy): void {
     mortgage: 0,
     bitcoinMortgage: 0,
     mortgagePayment: 0,
+    mortgageIndexed: false,
     mortgageArrears: 0,
     consumerLoan: 0,
     bitcoinConsumer: 0,

@@ -15,6 +15,7 @@ import {
   setFirmLoan,
   setMortgage,
 } from './money.js';
+import { stampRealMortgages } from './real-mortgage.js';
 import type { Household } from './types.js';
 
 /**
@@ -60,6 +61,7 @@ function finishTransition(economy: Economy): void {
   economy.params.unit = 'satoshi';
   economy.params.bondPurchaseShare = 0;
   economy.transitionDone = true;
+  stampRealMortgages(economy);
 }
 
 function convertDeposits(economy: Economy, fraction: number): void {
@@ -133,6 +135,7 @@ function convertDebts(economy: Economy, fraction: number): void {
     }
     if (household.mortgage <= 0 && household.bitcoinMortgage <= 0) {
       household.mortgagePayment = 0;
+      household.mortgageIndexed = false;
       if (household.tenure === 'mortgage') {
         household.tenure = 'owned';
       }
@@ -285,6 +288,7 @@ function applyDebtHaircut(economy: Economy, haircut: number): void {
     }
     if (household.mortgage <= 0) {
       household.mortgagePayment = 0;
+      household.mortgageIndexed = false;
       if (household.tenure === 'mortgage') {
         household.tenure = 'owned';
       }

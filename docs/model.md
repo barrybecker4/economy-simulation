@@ -269,7 +269,9 @@ loss. Rent does not. The booked payment uses the contractual nominal loan rate o
 does not originate. While expected inflation is negative, a mortgagor whose deposits cover the balance may prepay in
 full when rent or cash ownership wins on user cost. Illiquid borrowers keep the loan. When owning outright has the
 lowest user cost but the household lacks cash for the full price, it tries a mortgage before staying a renter. See
-[ADR 0015](adr/0015-subsidy-budget-and-mortgage-real-cost.md).
+[ADR 0015](adr/0015-subsidy-budget-and-mortgage-real-cost.md). A mortgage stamped at a fiat-to-bitcoin rebase under
+`transition.realMortgage` scales its principal and payment with the price level before debt service each month; that
+mark is not a foreclosure.
 
 Routine investment runs every month: it replaces that month's depreciation and spreads any larger catch-up to desired
 capital across about a year, so measured wealth does not sawtooth from once-a-year lumps. Desired capital is reference
@@ -435,7 +437,12 @@ government bonds, and switches the active regime to bitcoin. See
 bitcoin units at the current bitcoin price. The haircut writes off that share of the slice being converted. Both
 balances stay in use through a 12-month window, and goods can be paid from either. The regime still flips at the end
 of the window, when the bitcoin units are folded back into the single balance. See
-[ADR 0014](adr/0014-dual-currency-window.md).
+[ADR 0014](adr/0014-dual-currency-window.md). When `transition.realMortgage` is `on`, mortgages that still have a
+positive principal after that fold are stamped as a real claim: afterward the principal and payment scale with the
+price level so the real payment stays at its rebase value. Each month the capital-ratio share of the principal change
+seats on bank equity and the rest seats on deposits at that bank. Mortgages originated after the flip, firm loans, and
+consumer loans stay nominal. Off leaves every mortgage fixed in satoshis. See
+[ADR 0018](adr/0018-real-mortgage-at-rebase.md).
 
 `credit.rateTransmission` scales new consumer borrowing and firm capital installation by
 `max(0, 1 − weight × max(0, policy rate − inflation))`. `household.durableShare` delays a slice of discretionary

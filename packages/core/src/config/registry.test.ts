@@ -55,6 +55,7 @@ const EXPECTED_IDS = [
   'transition.lengthMonths',
   'transition.debtHaircut',
   'transition.holderConcentration',
+  'transition.realMortgage',
   'regime.type',
   'bitcoin.lendingModel',
   'goods.electronicsProductivity',

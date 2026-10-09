@@ -99,6 +99,7 @@ export interface Parameters {
   transitionLength: number;
   debtHaircut: number;
   holderConcentration: number;
+  realMortgage: 'off' | 'on';
   choiceSpeed: number;
   stablecoinStart: number;
   cbdcStart: number;
@@ -214,6 +215,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     transitionLength,
     debtHaircut: slider(config, 'transition.debtHaircut'),
     holderConcentration: slider(config, 'transition.holderConcentration'),
+    realMortgage: realMortgageOf(config),
     choiceSpeed: slider(config, 'money.choiceSpeed'),
     stablecoinStart: slider(config, 'money.stablecoinStart'),
     cbdcStart: slider(config, 'money.cbdcStart'),
@@ -268,6 +270,14 @@ export function resolutionOf(config: ResolvedConfig): 'off' | 'merge' {
     return value;
   }
   throw new Error('bank.resolution must be off or merge');
+}
+
+export function realMortgageOf(config: ResolvedConfig): 'off' | 'on' {
+  const value = config.sliders['transition.realMortgage'];
+  if (value === 'off' || value === 'on') {
+    return value;
+  }
+  throw new Error('transition.realMortgage must be off or on');
 }
 
 export function injectionChannelOf(
