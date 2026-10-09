@@ -3,7 +3,8 @@ import { monthlyMortgagePayment } from './contracts.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import { setMortgage } from './money.js';
-import { HOME_PRICE_MONTHS, LOAN_SPREAD } from './rules.js';
+import { housingPriceFactors } from './housing.js';
+import { LOAN_SPREAD } from './rules.js';
 import type { Household } from './types.js';
 
 /** Household counts for an opening owner share and a mortgage share of those owners. */
@@ -69,7 +70,7 @@ export function seedOpeningTenure(economy: Economy): void {
 
 function openingPrincipal(economy: Economy, household: Household): number {
   const income = Math.max(household.income, household.smoothed, 1);
-  return income * HOME_PRICE_MONTHS * economy.params.mortgageLtv;
+  return income * housingPriceFactors(economy).months * economy.params.mortgageLtv;
 }
 
 function openingPayment(economy: Economy, principal: number, loanRate: number): number {

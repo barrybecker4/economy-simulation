@@ -87,4 +87,27 @@ describe('CPI basket', () => {
     expect(pressed.priceHousing).toBeLessThan(calm.priceHousing);
     expect(basketAverage(pressed)).toBeCloseTo(100, 8);
   });
+
+  it('cuts the housing price when the monetary-premium multiple falls', () => {
+    const full = splitBasket({
+      cpi: 100,
+      years: 5,
+      baselineGrowth: 0.01,
+      productivity: baseline,
+      housingSupplyGrowth: 0,
+      deflationPenalty: 0,
+      monetaryMultiple: 1,
+    });
+    const shed = splitBasket({
+      cpi: 100,
+      years: 5,
+      baselineGrowth: 0.01,
+      productivity: baseline,
+      housingSupplyGrowth: 0,
+      deflationPenalty: 0,
+      monetaryMultiple: 0.5,
+    });
+    expect(shed.priceHousing).toBeLessThan(full.priceHousing);
+    expect(basketAverage(shed)).toBeCloseTo(100, 8);
+  });
 });

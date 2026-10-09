@@ -64,6 +64,7 @@ const EXPECTED_WORKER_SERIES = [
   'mortgageToRent',
   'propertyTurnover',
   'medianDebtService',
+  'homePriceMonths',
   'inflation',
   'velocity',
   'loanToSavings',

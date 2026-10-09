@@ -36,7 +36,17 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     'switch',
     'off',
     ['off', 'on'],
-    'Whether housing scarcity is a market outcome. Off keeps the formula price and a home price of 48 months of income. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off reproduces the previous housing prices.',
+    'Whether housing scarcity is a market outcome. Off keeps the formula price and a home price of 48 months of income times the monetary-premium multiple. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off reproduces the previous housing prices.',
+  ),
+  numberSlider(
+    'housing.monetaryPremium',
+    'Housing monetary premium',
+    'goods',
+    'share',
+    0,
+    0,
+    0.75,
+    'Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat, and minus baseline productivity under bitcoin and hybrid. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so a value of 0.5 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line in half under bitcoin. At 0 the previous 48-month price is unchanged.',
   ),
   basketProductivity(
     'goods.energyProductivity',
@@ -127,7 +137,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     0.62,
     0,
     1,
-    'Share of opening owners who still owe a mortgage when tenure choice is on. The default of 0.62 is about the share of U.S. owner households with a mortgage. With an owner share of 0.655, about 40.6 percent of households start with a mortgage and 24.9 percent own outright. The principal is the loan-to-value share of 48 months of that household’s income, at the opening loan rate and the mortgage term. If that book would leave bank reserves short of the reserve requirement, every principal is scaled down by the same factor. A household whose principal rounds to zero owns outright instead. At 0 every opening owner owns outright. Unused when tenure choice is off.',
+    'Share of opening owners who still owe a mortgage when tenure choice is on. The default of 0.62 is about the share of U.S. owner households with a mortgage. With an owner share of 0.655, about 40.6 percent of households start with a mortgage and 24.9 percent own outright. The principal is the loan-to-value share of that household’s home price (48 months of income times scarcity and the monetary-premium multiple), at the opening loan rate and the mortgage term. If that book would leave bank reserves short of the reserve requirement, every principal is scaled down by the same factor. A household whose principal rounds to zero owns outright instead. At 0 every opening owner owns outright. Unused when tenure choice is off.',
   ),
   numberSlider(
     'housing.mortgageTermYears',
@@ -147,7 +157,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     0.8,
     0.5,
     0.95,
-    'Maximum loan as a share of the home price when tenure choice is on. The home price is 48 months of the household’s income. A higher ratio lets more of the purchase be debt. Unused when tenure choice is off.',
+    'Maximum loan as a share of the home price when tenure choice is on. The home price is 48 months of the household’s income times scarcity and the monetary-premium multiple. A higher ratio lets more of the purchase be debt. Unused when tenure choice is off.',
   ),
   numberSlider(
     'housing.consumerCreditLimit',

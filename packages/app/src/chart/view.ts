@@ -286,6 +286,9 @@ function unitText(unit: ChartPanel['unit'], regime: string): string {
   if (unit === 'index') {
     return 'index';
   }
+  if (unit === 'months') {
+    return 'months of income';
+  }
   return 'log points';
 }
 

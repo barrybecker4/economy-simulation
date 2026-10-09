@@ -52,6 +52,7 @@ function recordPrices(snapshot: MetricSnapshot, metrics: MetricSink): void {
     metrics.set(id, snapshot.categories[id]);
   }
   metrics.set('housingSecurity', snapshot.housingSecurity);
+  metrics.set('homePriceMonths', snapshot.homePriceMonths);
   metrics.set('inflation', snapshot.inflation);
   metrics.set('interestRate', snapshot.interestRate);
 }

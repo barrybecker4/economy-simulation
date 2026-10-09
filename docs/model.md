@@ -232,11 +232,12 @@ electronics 0.010533.
 
 After t years a category's unscaled price relative to baseline productivity is
 `((1 + productivity.baseGrowth) / (1 + g))^t`, where g is that category's productivity slider. Housing uses supply
-instead: `((1 + productivity.baseGrowth) / (1 + goods.housingSupplyGrowth))^t` times one minus the deflation penalty.
-The nine prices are then scaled so their expenditure-weighted average equals the CPI. `priceGeneral` is that average
-with electronics removed. Setting every category productivity and housing supply growth equal to baseline productivity,
-with no deflation penalty, puts every category on the CPI. Households still buy one basket. The split does not open a
-separate shop.
+instead: `((1 + productivity.baseGrowth) / (1 + goods.housingSupplyGrowth))^t` times one minus the deflation penalty,
+times housing market scarcity when clearing is on, times the monetary-premium multiple from
+`housing.monetaryPremium`. The nine prices are then scaled so their expenditure-weighted average equals the CPI.
+`priceGeneral` is that average with electronics removed. Setting every category productivity and housing supply growth
+equal to baseline productivity, with no deflation penalty and premium 0, puts every category on the CPI. Households
+still buy one basket. The split does not open a separate shop.
 
 ## Credit and contracts
 
@@ -287,9 +288,9 @@ When expected deflation is positive and `deflation.sensitivity` is positive, a s
 shares are accounting reports. When tenure choice is on, households open already housed. `housing.openingOwnerShare` (default 0.655) is the share who
 own, matching the approximate U.S. homeownership rate in 2026, and `housing.openingMortgageShareOfOwners` (default
 0.62) is the share of those owners who still have a mortgage. The highest-skill households own outright, the next band
-holds the mortgages, and the rest rent. An opening mortgage is the loan-to-value share of 48 months of that household's
-income, at the opening loan rate and the mortgage term. It is outstanding principal, not a new deposit: the purchase
-was in the past. Each bank's book is scaled down if it would leave that bank's reserves short of the reserve
+holds the mortgages, and the rest rent. An opening mortgage is the loan-to-value share of that household's home price
+(48 months of income times scarcity and the monetary-premium multiple), at the opening loan rate and the mortgage term.
+It is outstanding principal, not a new deposit: the purchase was in the past. Each bank's book is scaled down if it would leave that bank's reserves short of the reserve
 requirement. A household whose principal rounds to zero owns outright. Each month a household draws against `housing.adjustmentRate` (default 0.01). Only those who draw may switch
 tenure on the ordinary path, so one cheap month cannot move the whole stock. Under expected deflation, a liquid
 mortgagor may also prepay without that draw when the real burden says rent or cash ownership is cheaper. A household who
@@ -303,12 +304,19 @@ keep the principal. Total deposits rise by the principal. A mortgagor does not s
 that would pull working capital out of payroll. Tenure moves from mortgage to rent only when the loan is repaid or
 foreclosed. Shelter stays inside the food and housing floor. New consumer loans fund only discretionary spending and
 shrink with the penalty, down to zero.
-Household mortgages and consumer loans join total credit. When `housing.marketClearing` is off there is no separate
-housing quantity market; the category price stays the formula above. See [ADR 0004](adr/0004-housing-tenure-index.md).
-When it is on, a scarcity index starts at 1. It rises when the share of households who own or hold a mortgage is above
-0.55 and falls when supply growth is positive. The index multiplies the unscaled housing price and the 48-month home
-price used for tenure choice. Tenure choice off keeps demand at 0.55, so scarcity stays at 1 unless supply growth moves
-it.
+Household mortgages and consumer loans join total credit. The tenure purchase price is 48 months of income times
+scarcity times the monetary-premium multiple. That 48-month level is the fiat-target price, treated as already including
+any inflation-hedge bid. `housing.monetaryPremium` is the share of that price that exists because housing is held as an
+inflation hedge. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat, and minus
+baseline productivity under bitcoin and hybrid. Hedge share is that path over the inflation target, clamped to [0, 1],
+and 0 when the target is 0. The multiple is `1 − premium × (1 − hedge)`, so under a deflationary path a premium of 0.5
+cuts homes to 24 months of income. At premium 0 the multiple is 1. See
+[ADR 0018](adr/0018-housing-monetary-premium.md). When `housing.marketClearing` is off there is no separate housing
+quantity market; the category price stays the formula above. See [ADR 0004](adr/0004-housing-tenure-index.md). When it
+is on, a scarcity index starts at 1. It rises when the share of households who own or hold a mortgage is above 0.55 and
+falls when supply growth is positive. The index multiplies the unscaled housing price and the home price used for tenure
+choice after the monetary-premium multiple. Tenure choice off keeps demand at 0.55, so scarcity stays at 1 unless supply
+growth moves it. `homePriceMonths` records `48 × scarcity × multiple`.
 
 ## Government and central bank
 

@@ -1403,6 +1403,27 @@ Acceptance:
   ledger audit passes.
 - Bitcoin money supply ignores both sliders.
 
+### Phase 65: Housing monetary premium
+
+Goal: homes lose their inflation-hedge bid when holding money itself protects purchasing power, so bitcoin and hybrid
+home prices fall in months of income relative to fiat.
+
+1. `housing.monetaryPremium` defaults to 0. It is the share of the current 48-month home price that exists because
+   housing is held as an inflation hedge. Zero reproduces Phase 64.
+2. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat, and minus baseline
+   productivity under bitcoin and hybrid. Hedge share is that path over the inflation target, clamped to [0, 1], and 0
+   when the target is 0. The price multiple is `1 − premium × (1 − hedge)`.
+3. The multiple multiplies the tenure purchase price, opening mortgage principal, rent and user-cost home price, and the
+   unscaled CPI housing line. Market-clearing scarcity still multiplies after it. `homePriceMonths` records
+   `48 × scarcity × multiple`.
+
+Acceptance:
+
+- Premium 0 matches Phase 64 home-price months and `priceHousing` for the same seeds in fiat and bitcoin.
+- Premium 0.5 keeps fiat homes at 48 months of income and cuts bitcoin homes to 24 months with market clearing off.
+- The same premium lowers bitcoin `priceHousing / CPI` and raises housing security relative to premium 0.
+- The ledger audit still passes.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

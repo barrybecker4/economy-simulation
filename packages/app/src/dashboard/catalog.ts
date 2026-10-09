@@ -12,7 +12,7 @@ export interface ChartPanel {
   key: string;
   title: string;
   group: string;
-  unit: 'money' | 'share' | 'log' | 'output' | 'count' | 'index';
+  unit: 'money' | 'share' | 'log' | 'output' | 'count' | 'index' | 'months';
   description: string;
   lines: readonly ChartLineSpec[];
 }
@@ -264,6 +264,15 @@ export const CHART_PANELS: readonly ChartPanel[] = [
       { id: 'propertyTurnover', label: 'Property turnover', color: '#a16207' },
       { id: 'medianDebtService', label: 'Median debt service', color: '#be123c', better: 'lower' },
     ],
+  },
+  {
+    key: 'home-price',
+    title: 'Home price',
+    group: 'Living standards',
+    unit: 'months',
+    description:
+      'Purchase price of a home in months of household income. The baseline is 48 months. Housing market clearing multiplies by scarcity, and Housing monetary premium multiplies by one minus the premium share when the regime price path does not inflate. More than one seed draws the median.',
+    lines: [{ id: 'homePriceMonths', label: 'Home price', color: '#a16207' }],
   },
   {
     key: 'inequality',

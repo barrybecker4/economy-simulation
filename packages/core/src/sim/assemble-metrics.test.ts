@@ -208,6 +208,7 @@ function snapshot(
       priceGeneral: 1,
     },
     housingSecurity: input.housingSecurity,
+    homePriceMonths: input.homePriceMonths,
     inflation: input.inflation,
     interestRate: 0.02,
     deflationSensitivity: input.deflationSensitivity,
@@ -290,6 +291,7 @@ interface TestInput {
   investmentSpend: number;
   investmentHurdle: 'off' | 'on';
   housingSecurity: number;
+  homePriceMonths: number;
   wellbeingMean: number;
   wellbeingMedian: number;
   aiFactor: number;
@@ -316,6 +318,7 @@ function defaults(): TestInput {
     investmentSpend: 0,
     investmentHurdle: 'off',
     housingSecurity: 0,
+    homePriceMonths: 48,
     wellbeingMean: 0,
     wellbeingMedian: 0,
     aiFactor: 1,

@@ -2,6 +2,7 @@ import { splitBasket, type BasketSplit } from './basket.js';
 import type { Economy } from './economy.js';
 import { refreshEquityClaims } from './equity.js';
 import { deflationPenalty, employedCount } from './helpers.js';
+import { housingPriceFactors } from './housing.js';
 import { clamp, distributionOf, mean, median } from './stats.js';
 
 /** Housing security, in [0, 1], adds at most this much to log real consumption. */
@@ -10,6 +11,8 @@ export const HOUSING_SECURITY_WEIGHT = 0.5;
 export interface HouseholdMeasures {
   categories: BasketSplit;
   housingSecurity: number;
+  /** Home purchase price in months of income after scarcity and the monetary premium. */
+  homePriceMonths: number;
   employed: number;
   income: ReturnType<typeof distributionOf>;
   wealth: ReturnType<typeof distributionOf>;
@@ -39,6 +42,7 @@ export function measureHouseholds(economy: Economy): HouseholdMeasures {
   return {
     categories,
     housingSecurity: mean(securities),
+    homePriceMonths: housingPriceFactors(economy).months,
     employed: employedCount(economy),
     income: distributionOf(incomes),
     wealth: distributionOf(holdings.map((holding) => holding.combined)),
@@ -140,6 +144,7 @@ function householdHoldings(economy: Economy): WealthHolding[] {
 }
 
 function categoryPrices(economy: Economy): BasketSplit {
+  const factors = housingPriceFactors(economy);
   return splitBasket({
     cpi: economy.priceLevel,
     years: economy.tick / 12,
@@ -147,7 +152,8 @@ function categoryPrices(economy: Economy): BasketSplit {
     productivity: economy.params.categoryGrowth,
     housingSupplyGrowth: economy.params.housingSupplyGrowth,
     deflationPenalty: deflationPenalty(economy),
-    housingPressure: economy.params.marketClearing === 'on' ? economy.housingPressure : 1,
+    housingPressure: factors.scarcity,
+    monetaryMultiple: factors.multiple,
   });
 }
 

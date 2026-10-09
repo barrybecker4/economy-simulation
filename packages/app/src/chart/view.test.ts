@@ -57,6 +57,7 @@ describe('chartViews', () => {
       'tenure',
       'tenure-moves',
       'housing-pressure',
+      'home-price',
       'inequality',
       'total-wealth',
       'typical-wealth',

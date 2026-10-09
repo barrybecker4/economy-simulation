@@ -39,6 +39,7 @@ export interface Parameters {
   categoryGrowth: CategoryProductivity;
   housingSupplyGrowth: number;
   marketClearing: 'off' | 'on';
+  monetaryPremium: number;
   regime: Regime;
   unit: MoneyUnit;
   lendingModel: LendingModel;
@@ -151,6 +152,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     },
     housingSupplyGrowth: slider(config, 'goods.housingSupplyGrowth'),
     marketClearing: marketClearingOf(config),
+    monetaryPremium: slider(config, 'housing.monetaryPremium'),
     regime,
     // Transition runs use satoshis from the start so the conversion can reassign
     // holdings without changing the ledger class mid-run.

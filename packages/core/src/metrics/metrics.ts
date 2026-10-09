@@ -14,6 +14,7 @@ export const METRIC_IDS = [
   'priceRecreation',
   'priceElectronics',
   'housingSecurity',
+  'homePriceMonths',
   'inflation',
   'interestRate',
   'moneySupply',

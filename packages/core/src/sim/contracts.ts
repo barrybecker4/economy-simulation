@@ -12,11 +12,10 @@ import {
   setMortgage,
 } from './money.js';
 import { deflationPenalty, expectedInflation, moneyAmount } from './helpers.js';
-import { updateHousingPressure } from './housing.js';
+import { housingPriceFactors, updateHousingPressure } from './housing.js';
 import { resolveInsolventBanks } from './resolution.js';
 import {
   CONSUMER_LOAN_REPAY,
-  HOME_PRICE_MONTHS,
   LOAN_SPREAD,
   MONTHLY_RENT_RATE,
   MORTGAGE_ARREARS_MONTHS,
@@ -143,8 +142,7 @@ export function onContractChoice(economy: Economy): void {
       economy.mortgageToRent += 1;
     }
     const income = Math.max(household.income, household.smoothed, 1);
-    const scarcity = economy.params.marketClearing === 'on' ? economy.housingPressure : 1;
-    const homePrice = moneyAmount(economy, income * HOME_PRICE_MONTHS * scarcity);
+    const homePrice = moneyAmount(economy, income * housingPriceFactors(economy).months);
     const downPayment = moneyAmount(economy, homePrice * (1 - ltv));
     const maxLoan = moneyAmount(economy, homePrice * ltv);
     const impatience = (homePrice * (household.timePref - economy.params.timePrefMean)) / 12;

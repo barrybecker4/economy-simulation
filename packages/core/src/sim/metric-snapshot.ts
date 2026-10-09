@@ -41,6 +41,7 @@ export interface MetricSnapshot {
   priceLevel: number;
   categories: BasketSplit;
   housingSecurity: number;
+  homePriceMonths: number;
   inflation: number;
   interestRate: number;
   deflationSensitivity: number;

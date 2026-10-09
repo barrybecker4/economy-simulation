@@ -49,6 +49,7 @@ function levels(
   | 'priceLevel'
   | 'categories'
   | 'housingSecurity'
+  | 'homePriceMonths'
   | 'inflation'
   | 'interestRate'
   | 'deflationSensitivity'
@@ -73,6 +74,7 @@ function levels(
     priceLevel: economy.priceLevel,
     categories: measured.categories,
     housingSecurity: measured.housingSecurity,
+    homePriceMonths: measured.homePriceMonths,
     inflation: inflation(economy),
     interestRate: economy.policyRate,
     deflationSensitivity: economy.params.deflationSensitivity,
