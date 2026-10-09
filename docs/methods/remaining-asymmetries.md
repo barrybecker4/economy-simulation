@@ -70,10 +70,10 @@ concentration. Those are imposed. Regime gaps are also shown at skill sigma 0.5.
 ## Firm-level hiring on the monetary preset
 
 The registry default and the monetary preset both leave `labor.firmLevelHiring`
-on. Firm sales targets are floored against capacity, unmet goods demand counts
-toward expected sales outside a demand contraction, and any aggregate employment
-floor above the sum of firm targets fills on the ordinary vacancy path. Report
-hiring-off cells when isolating the economy-wide quota.
+on. Unmet goods demand counts toward expected sales outside a demand contraction,
+and any aggregate employment floor above the sum of firm targets fills on the
+ordinary vacancy path. Report hiring-off cells when isolating the economy-wide
+quota.
 
 ## Round-7 consumption gap (stabilizer vs tenure)
 

@@ -298,7 +298,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     1.75,
     0,
     2,
-    'Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Positive stimulus fades linearly as broad money rises above its opening stock and stops hard at three times opening deposits, so printing that has not cleared slack cannot compound alone. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.',
+    'Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Positive stimulus stays at full strength until broad money reaches twice opening deposits, then fades linearly to zero at three times opening, so secular growth does not eat stimulus headroom before it can act. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.stimulusLag',

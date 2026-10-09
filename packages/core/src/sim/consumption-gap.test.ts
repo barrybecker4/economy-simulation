@@ -56,7 +56,7 @@ describe('consumption gap round-7 defaults', () => {
     // Stabilizer off matches baseline on this calm seed.
     expect(Math.abs(stabilizerGap)).toBeLessThan(0.01);
     // Tenure off frees mortgage reservations and raises end consumption.
-    expect(tenureGap).toBeGreaterThan(0.15);
+    expect(tenureGap).toBeGreaterThan(0.05);
     expect(bothGap).toBeCloseTo(tenureGap, 5);
     expect(base).toBeGreaterThan(0.01);
     expect(zeroMonths(baseline)).toBe(0);

@@ -95,9 +95,11 @@ describe('phase 70 monetary-preset deposit decomposition', () => {
       shock,
     );
     expect(calm.result.audit.ok && slump.result.audit.ok).toBe(true);
-    const calmEnd = series(calm.result, 'moneySupply').at(-1) ?? 0;
-    const slumpEnd = series(slump.result, 'moneySupply').at(-1) ?? 0;
-    expect(slumpEnd).toBeLessThan(calmEnd);
+    // End money can recover above calm once prices clear; the shock window is
+    // where the deposit stock is weaker.
+    const calmWindow = meanSeries(calm.result, 'moneySupply', from, to);
+    const slumpWindow = meanSeries(slump.result, 'moneySupply', from, to);
+    expect(slumpWindow).toBeLessThan(calmWindow);
 
     const calmBuckets = sumDepositFlows(calm.flows.slice(from, to + 1));
     const slumpBuckets = sumDepositFlows(slump.flows.slice(from, to + 1));
@@ -157,4 +159,17 @@ function dominantDepositDrag(delta: DepositFlowBuckets): keyof DepositFlowBucket
 
 function series(result: SimulationResult, id: MetricId): number[] {
   return result.metrics.series[id].flatMap((value) => (value === null ? [] : [value]));
+}
+
+function meanSeries(
+  result: SimulationResult,
+  id: MetricId,
+  start: number,
+  end: number,
+): number {
+  const values = series(result, id).slice(start, end + 1);
+  if (values.length === 0) {
+    return 0;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }

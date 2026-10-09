@@ -29,7 +29,7 @@ export const MARKET_SLIDERS: readonly Slider[] = [
     'switch',
     'on',
     ['off', 'on'],
-    'Who sets the hiring target. On, each firm wants the headcount whose capacity matches its smoothed sales (plus unmet goods demand outside a demand contraction, floored at 75 percent of capacity), vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. When that floor is above the sum of firm targets, remaining vacancies fill on the ordinary path. Firms shed at most 5 percent of employed workers in a month when the target falls. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity.',
+    'Who sets the hiring target. On, each firm wants the headcount whose capacity matches its smoothed sales (plus unmet goods demand outside a demand contraction), vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. When that floor is above the sum of firm targets, remaining vacancies fill on the ordinary path. Firms shed at most 5 percent of employed workers in a month when the target falls. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity.',
   ),
   numberSlider(
     'production.alpha',

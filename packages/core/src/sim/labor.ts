@@ -69,9 +69,6 @@ export function hiringScale(input: {
 }
 
 /** Headcount whose capacity matches smoothed sales. Unchanged when sales match capacity. */
-/** Floor on sales/capacity for firm-level headcount so a soft month cannot ratchet employment into a deflation spiral. */
-const MIN_SALES_CAPACITY_RATIO = 0.75;
-
 export function workersForSales(input: {
   workers: number;
   capacity: number;
@@ -85,7 +82,7 @@ export function workersForSales(input: {
     return sales > 0 ? 1 : 0;
   }
   const beta = Math.max(0.05, (1 - input.alpha) * Math.min(1, Math.max(input.humanWeight, 1e-9)));
-  const ratio = clamp(sales / capacity, MIN_SALES_CAPACITY_RATIO, 1.5);
+  const ratio = clamp(sales / capacity, 0, 1.5);
   return Math.max(0, Math.round(input.workers * ratio ** (1 / beta)));
 }
 
@@ -129,13 +126,9 @@ function refreshExpectedSales(economy: Economy): void {
       ? economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)
       : 0;
   for (const firm of economy.firms) {
-    const capacity = firmCapacity(economy, firm);
     const observed = firm.sales + unmetUnits;
-    const smoothed =
+    firm.expectedSales =
       SALES_SMOOTHING * firm.expectedSales + (1 - SALES_SMOOTHING) * observed;
-    // Keep a capacity floor so demand-led bitcoin runs do not ratchet expected
-    // sales into a hiring collapse that feeds further deflation.
-    firm.expectedSales = Math.max(smoothed, capacity * MIN_SALES_CAPACITY_RATIO);
     firm.sales = 0;
   }
 }
@@ -200,13 +193,9 @@ function wageHiringScale(economy: Economy): number {
   });
   // A negative productivity impulse raises prices. Sticky wages then look cheap
   // against an unchanged reference. Cap the scale at 1 so the shock cuts
-  // capacity without a hiring boom. The same cap applies under fiat when
-  // inflation is already above target and wage catch-up is damped.
-  if (
-    economy.productivityImpulse < 0 ||
-    (economy.params.regime === 'fiat' &&
-      inflation(economy) > economy.params.inflationTarget)
-  ) {
+  // capacity without a hiring boom. Ordinary fiat inflation overshoot does not
+  // use this cap; wage catch-up damping handles the spiral there.
+  if (economy.productivityImpulse < 0) {
     return Math.min(scale, 1);
   }
   return scale;
@@ -335,6 +324,14 @@ function placeAtUnderstaffed(
   return false;
 }
 
+/** Soften upward wage catch-up under fiat inflation overshoot; never freeze. */
+export function fiatWageCatchUpScale(overshoot: number, inflationTarget: number): number {
+  if (!(overshoot > 0)) {
+    return 1;
+  }
+  return clamp(1 - 0.5 * overshoot / Math.max(inflationTarget, 0.01), 0.5, 1);
+}
+
 function updateWages(economy: Economy): void {
   let growth = wageGrowth({
     posted: economy.wageLevel,
@@ -343,16 +340,12 @@ function updateWages(economy: Economy): void {
   });
   // Under fiat, damp upward catch-up once trailing inflation is already above
   // target so wages and prices do not chase each other into a money spiral.
+  // Half-strength with a 0.5 floor keeps some catch-up after supply shocks.
   if (economy.params.regime === 'fiat' && growth > 0) {
-    const overshoot = inflation(economy) - economy.params.inflationTarget;
-    if (overshoot > 0) {
-      const scale = clamp(
-        1 - overshoot / Math.max(economy.params.inflationTarget, 0.01),
-        0,
-        1,
-      );
-      growth *= scale;
-    }
+    growth *= fiatWageCatchUpScale(
+      inflation(economy) - economy.params.inflationTarget,
+      economy.params.inflationTarget,
+    );
   }
   economy.wageLevel *= 1 + growth;
   for (const firm of economy.firms) {

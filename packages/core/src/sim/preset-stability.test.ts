@@ -8,7 +8,7 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { Rng } from '../rng/rng.js';
 import { issueBonds } from './bank-books.js';
-import { placeInjection, withdrawInjection } from './central-bank.js';
+import { placeInjection, stimulusMoneyFade, withdrawInjection } from './central-bank.js';
 import type { Economy } from './economy.js';
 import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
@@ -89,6 +89,38 @@ describe('preset stability fixes', () => {
     const shockMoney = series(shocked, 'moneySupply');
     expect((calmMoney.at(-1) ?? 0) / Math.max(calmMoney[0] ?? 1, 1)).toBeLessThan(3.5);
     expect((shockMoney.at(-1) ?? 0) / Math.max(shockMoney[0] ?? 1, 1)).toBeLessThan(3.5);
+  });
+
+  it('keeps full stimulus strength through 2× money and fades by 3×', () => {
+    expect(stimulusMoneyFade(1)).toBe(1);
+    expect(stimulusMoneyFade(2)).toBe(1);
+    expect(stimulusMoneyFade(2.5)).toBeCloseTo(0.5, 12);
+    expect(stimulusMoneyFade(3)).toBe(0);
+  });
+
+  it('raises money in the shock window and lowers peak unemployment when stimulus is on', () => {
+    const shock = { tick: 12, kind: 'demand' as const, size: -0.3 };
+    const shared = {
+      ...FEATURE_OFF,
+      ...monetaryPreset,
+      'scale.households': 40,
+      'scale.firms': 4,
+      'scale.banks': 1,
+      'shock.frequency': 0,
+      'regime.type': 'fiat',
+      'centralBank.stimulusLag': 3,
+      ticks: 120,
+    };
+    const stimulated = run({ ...shared, 'centralBank.stimulus': 1.75 }, shock);
+    const quiet = run({ ...shared, 'centralBank.stimulus': 0 }, shock);
+    expect(stimulated.audit.ok && quiet.audit.ok).toBe(true);
+    // End money can fall behind once inflation feeds back into secular growth;
+    // the lag window is where stimulus still expands the stock.
+    expect(series(stimulated, 'moneySupply')[36] ?? 0).toBeGreaterThan(
+      series(quiet, 'moneySupply')[36] ?? 0,
+    );
+    const peak = (result: SimulationResult) => Math.max(...series(result, 'unemployment'));
+    expect(peak(stimulated)).toBeLessThan(peak(quiet));
   });
 
   it('shuffles household shopping order with a seeded stream', () => {

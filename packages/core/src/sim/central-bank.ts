@@ -105,16 +105,11 @@ export function growFiatMoney(economy: Economy): void {
   const pressure = stimulusPressure(economy);
   economy.contractionPressure.push(pressure);
   const lagged = laggedStimulusPressure(economy);
-  // Hard stop once broad money is at the stimulus cap. Between opening and the
-  // cap, fade linearly so printing that has not cleared slack cannot compound.
+  // Hard stop at the money cap. Full strength until fade start, then linear
+  // fade so secular growth does not eat stimulus headroom before it can act.
   const moneyMultiple =
     economy.openingDeposits > 0 ? totalDeposits(economy) / economy.openingDeposits : 1;
-  const stimulusEffective =
-    lagged > 0
-      ? moneyMultiple >= STIMULUS_MONEY_CAP
-        ? 0
-        : clamp((STIMULUS_MONEY_CAP - moneyMultiple) / (STIMULUS_MONEY_CAP - 1), 0, 1)
-      : 1;
+  const stimulusEffective = lagged > 0 ? stimulusMoneyFade(moneyMultiple) : 1;
   const stimulusAnnual = economy.params.stimulus * lagged * stimulusEffective;
   const annual = secular + stimulusAnnual;
   const monthly = annual / 12;
@@ -149,8 +144,25 @@ export function growFiatMoney(economy: Economy): void {
 
 /** Ignore unemployment gaps inside this band so calm noise does not move stimulus. */
 const STIMULUS_GAP_DEADBAND = 0.02;
+/** Broad-money multiple below which positive crisis stimulus stays at full strength. */
+const STIMULUS_FADE_START = 2;
 /** Broad-money multiple of opening deposits at which positive crisis stimulus stops. */
 const STIMULUS_MONEY_CAP = 3;
+
+/** Linear fade of positive stimulus between fade start and the hard money cap. */
+export function stimulusMoneyFade(moneyMultiple: number): number {
+  if (moneyMultiple >= STIMULUS_MONEY_CAP) {
+    return 0;
+  }
+  if (moneyMultiple <= STIMULUS_FADE_START) {
+    return 1;
+  }
+  return clamp(
+    (STIMULUS_MONEY_CAP - moneyMultiple) / (STIMULUS_MONEY_CAP - STIMULUS_FADE_START),
+    0,
+    1,
+  );
+}
 
 /**
  * Signed unemployment gap for the stimulus lag queue. Positive is slack;

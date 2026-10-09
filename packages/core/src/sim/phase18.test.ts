@@ -40,14 +40,21 @@ describe('phase 18 demand and firm hiring', () => {
   });
 
   it('cuts real GDP after a demand contraction when output follows sales', () => {
+    // Boom then soft phase: inventory overhang pulls demand-led output below
+    // capacity. Single ticks can match after prices clear, so compare the window.
     const shock: ForcedShock = { tick: 24, kind: 'demand', size: 0.3 };
     const capacity = run(small, shock);
     const demandLed = run({ ...small, 'production.demandWeight': 1 }, shock);
     expect(capacity.audit.ok && demandLed.audit.ok).toBe(true);
-    const contraction = 42;
-    expect(series(demandLed, 'realGdp')[contraction] ?? 0).toBeLessThan(
-      series(capacity, 'realGdp')[contraction] ?? 0,
-    );
+    const meanGdp = (result: SimulationResult, from: number, to: number) => {
+      const path = series(result, 'realGdp');
+      let total = 0;
+      for (let tick = from; tick <= to; tick += 1) {
+        total += path[tick] ?? 0;
+      }
+      return total / Math.max(to - from + 1, 1);
+    };
+    expect(meanGdp(demandLed, 36, 47)).toBeLessThan(meanGdp(capacity, 36, 47));
   });
 
   it('raises unemployment under a demand contraction when firm-level hiring is on', () => {
@@ -64,6 +71,23 @@ describe('phase 18 demand and firm hiring', () => {
       series(quota, 'unemployment')[contraction] ?? 0,
     );
     expect(last(firms, 'unemployment')).toBeLessThan(0.5);
+  });
+
+  it('does not leave end unemployment below calm after a demand slump with firm hiring', () => {
+    const shock: ForcedShock = { tick: 24, kind: 'demand', size: -0.3 };
+    const shared = {
+      ...small,
+      'production.demandWeight': 1,
+      'labor.firmLevelHiring': 'on',
+      'prices.trendWeight': 0,
+    };
+    const calm = run(shared);
+    const slump = run(shared, shock);
+    expect(calm.audit.ok && slump.audit.ok).toBe(true);
+    const peakCalm = Math.max(...series(calm, 'unemployment'));
+    const peakSlump = Math.max(...series(slump, 'unemployment'));
+    expect(peakSlump).toBeGreaterThanOrEqual(peakCalm - 0.01);
+    expect(last(slump, 'unemployment')).toBeGreaterThanOrEqual(last(calm, 'unemployment') - 0.02);
   });
 });
 

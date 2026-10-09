@@ -155,8 +155,9 @@ function updatePrices(economy: Economy): void {
 
 /**
  * Excess demand against capacity, lifted by the unmet-demand share when
- * households could not clear their budgets against inventory. Using emptied
- * shelves as the supply base would keep prices high even in a demand slump.
+ * households could not clear their budgets against inventory. Soft capacity
+ * demand stays negative so piled-up stock can pull prices down. Stockout lift
+ * only applies when capacity demand is non-negative.
  */
 function excessDemandRatio(economy: Economy): number {
   let capacityValue = 0;
@@ -167,10 +168,9 @@ function excessDemandRatio(economy: Economy): number {
     capacityValue > 0 ? economy.desiredSpend / capacityValue - 1 : 0;
   const cleared = economy.consumptionSpend + economy.unmetGoodsDemand;
   const fromStockout = cleared > 0 ? economy.unmetGoodsDemand / cleared : 0;
-  // Stockout lift only when demand is not already soft, so a contraction can
-  // still pull the CPI down under trend weight 0.
-  const lift = fromCapacity >= 0 ? fromStockout : 0;
-  return clamp(Math.max(fromCapacity, lift), -EXCESS_DEMAND_CAP, EXCESS_DEMAND_CAP);
+  const excess =
+    fromCapacity < 0 ? fromCapacity : Math.max(fromCapacity, fromStockout);
+  return clamp(excess, -EXCESS_DEMAND_CAP, EXCESS_DEMAND_CAP);
 }
 
 function reprice(economy: Economy, firm: Firm, excessDemand: number): void {

@@ -4,7 +4,12 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
-import { agreedWage, employmentTarget, hiringReferenceRealWage } from './labor.js';
+import {
+  agreedWage,
+  employmentTarget,
+  fiatWageCatchUpScale,
+  hiringReferenceRealWage,
+} from './labor.js';
 import { loadParameters } from './parameters.js';
 import { simulate, type ForcedShock } from './simulate.js';
 
@@ -33,6 +38,25 @@ describe('phase 68 hiring reference without tightness or impulse', () => {
     const calm = employmentTarget(economy);
     economy.productivityImpulse = -0.2;
     expect(employmentTarget(economy)).toBe(calm);
+  });
+
+  it('keeps some upward wage catch-up under mild fiat inflation overshoot', () => {
+    expect(fiatWageCatchUpScale(0, 0.02)).toBe(1);
+    expect(fiatWageCatchUpScale(0.02, 0.02)).toBeGreaterThanOrEqual(0.5);
+    expect(fiatWageCatchUpScale(0.02, 0.02)).toBeCloseTo(0.5, 12);
+    expect(fiatWageCatchUpScale(0.01, 0.02)).toBeCloseTo(0.75, 12);
+  });
+
+  it('does not cap hiring for fiat inflation alone when there is no supply shock', () => {
+    const economy = opened({ 'labor.wageElasticity': 1, 'regime.type': 'fiat' });
+    // Cheap real wage → hiringScale above 1 unless capped.
+    economy.wageLevel = economy.priceLevel * 0.5;
+    economy.priceHistory = Array.from({ length: 13 }, (_, i) => 100 * (1.1 ** (i / 12)));
+    economy.productivityImpulse = 0;
+    const open = employmentTarget(economy);
+    economy.productivityImpulse = -0.2;
+    const capped = employmentTarget(economy);
+    expect(open).toBeGreaterThan(capped);
   });
 
   it('does not climb through high bitcoin unemployment under hoarding and firm-level hiring', () => {
@@ -70,8 +94,7 @@ describe('phase 68 hiring reference without tightness or impulse', () => {
     expect(calm.audit.ok && slump.audit.ok && flexible.audit.ok).toBe(true);
     expect(gdpLoss(slump, calm, 24, 47)).toBeGreaterThan(0.02);
     // Capacity-only shock: unemployment may stay flat, but must not fall into a boom.
-    // A mild under-shoot in recovery is allowed once fiat wage catch-up is damped
-    // for inflation overshoot (real wages lag briefly, then hiring scale is capped).
+    // A mild under-shoot in recovery is allowed while wages catch up under soft damp.
     expect(meanUnemploymentGap(slump, calm, 24, 47)).toBeGreaterThanOrEqual(-0.02);
     expect(meanUnemploymentGap(slump, calm, 48, 71)).toBeGreaterThanOrEqual(-0.04);
     expect(meanUnemploymentGap(flexible, flexibleCalm, 24, 35)).toBeGreaterThanOrEqual(-0.02);

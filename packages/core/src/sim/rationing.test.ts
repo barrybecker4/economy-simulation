@@ -72,6 +72,42 @@ describe('scarce goods rationing', () => {
     const zeroMonths = consumption.filter((value) => value <= 0.01).length;
     expect(zeroMonths).toBeLessThan(5);
   });
+
+  it('cuts the price level when inventory piles up against soft demand', () => {
+    const economy = createEconomy(
+      loadParameters(
+        loadScenario({
+          name: 'stock-pile',
+          seed: 3,
+          ticks: 1,
+          sliders: {
+            ...FEATURE_OFF,
+            'scale.households': 20,
+            'scale.firms': 4,
+            'scale.banks': 1,
+            'regime.type': 'fiat',
+            'prices.trendWeight': 0,
+            'production.demandWeight': 1,
+          },
+        }),
+      ),
+      3,
+      null,
+    );
+    for (const firm of economy.firms) {
+      firm.inventory = 500;
+      firm.price = 100;
+    }
+    for (const household of economy.households) {
+      household.deposit = 50;
+      household.smoothed = 20;
+      household.income = 20;
+    }
+    economy.priceLevel = 100;
+    const before = economy.priceLevel;
+    onGoods(economy);
+    expect(economy.priceLevel).toBeLessThan(before);
+  });
 });
 
 function run(sliders: Record<string, number | string> & { ticks?: number }): SimulationResult {
