@@ -134,8 +134,7 @@ export function growFiatMoney(economy: Economy): void {
     return;
   }
   if (amount > 0) {
-    placeInjection(economy, amount);
-    economy.fiatInjectionFlow = amount;
+    economy.fiatInjectionFlow = placeInjection(economy, amount);
     return;
   }
   const removed = withdrawInjection(economy, -amount);
@@ -169,10 +168,10 @@ function laggedStimulusPressure(economy: Economy): number {
   return economy.contractionPressure[index] ?? 0;
 }
 
-/** Book one positive injection on the economy's channel. */
-export function placeInjection(economy: Economy, amount: number): void {
+/** Book one positive injection on the economy's channel. Returns the amount placed. */
+export function placeInjection(economy: Economy, amount: number): number {
   if (amount <= 0) {
-    return;
+    return 0;
   }
   const bank = economy.banks[0];
   if (!bank) {
@@ -184,21 +183,22 @@ export function placeInjection(economy: Economy, amount: number): void {
     addReserves(bank, amount);
     const spent = spendTreasuryOnInventory(economy, amount);
     blendChannelReceipts(economy, spent);
-    return;
+    return amount;
   }
   if (channel === 'newLoans') {
     const booked = bookFirmLoans(economy, amount);
     economy.channelLoans += booked;
     blendChannelReceipts(economy, booked);
-    return;
+    return booked;
   }
   if (channel === 'assetPurchase') {
     const bought = buyExistingBonds(economy, amount);
     blendChannelReceipts(economy, bought);
-    return;
+    return bought;
   }
   injectHouseholdDeposits(economy, amount);
   addReserves(bank, amount);
+  return amount;
 }
 
 /**
@@ -280,8 +280,10 @@ function repayInjectedLoans(economy: Economy, amount: number): number {
 }
 
 function unwindPurchasedClaims(economy: Economy, amount: number): number {
-  const removed = drainHouseholdDeposits(economy, Math.min(amount, reserveStock(economy)));
-  releaseReserves(economy, removed);
+  // Purchase booked −bonds +2·reserves +deposits; reverse with enough reserves.
+  const capacity = Math.min(amount, Math.floor(reserveStock(economy) / 2));
+  const removed = drainHouseholdDeposits(economy, capacity);
+  releaseReserves(economy, 2 * removed);
   // Restore bonds on the first bank so a contraction reverses the purchase.
   const bank = economy.banks[0];
   if (bank && removed > 0) {
@@ -322,8 +324,10 @@ function buyFirmInventory(economy: Economy, firm: Firm, remaining: number): numb
 }
 
 /**
- * Buy bonds already on bank books. Pays households, adds reserves, and reduces
- * the bond stock. Places nothing when no bonds are available.
+ * Buy bonds already on bank books. Retires the bond asset, pays households, and
+ * adds reserves twice the purchase: once to replace the retired bond (QE swap)
+ * and once to match the new deposits so bank books close. Places nothing when
+ * no bonds are available.
  */
 function buyExistingBonds(economy: Economy, amount: number): number {
   let left = amount;
@@ -338,7 +342,7 @@ function buyExistingBonds(economy: Economy, amount: number): number {
       continue;
     }
     addBonds(bank, -take);
-    addReserves(bank, take);
+    addReserves(bank, 2 * take);
     injectHouseholdDeposits(economy, take);
     bought += take;
     left -= take;

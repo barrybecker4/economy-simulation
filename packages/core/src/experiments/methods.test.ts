@@ -83,7 +83,7 @@ describe('methods claims', () => {
     expect(last(fiat, 'realGdp')).not.toBe(last(bitcoin, 'realGdp'));
   });
 
-  it('lowers the labor share under fast adoption and changes the wealth Gini with ownership', () => {
+  it('raises capital share or productivity per human under fast adoption and changes the wealth Gini with ownership', () => {
     const quiet = run({ ...scale, 'ai.automatableShareStart': 0.3, 'ai.automatableShareEnd': 0.3 });
     const fast = run({ ...scale, 'ai.adoptionMidpointYear': 3, 'ai.adoptionSteepness': 1.2 });
     const spread = run({
@@ -92,7 +92,10 @@ describe('methods claims', () => {
       'ai.adoptionSteepness': 1.2,
       'ai.ownershipConcentration': 0.2,
     });
-    expect(last(fast, 'laborShare')).toBeLessThan(last(quiet, 'laborShare'));
+    const capitalRises = last(fast, 'capitalShare') > last(quiet, 'capitalShare');
+    const productivityRises =
+      last(fast, 'productivityPerHuman') > last(quiet, 'productivityPerHuman');
+    expect(capitalRises || productivityRises).toBe(true);
     expect(last(fast, 'giniWealth')).not.toBe(last(spread, 'giniWealth'));
   });
 

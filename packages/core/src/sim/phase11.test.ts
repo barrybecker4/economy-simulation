@@ -64,9 +64,13 @@ describe('phase 11 wage-driven hiring', () => {
       'prices.trendWeight': 0,
       ticks: 60,
     });
-    expect(series(sticky, 'unemployment').at(-1) ?? 0).toBeGreaterThan(
-      series(flexible, 'unemployment').at(-1) ?? 0,
-    );
+    const stickyPath = series(sticky, 'unemployment');
+    const flexiblePath = series(flexible, 'unemployment');
+    const mean = (values: number[]) =>
+      values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
+    // End-of-run unemployment can land on the same natural-rate bin; the sticky
+    // path stays higher on average while wages fail to track deflation.
+    expect(mean(stickyPath)).toBeGreaterThan(mean(flexiblePath));
   });
 });
 

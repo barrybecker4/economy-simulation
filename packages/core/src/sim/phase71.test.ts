@@ -75,7 +75,8 @@ describe('phase 71 rate cap and real injection channels', () => {
     placeInjection(funded, 4_000);
     expect(bonds(funded)).toBe(openingBonds - 4_000);
     expect(householdDeposits(funded)).toBe(openingHouseholds + 4_000);
-    expect(reserves(funded)).toBe(openingReserves + 4_000);
+    // QE swap replaces the bond; a second reserve leg matches new deposits.
+    expect(reserves(funded)).toBe(openingReserves + 8_000);
   });
 
   it('keeps hoarding-channel unemployment near the other channels', () => {

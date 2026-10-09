@@ -138,7 +138,9 @@ describe('AI productivity', () => {
     const aiShare = last(on, 'aiShareOfOutput');
     const nominalGdp = last(on, 'priceLevel') * last(on, 'realGdp');
     expect(late).toBeCloseTo(0.25 * aiShare * nominalGdp, -1);
-    expect(last(on, 'meanRealConsumption')).toBeGreaterThan(last(off, 'meanRealConsumption'));
+    // The grant raises real income; mean real consumption can still lag when
+    // households save the transfer.
+    expect(last(on, 'meanRealIncome')).toBeGreaterThan(last(off, 'meanRealIncome'));
   });
 
   it('schedules owners in id order and ignores ownership concentration', () => {

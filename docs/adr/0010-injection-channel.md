@@ -14,7 +14,8 @@ so hypotheses about who first holds new money cannot be tested fairly.
 - `centralBank.injectionChannel` selects `proRataDeposits` (default, prior path),
   `governmentSpending`, `newLoans`, or `assetPurchase`.
 - `newLoans` books firm loans within credit room and does not create reserves.
-- `assetPurchase` buys existing bank-held bonds, pays households, and adds reserves.
+- `assetPurchase` buys existing bank-held bonds, pays households, and adds reserves equal to
+  twice the purchase so books close (see ADR 0021).
 - `governmentSpending` credits the treasury, adds reserves, and buys firm inventory;
   unspent credit stays in the treasury.
 - A contraction withdraws from the sector that channel credits, and only up to the

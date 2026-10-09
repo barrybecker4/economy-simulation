@@ -394,7 +394,8 @@ that positive injection sets a notional budget that may spare insolvent firms fr
 and [ADR 0019](adr/0019-zombie-support.md). `centralBank.injectionChannel` chooses the offsetting stock. Pro-rata
 deposits (default) create household deposits and reserves. A new-loan injection books firm loans only up to unused bank
 credit room and does not create reserves; those loans retire on the ordinary repayment path. An asset purchase buys
-bonds already on bank books, pays households, and adds reserves; with no bonds it places nothing. Government spending
+bonds already on bank books, pays households, and adds reserves equal to twice the purchase (one leg replaces the
+retired bond, one matches the new deposits) so books close; with no bonds it places nothing. Government spending
 credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. A contraction
 withdraws from the sector that channel credits, and only up to the balances that exist. Reserve-backed channels still
 cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md) and
