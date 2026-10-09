@@ -69,10 +69,23 @@ concentration. Those are imposed. Regime gaps are also shown at skill sigma 0.5.
 
 ## Firm-level hiring on the monetary preset
 
-The registry default for `labor.firmLevelHiring` is on. The monetary preset pins it
-off: with demand-led output, firm-level shedding drove most of the fiat–bitcoin
-unemployment gap on that preset. Report hiring-on cells separately when that
-mechanism is the claim under test.
+The registry default and the monetary preset both leave `labor.firmLevelHiring`
+on. Firm sales targets are floored against capacity, unmet goods demand counts
+toward expected sales outside a demand contraction, and any aggregate employment
+floor above the sum of firm targets fills on the ordinary vacancy path. Report
+hiring-off cells when isolating the economy-wide quota.
+
+## Round-7 consumption gap (stabilizer vs tenure)
+
+On the monetary preset with demand-led prices, calm seed-7 fiat median real
+consumption is unchanged when `government.stabilizer` is set to 0: the
+unemployment gap does not raise the spending share on that path. Turning
+`housing.tenureChoice` off raises end consumption by about a fifth on the same
+seed (and more under bitcoin), because mortgage and loan service no longer
+reserve cash ahead of the goods budget. Zero-consumption months on calm fiat
+seeds were a shortage allocation bug; proportional spending scales and stockout
+price lift clear them. Further consumption-gap work should start from tenure
+and inventory, not from the stabilizer.
 
 ## Registry versus app defaults
 

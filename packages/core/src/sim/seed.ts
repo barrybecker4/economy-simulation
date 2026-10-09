@@ -112,6 +112,7 @@ export function blankEconomy(
     cbdcPrice: 1,
     equityClaims: [],
     openingDeposits: 0,
+    unmetGoodsDemand: 0,
   };
 }
 

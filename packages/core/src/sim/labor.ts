@@ -1,4 +1,3 @@
-import { totalDeposits } from './banking.js';
 import { firmCapacity } from './capacity.js';
 import {
   MAX_MONTHLY_PRICE_MOVE,
@@ -70,6 +69,9 @@ export function hiringScale(input: {
 }
 
 /** Headcount whose capacity matches smoothed sales. Unchanged when sales match capacity. */
+/** Floor on sales/capacity for firm-level headcount so a soft month cannot ratchet employment into a deflation spiral. */
+const MIN_SALES_CAPACITY_RATIO = 0.75;
+
 export function workersForSales(input: {
   workers: number;
   capacity: number;
@@ -83,7 +85,7 @@ export function workersForSales(input: {
     return sales > 0 ? 1 : 0;
   }
   const beta = Math.max(0.05, (1 - input.alpha) * Math.min(1, Math.max(input.humanWeight, 1e-9)));
-  const ratio = clamp(sales / capacity, 0.5, 1.5);
+  const ratio = clamp(sales / capacity, MIN_SALES_CAPACITY_RATIO, 1.5);
   return Math.max(0, Math.round(input.workers * ratio ** (1 / beta)));
 }
 
@@ -117,8 +119,23 @@ function refreshExpectedSales(economy: Economy): void {
   if (economy.tick === 0) {
     return;
   }
+  // Unmet demand is nominal. Spread it across firms as units at the CPI so a
+  // stockout does not look like a sales collapse for firm-level hiring. Skip
+  // during a demand contraction: soft demand is not a shortage.
+  const unmetUnits =
+    economy.demandImpulse >= 0 &&
+    economy.firms.length > 0 &&
+    economy.priceLevel > 0
+      ? economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)
+      : 0;
   for (const firm of economy.firms) {
-    firm.expectedSales = SALES_SMOOTHING * firm.expectedSales + (1 - SALES_SMOOTHING) * firm.sales;
+    const capacity = firmCapacity(economy, firm);
+    const observed = firm.sales + unmetUnits;
+    const smoothed =
+      SALES_SMOOTHING * firm.expectedSales + (1 - SALES_SMOOTHING) * observed;
+    // Keep a capacity floor so demand-led bitcoin runs do not ratchet expected
+    // sales into a hiring collapse that feeds further deflation.
+    firm.expectedSales = Math.max(smoothed, capacity * MIN_SALES_CAPACITY_RATIO);
     firm.sales = 0;
   }
 }
@@ -183,8 +200,13 @@ function wageHiringScale(economy: Economy): number {
   });
   // A negative productivity impulse raises prices. Sticky wages then look cheap
   // against an unchanged reference. Cap the scale at 1 so the shock cuts
-  // capacity without a hiring boom.
-  if (economy.productivityImpulse < 0) {
+  // capacity without a hiring boom. The same cap applies under fiat when
+  // inflation is already above target and wage catch-up is damped.
+  if (
+    economy.productivityImpulse < 0 ||
+    (economy.params.regime === 'fiat' &&
+      inflation(economy) > economy.params.inflationTarget)
+  ) {
     return Math.min(scale, 1);
   }
   return scale;
@@ -268,6 +290,11 @@ function hireToUnderstaffed(
       employed += 1;
     }
   }
+  // The aggregate floor can sit above sum(wanted). Fill the remainder on the
+  // ordinary vacancy path so employment actually reaches that floor.
+  if (employed < target) {
+    hireUpTo(economy, target, vacancyLimit(economy, target));
+  }
 }
 
 function placeHousehold(economy: Economy, household: Household, perFirm: number): boolean {
@@ -314,15 +341,11 @@ function updateWages(economy: Economy): void {
     agreed: agreedWageLevel(economy),
     rigidity: economy.params.rigidity,
   });
-  // Under fiat, damp upward catch-up once money has already expanded and
-  // trailing inflation is above target, so wages and prices do not chase a
-  // money-financed spiral. Supply-driven inflation without money growth is left
-  // alone so real wages can catch up after a productivity shock.
+  // Under fiat, damp upward catch-up once trailing inflation is already above
+  // target so wages and prices do not chase each other into a money spiral.
   if (economy.params.regime === 'fiat' && growth > 0) {
     const overshoot = inflation(economy) - economy.params.inflationTarget;
-    const moneyMultiple =
-      economy.openingDeposits > 0 ? totalDeposits(economy) / economy.openingDeposits : 1;
-    if (overshoot > 0 && moneyMultiple > 1.25) {
+    if (overshoot > 0) {
       const scale = clamp(
         1 - overshoot / Math.max(economy.params.inflationTarget, 0.01),
         0,

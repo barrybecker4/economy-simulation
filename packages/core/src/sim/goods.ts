@@ -4,6 +4,7 @@ import type { Economy } from './economy.js';
 import { expectedInflation, normalInflation, pay, priceTrend } from './helpers.js';
 import { payFromCash, spendableCash } from './dual-currency.js';
 import { inventoryPressure, monthlyPriceMove } from './pricing.js';
+import { rationScale } from './rationing.js';
 import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare, subsistenceShare } from './spending.js';
@@ -14,6 +15,7 @@ export function onGoods(economy: Economy): void {
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
   economy.consumptionSpend = 0;
   economy.desiredSpend = 0;
+  economy.unmetGoodsDemand = 0;
   economy.demandBase = demandBase(economy);
   const market = goodsMarket(economy);
   shopHouseholds(economy, market);
@@ -41,17 +43,55 @@ function goodsMarket(economy: Economy): GoodsMarket {
   };
 }
 
+interface ShopPlan {
+  household: Household;
+  reserved: number;
+  budget: number;
+  spendable: number;
+}
+
 function shopHouseholds(economy: Economy, market: GoodsMarket): void {
   const order = shuffleInPlace(
     economy.households.slice(),
     economy.populationRng.fork(`shop/${economy.tick}`),
   );
+  const plans: ShopPlan[] = [];
+  let desired = 0;
   for (const household of order) {
-    shopOneHousehold(economy, market, household);
+    const plan = planHouseholdShop(economy, market, household);
+    plans.push(plan);
+    desired += plan.spendable;
+    economy.desiredSpend += plan.budget;
   }
+  const stock = stockValue(economy);
+  const scale = rationScale(desired, stock);
+  let spentTotal = 0;
+  for (const plan of plans) {
+    const left = Math.max(0, Math.round(plan.spendable * scale));
+    const start =
+      economy.firms.length > 0
+        ? plan.household.search.uniformInt(0, economy.firms.length - 1)
+        : 0;
+    const { spent, bought } = buyFromFirms(
+      economy.firms,
+      left,
+      start,
+      economy.params.sampleSize,
+    );
+    payFromCash(economy, plan.household, spent, plan.reserved);
+    plan.household.consumption = spent;
+    plan.household.realConsumption = bought;
+    economy.consumptionSpend += spent;
+    spentTotal += spent;
+  }
+  economy.unmetGoodsDemand = Math.max(0, desired - spentTotal);
 }
 
-function shopOneHousehold(economy: Economy, market: GoodsMarket, household: Household): void {
+function planHouseholdShop(
+  economy: Economy,
+  market: GoodsMarket,
+  household: Household,
+): ShopPlan {
   const reserved = household.mortgagePayment + household.consumerLoan * CONSUMER_LOAN_REPAY;
   const budget = goodsBudget({
     smoothed: household.smoothed,
@@ -64,18 +104,16 @@ function shopOneHousehold(economy: Economy, market: GoodsMarket, household: Hous
     floorShare: market.floorShare,
     durableShare: economy.params.durableShare,
   });
-  economy.desiredSpend += budget;
-  // Keep this month's debt service in cash. A larger goods budget,
-  // including a treasury rebate, would otherwise be spent before mortgages.
-  const spendable = spendableCash(economy, household, reserved);
-  const left = Math.max(0, Math.min(spendable, Math.round(budget)));
-  const start =
-    economy.firms.length > 0 ? household.search.uniformInt(0, economy.firms.length - 1) : 0;
-  const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
-  payFromCash(economy, household, spent, reserved);
-  household.consumption = spent;
-  household.realConsumption = bought;
-  economy.consumptionSpend += spent;
+  const cash = spendableCash(economy, household, reserved);
+  const spendable = Math.max(0, Math.min(cash, Math.round(budget)));
+  return { household, reserved, budget, spendable };
+}
+
+function stockValue(economy: Economy): number {
+  return economy.firms.reduce(
+    (sum, firm) => sum + Math.max(0, firm.inventory) * Math.max(0, firm.price),
+    0,
+  );
 }
 
 function coinSpendable(economy: Economy, units: number): number {
@@ -115,15 +153,24 @@ function updatePrices(economy: Economy): void {
   economy.gdpHistory.push(economy.realGdp);
 }
 
+/**
+ * Excess demand against capacity, lifted by the unmet-demand share when
+ * households could not clear their budgets against inventory. Using emptied
+ * shelves as the supply base would keep prices high even in a demand slump.
+ */
 function excessDemandRatio(economy: Economy): number {
   let capacityValue = 0;
   for (const firm of economy.firms) {
     capacityValue += firmCapacity(economy, firm) * firm.price;
   }
-  if (capacityValue <= 0) {
-    return 0;
-  }
-  return clamp(economy.desiredSpend / capacityValue - 1, -EXCESS_DEMAND_CAP, EXCESS_DEMAND_CAP);
+  const fromCapacity =
+    capacityValue > 0 ? economy.desiredSpend / capacityValue - 1 : 0;
+  const cleared = economy.consumptionSpend + economy.unmetGoodsDemand;
+  const fromStockout = cleared > 0 ? economy.unmetGoodsDemand / cleared : 0;
+  // Stockout lift only when demand is not already soft, so a contraction can
+  // still pull the CPI down under trend weight 0.
+  const lift = fromCapacity >= 0 ? fromStockout : 0;
+  return clamp(Math.max(fromCapacity, lift), -EXCESS_DEMAND_CAP, EXCESS_DEMAND_CAP);
 }
 
 function reprice(economy: Economy, firm: Firm, excessDemand: number): void {

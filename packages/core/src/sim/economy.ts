@@ -122,4 +122,9 @@ export interface Economy {
   equityClaims: number[];
   /** Broad-money stock after opening capitalization. Used to taper ineffective stimulus. */
   openingDeposits: number;
+  /**
+   * Nominal household goods demand that did not clear against inventory this
+   * tick. Feeds expected sales so firm-level hiring sees unmet demand.
+   */
+  unmetGoodsDemand: number;
 }

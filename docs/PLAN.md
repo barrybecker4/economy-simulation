@@ -891,8 +891,8 @@ Acceptance:
 Goal: the web app opens on settings where spending can move prices and output.
 
 1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5,
-   tenure choice on, `money.choiceSpeed` 0, and `labor.firmLevelHiring` off so regime gaps are not driven by
-   firm-level shedding. Money growth stays at its default of 1.
+   tenure choice on, `money.choiceSpeed` 0, and `labor.firmLevelHiring` on. Money growth stays at its default of 1.
+   Firm-level hiring keeps an aggregate employment floor so demand-led bitcoin runs do not shed into mass unemployment.
 2. The app’s default page overrides match that preset. 3. The preset's 12-month opening deposits sit under the spending
    buffer, so with trend weight 0 the new money would otherwise sit idle and pull every category price down. That new
    money is blended into smoothed income and spent. Energy, medical care, and education then rise over a decade, and

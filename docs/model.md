@@ -164,13 +164,16 @@ topped up outside measured output.
 Each month 2 percent of employed workers separate. Let `humanWeight = 1 / (1 + displacement)`, where displacement is the
 adopted task share times the capped task gain from the AI productivity section. When `labor.firmLevelHiring` is off,
 firms hire until employment reaches `0.94 × households × humanWeight`, scaled by the demand impulse and by
-`labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed sales, and
+`labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed sales (observed
+sales plus a share of unmet goods demand outside a demand contraction, floored at 75 percent of capacity), and
 vacancies go first to understaffed firms. The aggregate target is that sales headcount, clamped between the cost quota
 times `1 − 0.05` and the cost quota, so sales can pull employment about one month's shed below the cost quota and cannot
 raise it above that quota. A productivity impulse cuts capacity only. It does not enter the agreed wage or the hiring
-reference. While the impulse is negative, the hiring scale cannot rise above 1, so a supply-driven price rise does not
-look like a cheap-labor boom. Firms shed at most 5 percent of employed workers that month, starting at overstaffed firms
-when firm-level hiring is on. The wage scale is `clamp(1 − elasticity × (real wage / reference − 1), 0.5, 1.25)`, where
+reference. While the impulse is negative, or under fiat when trailing inflation is already above the target, the hiring scale
+cannot rise above 1, so a supply-driven or money-financed price rise does not look like a cheap-labor boom. When
+firm-level hiring is on and the clamped aggregate floor sits above the sum of firm sales targets, remaining vacancies
+fill on the ordinary path so employment actually reaches that floor. Firms shed at most 5 percent of employed workers
+that month, starting at overstaffed firms when firm-level hiring is on. The wage scale is `clamp(1 − elasticity × (real wage / reference − 1), 0.5, 1.25)`, where
 the real wage is the money wage over the CPI and the reference is `1 / (1 + firm.markup)` times economy-wide
 productivity. That reference omits labor-market tightness and the productivity impulse, so a slump or a supply shock
 does not amplify itself through the quota. The default elasticity is 0.5, so a real wage 10 percent above that reference
@@ -182,9 +185,8 @@ The agreed money wage is the price level times `1 / (1 + firm.markup)` times eco
 `0.4` times tightness, where tightness is `(natural unemployment − unemployment) × humanWeight`. The posted money wage
 closes `1 − wage.nominalRigidity` of the gap to that agreed wage each month, capped by the monthly wage move. Employees
 close a shortfall; employers close an excess; both sides use the same speed. At rigidity 0 the posted wage matches the
-agreed wage immediately. Under fiat, once broad money is already above 1.25× its opening stock and trailing inflation is above the target,
-upward wage catch-up is scaled down by how far inflation overshoots, so wages and prices do not chase a money-financed
-spiral. Supply-driven inflation without that money expansion is left alone. Hiring compares
+agreed wage immediately. Under fiat, whenever trailing inflation is already above the target, upward wage catch-up is
+scaled down by how far inflation overshoots, so wages and prices do not chase each other into a spiral. Hiring compares
 the posted real wage with the reference above, which equals the agreed real wage
 at zero tightness. During the lag, rising prices leave employees behind and falling prices leave them ahead. The
 contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
@@ -206,9 +208,13 @@ discretionary remainder. The floor share is the sum of the food and housing CPI 
 `household.realReturnSensitivity` is positive and the real return on money is positive, only the remainder is multiplied
 by `max(0, 1 − sensitivity × real return)`. The real return is the deposit rate minus year-over-year inflation. Deposits
 pay at `bank.depositPassThrough` times the policy rate (default 0.45). At sensitivity 0 the uncut budget is unchanged.
-Households shop in a seeded random order each month so early ids do not always claim scarce inventory first. Each
-household visits up to `goods.sampleSize` firms and buys from those that have stock. The spend stops at the deposit
-minus this month's mortgage payment and consumer-loan installment, so a larger budget is not spent ahead of debt service.
+Households shop in a seeded random order each month so early ids do not always claim scarce inventory first. Desired
+spendable budgets are scaled by `min(1, stock value / desired)` before the walk, so scarce output is shared in
+proportion to what households want to spend rather than first-come emptying the shelves. Each household then visits up
+to `goods.sampleSize` firms and buys from those that have stock. The spend stops at the deposit minus this month's
+mortgage payment and consumer-loan installment, so a larger budget is not spent ahead of debt service. Residual unmet
+demand is recorded as `unmetGoodsDemand` and lifts excess demand when capacity demand is not already soft, so stockouts
+raise posted prices instead of leaving deposits idle against empty shelves.
 
 The government buys the remaining `government.spendingShareOfGDP` share of the same income base, starting with the firms
 that hold the most inventory. If tax revenue does not cover that purchase, the treasury issues bonds and the first bank
@@ -219,7 +225,8 @@ income is more concentrated than wages. Five percent of earned income is then mo
 income does not change.
 
 A firm's posted price grows at a mix of the regime price trend and excess demand. Excess demand is desired goods
-spending this month relative to nominal capacity, minus one, clamped to ±0.2. Monthly growth is `prices.trendWeight`
+spending this month relative to nominal capacity, minus one, or the unmet-demand share of cleared-plus-unmet spend when
+that lift is larger and capacity demand is non-negative, clamped to ±0.2. Monthly growth is `prices.trendWeight`
 times the trend plus one minus that weight times excess demand, plus a small cost nudge of at most 0.1 percent a month
 toward unit labor cost times `1 + firm.markup` times a tight inventory pressure term, plus a shock tilt. At trend weight
 1 the path follows the regime trend as before. A demand impulse adds to that growth and a productivity impulse
@@ -391,8 +398,8 @@ expansion always happens when the gap is non-negative. High inflation can still 
 `centralBank.stimulus` (default 1.75, minimum 0) times the unemployment gap from `centralBank.stimulusLag` months ago
 (default 3, minimum 1) adds to that annual rate. The gap is unemployment minus the natural rate: positive expands money,
 negative withdraws, through the same monthly channel cap. Gaps inside two percentage points of the natural rate are
-treated as zero so calm noise does not move the stock. When broad money already sits above twice its opening stock and
-slack remains, that stimulus term scales down by `2 / money multiple` so printing that does not clear unemployment
+treated as zero so calm noise does not move the stock. Positive crisis stimulus fades linearly once broad money is
+above its opening stock and stops hard at three times opening deposits, so printing that does not clear unemployment
 cannot compound alone. At stimulus 0 the crisis term is off. Deflation already enters
 the secular rule through the inflation gap, so it is not a second crisis trigger. See
 [ADR 0017](adr/0017-fiat-cannot-freeze.md). `centralBank.zombieSupport` (default 0) times the crisis-stimulus share of

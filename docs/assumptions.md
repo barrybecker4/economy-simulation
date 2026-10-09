@@ -367,7 +367,7 @@ Registry version: 13.
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Once broad money is above twice its opening stock, that stimulus term is scaled by 2 / money multiple so printing that has not cleared slack cannot compound alone. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.
+- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Positive stimulus fades linearly as broad money rises above its opening stock and stops hard at three times opening deposits, so printing that has not cleared slack cannot compound alone. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.stimulusLag
 
@@ -609,7 +609,7 @@ Registry version: 13.
 - Range: 1 to 12
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How many firms a household can visit while spending its monthly budget. The run rounds this to a whole number. The walk starts at a random firm and continues to the following firms until the budget is spent, the visits run out, or those firms are out of stock. The household buys from the firms on that walk that still have inventory. A larger sample makes a stockout easier to work around. Shoppers do not sort firms by price.
+- Description: How many firms a household can visit while spending its monthly budget. Desired spendable budgets are first scaled by min(1, stock value / desired) so scarce inventory is shared in proportion to what households want to spend. The walk then starts at a random firm and continues to the following firms until the scaled budget is spent, the visits run out, or those firms are out of stock. Residual unmet demand lifts prices when capacity demand is not soft. A larger sample makes a leftover stockout easier to work around. Shoppers do not sort firms by price.
 
 ## goods.transportProductivity
 
@@ -873,7 +873,7 @@ Registry version: 13.
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Who sets the hiring target. On, each firm wants the headcount whose capacity matches its smoothed sales, vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. Firms shed at most 5 percent of employed workers in a month when the target falls. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity.
+- Description: Who sets the hiring target. On, each firm wants the headcount whose capacity matches its smoothed sales (plus unmet goods demand outside a demand contraction, floored at 75 percent of capacity), vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. When that floor is above the sum of firm targets, remaining vacancies fill on the ordinary path. Firms shed at most 5 percent of employed workers in a month when the target falls. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity.
 
 ## labor.maxApplications
 
@@ -1170,4 +1170,4 @@ Registry version: 13.
 - Range: 0 to 0.95
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under fiat, once money is already above 1.25× its opening stock and trailing inflation is above the target, upward catch-up is scaled down by the overshoot so wages and prices do not chase a money-financed spiral. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.
+- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under fiat, whenever trailing inflation is already above the target, upward catch-up is scaled down by the overshoot so wages and prices do not chase each other into a spiral. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.

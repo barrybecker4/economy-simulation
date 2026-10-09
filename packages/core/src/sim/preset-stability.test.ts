@@ -39,9 +39,9 @@ describe('preset stability fixes', () => {
     expect(getSlider('money.choiceSpeed').default).toBe(0);
   });
 
-  it('pins the monetary preset to choice speed 0 and firm-level hiring off', () => {
+  it('pins the monetary preset to choice speed 0 and firm-level hiring on', () => {
     expect(monetaryPreset['money.choiceSpeed']).toBe(0);
-    expect(monetaryPreset['labor.firmLevelHiring']).toBe('off');
+    expect(monetaryPreset['labor.firmLevelHiring']).toBe('on');
   });
 
   it('unwinds asset purchases only from excess reserves', () => {
@@ -69,7 +69,7 @@ describe('preset stability fixes', () => {
     expect(bankBalanceIdentity(state)).toBeCloseTo(0, 6);
   });
 
-  it('caps crisis stimulus once money has expanded without clearing slack', () => {
+  it('hard-caps crisis stimulus once money reaches three times opening', () => {
     const shock = { tick: 12, kind: 'demand' as const, size: -0.3 };
     const shared = {
       ...FEATURE_OFF,
@@ -82,11 +82,13 @@ describe('preset stability fixes', () => {
       'centralBank.stimulusLag': 3,
       ticks: 120,
     };
-    const result = run({ ...shared, 'regime.type': 'fiat' }, shock);
-    expect(result.audit.ok).toBe(true);
-    const money = series(result, 'moneySupply');
-    const ratio = (money.at(-1) ?? 0) / Math.max(money[0] ?? 1, 1);
-    expect(ratio).toBeLessThan(20);
+    const calm = run({ ...shared, 'regime.type': 'fiat' });
+    const shocked = run({ ...shared, 'regime.type': 'fiat' }, shock);
+    expect(calm.audit.ok && shocked.audit.ok).toBe(true);
+    const calmMoney = series(calm, 'moneySupply');
+    const shockMoney = series(shocked, 'moneySupply');
+    expect((calmMoney.at(-1) ?? 0) / Math.max(calmMoney[0] ?? 1, 1)).toBeLessThan(3.5);
+    expect((shockMoney.at(-1) ?? 0) / Math.max(shockMoney[0] ?? 1, 1)).toBeLessThan(3.5);
   });
 
   it('shuffles household shopping order with a seeded stream', () => {
@@ -95,6 +97,27 @@ describe('preset stability fixes', () => {
     expect(shuffled).toHaveLength(ids.length);
     expect([...shuffled].sort((a, b) => a - b)).toEqual(ids);
     expect(shuffled).not.toEqual(ids);
+  });
+
+  it('keeps bitcoin unemployment and bank failures bounded with firm-level hiring on', () => {
+    const result = run({
+      ...FEATURE_OFF,
+      ...monetaryPreset,
+      'scale.households': 40,
+      'scale.firms': 4,
+      'scale.banks': 1,
+      'shock.frequency': 0,
+      'regime.type': 'bitcoin',
+      ticks: 240,
+    });
+    expect(result.audit.ok).toBe(true);
+    const unemployment = series(result, 'unemployment');
+    const failures = series(result, 'bankFailures');
+    const average =
+      unemployment.reduce((sum, value) => sum + value, 0) / Math.max(unemployment.length, 1);
+    expect(average).toBeLessThan(0.15);
+    expect(Math.max(...unemployment, 0)).toBeLessThan(0.2);
+    expect(failures.at(-1) ?? 0).toBeLessThan(20);
   });
 
   it('keeps fiat money from runaway under flexible wages or wage elasticity 0', () => {
