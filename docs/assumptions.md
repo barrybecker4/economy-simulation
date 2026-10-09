@@ -433,7 +433,7 @@ Registry version: 12.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price and wage trends keep the regime path at weight 0, and follow the expectation above 0. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.
+- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price trends keep the regime path at weight 0, and follow the expectation above 0. Wages negotiate toward the agreed wage from the price level and do not take this path directly. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.
 
 ## firm.hurdlePremium
 
@@ -851,7 +851,7 @@ Registry version: 12.
 - Range: 0 to 3
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference real wage is 1 / (1 + firm markup), the opening real wage, times one plus the current productivity impulse. A negative impulse lowers the reference, so the quota falls when elasticity is positive. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A high real wage relative to the reference cuts hiring; a cheap real wage raises it. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota is unchanged, so a productivity impulse does not scale hiring and sticky wages change pay but not employment. When the scaled quota is below current employment, firms separate workers down to the quota.
+- Description: How strongly the hiring quota responds when the real wage is away from the agreed real wage. The quota starts at 94 percent of households times the human share of output. The reference is the agreed money wage over the price level: 1 / (1 + firm markup) times economy-wide productivity times one plus the hiring productivity impulse, times one plus 0.4 times labor-market tightness. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A posted wage above the agreed wage cuts hiring; a wage below it raises hiring. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota ignores the real wage. When the scaled quota is below current employment, firms separate workers down to the quota.
 
 ## money.bitcoinTrust
 
@@ -1111,8 +1111,8 @@ Registry version: 12.
 - Label: Nominal wage rigidity
 - Group: behavior
 - Unit: share
-- Default: 0.7
+- Default: 0.9
 - Range: 0 to 0.95
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How sticky the money wage is when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity, because the hiring target shrinks with the human share of output. Wages still follow monthly inflation and productivity growth. An extra gap opens when the labor market is tight or slack relative to that natural rate, the gap is scaled by the human share of output, and this rigidity shrinks it further. Upward pressure is multiplied by one minus the rigidity. Downward pressure is multiplied by the square of that remainder, so cuts pass through less than raises. At 0.7, a tight market passes through 30 percent of the upward gap and 9 percent of a downward gap. At 0, the gap passes through in full. The monthly wage change is still capped.
+- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus the hiring productivity impulse, times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.

@@ -142,7 +142,7 @@ describe('loadScenario', () => {
     expect(resolved.ticks).toBe(10);
     expect(resolved.sliders['firm.markup']).toBe(0.4);
     expect(resolved.sliders['tax.incomeRate']).toBe(0.1);
-    expect(resolved.sliders['wage.nominalRigidity']).toBe(0.7);
+    expect(resolved.sliders['wage.nominalRigidity']).toBe(0.9);
     expect(resolved.sliders['regime.type']).toBe('fiat');
   });
 

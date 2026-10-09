@@ -7,7 +7,7 @@ import {
   SALES_SMOOTHING,
   TIGHTNESS_WAGE,
 } from './rules.js';
-import { clamp, monthlyFromAnnual } from './stats.js';
+import { clamp } from './stats.js';
 import type { Economy } from './economy.js';
 import type { Firm, Household } from './types.js';
 import {
@@ -15,15 +15,33 @@ import {
   employedCount,
   humanWeight,
   outputGap,
-  priceTrend,
   separate,
 } from './helpers.js';
 
-/** Monthly wage growth from trend, tightness, and nominal rigidity. */
-export function wageGrowth(input: { trend: number; tightness: number; rigidity: number }): number {
-  const gap = TIGHTNESS_WAGE * input.tightness;
-  const stickyGap = gap < 0 ? (1 - input.rigidity) ** 2 * gap : (1 - input.rigidity) * gap;
-  return clamp(input.trend + stickyGap, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+/** Money wage both sides would sign this month. */
+export function agreedWage(input: {
+  priceLevel: number;
+  markup: number;
+  productivity: number;
+  impulse: number;
+  tightness: number;
+}): number {
+  return (
+    input.priceLevel *
+    (1 / (1 + input.markup)) *
+    input.productivity *
+    (1 + input.impulse) *
+    (1 + TIGHTNESS_WAGE * input.tightness)
+  );
+}
+
+/** Monthly wage growth that closes (1 − rigidity) of the gap to the agreed wage. */
+export function wageGrowth(input: { posted: number; agreed: number; rigidity: number }): number {
+  if (!(input.posted > 0)) {
+    return 0;
+  }
+  const gapShare = (input.agreed / input.posted - 1) * (1 - input.rigidity);
+  return clamp(gapShare, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
 }
 
 /** Scale the hiring quota when the real wage is away from its cost reference. Elasticity 0 leaves it at 1. */
@@ -149,15 +167,29 @@ function updateHiringProductivityImpulse(economy: Economy): void {
   }
 }
 
+function hiringImpulse(economy: Economy): number {
+  return economy.productivityImpulse !== 0
+    ? economy.productivityImpulse
+    : economy.hiringProductivityImpulse;
+}
+
+function agreedWageLevel(economy: Economy): number {
+  return agreedWage({
+    priceLevel: economy.priceLevel,
+    markup: economy.params.markup,
+    productivity: economy.productivity,
+    impulse: hiringImpulse(economy),
+    tightness: outputGap(economy),
+  });
+}
+
 function wageHiringScale(economy: Economy): number {
+  const agreed = agreedWageLevel(economy);
   const realWage = economy.priceLevel > 0 ? economy.wageLevel / economy.priceLevel : 1;
-  const impulse =
-    economy.productivityImpulse !== 0
-      ? economy.productivityImpulse
-      : economy.hiringProductivityImpulse;
+  const referenceRealWage = economy.priceLevel > 0 ? agreed / economy.priceLevel : 1;
   const scale = hiringScale({
     realWage,
-    referenceRealWage: (1 / (1 + economy.params.markup)) * (1 + impulse),
+    referenceRealWage,
     elasticity: economy.params.wageElasticity,
   });
   // After a negative productivity impulse, sticky real wages can sit below the
@@ -288,10 +320,9 @@ function placeAtUnderstaffed(
 }
 
 function updateWages(economy: Economy): void {
-  const trend = priceTrend(economy) + monthlyFromAnnual(economy.params.prodGrowth);
   const growth = wageGrowth({
-    trend,
-    tightness: outputGap(economy),
+    posted: economy.wageLevel,
+    agreed: agreedWageLevel(economy),
     rigidity: economy.params.rigidity,
   });
   economy.wageLevel *= 1 + growth;

@@ -97,9 +97,9 @@ These are starting rules. Mark each as sourced or as a guess when it is implemen
 
 - Production: output equals productivity A times capital K to the power alpha times effective labor L to the power one
   minus alpha. Alpha defaults to 0.33.
-- Wage setting: a firm's target wage moves with labor-market tightness and its price level. The actual wage moves toward
-  the target by an amount reduced by nominal rigidity, so a high rigidity means wages adjust slowly, especially
-  downward.
+- Wage setting: the agreed wage is the price level times the opening real wage times productivity and labor-market
+  tightness. Employees close a shortfall and employers close an excess. Nominal rigidity is the share of that gap left
+  for next month, so a high rigidity means wages adjust slowly in both directions.
 - Pricing: unit cost times one plus a markup, adjusted up when inventory is low and down when inventory is high.
 - Consumption: a household consumes a fraction of expected income plus a smaller fraction of wealth. The fractions
   depend on time preference.
@@ -201,7 +201,7 @@ plain-language description and a status.
 | Behavior    | household.skillSigma                   | 0.5             | 0.1 to 1.2                   |
 | Behavior    | firm.markup                            | 0.2             | 0.05 to 0.6                  |
 | Behavior    | firm.priceAdjustSpeed                  | 0.3             | 0.05 to 1                    |
-| Behavior    | wage.nominalRigidity                   | 0.7             | 0 to 0.95                    |
+| Behavior    | wage.nominalRigidity                   | 0.9             | 0 to 0.95                    |
 | Environment | productivity.baseGrowth (annual)       | 0.01            | 0 to 0.04                    |
 | Environment | population.growth (annual)             | 0               | -0.01 to 0.02                |
 | Environment | shock.frequency (per year)             | 0.1             | 0 to 1                       |
@@ -1354,6 +1354,29 @@ Acceptance:
 - S3 fiat with subsidy 1 and pass-through 1 ends 120 months under 10 percent inflation.
 - Under −8 percent expected inflation a long mortgage loses to rent; a liquid mortgagor prepays; an illiquid one does
   not; monetary bitcoin originates fewer than eight new mortgages in 120 months.
+
+### Phase 63: Wage negotiation under inflation and deflation
+
+Goal: employees and employers close the gap to a productivity-consistent agreed wage at the same speed, so calm
+unemployment stays near the natural rate in every regime, and the lag's sign does the distributional work.
+
+1. The agreed wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus the
+   hiring productivity impulse, times one plus `0.4` times labor-market tightness.
+2. `wage.nominalRigidity` is the share of the posted-to-agreed gap left for next month. Employees close a shortfall and
+   employers close an excess at rate `1 − rigidity`, capped by the monthly wage move. The default moves from 0.7 to 0.9.
+   Squared downward rigidity is gone.
+3. `labor.wageElasticity` compares the real wage with the agreed real wage (agreed money wage over the price level). The
+   default stays 0.5.
+
+Acceptance:
+
+- Calm 120-month runs at the defaults end with unemployment within 3 points of the natural rate in fiat, bitcoin, and
+  hybrid.
+- Under rising fiat prices, rigidity 0.9 ends with a lower real wage than rigidity 0.
+- Under demand-driven bitcoin deflation, rigidity 0.9 ends with a higher real wage during the shock than rigidity 0, the
+  money wage falls from its start, and peak unemployment sits between rigidity 0 and rigidity 0.95.
+- After a demand shock, rigidity 0.95 still peaks above rigidity 0, stays under 50 percent, and stays above the natural
+  rate.
 
 ## Validation
 

@@ -40,7 +40,7 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0,
     0,
     1,
-    'How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price and wage trends keep the regime path at weight 0, and follow the expectation above 0. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.',
+    'How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price trends keep the regime path at weight 0, and follow the expectation above 0. Wages negotiate toward the agreed wage from the price level and do not take this path directly. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.',
   ),
   numberSlider(
     'household.openingDepositMonths',
@@ -126,10 +126,10 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     'Nominal wage rigidity',
     'behavior',
     'share',
-    0.7,
+    0.9,
     0,
     0.95,
-    'How sticky the money wage is when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity, because the hiring target shrinks with the human share of output. Wages still follow monthly inflation and productivity growth. An extra gap opens when the labor market is tight or slack relative to that natural rate, the gap is scaled by the human share of output, and this rigidity shrinks it further. Upward pressure is multiplied by one minus the rigidity. Downward pressure is multiplied by the square of that remainder, so cuts pass through less than raises. At 0.7, a tight market passes through 30 percent of the upward gap and 9 percent of a downward gap. At 0, the gap passes through in full. The monthly wage change is still capped.',
+    'Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus the hiring productivity impulse, times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.',
   ),
   enumSlider(
     'equity.marketOn',

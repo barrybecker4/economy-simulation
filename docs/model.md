@@ -58,7 +58,8 @@ Expected inflation is `expectations.anchorWeight` times the regime path plus one
 year-over-year inflation. The regime path is the inflation target under fiat and minus baseline productivity under
 bitcoin and hybrid. At weight 0 the expectation is the trailing rate. Spending, the real return on money, the deflation
 penalty, housing tenure, and the fiat policy rate use the expectation. The recorded inflation series stays the trailing
-rate. Posted prices and wages follow the regime path at weight 0, and the expectation when the weight is positive.
+rate. Posted prices follow the regime path at weight 0, and the expectation when the weight is positive. Wages negotiate
+toward the agreed wage from the price level and productivity; they do not take the regime path directly.
 
 ## Randomness
 
@@ -165,23 +166,26 @@ firms hire until employment reaches `0.94 × households × humanWeight`, scaled 
 `labor.wageElasticity`. When it is on, each firm wants the headcount whose capacity matches its smoothed sales, and
 vacancies go first to understaffed firms. The aggregate target is that sales headcount, clamped between the cost quota
 times `1 − 0.05` and the cost quota, so sales can pull employment about one month's shed below the cost quota and cannot
-raise it above that quota. A productivity impulse is not a second multiplier on that headcount. It lowers the reference
-real wage while active. After the raw impulse returns to zero, the hiring reference glides the impulse back to zero at
+raise it above that quota. A productivity impulse is not a second multiplier on that headcount. It enters the agreed wage
+and the hiring reference while active. After the raw impulse returns to zero, the hiring impulse glides back to zero at
 rate `1 − wage.nominalRigidity` per month, and the hiring scale cannot rise above 1 while that glided impulse is still
 negative, so sticky wages do not treat the month after a supply shock as a cheap-labor boom. Firms shed at most 5 percent
 of employed workers that month, starting at overstaffed firms when firm-level hiring is on. The wage scale is
 `clamp(1 − elasticity × (real wage / reference − 1), 0.5, 1.25)`, where the real wage is the money wage over the CPI and
-the reference is `1 / (1 + firm.markup)` times one plus the hiring impulse. The default elasticity is 0.5, so a real wage
-10 percent above that reference cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled
-quota is below current employment, firms separate workers down to it. A searcher applies to at most `labor.maxApplications`
-firms. The natural unemployment rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is zero and
-rises as adopted tasks grow.
+the reference is the agreed money wage over the CPI. The default elasticity is 0.5, so a real wage 10 percent above that
+reference cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled quota is below current
+employment, firms separate workers down to it. A searcher applies to at most `labor.maxApplications` firms. The natural
+unemployment rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is zero and rises as adopted tasks
+grow.
 
-The money wage grows at the monthly inflation target plus monthly productivity growth. Tightness is
-`(natural unemployment − unemployment) × humanWeight`. A positive tightness adds a further wage term and a negative one
-subtracts. `wage.nominalRigidity` shrinks that gap, and it shrinks a negative gap by the square of the remaining
-flexibility, so wages are stickier downward. There is no emergency override of that rigidity. The contract wage at a firm
-is the money wage times the firm's productivity. Pay offered to a worker is that wage times the worker's skill.
+The agreed money wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus the
+hiring productivity impulse, times one plus `0.4` times tightness, where tightness is
+`(natural unemployment − unemployment) × humanWeight`. The posted money wage closes `1 − wage.nominalRigidity` of the gap
+to that agreed wage each month, capped by the monthly wage move. Employees close a shortfall; employers close an excess;
+both sides use the same speed. At rigidity 0 the posted wage matches the agreed wage immediately. Hiring's real-wage
+reference is the agreed wage over the price level, so a completed negotiation does not look like expensive labor. During
+the lag, rising prices leave employees behind and falling prices leave them ahead. The contract wage at a firm is the
+money wage times the firm's productivity. Pay offered to a worker is that wage times the worker's skill.
 
 ## Goods and relative prices
 
@@ -392,9 +396,10 @@ agents. Labor share is the wage bill over nominal GDP.
 
 ## Regimes
 
-Fiat keeps the central-bank rule above. The price and wage trends follow the inflation target, and the bank creates
-reserves when the reserve requirement binds. Bitcoin and hybrid use satoshis, including fractions. Their price trend is
-minus baseline productivity, because base money does not grow. The loan rate moves toward the gap between loans and
+Fiat keeps the central-bank rule above. The posted-price trend follows the inflation target, and the bank creates
+reserves when the reserve requirement binds. Wages negotiate toward the agreed wage from prices and productivity, so they
+follow inflation only as prices move. Bitcoin and hybrid use satoshis, including fractions. Their price trend is minus
+baseline productivity, because base money does not grow. The loan rate moves toward the gap between loans and
 savings. Savings are 25 percent of household deposits under maturity-matched lending and 10 percent under full reserve.
 New bitcoin credit cannot exceed the unused savings. The government still finances a shortfall by selling bonds to
 banks, not by central-bank money. A hybrid central bank does not target inflation. If a bank's equity is negative it

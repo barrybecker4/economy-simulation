@@ -22,18 +22,27 @@ describe('phase 11 wage-driven hiring', () => {
     );
   });
 
-  it('raises unemployment above the zero-elasticity path at the default', () => {
-    const quiet = {
+  it('raises unemployment under sticky deflation when elasticity is positive', () => {
+    const frozen = run({
       ...small,
-      'ai.automatableShareStart': 0.3,
-      'ai.automatableShareEnd': 0.3,
-    };
-    const frozen = run({ ...quiet, 'labor.wageElasticity': 0, ticks: 120 });
-    const responsive = run({ ...quiet, ticks: 120 });
+      'regime.type': 'bitcoin',
+      'wage.nominalRigidity': 0.95,
+      'labor.wageElasticity': 0,
+      'prices.trendWeight': 0,
+      ticks: 60,
+    });
+    const responsive = run({
+      ...small,
+      'regime.type': 'bitcoin',
+      'wage.nominalRigidity': 0.95,
+      'labor.wageElasticity': 2,
+      'prices.trendWeight': 0,
+      ticks: 60,
+    });
     expect(frozen.audit.ok && responsive.audit.ok).toBe(true);
-    const frozenEnd = series(frozen, 'unemployment').at(-1) ?? 0;
-    const responsiveEnd = series(responsive, 'unemployment').at(-1) ?? 0;
-    expect(responsiveEnd).toBeGreaterThan(frozenEnd);
+    expect(series(responsive, 'unemployment').at(-1) ?? 0).toBeGreaterThan(
+      series(frozen, 'unemployment').at(-1) ?? 0,
+    );
   });
 
   it('raises unemployment under deflation when wages are sticky and elasticity is high', () => {
@@ -42,6 +51,7 @@ describe('phase 11 wage-driven hiring', () => {
       'regime.type': 'bitcoin',
       'wage.nominalRigidity': 0,
       'labor.wageElasticity': 2,
+      'prices.trendWeight': 0,
       ticks: 60,
     });
     const sticky = run({
@@ -49,6 +59,7 @@ describe('phase 11 wage-driven hiring', () => {
       'regime.type': 'bitcoin',
       'wage.nominalRigidity': 0.95,
       'labor.wageElasticity': 2,
+      'prices.trendWeight': 0,
       ticks: 60,
     });
     expect(series(sticky, 'unemployment').at(-1) ?? 0).toBeGreaterThan(

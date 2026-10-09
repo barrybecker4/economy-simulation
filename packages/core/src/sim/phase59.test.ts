@@ -22,13 +22,14 @@ describe('phase 59 sticky wages', () => {
     const sticky = run({ ...base, 'wage.nominalRigidity': 0.95 });
     const flexible = run({ ...base, 'wage.nominalRigidity': 0 });
     expect(sticky.audit.ok && flexible.audit.ok).toBe(true);
-    const stickyUnemployment = end(sticky, 'unemployment');
-    const flexibleUnemployment = end(flexible, 'unemployment');
+    const stickyPeak = peak(sticky, 'unemployment');
+    const flexiblePeak = peak(flexible, 'unemployment');
     const natural = end(sticky, 'naturalUnemployment');
-    expect(stickyUnemployment).toBeGreaterThan(flexibleUnemployment);
-    expect(stickyUnemployment).toBeGreaterThan(natural);
-    expect(stickyUnemployment).toBeGreaterThan(0.01);
-    expect(stickyUnemployment).toBeLessThan(0.5);
+    expect(stickyPeak).toBeGreaterThan(flexiblePeak);
+    expect(stickyPeak).toBeGreaterThan(natural);
+    expect(stickyPeak).toBeGreaterThan(0.01);
+    expect(stickyPeak).toBeLessThan(0.5);
+    expect(end(sticky, 'unemployment')).toBeLessThan(0.5);
     expect(end(sticky, 'medianRealConsumption')).toBeGreaterThan(0);
   });
 });
@@ -42,4 +43,8 @@ function run(sliders: Record<string, number | string>): SimulationResult {
 
 function end(result: SimulationResult, id: MetricId): number {
   return result.metrics.series[id].at(-1) ?? 0;
+}
+
+function peak(result: SimulationResult, id: MetricId): number {
+  return Math.max(...result.metrics.series[id].map((value) => value ?? 0));
 }

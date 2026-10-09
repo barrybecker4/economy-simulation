@@ -3,7 +3,7 @@ import { productionCapacity } from './capacity.js';
 import { taylorRate } from './central-bank.js';
 import { hurdleInvestment } from './credit.js';
 import { deflationPenaltyFrom } from './helpers.js';
-import { hiringScale, wageGrowth } from './labor.js';
+import { agreedWage, hiringScale, wageGrowth } from './labor.js';
 import { monthlyPriceMove } from './pricing.js';
 import {
   adoptionProgress,
@@ -14,7 +14,7 @@ import {
   scheduledAgentCount,
   taskGain,
 } from './population.js';
-import { AI_INTERNET_TASK_GAIN } from './rules.js';
+import { AI_INTERNET_TASK_GAIN, TIGHTNESS_WAGE } from './rules.js';
 import { goodsBudget, goodsSpendingShare } from './spending.js';
 
 describe('pure economy formulas', () => {
@@ -59,12 +59,34 @@ describe('pure economy formulas', () => {
     expect(roboticsProgress(20, 8, 12)).toBe(1);
   });
 
-  it('makes downward wage pressure stickier than upward', () => {
-    const up = wageGrowth({ trend: 0, tightness: 0.1, rigidity: 0.7 });
-    const down = wageGrowth({ trend: 0, tightness: -0.1, rigidity: 0.7 });
-    expect(up).toBeCloseTo(0.4 * 0.1 * 0.3, 12);
-    expect(down).toBeCloseTo(0.4 * -0.1 * 0.3 ** 2, 12);
-    expect(Math.abs(down)).toBeLessThan(Math.abs(up));
+  it('closes shortfalls and excesses at the same rigidity speed', () => {
+    const raise = wageGrowth({ posted: 100, agreed: 110, rigidity: 0.9 });
+    const cut = wageGrowth({ posted: 100, agreed: 90, rigidity: 0.9 });
+    expect(raise).toBeCloseTo(0.01, 12);
+    expect(cut).toBeCloseTo(-0.01, 12);
+    expect(wageGrowth({ posted: 100, agreed: 102, rigidity: 0 })).toBeCloseTo(0.02, 12);
+    expect(wageGrowth({ posted: 100, agreed: 98, rigidity: 0 })).toBeCloseTo(-0.02, 12);
+    expect(wageGrowth({ posted: 100, agreed: 110, rigidity: 0 })).toBeCloseTo(0.05, 12);
+  });
+
+  it('builds the agreed wage from price, productivity, impulse, and tightness', () => {
+    expect(
+      agreedWage({
+        priceLevel: 120,
+        markup: 0.2,
+        productivity: 1.1,
+        impulse: -0.05,
+        tightness: -0.1,
+      }),
+    ).toBeCloseTo(120 * (1 / 1.2) * 1.1 * 0.95 * (1 + TIGHTNESS_WAGE * -0.1), 12);
+  });
+
+  it('scales hiring from the agreed real wage', () => {
+    expect(hiringScale({ realWage: 1.1, referenceRealWage: 1, elasticity: 0 })).toBe(1);
+    expect(hiringScale({ realWage: 1.1, referenceRealWage: 1, elasticity: 0.5 })).toBeCloseTo(
+      0.95,
+      12,
+    );
   });
 
   it('computes the Taylor rule and a zero deflation penalty', () => {

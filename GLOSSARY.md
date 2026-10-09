@@ -34,6 +34,15 @@ _Avoid_: owner share, agents per owner
 The economy-wide money pay for household labor, before that household's skill.
 _Avoid_: salary, agent wage
 
+**Agreed wage**:
+The money wage employees and employers would sign this month given the price level, productivity, and labor-market
+tightness.
+_Avoid_: target wage, equilibrium wage, flexible wage
+
+**Wage negotiation**:
+Closing the gap between the posted wage and the agreed wage. Employees close a shortfall; employers close an excess.
+_Avoid_: wage bargaining, wage indexation, contract length
+
 **Firm capacity**:
 The goods one firm can produce in a month.
 _Avoid_: output, real GDP
