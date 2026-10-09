@@ -45,7 +45,7 @@ the food and housing CPI weights. Credit-financed discretionary spending is a la
 is below 1, the fiat inflation target no longer fully writes the price path.
 
 An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The weight cannot be 0; the
-floor is 0.05. Crisis stimulus defaults to 1 with a six-month lag and also cannot be 0. Zombie support defaults to 0;
+floor is 0.05. Crisis stimulus defaults to 1.75 with a three-month lag and can be set to 0. Zombie support defaults to 0;
 when positive it is a cap on skipped firm replacements from the stimulus budget and does not move deposits. The web app opens on the monetary comparison overrides (`prices.trendWeight` 0.8, `production.demandWeight` 1,
 deposit pass-through 1, real-return sensitivity 1, bond rate 0.02, anchored expectations, tenure choice on, 12 months of
 opening deposits) so spending can move prices and output, discretionary spending responds to the real return on money,

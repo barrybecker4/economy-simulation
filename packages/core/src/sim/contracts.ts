@@ -36,7 +36,7 @@ export function monthlyOwnedCost(homePrice: number, realLoanRate: number): numbe
   return (homePrice * realLoanRate) / 12;
 }
 
-/** Expected monthly capital loss on the house. Negative when prices are rising. */
+/** @deprecated Expected capital loss is no longer a separate tenure term. */
 export function ownershipCapitalLoss(homePrice: number, expectedInflation: number): number {
   return (-expectedInflation * homePrice) / 12;
 }
@@ -61,15 +61,16 @@ export function monthlyMortgagePayment(
 
 /**
  * Longest mortgage term, up to the slider, at which the fixed nominal payment
- * stays inside the default share of income after income grows at expected
- * inflation. Zero means even a one-year loan fails.
+ * stays inside the default share of current income. Zero means even a one-year
+ * loan fails. Expected inflation enters buy-versus-rent through the real rate
+ * only, not this affordability check.
  */
 export function affordableMortgageTermYears(input: {
   principal: number;
   loanRate: number;
   income: number;
   defaultShare: number;
-  expectedInflation: number;
+  expectedInflation?: number;
   maxTermYears: number;
 }): number {
   if (input.principal <= 0 || input.income <= 0 || input.maxTermYears < 1) {
@@ -77,10 +78,7 @@ export function affordableMortgageTermYears(input: {
   }
   for (let term = Math.max(1, Math.round(input.maxTermYears)); term >= 1; term -= 1) {
     const payment = monthlyMortgagePayment(input.principal, input.loanRate, term);
-    const incomeFactor =
-      input.expectedInflation >= 0 ? 1 : (1 + input.expectedInflation) ** term;
-    const incomeFloor = Math.max(1e-9, input.income * incomeFactor);
-    if (payment <= incomeFloor * input.defaultShare) {
+    if (payment <= input.income * input.defaultShare) {
       return term;
     }
   }
@@ -148,26 +146,23 @@ export function onContractChoice(economy: Economy): void {
     const downPayment = moneyAmount(economy, homePrice * (1 - ltv));
     const maxLoan = moneyAmount(economy, homePrice * ltv);
     const impatience = (homePrice * (household.timePref - economy.params.timePrefMean)) / 12;
-    const capitalLoss = ownershipCapitalLoss(homePrice, inflation);
     const rentBurden = monthlyRentCost(homePrice);
-    const ownedBurden = monthlyOwnedCost(homePrice, realRate) + capitalLoss + impatience;
+    const ownedBurden = monthlyOwnedCost(homePrice, realRate) + impatience;
     const termYears = affordableMortgageTermYears({
       principal: maxLoan,
       loanRate,
       income,
       defaultShare: economy.params.mortgageDefaultShare,
-      expectedInflation: inflation,
       maxTermYears,
     });
-    // Burden uses the real loan rate and expected capital loss so deflation
-    // raises the cost of buying now. The booked payment uses the contractual
-    // nominal loan rate only. Impatience keeps the median household near the
-    // rent-mortgage margin at the neutral rate.
+    // Burden uses the real loan rate once so deflation raises the cost of
+    // buying now. Affordability and the booked payment use the contractual
+    // nominal loan rate against current income. Impatience keeps the median
+    // household near the rent-mortgage margin at the neutral rate.
     const mortgageBurden =
       termYears > 0
         ? monthlyMortgagePayment(maxLoan, realRate, termYears) +
           monthlyOwnedCost(downPayment, realRate) +
-          capitalLoss +
           impatience
         : Number.POSITIVE_INFINITY;
     const choice = tenureFromBurdens({

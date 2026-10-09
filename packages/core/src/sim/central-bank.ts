@@ -1,7 +1,21 @@
 import { splitProportional } from './allocate.js';
-import { addBonds, bondNumber, savingsStock, totalDeposits, totalLoans } from './banking.js';
+import {
+  addBonds,
+  bankCreditRoom,
+  bondNumber,
+  savingsStock,
+  totalDeposits,
+  totalLoans,
+} from './banking.js';
 import type { Economy } from './economy.js';
-import { expectedInflation, inflation, moneyAmount, outputGap } from './helpers.js';
+import {
+  expectedInflation,
+  inflation,
+  moneyAmount,
+  naturalUnemployment,
+  outputGap,
+  unemploymentRate,
+} from './helpers.js';
 import { updateMoneyChoice } from './monies.js';
 import {
   addReserves,
@@ -16,10 +30,16 @@ import {
   repayFirmLoan,
 } from './money.js';
 import { markLenderOfLastResort } from './resolution.js';
-import { DEPOSIT_BUFFER_MONTHS, LOAN_SPREAD, THIN_OPENING_MONTHS } from './rules.js';
+import {
+  DEPOSIT_BUFFER_MONTHS,
+  LOAN_SPREAD,
+  MAX_POLICY_RATE,
+  THIN_OPENING_MONTHS,
+} from './rules.js';
 import { clamp } from './stats.js';
+import type { Firm } from './types.js';
 
-/** Taylor-style fiat policy rate. */
+/** Taylor-style fiat policy rate, floored at 0 and capped at MAX_POLICY_RATE. */
 export function taylorRate(input: {
   timePrefMean: number;
   inflation: number;
@@ -28,12 +48,13 @@ export function taylorRate(input: {
   outputWeight: number;
   outputGap: number;
 }): number {
-  return Math.max(
-    0,
+  return clamp(
     input.timePrefMean +
       input.inflation +
       input.inflationWeight * (input.inflation - input.inflationTarget) +
       input.outputWeight * input.outputGap,
+    0,
+    MAX_POLICY_RATE,
   );
 }
 
@@ -49,6 +70,8 @@ export function marketLoanRate(input: {
 
 export function onCentralBank(economy: Economy): void {
   economy.zombieBudget = 0;
+  economy.fiatInjectionFlow = 0;
+  economy.reserveAccommodationFlow = 0;
   updateMoneyChoice(economy);
   if (economy.params.choiceSpeed > 0) {
     setBlendedPolicy(economy);
@@ -69,7 +92,7 @@ export function onCentralBank(economy: Economy): void {
 
 /**
  * Grow or shrink fiat broad money toward the inflation target plus productivity,
- * plus lagging crisis stimulus from demand or credit contractions. The injection
+ * plus lagging crisis stimulus from the observed unemployment gap. The injection
  * channel chooses the offsetting stock. A contraction withdraws from that same
  * sector, and only up to the balances that exist.
  */
@@ -83,9 +106,9 @@ export function growFiatMoney(economy: Economy): void {
     (economy.params.inflationTarget +
       economy.params.prodGrowth +
       (economy.params.inflationTarget - trailing));
-  const pressure = contractionPressure(economy);
+  const pressure = stimulusPressure(economy);
   economy.contractionPressure.push(pressure);
-  const lagged = laggedContractionPressure(economy);
+  const lagged = laggedStimulusPressure(economy);
   const stimulusAnnual = economy.params.stimulus * lagged;
   const annual = secular + stimulusAnnual;
   const monthly = annual / 12;
@@ -112,17 +135,32 @@ export function growFiatMoney(economy: Economy): void {
   }
   if (amount > 0) {
     placeInjection(economy, amount);
+    economy.fiatInjectionFlow = amount;
     return;
   }
-  withdrawInjection(economy, -amount);
+  const removed = withdrawInjection(economy, -amount);
+  economy.fiatInjectionFlow = -removed;
 }
 
-/** This month's demand or credit contraction pressure for the stimulus lag queue. */
+/** Ignore unemployment gaps inside this band so calm noise does not move stimulus. */
+const STIMULUS_GAP_DEADBAND = 0.02;
+
+/**
+ * Signed unemployment gap for the stimulus lag queue. Positive is slack;
+ * negative is a tight labor market. Gaps inside two points of the natural rate
+ * are treated as zero so calm runs and small staffing noise do not drift the stock.
+ */
+export function stimulusPressure(economy: Economy): number {
+  const gap = unemploymentRate(economy) - naturalUnemployment(economy);
+  return Math.abs(gap) < STIMULUS_GAP_DEADBAND ? 0 : gap;
+}
+
+/** @deprecated Use stimulusPressure. Kept for older phase imports. */
 export function contractionPressure(economy: Economy): number {
-  return Math.max(0, -economy.demandImpulse, -economy.creditImpulse);
+  return Math.max(0, stimulusPressure(economy));
 }
 
-function laggedContractionPressure(economy: Economy): number {
+function laggedStimulusPressure(economy: Economy): number {
   const lag = Math.max(1, economy.params.stimulusLag);
   const index = economy.contractionPressure.length - 1 - lag;
   if (index < 0) {
@@ -144,19 +182,19 @@ export function placeInjection(economy: Economy, amount: number): void {
   if (channel === 'governmentSpending') {
     creditTreasury(economy, amount);
     addReserves(bank, amount);
-    spendTreasuryInjection(economy, amount);
-    blendChannelReceipts(economy, amount);
+    const spent = spendTreasuryOnInventory(economy, amount);
+    blendChannelReceipts(economy, spent);
     return;
   }
   if (channel === 'newLoans') {
-    economy.channelLoans += bookFirmLoans(economy, amount);
-    blendChannelReceipts(economy, amount);
+    const booked = bookFirmLoans(economy, amount);
+    economy.channelLoans += booked;
+    blendChannelReceipts(economy, booked);
     return;
   }
   if (channel === 'assetPurchase') {
-    addBonds(bank, amount);
-    creditFirms(economy, amount);
-    blendChannelReceipts(economy, amount);
+    const bought = buyExistingBonds(economy, amount);
+    blendChannelReceipts(economy, bought);
     return;
   }
   injectHouseholdDeposits(economy, amount);
@@ -196,30 +234,34 @@ export function withdrawInjection(economy: Economy, amount: number): number {
 }
 
 function bookFirmLoans(economy: Economy, amount: number): number {
-  const parts = splitProportional(
-    amount,
-    economy.firms.map(() => 1),
-  );
+  const roomByFirm = economy.firms.map((firm) => Math.max(0, bankCreditRoom(economy, firm.bank)));
+  const capacity = roomByFirm.reduce((sum, room) => sum + room, 0);
+  const target = Math.min(amount, capacity);
+  if (target <= 0) {
+    return 0;
+  }
+  const parts = splitProportional(target, roomByFirm);
   let booked = 0;
   for (let index = 0; index < economy.firms.length; index += 1) {
     const firm = economy.firms[index];
     const share = parts[index] ?? 0;
     if (firm && share > 0) {
-      drawFirmLoan(firm, share);
-      booked += share;
+      const take = Math.min(share, Math.max(0, bankCreditRoom(economy, firm.bank)));
+      if (take > 0) {
+        drawFirmLoan(firm, take);
+        booked += take;
+      }
     }
   }
   return booked;
 }
 
-/** Repay last tick's injection loans before wages, so the cash is not a gift. */
-export function repayChannelLoans(economy: Economy): void {
-  if (economy.channelLoans <= 0) {
-    return;
-  }
-  const repaid = repayInjectedLoans(economy, economy.channelLoans);
-  economy.channelLoans -= repaid;
-  economy.loanRepaid += repaid;
+/**
+ * Injection loans retire on the ordinary repayment path. Kept as a no-op so
+ * older call sites still compile; contractions use withdrawInjection.
+ */
+export function repayChannelLoans(_economy: Economy): void {
+  // Intentionally empty: newLoans injections are real loans, not same-tick gifts.
 }
 
 function repayInjectedLoans(economy: Economy, amount: number): number {
@@ -238,41 +280,70 @@ function repayInjectedLoans(economy: Economy, amount: number): number {
 }
 
 function unwindPurchasedClaims(economy: Economy, amount: number): number {
+  const removed = drainHouseholdDeposits(economy, Math.min(amount, reserveStock(economy)));
+  releaseReserves(economy, removed);
+  // Restore bonds on the first bank so a contraction reverses the purchase.
+  const bank = economy.banks[0];
+  if (bank && removed > 0) {
+    addBonds(bank, removed);
+  }
+  return removed;
+}
+
+/**
+ * Spend treasury cash on firm inventory, starting with the fullest stock.
+ * Returns the amount spent. Unspent credit stays in the treasury.
+ */
+export function spendTreasuryOnInventory(economy: Economy, amount: number): number {
+  let left = Math.min(amount, Math.max(0, economy.govDeposits));
+  const spentAtStart = left;
+  const byStock = [...economy.firms].sort((a, b) => b.inventory - a.inventory);
+  for (const firm of byStock) {
+    left = buyFirmInventory(economy, firm, left);
+  }
+  const spent = spentAtStart - left;
+  economy.govGoodsSpend += spent;
+  return spent;
+}
+
+function buyFirmInventory(economy: Economy, firm: Firm, remaining: number): number {
+  if (remaining <= 0 || firm.inventory <= 0 || firm.price <= 0) {
+    return remaining;
+  }
+  const units = Math.min(firm.inventory, remaining / firm.price);
+  const bill = Math.min(remaining, Math.round(units * firm.price));
+  if (bill <= 0) {
+    return remaining;
+  }
+  payFromTreasury(firm, economy, bill);
+  firm.inventory -= bill / firm.price;
+  firm.sales += bill / firm.price;
+  return remaining - bill;
+}
+
+/**
+ * Buy bonds already on bank books. Pays households, adds reserves, and reduces
+ * the bond stock. Places nothing when no bonds are available.
+ */
+function buyExistingBonds(economy: Economy, amount: number): number {
   let left = amount;
+  let bought = 0;
   for (const bank of economy.banks) {
     if (left <= 0) {
       break;
     }
     const available = bondNumber(bank);
-    const claim = available <= 0 ? 0 : Math.min(left, available);
-    const removed = drainFirmDeposits(economy, claim);
-    addBonds(bank, -removed);
-    left -= removed;
-  }
-  return amount - left;
-}
-
-/** Spend a fresh treasury credit on firms. Does not spend the balance that was already there. */
-function spendTreasuryInjection(economy: Economy, amount: number): void {
-  let left = amount;
-  const firms = economy.firms;
-  if (firms.length === 0) {
-    return;
-  }
-  const each = Math.floor(amount / firms.length);
-  for (let index = 0; index < firms.length; index += 1) {
-    const firm = firms[index];
-    if (!firm || left <= 0) {
+    const take = available <= 0 ? 0 : Math.min(left, available);
+    if (take <= 0) {
       continue;
     }
-    const share = index === firms.length - 1 ? left : Math.min(left, each);
-    const bill = Math.min(share, Math.max(0, economy.govDeposits));
-    if (bill > 0) {
-      payFromTreasury(firm, economy, bill);
-      economy.govGoodsSpend += bill;
-      left -= bill;
-    }
+    addBonds(bank, -take);
+    addReserves(bank, take);
+    injectHouseholdDeposits(economy, take);
+    bought += take;
+    left -= take;
   }
+  return bought;
 }
 
 function drainFirmDeposits(economy: Economy, amount: number): number {
@@ -478,4 +549,5 @@ function accommodateReserves(economy: Economy): void {
   const gap = required - reserves;
   addReserves(bank, gap);
   creditFirms(economy, gap);
+  economy.reserveAccommodationFlow += gap;
 }

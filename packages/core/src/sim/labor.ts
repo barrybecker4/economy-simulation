@@ -18,21 +18,31 @@ import {
   separate,
 } from './helpers.js';
 
-/** Money wage both sides would sign this month. */
+/** Money wage both sides would sign this month. Uses trend productivity and tightness. */
 export function agreedWage(input: {
   priceLevel: number;
   markup: number;
   productivity: number;
-  impulse: number;
   tightness: number;
 }): number {
   return (
     input.priceLevel *
     (1 / (1 + input.markup)) *
     input.productivity *
-    (1 + input.impulse) *
     (1 + TIGHTNESS_WAGE * input.tightness)
   );
+}
+
+/**
+ * Real-wage reference for the hiring quota. Matches the agreed real wage at
+ * zero tightness, without a productivity impulse, so slack and supply shocks
+ * do not amplify each other through the quota.
+ */
+export function hiringReferenceRealWage(input: {
+  markup: number;
+  productivity: number;
+}): number {
+  return (1 / (1 + input.markup)) * input.productivity;
 }
 
 /** Monthly wage growth that closes (1 − rigidity) of the gap to the agreed wage. */
@@ -78,7 +88,6 @@ export function workersForSales(input: {
 export function onLabor(economy: Economy): void {
   refreshExpectedSales(economy);
   separateAtRandom(economy);
-  updateHiringProductivityImpulse(economy);
   const costQuota = employmentTarget(economy);
   const firmTargets =
     economy.params.firmLevelHiring === 'on' ? firmHeadcounts(economy) : null;
@@ -151,51 +160,29 @@ function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
   }));
 }
 
-/**
- * While a productivity impulse is active, the hiring reference tracks it.
- * After it returns to zero, the reference glides back at rate 1 − rigidity so
- * flexible wages snap and sticky wages do not over-hire into the recovery.
- */
-function updateHiringProductivityImpulse(economy: Economy): void {
-  if (economy.productivityImpulse !== 0) {
-    economy.hiringProductivityImpulse = economy.productivityImpulse;
-    return;
-  }
-  economy.hiringProductivityImpulse *= economy.params.rigidity;
-  if (Math.abs(economy.hiringProductivityImpulse) < 1e-12) {
-    economy.hiringProductivityImpulse = 0;
-  }
-}
-
-function hiringImpulse(economy: Economy): number {
-  return economy.productivityImpulse !== 0
-    ? economy.productivityImpulse
-    : economy.hiringProductivityImpulse;
-}
-
 function agreedWageLevel(economy: Economy): number {
   return agreedWage({
     priceLevel: economy.priceLevel,
     markup: economy.params.markup,
     productivity: economy.productivity,
-    impulse: hiringImpulse(economy),
     tightness: outputGap(economy),
   });
 }
 
 function wageHiringScale(economy: Economy): number {
-  const agreed = agreedWageLevel(economy);
   const realWage = economy.priceLevel > 0 ? economy.wageLevel / economy.priceLevel : 1;
-  const referenceRealWage = economy.priceLevel > 0 ? agreed / economy.priceLevel : 1;
   const scale = hiringScale({
     realWage,
-    referenceRealWage,
+    referenceRealWage: hiringReferenceRealWage({
+      markup: economy.params.markup,
+      productivity: economy.productivity,
+    }),
     elasticity: economy.params.wageElasticity,
   });
-  // After a negative productivity impulse, sticky real wages can sit below the
-  // gliding reference and look "cheap." Cap the scale at 1 so the recovery
-  // does not over-hire and flip the unemployment gap's sign.
-  if (economy.productivityImpulse === 0 && economy.hiringProductivityImpulse < 0) {
+  // A negative productivity impulse raises prices. Sticky wages then look cheap
+  // against an unchanged reference. Cap the scale at 1 so the shock cuts
+  // capacity without a hiring boom.
+  if (economy.productivityImpulse < 0) {
     return Math.min(scale, 1);
   }
   return scale;

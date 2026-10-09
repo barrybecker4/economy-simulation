@@ -14,11 +14,12 @@ slider left at 0 would have kept that path as the default.
 
 ## Decision
 
-- The agreed wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus the
-  hiring productivity impulse, times one plus `0.4` times labor-market tightness.
+- The agreed wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus
+  `0.4` times labor-market tightness.
 - `wage.nominalRigidity` is the share of the posted-to-agreed gap left for next month. Raises and cuts use the same
   speed. The default is 0.9 (was 0.7): under catch-up, 0.7 would close 30 percent of the gap each month and erase the lag.
-- `labor.wageElasticity` uses the agreed real wage as its reference. The default stays 0.5.
+- `labor.wageElasticity` uses a hiring reference of `1 / (1 + firm.markup)` times trend productivity. That omits
+  tightness and the productivity impulse; see [ADR 0020](0020-hiring-reference.md). The default stays 0.5.
 - The onus follows the gap, not the regime label.
 
 ## Consequences

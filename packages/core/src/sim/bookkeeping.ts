@@ -53,13 +53,8 @@ function replaceFirm(economy: Economy, firm: Firm): void {
   firm.bitcoinLoan = 0;
   economy.defaultsThisTick += firm.loan + bitcoinDebt;
   chargeEquityForDefault(bank, economy, firm.loan + bitcoinDebt);
-  for (const workerId of firm.workers) {
-    const worker = economy.households[workerId];
-    if (worker) {
-      worker.employer = -1;
-    }
-  }
-  firm.workers = [];
+  // Keep the current workforce. Clearing them here made unemployment jump by
+  // the whole firm for one month before the next labor step could rehire.
   resetFailedFirmAccounts(firm, bank, economy, INITIAL_WAGE);
   firm.capital = 1;
   firm.inventory = 1;

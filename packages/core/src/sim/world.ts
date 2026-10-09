@@ -28,6 +28,11 @@ export class World {
     this.economy = createEconomy(loadParameters(config), config.seed, forcedShock);
   }
 
+  /** Test access to the live economy stocks and flow history. */
+  state(): Economy {
+    return this.economy;
+  }
+
   handlers(): PhaseHandlers {
     const economy = this.economy;
     return {

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. Channel mechanics updated by [ADR 0021](0021-rate-cap-and-real-channels.md).
 
 ## Context
 
@@ -13,16 +13,14 @@ so hypotheses about who first holds new money cannot be tested fairly.
 
 - `centralBank.injectionChannel` selects `proRataDeposits` (default, prior path),
   `governmentSpending`, `newLoans`, or `assetPurchase`.
-- `newLoans` books firm loans and firm deposits. It does not create reserves. The
-  loan is repaid before that cash is paid out as wages.
-- `assetPurchase` credits firm deposits and a bond claim. The loan stock is unchanged.
-- `governmentSpending` credits the treasury, adds reserves, and buys goods from
-  firms in the same tick.
+- `newLoans` books firm loans within credit room and does not create reserves.
+- `assetPurchase` buys existing bank-held bonds, pays households, and adds reserves.
+- `governmentSpending` credits the treasury, adds reserves, and buys firm inventory;
+  unspent credit stays in the treasury.
 - A contraction withdraws from the sector that channel credits, and only up to the
   balances that exist.
 
 ## Consequences
 
 Regime comparisons can vary the entry point of new fiat without changing the
-aggregate growth target. A new-loan injection is inside money that is repaid,
-not a gift that is paid out as wages. Neutral settings reproduce Phases 35–39.
+aggregate growth target. Neutral settings reproduce Phases 35–39.

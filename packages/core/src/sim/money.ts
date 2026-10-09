@@ -1,6 +1,7 @@
 import { bondNumber } from './banking.js';
 import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
+import { moneyAmount } from './helpers.js';
 import type { Bank, Firm, Household } from './types.js';
 
 /** Household, firm, or agent cash balance. */
@@ -113,16 +114,49 @@ export function collectBankFee(bank: Bank, economy: Economy, fee: number): void 
 }
 
 /**
- * Dividend: bank equity and vault cash fall together, up to available vault.
- * Book equity above vault (negative private equity) is not paid out as cash.
+ * Dividend to depositors: equity falls and private equity rises by the same
+ * amount so vault is unchanged. Household deposits at this bank rise by the
+ * payout. Retained interest was never vault cash, so the payout is not limited
+ * by vault.
  */
 export function releaseBankEquity(bank: Bank, economy: Economy, amount: number): void {
-  const payable = Math.min(amount, Math.max(0, bank.vault));
+  const payable = Math.max(0, amount);
   if (payable <= 0) {
     return;
   }
-  bank.equity -= payable;
-  bank.vault -= payable;
+  const holders = economy.households.filter(
+    (household) => household.bank === bank.id && household.deposit > 0,
+  );
+  if (holders.length === 0) {
+    return;
+  }
+  const weights = holders.map((household) => Math.max(0, household.deposit));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  if (!(totalWeight > 0)) {
+    return;
+  }
+  adjustBankEquity(bank, economy, -payable);
+  let paid = 0;
+  const lastIndex = holders.length - 1;
+  for (let index = 0; index < holders.length; index += 1) {
+    const household = holders[index];
+    if (!household) {
+      continue;
+    }
+    const remaining = payable - paid;
+    if (remaining <= 0) {
+      break;
+    }
+    const share =
+      index === lastIndex
+        ? remaining
+        : moneyAmount(economy, (weights[index]! / totalWeight) * payable);
+    const take = Math.min(share, remaining);
+    if (take > 0) {
+      household.deposit += take;
+      paid += take;
+    }
+  }
 }
 
 export function chargeEquityForDefault(

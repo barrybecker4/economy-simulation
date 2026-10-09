@@ -7,7 +7,6 @@ import {
   monthlyMortgagePayment,
   monthlyOwnedCost,
   onContractChoice,
-  ownershipCapitalLoss,
   tenureFromBurdens,
 } from './contracts.js';
 import { createEconomy } from './init.js';
@@ -22,22 +21,20 @@ describe('mortgage buy-or-wait', () => {
     const loanRate = 0.04;
     const inflation = -0.08;
     const realRate = loanRate - inflation;
-    const capitalLoss = ownershipCapitalLoss(homePrice, inflation);
     const rent = homePrice * 0.007;
     const mortgage =
-      monthlyMortgagePayment(loan, realRate, 30) +
-      monthlyOwnedCost(down, realRate) +
-      capitalLoss;
-    const owned = monthlyOwnedCost(homePrice, realRate) + capitalLoss;
+      monthlyMortgagePayment(loan, realRate, 30) + monthlyOwnedCost(down, realRate);
+    const owned = monthlyOwnedCost(homePrice, realRate);
     expect(tenureFromBurdens({ rent, mortgage, owned })).toBe('rent');
-    expect(affordableMortgageTermYears({
-      principal: loan,
-      loanRate,
-      income: 1_000,
-      defaultShare: 0.3,
-      expectedInflation: inflation,
-      maxTermYears: 30,
-    })).toBeLessThan(30);
+    expect(
+      affordableMortgageTermYears({
+        principal: loan,
+        loanRate,
+        income: 1_000,
+        defaultShare: 0.3,
+        maxTermYears: 30,
+      }),
+    ).toBe(30);
   });
 
   it('still offers a long mortgage under two percent expected inflation', () => {
@@ -46,19 +43,17 @@ describe('mortgage buy-or-wait', () => {
       loanRate: 0.06,
       income: 1_000,
       defaultShare: 0.3,
-      expectedInflation: 0.02,
       maxTermYears: 30,
     });
     expect(term).toBe(30);
   });
 
-  it('offers no term when even a one-year loan fails the income test under deflation', () => {
+  it('offers no term when even a one-year loan fails the income test', () => {
     const term = affordableMortgageTermYears({
       principal: 38_400,
       loanRate: 0.06,
       income: 100,
       defaultShare: 0.3,
-      expectedInflation: -0.08,
       maxTermYears: 30,
     });
     expect(term).toBe(0);

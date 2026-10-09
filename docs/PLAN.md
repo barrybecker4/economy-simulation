@@ -251,7 +251,7 @@ Housing security enters well-being at a fixed weight of 0.5. It is not a slider.
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------- |
 | H1  | Under a fixed money supply, rapid AI productivity growth lowers the price level, and with rigid nominal wages this raises unemployment and debt burdens in the short run. | regime.type, ai.adoptionSteepness, wage.nominalRigidity               | Price level, unemployment, defaults, credit relative to GDP |
 | H2  | A central bank that targets inflation smooths the transition to AI-driven growth more than a fixed supply does.                                                           | regime.type, centralBank.inflationWeight, shock.size                  | Output volatility, boom-bust amplitude                      |
-| H3  | Labor share falls as AI is adopted in any regime, and the fall depends mainly on ownership concentration.                                                                 | ai.ownershipConcentration, regime.type                                | Labor share, Gini, top decile share                         |
+| H3  | AI adoption raises capital share or productivity per human, and ownership concentration changes the wealth Gini.                                                           | ai.ownershipConcentration, regime.type                                | Capital share, productivity per human, wealth Gini          |
 | H4  | Lower payment friction for AI agents increases their share of transactions.                                                                                               | ai.paymentFrictionFiat, ai.paymentFrictionBitcoin, regime.type        | AI transaction share, GDP growth                            |
 | H5  | Credit-driven booms are smaller when lending is limited to saved funds.                                                                                                   | bitcoin.lendingModel, bank.reserveRequirement, regime.type            | Credit relative to GDP, bank failures, boom-bust amplitude  |
 | H6  | A physical bottleneck limits how much AI raises growth, regardless of regime.                                                                                             | ai.physicalTaskShare, regime.type                                     | GDP growth, productivity per human                          |
@@ -1368,12 +1368,13 @@ Acceptance:
 Goal: employees and employers close the gap to a productivity-consistent agreed wage at the same speed, so calm
 unemployment stays near the natural rate in every regime, and the lag's sign does the distributional work.
 
-1. The agreed wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus the
-   hiring productivity impulse, times one plus `0.4` times labor-market tightness.
+1. The agreed wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus
+   `0.4` times labor-market tightness.
 2. `wage.nominalRigidity` is the share of the posted-to-agreed gap left for next month. Employees close a shortfall and
    employers close an excess at rate `1 − rigidity`, capped by the monthly wage move. The default moves from 0.7 to 0.9.
    Squared downward rigidity is gone.
-3. `labor.wageElasticity` compares the real wage with the agreed real wage (agreed money wage over the price level). The
+3. `labor.wageElasticity` compares the real wage with the hiring reference
+   (`1 / (1 + firm.markup)` times productivity). Phase 68 drops tightness and the impulse from that reference. The
    default stays 0.5.
 
 Acceptance:
@@ -1486,6 +1487,122 @@ Acceptance:
 - Bitcoin replacement ignores the slider.
 - The hypothesis runner reports H10. Support is recorded from the three legs; it is not forced. Under the bundled credit
   shock the depth and speed legs hold while end real GDP stays higher under fiat, so H10 is unsupported.
+
+### Phase 68: Hiring reference without tightness or impulse
+
+Goal: the hiring quota no longer amplifies a slump through labor-market tightness or a supply shock through the
+productivity impulse, while the wage bargain still responds to tightness.
+
+1. The agreed money wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus
+   `0.4` times tightness. It does not include the productivity impulse.
+2. The hiring real-wage reference is `1 / (1 + firm.markup)` times economy-wide productivity. It omits tightness and the
+   impulse. Capacity still multiplies by one plus the impulse.
+3. The hiring-impulse glide is removed. While the productivity impulse is negative, the hiring scale cannot rise above 1.
+
+Acceptance:
+
+- A productivity impulse alone does not change the employment quota.
+- Bitcoin with demand-led prices, firm-level hiring on, and real-return sensitivity 3 averages under 20 percent
+  unemployment over 240 months and ends under 25 percent.
+- A 24-month adverse productivity window cuts real GDP and does not boom hiring (unemployment gap at or above −2 points)
+  under sticky wages, in the recovery, and at rigidity 0.
+- With firm-level hiring off, fiat and bitcoin real-GDP losses over that window stay within 4 points of each other.
+
+### Phase 69: Crisis stimulus from observed unemployment
+
+Goal: fiat crisis stimulus responds to the unemployment gap both ways, including endogenous slumps, and can be turned
+off.
+
+1. Each month records unemployment minus the natural rate. Gaps inside two points are treated as zero. `centralBank.stimulus`
+   times that gap from `stimulusLag` months ago adds to the annual fiat growth rate. A tight labor market withdraws
+   through the same channel cap.
+2. `centralBank.stimulus` minimum is 0. Default stays 1.75. `centralBank.moneyGrowth` still cannot be 0.
+3. Deflation stays only in the secular inflation-gap term. Zombie support still uses the positive stimulus slice.
+
+Acceptance:
+
+- Loading stimulus 0 succeeds; loading money growth 0 still throws.
+- A calm fiat run has the same money-supply path at stimulus 0 and at stimulus 1.
+- After the lag, a forced demand contraction and an unemployment-only slump both raise the money stock at stimulus 1
+  versus 0.
+- A lagged negative unemployment gap with stimulus 1 ends with a smaller deposit change than stimulus 0.
+- Bitcoin money supply ignores the slider.
+
+### Phase 70: Monetary-preset deposit decomposition
+
+Goal: measure which deposit-flow bucket offsets fiat injection (and bitcoin money) in a demand slump
+before retuning the growth rule.
+
+1. Each tick records `fiatInjection`, `netCredit`, `interestRetained`, `writeDowns`, and
+   `reserveAccommodation` on the economy.
+2. A monetary-preset test compares calm and forced demand slumps in fiat and bitcoin.
+3. Findings are written into `docs/methods.md`. No growth-rule change unless the trace shows a bug
+   beyond later channel and dividend fixes.
+
+Acceptance:
+
+- Flow history has one entry per tick.
+- Fiat slump ending money is below calm; the dominant deposit drag versus calm is `fiatInjection`.
+- Bitcoin slump ending money is below calm; with write-downs ignored, the drag is `netCredit` or
+  `interestRetained`.
+
+### Phase 71: Rate cap and real injection channels
+
+Goal: the Taylor rate cannot runaway, and named injection channels behave like loans, purchases, and spending.
+
+1. Cap the raw Taylor rate at 20 percent before smoothing.
+2. `governmentSpending` buys firm inventory; unspent injection stays in the treasury.
+3. `newLoans` books only up to credit room and stops the same-tick clawback.
+4. `assetPurchase` buys existing bank bonds, pays households, and adds reserves.
+
+Acceptance:
+
+- A Taylor input that would set 100 percent publishes 20 percent.
+- Government spending leaves unspent cash in the treasury when inventory runs out.
+- New-loan injections book less than an oversized request when credit room binds, and stay on the books that tick.
+- Asset purchase with no bonds places nothing; with bonds, household deposits and reserves rise and bonds fall.
+- Under hoarding, mean unemployment on `newLoans` and `governmentSpending` stays within 8 points of `proRataDeposits`.
+
+### Phase 72: Mortgage user cost once
+
+Goal: expected inflation enters the tenure decision once, and affordability is two-sided against current income.
+
+1. Buy-versus-rent uses the real loan rate only. Drop the separate capital-loss term.
+2. Affordability uses the contractual nominal payment against current income.
+3. Prepay under expected deflation stays.
+
+Acceptance:
+
+- Under −8 percent expected inflation a long mortgage loses to rent on the real rate alone.
+- Affordability returns the same max term under ±8 percent expected inflation when the nominal payment fits.
+- A payment that exceeds the income share still originates zero years.
+
+### Phase 73: Bank dividends to depositors
+
+Goal: excess bank equity returns to depositors instead of destroying vault cash with no recipient.
+
+1. Pay equity above the capital target to the bank's depositors, pro rata, with a last-household residual.
+2. Equity down, private equity up, vault unchanged. Do not limit by vault.
+3. Do not add the dividend to `paidDepositRate`.
+
+Acceptance:
+
+- A forced excess-equity payout raises household deposits by the same amount and leaves vault unchanged.
+- With pass-through 0, a 120-month fiat run ends with money supply between 0.85× and 1.5× its opening stock.
+
+### Phase 74: Bond cap and replacement employment
+
+Goal: a fiat bond runaway crashes instead of spilling past the safe integer, and firm replacement does not clear the
+workforce for one month.
+
+1. `addBonds` throws when the balance would exceed `Number.MAX_SAFE_INTEGER`. Aggregate ledger `MAX_CENT` stays.
+2. `replaceFirm` keeps the current workers while writing off the loan and resetting capital.
+
+Acceptance:
+
+- Adding bonds past the safe integer throws.
+- A replaced firm keeps its worker list and household employer links.
+- A monetary fiat demand shock does not jump unemployment by 20 points or more in one month.
 
 ## Validation
 

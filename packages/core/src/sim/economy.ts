@@ -1,4 +1,5 @@
 import type { Rng } from '../rng/rng.js';
+import type { DepositFlowBuckets } from './deposit-flows.js';
 import type { MoneyShares } from './monies.js';
 import type { Parameters } from './parameters.js';
 import type { ActiveShock, Agent, Bank, Firm, ForcedShock, Household } from './types.js';
@@ -41,12 +42,6 @@ export interface Economy {
   productivity: number;
   demandImpulse: number;
   productivityImpulse: number;
-  /**
-   * Productivity impulse used in the hiring real-wage reference. Tracks the
-   * raw impulse while it is active, then glides to zero with nominal rigidity
-   * so sticky wages do not treat the month after a supply shock as a boom.
-   */
-  hiringProductivityImpulse: number;
   creditImpulse: number;
   policyRate: number;
   realGdp: number;
@@ -75,6 +70,12 @@ export interface Economy {
   depositInterestPaid: number;
   /** Fiat interest on reserves credited this tick, already inside the money stock. */
   reserveInterestPaid: number;
+  /** Signed fiat money-growth injection this tick after netting reserve interest. */
+  fiatInjectionFlow: number;
+  /** Firm deposits created this tick to meet the reserve requirement. */
+  reserveAccommodationFlow: number;
+  /** Per-tick deposit-flow buckets, appended at welfare. */
+  readonly depositFlowHistory: DepositFlowBuckets[];
   /** Firm loans booked by the newLoans injection and not yet repaid. */
   channelLoans: number;
   /** Mortgage interest received this tick, by bank id, available to fund deposit interest. */
@@ -91,8 +92,8 @@ export interface Economy {
   profitSharingFinance: number;
   fiscalBoost: number;
   /**
-   * Past months of fiat contraction pressure for lagged crisis stimulus.
-   * Each entry is max(0, −demandImpulse, −creditImpulse) for that fiat tick.
+   * Past months of signed unemployment gap for lagged crisis stimulus.
+   * Each entry is unemployment minus the natural rate for that fiat tick.
    */
   readonly contractionPressure: number[];
   /**

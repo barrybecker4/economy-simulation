@@ -27,6 +27,8 @@ export const FAILURE_TICKS = 6;
 export const LOAN_SPREAD = 0.02;
 /** Extra wage growth when the labor market is one point tighter than normal. */
 export const TIGHTNESS_WAGE = 0.4;
+/** Ceiling on the raw fiat Taylor rate before smoothing. */
+export const MAX_POLICY_RATE = 0.2;
 /** Largest monthly move in a price or wage, as a numerical guard. */
 export const MAX_MONTHLY_PRICE_MOVE = 0.05;
 /** Length of a credit impulse and of the contraction that follows it. */

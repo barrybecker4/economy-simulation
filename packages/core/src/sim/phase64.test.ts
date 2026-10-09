@@ -17,21 +17,13 @@ const contraction: ForcedShock = { tick: 12, kind: 'demand', size: -0.25 };
 const lag = 6;
 
 describe('phase 64 fiat growth floor and crisis stimulus', () => {
-  it('rejects a zero money-growth or stimulus weight', () => {
+  it('rejects a zero money-growth weight', () => {
     expect(() =>
       loadScenario({
         name: 'phase64',
         seed: 1,
         ticks: 1,
         sliders: { 'centralBank.moneyGrowth': 0 },
-      }),
-    ).toThrow(/between/);
-    expect(() =>
-      loadScenario({
-        name: 'phase64',
-        seed: 1,
-        ticks: 1,
-        sliders: { 'centralBank.stimulus': 0 },
       }),
     ).toThrow(/between/);
   });
@@ -46,7 +38,7 @@ describe('phase 64 fiat growth floor and crisis stimulus', () => {
     const floor = run({
       ...small,
       'regime.type': 'fiat',
-      'centralBank.stimulus': 0.05,
+      'centralBank.stimulus': 0,
       ticks: 48,
     });
     expect(high.audit.ok && floor.audit.ok).toBe(true);
@@ -84,7 +76,7 @@ describe('phase 64 fiat growth floor and crisis stimulus', () => {
       ticks: 36,
     };
     const stimulated = run({ ...shared, 'centralBank.stimulus': 1 }, contraction);
-    const quiet = run({ ...shared, 'centralBank.stimulus': 0.05 }, contraction);
+    const quiet = run({ ...shared, 'centralBank.stimulus': 0 }, contraction);
     expect(stimulated.audit.ok && quiet.audit.ok).toBe(true);
     const hot = series(stimulated, 'moneySupply');
     const cold = series(quiet, 'moneySupply');
@@ -109,7 +101,7 @@ describe('phase 64 fiat growth floor and crisis stimulus', () => {
       'centralBank.stimulusLag': lag,
       ticks: 36,
     };
-    const floor = run({ ...shared, 'centralBank.stimulus': 0.05 }, contraction);
+    const floor = run({ ...shared, 'centralBank.stimulus': 0 }, contraction);
     const high = run({ ...shared, 'centralBank.stimulus': 2 }, contraction);
     expect(series(floor, 'moneySupply')).toEqual(series(high, 'moneySupply'));
   });

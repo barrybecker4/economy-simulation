@@ -51,24 +51,27 @@ export function centIdentityGap(economy: Economy): bigint {
   return assets - exactCentSum(claimParts(economy));
 }
 
-/** Add `amount` to the bond stock. Small balances stay numbers; the overflow is exact. */
+/**
+ * Add `amount` to the bond stock. One bank balance must stay inside
+ * `Number.MAX_SAFE_INTEGER`; overflow no longer spills into `bondsOver`.
+ */
 export function addBonds(bank: Economy['banks'][number], amount: number): void {
   if (bank.bondsOver !== 0n) {
-    bank.bondsOver += exactCentSum([amount]);
-    return;
+    throw new Error('Fiat bond balance exceeds the safe integer range');
   }
   const next = bank.bonds + amount;
-  if (Math.abs(next) <= Number.MAX_SAFE_INTEGER) {
-    bank.bonds = next;
-    return;
+  if (!Number.isFinite(next) || Math.abs(next) > Number.MAX_SAFE_INTEGER) {
+    throw new Error('Fiat bond balance exceeds the safe integer range');
   }
-  bank.bondsOver = exactCentSum([bank.bonds, amount]);
-  bank.bonds = 0;
+  bank.bonds = next;
 }
 
-/** Bond stock as a number. Imprecise once `bondsOver` is in use. */
+/** Bond stock as a number. */
 export function bondNumber(bank: Economy['banks'][number]): number {
-  return bank.bonds + Number(bank.bondsOver);
+  if (bank.bondsOver !== 0n) {
+    throw new Error('Fiat bond balance exceeds the safe integer range');
+  }
+  return bank.bonds;
 }
 
 function fiatDeposits(economy: Economy): number {

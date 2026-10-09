@@ -22,10 +22,12 @@ prices. Support means ending real GDP differs. The runner does not measure volat
 
 ## H3
 
-Claim: AI adoption lowers the labor share, and who owns the AI changes the wealth Gini.
+Claim: AI adoption raises capital share or productivity per human, and who owns the AI changes the wealth Gini.
 
 One run keeps the automatable share fixed. Another adopts quickly at the default ownership concentration. A third adopts
-quickly with ownership concentration at 0.2. Support needs both a lower labor share and a different wealth Gini.
+quickly with ownership concentration at 0.2. Support needs a higher capital share or productivity per human, and a
+different wealth Gini. The labor share is reported but need not fall on this short seed once hiring no longer amplifies
+slack through the wage reference.
 
 ## H4
 
@@ -84,3 +86,19 @@ consumption, real wealth, unemployment, debt service, and tenure shares, with th
   that the rebate does not bind.
 - **Skill sigma.** Regime gaps on the monetary preset are also shown at `household.skillSigma` 0.5.
 - Design asymmetries that remain intentional are listed in [methods/remaining-asymmetries.md](methods/remaining-asymmetries.md).
+
+## Monetary-preset deposit decomposition
+
+Phase 70 records per-tick deposit-flow buckets on the economy (`fiatInjection`, `netCredit`,
+`interestRetained`, `writeDowns`, `reserveAccommodation`). On the monetary preset with a forced
+demand slump (seed 4, 40 households):
+
+- **Fiat.** Ending deposits sit below a calm run. The dominant gap versus calm is a smaller (often
+  negative) `fiatInjection`: the secular money-growth rule withdraws once inflation overshoots after
+  the crisis injection, and the smaller deposit base shrinks any positive monthly growth. Net credit
+  also contracts. The Taylor rate sets the policy rate and deposit coupon; the deposit stock itself
+  is moved by the money-growth channel.
+- **Bitcoin.** Ending deposits also sit below calm. There is no fiat injection. Write-downs hit bank
+  equity, not deposits. The deposit drag is net credit and borrower interest retained in bank equity
+  after deposit coupons (see Phase 73 on dividends paid to nobody).
+

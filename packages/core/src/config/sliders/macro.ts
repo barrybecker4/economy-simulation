@@ -296,9 +296,9 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'centralBank',
     'coefficient',
     1.75,
-    0.05,
+    0,
     2,
-    'Extra annual fiat broad-money growth per unit of lagged contraction pressure. Pressure is the largest of minus demand impulse and minus credit impulse when either is negative. The central bank uses the pressure from stimulusLag months ago. At the default of 1.75, a demand contraction of half the default shock size adds about 4 percent a year once the lag has passed. The weight cannot be 0. Bitcoin and hybrid ignore this slider.',
+    'Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.stimulusLag',
@@ -308,7 +308,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     3,
     1,
     24,
-    'Months before crisis stimulus begins after a demand or credit contraction starts, and months the stimulus continues after that contraction ends. At the default of 3, the first three months of a contraction run on the secular money-growth rule alone, so prices can fall briefly before the extra injection arrives. The lag cannot be 0. Unused when the regime is not fiat.',
+    'Months before crisis stimulus responds to the observed unemployment gap, and how long a past gap keeps moving the growth rate after the labor market has moved on. At the default of 3, the first three months of a rise in unemployment run on the secular money-growth rule alone. The lag cannot be 0. Unused when the regime is not fiat.',
   ),
   numberSlider(
     'centralBank.zombieSupport',
@@ -327,7 +327,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'channel',
     'proRataDeposits',
     ['proRataDeposits', 'governmentSpending', 'newLoans', 'assetPurchase'],
-    'Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys goods from firms in the same tick. newLoans books firm loans and firm deposits and does not create reserves; those loans are repaid before the cash is paid out as wages. assetPurchase credits firm deposits and a bond claim, and does not book a loan. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.',
+    'Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.spendNewMoney',

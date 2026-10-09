@@ -312,7 +312,7 @@ Registry version: 13.
 - Options: proRataDeposits, governmentSpending, newLoans, assetPurchase
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys goods from firms in the same tick. newLoans books firm loans and firm deposits and does not create reserves; those loans are repaid before the cash is paid out as wages. assetPurchase credits firm deposits and a bond claim, and does not book a loan. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.
+- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.moneyGrowth
 
@@ -364,10 +364,10 @@ Registry version: 13.
 - Group: centralBank
 - Unit: coefficient
 - Default: 1.75
-- Range: 0.05 to 2
+- Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Extra annual fiat broad-money growth per unit of lagged contraction pressure. Pressure is the largest of minus demand impulse and minus credit impulse when either is negative. The central bank uses the pressure from stimulusLag months ago. At the default of 1.75, a demand contraction of half the default shock size adds about 4 percent a year once the lag has passed. The weight cannot be 0. Bitcoin and hybrid ignore this slider.
+- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.stimulusLag
 
@@ -378,7 +378,7 @@ Registry version: 13.
 - Range: 1 to 24
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Months before crisis stimulus begins after a demand or credit contraction starts, and months the stimulus continues after that contraction ends. At the default of 3, the first three months of a contraction run on the secular money-growth rule alone, so prices can fall briefly before the extra injection arrives. The lag cannot be 0. Unused when the regime is not fiat.
+- Description: Months before crisis stimulus responds to the observed unemployment gap, and how long a past gap keeps moving the growth rate after the labor market has moved on. At the default of 3, the first three months of a rise in unemployment run on the secular money-growth rule alone. The lag cannot be 0. Unused when the regime is not fiat.
 
 ## centralBank.zombieSupport
 
@@ -895,7 +895,7 @@ Registry version: 13.
 - Range: 0 to 3
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly the hiring quota responds when the real wage is away from the agreed real wage. The quota starts at 94 percent of households times the human share of output. The reference is the agreed money wage over the price level: 1 / (1 + firm markup) times economy-wide productivity times one plus the hiring productivity impulse, times one plus 0.4 times labor-market tightness. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A posted wage above the agreed wage cuts hiring; a wage below it raises hiring. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota ignores the real wage. When the scaled quota is below current employment, firms separate workers down to the quota.
+- Description: How strongly the hiring quota responds when the real wage is away from its cost reference. The quota starts at 94 percent of households times the human share of output. The reference is 1 / (1 + firm markup) times economy-wide productivity. It omits labor-market tightness and the productivity impulse. The quota is multiplied by clamp(1 − this elasticity × (real wage / reference − 1), 0.5, 1.25). A posted wage above the reference cuts hiring; a wage below it raises hiring. The default of 0.5 cuts the quota by 5 percent when the real wage is 10 percent above the reference. At 0 the quota ignores the real wage. When the scaled quota is below current employment, firms separate workers down to the quota.
 
 ## money.bitcoinTrust
 
@@ -1170,4 +1170,4 @@ Registry version: 13.
 - Range: 0 to 0.95
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus the hiring productivity impulse, times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.
+- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.

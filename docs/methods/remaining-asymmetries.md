@@ -50,9 +50,9 @@ with pass-through 0 as well as at the preset.
 `centralBank.injectionChannel` changes who first holds new fiat. With
 `centralBank.spendNewMoney` at 0, loan, bond, and treasury receipts stay
 unblended into household demand, so channel comparisons are first-recipient
-tests. `newLoans` is inside money repaid before wages; a collapse of that stock
-under the monetary preset is the channel working. Do not blend channels to make
-loan injections look like a gift.
+tests. `newLoans` books within credit room and retires on the ordinary path;
+`assetPurchase` buys existing bonds; `governmentSpending` buys inventory. Do not
+blend channels to make loan injections look like a gift.
 
 ## Rebate and S0–S3 gaps
 

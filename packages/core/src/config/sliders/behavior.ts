@@ -129,7 +129,7 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     0.9,
     0,
     0.95,
-    'Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus the hiring productivity impulse, times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.',
+    'Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.',
   ),
   enumSlider(
     'equity.marketOn',

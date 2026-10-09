@@ -35,9 +35,14 @@ The economy-wide money pay for household labor, before that household's skill.
 _Avoid_: salary, agent wage
 
 **Agreed wage**:
-The money wage employees and employers would sign this month given the price level, productivity, and labor-market
+The money wage employees and employers would sign this month given the price level, trend productivity, and labor-market
 tightness.
 _Avoid_: target wage, equilibrium wage, flexible wage
+
+**Hiring reference**:
+The real wage the hiring quota compares with the posted real wage: trend productivity over one plus the firm markup.
+It omits labor-market tightness and the productivity impulse.
+_Avoid_: agreed real wage (when you mean the quota reference), target real wage
 
 **Wage negotiation**:
 Closing the gap between the posted wage and the agreed wage. Employees close a shortfall; employers close an excess.
@@ -118,12 +123,13 @@ inflation gap. It cannot be zero.
 _Avoid_: printing, monetization, crisis stimulus
 
 **Crisis stimulus**:
-Extra fiat broad-money growth per unit of lagged demand or credit contraction pressure.
+Extra fiat broad-money growth per unit of the lagged unemployment gap. A positive gap expands money; a negative gap
+withdraws. At zero the crisis term is off.
 _Avoid_: printing, QE, bailout
 
 **Stimulus lag**:
-Months before crisis stimulus begins after a demand or credit contraction starts, and months it continues after that
-contraction ends.
+Months before crisis stimulus responds to the observed unemployment gap, and how long a past gap keeps moving the growth
+rate after the labor market has moved on.
 _Avoid_: policy lag, recognition lag
 
 **Zombie support**:

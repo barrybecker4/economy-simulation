@@ -2,6 +2,7 @@ import type { TickContext } from '../engine/engine.js';
 import { assembleMetrics, type MetricSnapshot, type TenureReading } from './assemble-metrics.js';
 import { savingsStock, totalDeposits, totalLoans } from './banking.js';
 import { aiShareOfWealth, jobShares, measureHouseholds, ownerWealthShare } from './census.js';
+import { depositFlowBuckets } from './deposit-flows.js';
 import type { Economy } from './economy.js';
 import { growth, inflation, naturalUnemployment } from './helpers.js';
 import { CONSUMER_LOAN_REPAY } from './rules.js';
@@ -9,6 +10,7 @@ import { median } from './stats.js';
 import type { Household } from './types.js';
 
 export function onWelfare(economy: Economy, ctx: TickContext): void {
+  economy.depositFlowHistory.push(depositFlowBuckets(economy));
   assembleMetrics(metricSnapshot(economy), ctx.metrics);
   economy.defaultsThisTick = 0;
 }

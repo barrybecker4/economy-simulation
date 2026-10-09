@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
+import { issueBonds } from './bank-books.js';
 import { placeInjection, withdrawInjection } from './central-bank.js';
 import type { Economy } from './economy.js';
 import { createEconomy } from './init.js';
@@ -19,28 +20,26 @@ const monetary = {
 };
 
 describe('phase 56 injection channels', () => {
-  it('books loans, bonds, and a same-tick treasury purchase on different stocks', () => {
+  it('books loans within credit room, buys existing bonds, and spends treasury cash on inventory', () => {
     const loans = economy('newLoans');
     const assets = economy('assetPurchase');
+    issueBonds(assets, 5_000);
     const fiscal = economy('governmentSpending');
-    const openingFirms = firmDeposits(economy('newLoans'));
     const beforeLoans = firmLoans(loans);
     const beforeBonds = bonds(assets);
     const beforeReserves = reserves(loans);
     const beforeTreasury = fiscal.govDeposits;
-    const beforeHouseholds = householdDeposits(loans);
+    const beforeHouseholds = householdDeposits(assets);
+    const beforeFiscalFirms = firmDeposits(fiscal);
     placeInjection(loans, 4_000);
     placeInjection(assets, 4_000);
     placeInjection(fiscal, 4_000);
-    expect(firmLoans(loans) - beforeLoans).toBe(4_000);
+    expect(firmLoans(loans) - beforeLoans).toBeGreaterThan(0);
+    expect(firmLoans(loans) - beforeLoans).toBeLessThanOrEqual(4_000);
     expect(reserves(loans)).toBe(beforeReserves);
-    expect(householdDeposits(loans)).toBe(beforeHouseholds);
-    expect(firmLoans(assets)).toBe(beforeLoans);
-    expect(bonds(assets) - beforeBonds).toBe(4_000);
-    expect(firmDeposits(assets)).toBe(openingFirms + 4_000);
-    expect(fiscal.govDeposits).toBe(beforeTreasury);
-    expect(firmDeposits(fiscal)).toBe(openingFirms + 4_000);
-    expect(reserves(fiscal)).toBe(beforeReserves + 4_000);
+    expect(bonds(assets)).toBe(beforeBonds - 4_000);
+    expect(householdDeposits(assets)).toBe(beforeHouseholds + 4_000);
+    expect(firmDeposits(fiscal) + fiscal.govDeposits).toBe(beforeFiscalFirms + beforeTreasury + 4_000);
     expect(firmLoans(loans)).not.toBe(firmLoans(assets));
   });
 
@@ -50,11 +49,11 @@ describe('phase 56 injection channels', () => {
     const households = householdDeposits(state);
     const firms = firmDeposits(state);
     const loans = firmLoans(state);
-    const removed = withdrawInjection(state, 1_000);
-    expect(removed).toBe(1_000);
+    const removed = withdrawInjection(state, Math.min(1_000, loans));
+    expect(removed).toBeGreaterThan(0);
     expect(householdDeposits(state)).toBe(households);
-    expect(firmDeposits(state)).toBe(firms - 1_000);
-    expect(firmLoans(state)).toBe(loans - 1_000);
+    expect(firmDeposits(state)).toBe(firms - removed);
+    expect(firmLoans(state)).toBe(loans - removed);
   });
 
   it('does not let an S3 new-loan injection run away, and leaves spendNewMoney tame', () => {
@@ -65,7 +64,6 @@ describe('phase 56 injection channels', () => {
       ticks: 120,
     };
     const loans = run({ ...s3, 'centralBank.injectionChannel': 'newLoans' });
-    // Sensitivity 3 is the hoarding setting: it cuts discretionary spending when the real return is positive.
     const hoarding = run({
       ...s3,
       'centralBank.injectionChannel': 'newLoans',

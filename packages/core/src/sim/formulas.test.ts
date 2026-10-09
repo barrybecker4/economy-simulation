@@ -69,16 +69,15 @@ describe('pure economy formulas', () => {
     expect(wageGrowth({ posted: 100, agreed: 110, rigidity: 0 })).toBeCloseTo(0.05, 12);
   });
 
-  it('builds the agreed wage from price, productivity, impulse, and tightness', () => {
+  it('builds the agreed wage from price, productivity, and tightness', () => {
     expect(
       agreedWage({
         priceLevel: 120,
         markup: 0.2,
         productivity: 1.1,
-        impulse: -0.05,
         tightness: -0.1,
       }),
-    ).toBeCloseTo(120 * (1 / 1.2) * 1.1 * 0.95 * (1 + TIGHTNESS_WAGE * -0.1), 12);
+    ).toBeCloseTo(120 * (1 / 1.2) * 1.1 * (1 + TIGHTNESS_WAGE * -0.1), 12);
   });
 
   it('scales hiring from the agreed real wage', () => {
@@ -129,7 +128,7 @@ describe('pure economy formulas', () => {
         outputWeight: 0,
         outputGap: 0,
       }),
-    ).toBeCloseTo(0.04 + 0.12 + 1.5 * 0.1, 12);
+    ).toBeCloseTo(0.2, 12);
   });
 
   it('scales hiring down when the real wage is above its cost reference', () => {

@@ -69,7 +69,7 @@ describe('phase 67 zombie support in a crisis', () => {
     economy.zombieBudget = 0;
     bookkeep(economy);
     expect(firm.loan).toBe(0);
-    expect(firm.workers).toEqual([]);
+    expect(firm.workers).toEqual(workers);
     expect(firm.capital).toBe(1);
     expect(firm.negTicks).toBe(0);
     expect(loan).toBeGreaterThan(0);
@@ -95,17 +95,19 @@ describe('phase 67 zombie support in a crisis', () => {
 
   it('still replaces the first firm when the budget is smaller than its shortfall', () => {
     const { economy, firm } = insolventFirm({ 'centralBank.zombieSupport': 1 });
+    const workers = [...firm.workers];
     const shortfall = -firmEquity(economy, firm);
     firm.negTicks = FAILURE_TICKS - 1;
     economy.zombieBudget = Math.max(1, Math.floor(shortfall / 2));
     bookkeep(economy);
     expect(firm.loan).toBe(0);
-    expect(firm.workers).toEqual([]);
+    expect(firm.workers).toEqual(workers);
     expect(firm.capital).toBe(1);
   });
 
   it('replaces a still-insolvent spared firm once the budget is gone', () => {
     const { economy, firm } = insolventFirm({ 'centralBank.zombieSupport': 1 });
+    const workers = [...firm.workers];
     const shortfall = -firmEquity(economy, firm);
     const ledger = openLedger(economy);
     firm.negTicks = FAILURE_TICKS - 1;
@@ -116,7 +118,7 @@ describe('phase 67 zombie support in a crisis', () => {
     economy.zombieBudget = 0;
     bookkeep(economy, ledger);
     expect(firm.loan).toBe(0);
-    expect(firm.workers).toEqual([]);
+    expect(firm.workers).toEqual(workers);
     expect(firm.capital).toBe(1);
     expect(firm.negTicks).toBe(0);
   });
@@ -127,13 +129,14 @@ describe('phase 67 zombie support in a crisis', () => {
       'centralBank.zombieSupport': 1,
       'centralBank.stimulus': 2,
     });
+    const workers = [...firm.workers];
     economy.zombieBudget = 1_000_000;
     onCentralBank(economy);
     expect(economy.zombieBudget).toBe(0);
     firm.negTicks = FAILURE_TICKS - 1;
     bookkeep(economy);
     expect(firm.loan).toBe(0);
-    expect(firm.workers).toEqual([]);
+    expect(firm.workers).toEqual(workers);
     expect(firm.capital).toBe(1);
   });
 });

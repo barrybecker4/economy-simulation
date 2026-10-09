@@ -28,12 +28,12 @@ Two accepted paths distorted regime comparisons.
   that tick's money-growth injection. Coupon that does not fit is not paid.
   Bitcoin and hybrid still receive neither.
 - Mortgage and cash-ownership user costs use the real loan rate
-  (`loanRate − expectedInflation`) and add this month's expected capital loss
-  on the house (`−expectedInflation × homePrice / 12`). Rent does not.
+  (`loanRate − expectedInflation`) once. Rent does not. The separate capital-loss
+  term and the one-sided income floor are superseded by
+  [ADR 0022](0022-mortgage-user-cost-once.md).
 - The longest offered term, up to the term slider, is the longest horizon at
   which the fixed nominal payment stays inside `housing.mortgageDefaultShare`
-  of income after income grows at expected inflation. If even one year fails,
-  the household does not originate.
+  of current income. If even one year fails, the household does not originate.
 - While expected inflation is negative, a mortgagor whose deposits cover the
   balance may prepay in full when rent or cash ownership wins on user cost.
   Illiquid borrowers keep the loan and the existing foreclosure rule. The
