@@ -90,6 +90,8 @@ export interface Parameters {
   depositHaircut: number;
   bondPurchaseShare: number;
   moneyGrowth: number;
+  stimulus: number;
+  stimulusLag: number;
   injectionChannel: 'proRataDeposits' | 'governmentSpending' | 'newLoans' | 'assetPurchase';
   spendNewMoney: number;
   stabilizer: number;
@@ -202,6 +204,8 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     depositHaircut: slider(config, 'bank.depositHaircut'),
     bondPurchaseShare: slider(config, 'centralBank.bondPurchaseShare'),
     moneyGrowth: slider(config, 'centralBank.moneyGrowth'),
+    stimulus: slider(config, 'centralBank.stimulus'),
+    stimulusLag: Math.round(slider(config, 'centralBank.stimulusLag')),
     injectionChannel: injectionChannelOf(config),
     spendNewMoney: slider(config, 'centralBank.spendNewMoney'),
     stabilizer: slider(config, 'government.stabilizer'),

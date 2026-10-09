@@ -871,12 +871,12 @@ Goal: fiat broad money grows with the inflation target and productivity by defau
 1. `centralBank.moneyGrowth` defaults to 1. Fiat deposits and reserves change together by that weight times
    `(inflationTarget + productivity.baseGrowth + inflation gap) / 12` times deposits. A contraction draws reserves in
    bank id order, starting with the first, and stops when those reserves are used up.
-2. Bitcoin and hybrid ignore the slider. At 0 the fiat stock stays fixed for regression tests.
+2. Bitcoin and hybrid ignore the slider. Phase 64 raises the minimum above 0 so the stock cannot be frozen.
 
 Acceptance:
 
-- Default fiat deposits are higher after 10 years than the same seed at money growth 0.
-- Money growth 0 matches a fixed stock. Bitcoin deposits do not follow the slider.
+- Default fiat deposits are higher after 10 years than the same seed at the money-growth floor.
+- Bitcoin deposits do not follow the slider.
 
 ### Phase 32: Monetary comparison preset
 
@@ -1377,6 +1377,31 @@ Acceptance:
   money wage falls from its start, and peak unemployment sits between rigidity 0 and rigidity 0.95.
 - After a demand shock, rigidity 0.95 still peaks above rigidity 0, stays under 50 percent, and stays above the natural
   rate.
+
+### Phase 64: Fiat growth floor and lagged crisis stimulus
+
+Goal: fiat broad money cannot be frozen, and a demand or credit contraction draws extra money only after a lag so prices
+can fall first.
+
+1. `centralBank.moneyGrowth` keeps the secular rule
+   `weight × (inflation target + productivity growth + inflation gap) / 12` times deposits. Its minimum rises from 0 to
+   0.05. A value of 0 fails validation. High inflation can still slow or shrink the stock.
+2. `centralBank.stimulus` (default 1, minimum 0.05) times lagged contraction pressure adds to that annual rate.
+   Pressure is `max(0, −demandImpulse, −creditImpulse)`. A productivity shock does not create pressure.
+3. `centralBank.stimulusLag` (default 6, minimum 1) is how many months before that extra growth starts and how many months
+   it continues after the contraction ends. Same-month stimulus is not allowed.
+4. The sum still uses the existing injection channel and nets reserve interest and the deposit subsidy. Bitcoin and
+   hybrid ignore both new sliders. Unemployment does not trigger this injection.
+
+Acceptance:
+
+- Loading money growth 0 or stimulus 0 throws.
+- A calm fiat run has the same money-supply path at stimulus 1 and at the 0.05 floor.
+- A forced demand contraction with posted prices following demand has a lower CPI at the end of the lag than when the
+  contraction starts.
+- After the lag, through the rest of that contraction, money supply is higher at stimulus 1 than at the floor, and the
+  ledger audit passes.
+- Bitcoin money supply ignores both sliders.
 
 ## Validation
 

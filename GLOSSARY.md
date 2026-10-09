@@ -112,6 +112,20 @@ _Avoid_: bail-in, bank resolution (those happen after support if equity is still
 The ledger value of outstanding bitcoin units at the price they were acquired or last marked, so a price move can seat on bank equity.
 _Avoid_: bitcoin balance (that is the unit count; this is the value stock)
 
+**Fiat money growth**:
+The weight on how strongly the fiat central bank grows broad money with the inflation target, productivity, and the
+inflation gap. It cannot be zero.
+_Avoid_: printing, monetization, crisis stimulus
+
+**Crisis stimulus**:
+Extra fiat broad-money growth per unit of lagged demand or credit contraction pressure.
+_Avoid_: printing, QE, bailout
+
+**Stimulus lag**:
+Months before crisis stimulus begins after a demand or credit contraction starts, and months it continues after that
+contraction ends.
+_Avoid_: policy lag, recognition lag
+
 ## Events
 
 **Shock**:

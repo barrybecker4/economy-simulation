@@ -19,16 +19,16 @@ describe('phase 31 endogenous fiat money', () => {
       'centralBank.moneyGrowth': 1,
       ticks: 120,
     });
-    const frozen = run({
+    const floor = run({
       ...small,
       'regime.type': 'fiat',
-      'centralBank.moneyGrowth': 0,
+      'centralBank.moneyGrowth': 0.05,
       ticks: 120,
     });
-    expect(growing.audit.ok && frozen.audit.ok).toBe(true);
+    expect(growing.audit.ok && floor.audit.ok).toBe(true);
     const growMoney = series(growing, 'moneySupply');
-    const freezeMoney = series(frozen, 'moneySupply');
-    expect(growMoney.at(-1) ?? 0).toBeGreaterThan(freezeMoney.at(-1) ?? 0);
+    const floorMoney = series(floor, 'moneySupply');
+    expect(growMoney.at(-1) ?? 0).toBeGreaterThan(floorMoney.at(-1) ?? 0);
     const years = 10;
     const ratio = (growMoney.at(-1) ?? 0) / Math.max(growMoney[0] ?? 1, 1);
     expect(ratio).toBeGreaterThan(1.1 ** years * 0.5);
@@ -38,7 +38,7 @@ describe('phase 31 endogenous fiat money', () => {
     const off = run({
       ...small,
       'regime.type': 'bitcoin',
-      'centralBank.moneyGrowth': 0,
+      'centralBank.moneyGrowth': 0.05,
       ticks: 60,
     });
     const on = run({
@@ -50,17 +50,17 @@ describe('phase 31 endogenous fiat money', () => {
     expect(series(off, 'moneySupply')).toEqual(series(on, 'moneySupply'));
   });
 
-  it('matches the fixed stock when money growth is pinned at 0', () => {
+  it('matches itself when money growth is pinned at the floor', () => {
     const first = run({
       ...small,
       'regime.type': 'fiat',
-      'centralBank.moneyGrowth': 0,
+      'centralBank.moneyGrowth': 0.05,
       ticks: 24,
     });
     const second = run({
       ...small,
       'regime.type': 'fiat',
-      'centralBank.moneyGrowth': 0,
+      'centralBank.moneyGrowth': 0.05,
       ticks: 24,
     });
     expect(series(first, 'moneySupply')).toEqual(series(second, 'moneySupply'));

@@ -67,20 +67,26 @@ export function onCentralBank(economy: Economy): void {
 }
 
 /**
- * Grow or shrink fiat broad money toward the inflation target plus productivity.
- * The injection channel chooses the offsetting stock. A contraction withdraws
- * from that same sector, and only up to the balances that exist.
+ * Grow or shrink fiat broad money toward the inflation target plus productivity,
+ * plus lagging crisis stimulus from demand or credit contractions. The injection
+ * channel chooses the offsetting stock. A contraction withdraws from that same
+ * sector, and only up to the balances that exist.
  */
 export function growFiatMoney(economy: Economy): void {
   if (economy.params.regime !== 'fiat' || economy.params.moneyGrowth <= 0) {
     return;
   }
   const trailing = inflation(economy);
-  const annual =
-    economy.params.inflationTarget +
-    economy.params.prodGrowth +
-    (economy.params.inflationTarget - trailing);
-  const monthly = (economy.params.moneyGrowth * annual) / 12;
+  const secular =
+    economy.params.moneyGrowth *
+    (economy.params.inflationTarget +
+      economy.params.prodGrowth +
+      (economy.params.inflationTarget - trailing));
+  const pressure = contractionPressure(economy);
+  economy.contractionPressure.push(pressure);
+  const lagged = laggedContractionPressure(economy);
+  const annual = secular + economy.params.stimulus * lagged;
+  const monthly = annual / 12;
   const deposits = totalDeposits(economy);
   if (deposits <= 0) {
     return;
@@ -98,6 +104,20 @@ export function growFiatMoney(economy: Economy): void {
     return;
   }
   withdrawInjection(economy, -amount);
+}
+
+/** This month's demand or credit contraction pressure for the stimulus lag queue. */
+export function contractionPressure(economy: Economy): number {
+  return Math.max(0, -economy.demandImpulse, -economy.creditImpulse);
+}
+
+function laggedContractionPressure(economy: Economy): number {
+  const lag = Math.max(1, economy.params.stimulusLag);
+  const index = economy.contractionPressure.length - 1 - lag;
+  if (index < 0) {
+    return 0;
+  }
+  return economy.contractionPressure[index] ?? 0;
 }
 
 /** Book one positive injection on the economy's channel. */

@@ -46,6 +46,8 @@ const EXPECTED_IDS = [
   'bank.depositInterestSubsidy',
   'centralBank.bondPurchaseShare',
   'centralBank.moneyGrowth',
+  'centralBank.stimulus',
+  'centralBank.stimulusLag',
   'centralBank.injectionChannel',
   'centralBank.spendNewMoney',
   'government.stabilizer',

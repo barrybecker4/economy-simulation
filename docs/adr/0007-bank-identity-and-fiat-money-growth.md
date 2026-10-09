@@ -18,12 +18,12 @@ not grow with the inflation target, so a higher target meant an imposed price pa
 - `centralBank.moneyGrowth` defaults to 1. Under fiat, deposits and reserves change together by that weight times
   `(inflation target + productivity growth + inflation gap) / 12` times deposits. A contraction draws reserves from banks
   in id order, starting with the first, and stops when those reserves are used up. Bitcoin and hybrid ignore the slider.
-  Setting the slider to 0 freezes the fiat stock for regression tests.
 
 There is still no multi-period forecast or durable-goods timing model. Expected inflation remains the trailing rate
 blended with `expectations.anchorWeight`.
 
 ## Consequences
 
-`docs/PLAN.md`, `docs/model.md`, and `docs/assumptions.md` follow this ADR. Regime comparisons that need a fixed fiat
-stock must set `centralBank.moneyGrowth` to 0.
+`docs/PLAN.md`, `docs/model.md`, and `docs/assumptions.md` follow this ADR. The freeze-at-zero path is superseded by
+[ADR 0017](0017-fiat-cannot-freeze.md): the weight cannot be 0, and crisis stimulus adds lagged growth under demand or
+credit contractions.

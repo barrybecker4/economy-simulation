@@ -93,6 +93,7 @@ export function blankEconomy(
     loanFinance: 0,
     profitSharingFinance: 0,
     fiscalBoost: 0,
+    contractionPressure: [],
     transitionDone: false,
     creditStress: 0,
     housingPressure: 1,

@@ -320,10 +320,10 @@ Registry version: 12.
 - Group: centralBank
 - Unit: share
 - Default: 1
-- Range: 0 to 1
+- Range: 0.05 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits. A contraction draws reserves from banks in id order, starting with the first, and stops when those reserves are used up. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. Bitcoin and hybrid ignore this slider. At 0 the fiat stock stays fixed.
+- Description: How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits, plus any crisis stimulus. A contraction draws reserves from banks in id order, starting with the first, and stops when those reserves are used up. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. The weight cannot be 0: some fiat expansion always happens when the gap is non-negative. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.outputWeight
 
@@ -357,6 +357,28 @@ Registry version: 12.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of new fiat blended into household smoothed income when prices.trendWeight is below 1. On the household channel, 0 still blends a thin opening (deposits below 24 months). On the loan, bond, and treasury channels, only this share is blended, so those receipts are not a silent hoard. Bitcoin and hybrid ignore this slider.
+
+## centralBank.stimulus
+
+- Label: Crisis stimulus
+- Group: centralBank
+- Unit: coefficient
+- Default: 1
+- Range: 0.05 to 2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Extra annual fiat broad-money growth per unit of lagged contraction pressure. Pressure is the largest of minus demand impulse and minus credit impulse when either is negative. The central bank uses the pressure from stimulusLag months ago. At 1, a demand contraction of half the default shock size adds about 2.5 percent a year once the lag has passed. The weight cannot be 0. Bitcoin and hybrid ignore this slider.
+
+## centralBank.stimulusLag
+
+- Label: Stimulus lag
+- Group: centralBank
+- Unit: months
+- Default: 6
+- Range: 1 to 24
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Months before crisis stimulus begins after a demand or credit contraction starts, and months the stimulus continues after that contraction ends. At 6, the first six months of a contraction run on the secular money-growth rule alone, so prices can fall before the extra injection arrives. The lag cannot be 0. Unused when the regime is not fiat.
 
 ## credit.endogenousWeight
 

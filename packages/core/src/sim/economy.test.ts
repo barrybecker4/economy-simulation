@@ -12,7 +12,7 @@ describe('phase 2 fiat economy', () => {
     const result = run({
       seed: 1,
       ticks: 600,
-      sliders: { 'shock.frequency': 0, 'centralBank.moneyGrowth': 0 },
+      sliders: { 'shock.frequency': 0, 'centralBank.moneyGrowth': 0.05 },
     });
     const elapsed = performance.now() - started;
     expect(result.audit.ok, 'seed 1 ledger').toBe(true);

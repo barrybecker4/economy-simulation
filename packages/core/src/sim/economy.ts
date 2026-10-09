@@ -90,6 +90,11 @@ export interface Economy {
   loanFinance: number;
   profitSharingFinance: number;
   fiscalBoost: number;
+  /**
+   * Past months of fiat contraction pressure for lagged crisis stimulus.
+   * Each entry is max(0, −demandImpulse, −creditImpulse) for that fiat tick.
+   */
+  readonly contractionPressure: number[];
   transitionDone: boolean;
   /** Leverage and default pressure. Unused while endogenous credit weight is 0. */
   creditStress: number;

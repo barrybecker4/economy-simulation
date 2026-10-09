@@ -34,7 +34,7 @@ describe('phase 21 housing market', () => {
   it('raises the housing price relative to the CPI when owners exceed the neutral share', () => {
     const shared = {
       ...small,
-      'centralBank.moneyGrowth': 0,
+      'centralBank.moneyGrowth': 0.05,
       'goods.housingSupplyGrowth': 0,
       'housing.tenureChoice': 'on',
       'housing.mortgageLtv': 0.95,

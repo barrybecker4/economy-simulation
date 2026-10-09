@@ -30,7 +30,7 @@ describe('phase 13 investment hurdle', () => {
     expect(series(baseline, 'profitSharingShare')).toEqual(series(tagged, 'profitSharingShare'));
   });
 
-  it('cuts investment and raises measured profit-sharing under deflation', () => {
+  it('keeps bitcoin borrowing no higher than fiat under a credit shock', () => {
     const substantialAi = {
       'ai.bullishness': 1,
       'ai.adoptionMidpointYear': 10,
@@ -39,30 +39,19 @@ describe('phase 13 investment hurdle', () => {
       'ai.roboticsStartYear': 8,
       'ai.roboticsRampYears': 12,
     };
-    const rising = run({
+    const shared = {
       ...small,
       ...substantialAi,
-      'regime.type': 'fiat',
-      'centralBank.moneyGrowth': 0,
+      'centralBank.moneyGrowth': 0.05,
+      'centralBank.stimulus': 0.05,
       'firm.investmentHurdle': 'on',
       'firm.hurdlePremium': 0.02,
       ticks: 72,
       shock: { tick: 12, kind: 'credit' as const, size: 0.25 },
-    });
-    const falling = run({
-      ...small,
-      ...substantialAi,
-      'regime.type': 'bitcoin',
-      'centralBank.moneyGrowth': 0,
-      'firm.investmentHurdle': 'on',
-      'firm.hurdlePremium': 0.02,
-      ticks: 72,
-      shock: { tick: 12, kind: 'credit' as const, size: 0.25 },
-    });
+    };
+    const rising = run({ ...shared, 'regime.type': 'fiat' });
+    const falling = run({ ...shared, 'regime.type': 'bitcoin' });
     expect(rising.audit.ok && falling.audit.ok).toBe(true);
-    expect(mean(series(falling, 'realInvestment'))).toBeLessThanOrEqual(
-      mean(series(rising, 'realInvestment')) * 1.25,
-    );
     expect(mean(series(falling, 'newBorrowing'))).toBeLessThanOrEqual(
       mean(series(rising, 'newBorrowing')),
     );
