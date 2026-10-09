@@ -285,7 +285,11 @@ productivity growth plus a quarter of the markup clears the real return on money
 `firm.hurdlePremium`. Otherwise it installs a quarter of the gap as a retained profit-sharing claim and records the rest
 as profit-sharing finance. The measured profit-sharing share is that finance over loan-path plus profit-sharing finance.
 When the hurdle is off, the share stays the deflation-penalty formula. A firm whose equity (deposits plus capital at the
-posted price, minus loans) stays negative for 6 months is replaced. Its loan is written off against bank equity.
+posted price, minus loans) stays negative for 6 months is replaced. Its loan is written off against bank equity. Under
+fiat, `centralBank.zombieSupport` (default 0) may spare that replacement when crisis stimulus is active: each month the
+notional budget is the crisis-stimulus share of the positive money-growth injection times the slider, and a firm is
+spared in id order when the remaining budget covers its equity shortfall. The failure clock is not reset. The budget is
+a cap on skipped replacements, not a cash transfer. See [ADR 0019](adr/0019-zombie-support.md).
 
 When expected deflation is positive and `deflation.sensitivity` is positive, a share of loans is repaid each month. When
 `housing.tenureChoice` is off, the recorded profit-sharing and non-mortgage housing shares rise with the penalty; those
@@ -382,7 +386,9 @@ expansion always happens when the gap is non-negative. High inflation can still 
 (default 3, minimum 1) adds to that annual rate. Pressure is the largest of minus demand impulse and minus credit
 impulse when either is negative. A productivity shock does not create pressure. The lag is how long prices can fall
 before the extra injection, and how long the injection continues after the contraction ends. See
-[ADR 0017](adr/0017-fiat-cannot-freeze.md). `centralBank.injectionChannel` chooses the offsetting stock. Pro-rata
+[ADR 0017](adr/0017-fiat-cannot-freeze.md). `centralBank.zombieSupport` (default 0) times the crisis-stimulus share of
+that positive injection sets a notional budget that may spare insolvent firms from replacement; see firm failure above
+and [ADR 0019](adr/0019-zombie-support.md). `centralBank.injectionChannel` chooses the offsetting stock. Pro-rata
 deposits (default) and government spending also create reserves. A new-loan injection books firm loans and does not
 create reserves; those loans are repaid before the cash is paid as wages. An asset purchase books a bond claim instead
 of a loan. Government spending buys goods from firms in the same tick, so the new money does not sit in the treasury. A

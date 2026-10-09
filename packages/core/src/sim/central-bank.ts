@@ -48,6 +48,7 @@ export function marketLoanRate(input: {
 }
 
 export function onCentralBank(economy: Economy): void {
+  economy.zombieBudget = 0;
   updateMoneyChoice(economy);
   if (economy.params.choiceSpeed > 0) {
     setBlendedPolicy(economy);
@@ -85,7 +86,8 @@ export function growFiatMoney(economy: Economy): void {
   const pressure = contractionPressure(economy);
   economy.contractionPressure.push(pressure);
   const lagged = laggedContractionPressure(economy);
-  const annual = secular + economy.params.stimulus * lagged;
+  const stimulusAnnual = economy.params.stimulus * lagged;
+  const annual = secular + stimulusAnnual;
   const monthly = annual / 12;
   const deposits = totalDeposits(economy);
   if (deposits <= 0) {
@@ -93,6 +95,15 @@ export function growFiatMoney(economy: Economy): void {
   }
   const raw = deposits * monthly;
   const capped = clamp(raw, -0.05 * deposits, 0.05 * deposits);
+  // Crisis-stimulus share of the capped positive injection, times zombie support.
+  // Secular growth is not part of the budget. Cap binding scales the share.
+  if (capped > 0 && annual > 0 && stimulusAnnual > 0 && economy.params.zombieSupport > 0) {
+    const stimulusShare = stimulusAnnual / annual;
+    economy.zombieBudget = moneyAmount(
+      economy,
+      capped * stimulusShare * economy.params.zombieSupport,
+    );
+  }
   // Reserve interest and the deposit-interest subsidy were already created this
   // tick inside the growth budget. Net them out so the annual path still holds.
   const amount = moneyAmount(economy, capped) - economy.reserveInterestPaid;

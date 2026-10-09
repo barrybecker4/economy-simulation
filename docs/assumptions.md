@@ -380,6 +380,17 @@ Registry version: 13.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Months before crisis stimulus begins after a demand or credit contraction starts, and months the stimulus continues after that contraction ends. At the default of 3, the first three months of a contraction run on the secular money-growth rule alone, so prices can fall briefly before the extra injection arrives. The lag cannot be 0. Unused when the regime is not fiat.
 
+## centralBank.zombieSupport
+
+- Label: Zombie support
+- Group: centralBank
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of each month’s fiat crisis-stimulus injection that may spare negative-equity firms from the six-month replacement rule. The notional budget is that share of the stimulus slice of the positive money-growth injection; a firm is spared in id order when the remaining budget covers its equity shortfall. The failure clock is not reset. The budget is a cap on skipped replacements and does not move deposits beyond the ordinary injection. At 0 the Phase 66 replacement path is unchanged. Bitcoin and hybrid ignore this slider.
+
 ## credit.endogenousWeight
 
 - Label: Endogenous credit weight

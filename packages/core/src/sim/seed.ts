@@ -94,6 +94,7 @@ export function blankEconomy(
     profitSharingFinance: 0,
     fiscalBoost: 0,
     contractionPressure: [],
+    zombieBudget: 0,
     transitionDone: false,
     realMortgagePrice: 0,
     creditStress: 0,

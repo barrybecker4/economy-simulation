@@ -2,7 +2,7 @@ import { loadScenario } from '../config/load.js';
 import { BITCOIN_OPENING_SHARE } from '../sim/bitcoin-supply.js';
 import type { MetricId } from '../metrics/metrics.js';
 import { FEATURE_OFF } from '../sim/feature-off.js';
-import { simulate } from '../sim/simulate.js';
+import { simulate, type ForcedShock } from '../sim/simulate.js';
 import type { SimulationResult } from '../engine/engine.js';
 
 export interface HypothesisResult {
@@ -21,7 +21,7 @@ const base = {
 };
 
 export function runHypotheses(): HypothesisResult[] {
-  return [h1(), h2(), h3(), h4(), h5(), h6(), h7(), h8(), h9()];
+  return [h1(), h2(), h3(), h4(), h5(), h6(), h7(), h8(), h9(), h10()];
 }
 
 function h1(): HypothesisResult {
@@ -192,11 +192,96 @@ function h9(): HypothesisResult {
   };
 }
 
-function run(sliders: Record<string, number | string>, ticks = 36): SimulationResult {
-  return simulate(loadScenario({ name: 'hypothesis', seed: 4, ticks, sliders }));
+function h10(): HypothesisResult {
+  // Credit shock with sticky wages so the fiat zombie budget binds (defaults fall
+  // when support is on). Demand-only cuts often pass depth and speed without
+  // ever sparing a firm; end GDP then still favors fiat under this mechanism.
+  const shockTick = 12;
+  const horizon = 72;
+  const shock: ForcedShock = { tick: shockTick, kind: 'credit', size: 0.3 };
+  const shared = {
+    ...base,
+    'scale.households': 60,
+    'scale.firms': 6,
+    'prices.trendWeight': 0,
+    'production.demandWeight': 1,
+    'wage.nominalRigidity': 0.9,
+    'centralBank.stimulus': 1,
+    'centralBank.stimulusLag': 3,
+    'bank.capitalRatio': 0.04,
+  };
+  const fiat = run(
+    { ...shared, 'regime.type': 'fiat', 'centralBank.zombieSupport': 1 },
+    shockTick + horizon,
+    shock,
+  );
+  const bitcoin = run(
+    { ...shared, 'regime.type': 'bitcoin', 'centralBank.zombieSupport': 1 },
+    shockTick + horizon,
+    shock,
+  );
+  const fiatDepth = peakFrom(fiat, 'unemployment', shockTick);
+  const bitcoinDepth = peakFrom(bitcoin, 'unemployment', shockTick);
+  const fiatRecovery = monthsToRecover(fiat, 'unemployment', shockTick);
+  const bitcoinRecovery = monthsToRecover(bitcoin, 'unemployment', shockTick);
+  const fiatGdp = at(fiat, 'realGdp', shockTick + horizon - 1);
+  const bitcoinGdp = at(bitcoin, 'realGdp', shockTick + horizon - 1);
+  const deeper = bitcoinDepth.peak > fiatDepth.peak;
+  const faster = bitcoinRecovery < fiatRecovery;
+  const better = bitcoinGdp > fiatGdp;
+  return {
+    id: 'H10',
+    claim:
+      'A bitcoin crisis can trough deeper, recover sooner, and end with higher real GDP than fiat with zombie support.',
+    supported: deeper && faster && better,
+    detail: `peak u fiat ${fiatDepth.peak} bitcoin ${bitcoinDepth.peak}; recovery months fiat ${fiatRecovery} bitcoin ${bitcoinRecovery}; GDP fiat ${fiatGdp} bitcoin ${bitcoinGdp}`,
+  };
+}
+
+function run(
+  sliders: Record<string, number | string>,
+  ticks = 36,
+  shock: ForcedShock | null = null,
+): SimulationResult {
+  return simulate(loadScenario({ name: 'hypothesis', seed: 4, ticks, sliders }), shock);
 }
 
 function last(result: SimulationResult, id: MetricId): number {
   const values = result.metrics.series[id];
   return values[values.length - 1] ?? 0;
+}
+
+function at(result: SimulationResult, id: MetricId, tick: number): number {
+  return result.metrics.series[id][tick] ?? 0;
+}
+
+function peakFrom(
+  result: SimulationResult,
+  id: MetricId,
+  fromTick: number,
+): { peak: number; tick: number } {
+  const values = result.metrics.series[id];
+  let peak = Number.NEGATIVE_INFINITY;
+  let tick = fromTick;
+  for (let index = fromTick; index < values.length; index += 1) {
+    const value = values[index] ?? 0;
+    if (value > peak) {
+      peak = value;
+      tick = index;
+    }
+  }
+  return { peak: Number.isFinite(peak) ? peak : 0, tick };
+}
+
+/** Months from the post-shock unemployment peak back to the pre-shock level. Never returns = Infinity. */
+function monthsToRecover(result: SimulationResult, id: MetricId, shockTick: number): number {
+  const values = result.metrics.series[id];
+  const baseline = values[Math.max(0, shockTick - 1)] ?? 0;
+  const { tick: peakTick } = peakFrom(result, id, shockTick);
+  for (let index = peakTick; index < values.length; index += 1) {
+    if ((values[index] ?? 0) <= baseline) {
+      return index - peakTick;
+    }
+  }
+  return Number.POSITIVE_INFINITY;
 }

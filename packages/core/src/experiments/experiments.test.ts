@@ -49,7 +49,7 @@ describe('experiments', () => {
     expect(() => pairedDifference([1, 2], [1])).toThrow(/equal length/);
   });
 
-  it('writes all nine hypotheses', () => {
+  it('writes all ten hypotheses', () => {
     const results = runHypotheses();
     expect(results.map((result) => result.id)).toEqual([
       'H1',
@@ -61,6 +61,7 @@ describe('experiments', () => {
       'H7',
       'H8',
       'H9',
+      'H10',
     ]);
     expect(results.every((result) => result.detail.length > 0)).toBe(true);
     for (const id of ['H3', 'H4', 'H6', 'H7', 'H8', 'H9']) {

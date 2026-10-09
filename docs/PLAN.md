@@ -257,6 +257,7 @@ Housing security enters well-being at a fixed weight of 0.5. It is not a slider.
 | H6  | A physical bottleneck limits how much AI raises growth, regardless of regime.                                                                                             | ai.physicalTaskShare, regime.type                                     | GDP growth, productivity per human                          |
 | H7  | Stronger deflation reduces credit, borrowing, and speculation, and raises profit-sharing and non-mortgage housing.                                                        | deflation.sensitivity, regime.type, productivity.baseGrowth           | Credit relative to GDP, property turnover, contract shares  |
 | H8  | Electronics get cheaper and housing gets more expensive inside either headline inflation path.                                                                            | goods.electronicsProductivity, goods.housingSupplyGrowth, regime.type | Relative prices, CPI                                        |
+| H10 | Fiat crisis stimulus that props up insolvent firms can leave a deeper bitcoin trough that recovers sooner and ends with higher real GDP.                                   | regime.type, centralBank.zombieSupport, credit shock size 0.3, wage.nominalRigidity 0.9, stimulus 1, stimulusLag 3, 60 households | Peak unemployment, months to recover, end real GDP          |
 
 ## Phases
 
@@ -1455,6 +1456,37 @@ Acceptance:
 - A short transition with the slider on stamps only mortgages that exist at the flip. A mortgage originated afterward
   stays fixed in satoshis.
 
+### Phase 67: Zombie support in a crisis
+
+Goal: fiat crisis stimulus can keep insolvent firms from being replaced, so a bitcoin contraction can trough deeper,
+recover sooner, and finish with higher real GDP when that support is on.
+
+1. `centralBank.zombieSupport` (default 0, range 0 to 1) is the share of each month's crisis-stimulus injection that
+   may spare negative-equity firms from the 6-month replacement rule. Zero reproduces Phase 66.
+2. After the usual fiat growth amount is computed, the notional budget is the crisis-stimulus share of that positive
+   injection times this slider. If the 5 percent monthly cap binds, the stimulus share scales with it. Secular money
+   growth is not part of the budget. The full injection still goes out through `centralBank.injectionChannel` before
+   `accommodateReserves`.
+3. In the firm loop, in id order, a firm that would be replaced is spared when the remaining budget covers its equity
+   shortfall. The budget falls by that shortfall. Workers, loans, and capital stay. The failure clock is not reset, so
+   the firm is replaced on the first month the budget no longer covers it. A shortfall the budget cannot cover still
+   replaces that firm; later firms are still considered. Unspent budget is discarded; it is not a second payment.
+4. Bitcoin and hybrid ignore the slider. Hypothesis H10 compares a forced credit shock under fiat with support at 1
+   against the same seed and shock under bitcoin (60 households, rigidity 0.9, stimulus 1, lag 3): peak unemployment
+   higher under bitcoin, fewer months from that peak back to the pre-shock unemployment level under bitcoin, and higher
+   real GDP at a fixed horizon under bitcoin.
+
+Acceptance:
+
+- Support 0 matches Phase 66 replacements and money path on a forced contraction.
+- A firm held negative for 6 months is replaced when support is 0, and kept with the same workers, loan, and capital when
+  the budget covers the shortfall. The ledger audit passes.
+- A budget smaller than the first firm's shortfall still replaces that firm.
+- After the lagged stimulus ends, a still-insolvent spared firm is replaced.
+- Bitcoin replacement ignores the slider.
+- The hypothesis runner reports H10. Support is recorded from the three legs; it is not forced. Under the bundled credit
+  shock the depth and speed legs hold while end real GDP stays higher under fiat, so H10 is unsupported.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated
@@ -1488,7 +1520,6 @@ tests on a fixed set of seeds. Each test states a tolerance. Failures report the
   investment hurdle is on.
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
-- Hypotheses beyond H1–H9.
 - Mechanisms sketched in Phases 43–50 until those phases land: rate transmission beyond deposits, a gradual dual-currency
   transition, a bitcoin market price separate from goods prices in satoshis, durable purchase timing, endogenous
   productivity, life-cycle bequests, inequality and velocity calibration, and design-symmetry cleanup.

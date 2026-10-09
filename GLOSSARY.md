@@ -126,6 +126,11 @@ Months before crisis stimulus begins after a demand or credit contraction starts
 contraction ends.
 _Avoid_: policy lag, recognition lag
 
+**Zombie support**:
+Share of each month's fiat crisis-stimulus injection that may spare negative-equity firms from the six-month replacement
+rule. The budget is a cap on skipped replacements, not a cash transfer.
+_Avoid_: bailout, forbearance
+
 ## Events
 
 **Shock**:

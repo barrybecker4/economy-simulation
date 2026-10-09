@@ -12,6 +12,7 @@ export const FEATURE_OFF: Readonly<Record<string, number | string>> = {
   'bitcoin.marketPriceWeight': 0,
   'centralBank.stimulus': 1,
   'centralBank.stimulusLag': 6,
+  'centralBank.zombieSupport': 0,
   'centralBank.outputWeight': 0.5,
   'centralBank.bondPurchaseShare': 0,
   'centralBank.spendNewMoney': 0,

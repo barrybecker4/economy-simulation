@@ -48,6 +48,7 @@ const EXPECTED_IDS = [
   'centralBank.moneyGrowth',
   'centralBank.stimulus',
   'centralBank.stimulusLag',
+  'centralBank.zombieSupport',
   'centralBank.injectionChannel',
   'centralBank.spendNewMoney',
   'government.stabilizer',

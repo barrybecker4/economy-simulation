@@ -93,6 +93,7 @@ export interface Parameters {
   moneyGrowth: number;
   stimulus: number;
   stimulusLag: number;
+  zombieSupport: number;
   injectionChannel: 'proRataDeposits' | 'governmentSpending' | 'newLoans' | 'assetPurchase';
   spendNewMoney: number;
   stabilizer: number;
@@ -209,6 +210,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     moneyGrowth: slider(config, 'centralBank.moneyGrowth'),
     stimulus: slider(config, 'centralBank.stimulus'),
     stimulusLag: Math.round(slider(config, 'centralBank.stimulusLag')),
+    zombieSupport: slider(config, 'centralBank.zombieSupport'),
     injectionChannel: injectionChannelOf(config),
     spendNewMoney: slider(config, 'centralBank.spendNewMoney'),
     stabilizer: slider(config, 'government.stabilizer'),

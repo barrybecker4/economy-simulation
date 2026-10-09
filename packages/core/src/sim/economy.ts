@@ -95,6 +95,11 @@ export interface Economy {
    * Each entry is max(0, −demandImpulse, −creditImpulse) for that fiat tick.
    */
   readonly contractionPressure: number[];
+  /**
+   * Remaining notional budget this tick for sparing insolvent firms from
+   * replacement. Set from the crisis-stimulus slice of fiat money growth.
+   */
+  zombieBudget: number;
   transitionDone: boolean;
   /**
    * Price level when indexed mortgages were last marked. Zero means none are

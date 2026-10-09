@@ -14,23 +14,36 @@ export function onBookkeeping(economy: Economy, ctx: TickContext): void {
   // Catch losses booked after the pre-credit pass (for example write-offs).
   resolveInsolventBanks(economy);
   for (const firm of economy.firms) {
-    const price = economy.bitcoinPrice;
-    const equity =
-      firm.deposit +
-      firm.bitcoin * price +
-      firm.capital * firm.price -
-      firm.loan -
-      firm.bitcoinLoan * price;
+    const equity = firmEquity(economy, firm);
     firm.negTicks = equity < 0 ? firm.negTicks + 1 : 0;
     if (firm.negTicks >= FAILURE_TICKS) {
-      replaceFirm(economy, firm);
+      const shortfall = Math.max(0, -equity);
+      if (shortfall > 0 && economy.zombieBudget >= shortfall) {
+        economy.zombieBudget -= shortfall;
+      } else {
+        replaceFirm(economy, firm);
+      }
     }
   }
+  // Unspent support is discarded; it is not a second payment.
+  economy.zombieBudget = 0;
   trackCreditCycle(economy);
   const audit = ctx.ledger.audit();
   if (!audit.ok) {
     throw new Error(`Ledger audit failed at tick ${ctx.tick}: imbalance ${audit.imbalance}`);
   }
+}
+
+/** Firm equity used for the negative-equity replacement clock. */
+export function firmEquity(economy: Economy, firm: Firm): number {
+  const price = economy.bitcoinPrice;
+  return (
+    firm.deposit +
+    firm.bitcoin * price +
+    firm.capital * firm.price -
+    firm.loan -
+    firm.bitcoinLoan * price
+  );
 }
 
 function replaceFirm(economy: Economy, firm: Firm): void {
