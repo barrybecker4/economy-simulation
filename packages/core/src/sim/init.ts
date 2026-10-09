@@ -1,4 +1,5 @@
 import { Rng } from '../rng/rng.js';
+import { totalDeposits } from './banking.js';
 import type { Economy } from './economy.js';
 import { employ, priceTrend } from './helpers.js';
 import { redistributeToUnemployed } from './income.js';
@@ -35,6 +36,7 @@ export function createEconomy(
   rememberOpeningIncome(economy, initialOutput);
   seedOpeningTenure(economy);
   capitalizeBanks(economy);
+  economy.openingDeposits = totalDeposits(economy);
   return economy;
 }
 

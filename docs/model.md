@@ -82,14 +82,13 @@ audit. The result's audit is taken again after the tick. A caller of the schedul
 fills every step.
 
 The ledger unit follows `regime.type`: fiat uses cents; bitcoin and hybrid use satoshis. That control is only the
-opening monetary rule. It does not rewrite other sliders. `money.choiceSpeed` (default 0.01) moves the shares of fiat,
+opening monetary rule. It does not rewrite other sliders. `money.choiceSpeed` (default 0) moves the shares of fiat,
 bitcoin, stablecoins, and CBDC toward the mix implied by legal tender, trust, friction, and real return. Bitcoin’s
 opening share is fixed at 0.4 percent, about $2 trillion of bitcoin against about $500 trillion of global assets.
 Stablecoins and CBDC open at their start sliders. New bitcoin follows the halving schedule from a month-0 start in
 October 2026: the reward is 3.125 BTC, about 95.7 percent of the 21 million cap is already mined, and the reward halves
-every 48 months. At speed 0 the shares stay put and each regime keeps its own rate rule. Above 0 the policy rate is the fiat share
-times the Taylor rule plus the rest times the market rate, and exchange rates move with each money’s share. Fiat still
-grows broad money and accommodates reserves; hybrid still acts as lender of last resort. Bitcoin’s
+every 48 months. At speed 0 the shares stay put. Above 0 the shares and exchange rates move; the policy-rate rule,
+fiat money growth, reserve accommodation, and the hybrid lender of last resort still follow `regime.type`. Bitcoin’s
 rate also moves with that month’s issuance relative to coins already outstanding.
 
 ## Metrics
@@ -183,8 +182,11 @@ The agreed money wage is the price level times `1 / (1 + firm.markup)` times eco
 `0.4` times tightness, where tightness is `(natural unemployment − unemployment) × humanWeight`. The posted money wage
 closes `1 − wage.nominalRigidity` of the gap to that agreed wage each month, capped by the monthly wage move. Employees
 close a shortfall; employers close an excess; both sides use the same speed. At rigidity 0 the posted wage matches the
-agreed wage immediately. Hiring compares the posted real wage with the reference above, which equals the agreed real
-wage at zero tightness. During the lag, rising prices leave employees behind and falling prices leave them ahead. The
+agreed wage immediately. Under fiat, once broad money is already above 1.25× its opening stock and trailing inflation is above the target,
+upward wage catch-up is scaled down by how far inflation overshoots, so wages and prices do not chase a money-financed
+spiral. Supply-driven inflation without that money expansion is left alone. Hiring compares
+the posted real wage with the reference above, which equals the agreed real wage
+at zero tightness. During the lag, rising prices leave employees behind and falling prices leave them ahead. The
 contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
 worker's skill.
 
@@ -204,7 +206,8 @@ discretionary remainder. The floor share is the sum of the food and housing CPI 
 `household.realReturnSensitivity` is positive and the real return on money is positive, only the remainder is multiplied
 by `max(0, 1 − sensitivity × real return)`. The real return is the deposit rate minus year-over-year inflation. Deposits
 pay at `bank.depositPassThrough` times the policy rate (default 0.45). At sensitivity 0 the uncut budget is unchanged.
-The household visits up to `goods.sampleSize` firms and buys from those that have stock. The spend stops at the deposit
+Households shop in a seeded random order each month so early ids do not always claim scarce inventory first. Each
+household visits up to `goods.sampleSize` firms and buys from those that have stock. The spend stops at the deposit
 minus this month's mortgage payment and consumer-loan installment, so a larger budget is not spent ahead of debt service.
 
 The government buys the remaining `government.spendingShareOfGDP` share of the same income base, starting with the firms
@@ -388,7 +391,9 @@ expansion always happens when the gap is non-negative. High inflation can still 
 `centralBank.stimulus` (default 1.75, minimum 0) times the unemployment gap from `centralBank.stimulusLag` months ago
 (default 3, minimum 1) adds to that annual rate. The gap is unemployment minus the natural rate: positive expands money,
 negative withdraws, through the same monthly channel cap. Gaps inside two percentage points of the natural rate are
-treated as zero so calm noise does not move the stock. At stimulus 0 the crisis term is off. Deflation already enters
+treated as zero so calm noise does not move the stock. When broad money already sits above twice its opening stock and
+slack remains, that stimulus term scales down by `2 / money multiple` so printing that does not clear unemployment
+cannot compound alone. At stimulus 0 the crisis term is off. Deflation already enters
 the secular rule through the inflation gap, so it is not a second crisis trigger. See
 [ADR 0017](adr/0017-fiat-cannot-freeze.md). `centralBank.zombieSupport` (default 0) times the crisis-stimulus share of
 that positive injection sets a notional budget that may spare insolvent firms from replacement; see firm failure above
@@ -399,7 +404,8 @@ bonds already on bank books, pays households, and adds reserves equal to the pur
 cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places
 nothing. Government spending
 credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. A contraction
-withdraws from the sector that channel credits, and only up to the balances that exist. Reserve-backed channels still
+withdraws from the sector that channel credits, and only up to the balances that exist. An asset-purchase contraction
+draws only reserves above the reserve requirement. Reserve-backed channels still
 cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md),
 [ADR 0021](adr/0021-rate-cap-and-real-channels.md), and
 [ADR 0024](adr/0024-asset-purchase-reserves-once.md). When

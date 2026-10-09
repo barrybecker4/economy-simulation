@@ -120,4 +120,6 @@ export interface Economy {
   cbdcPrice: number;
   /** Capital claims counted in wealth when the equity market is on. */
   equityClaims: number[];
+  /** Broad-money stock after opening capitalization. Used to taper ineffective stimulus. */
+  openingDeposits: number;
 }

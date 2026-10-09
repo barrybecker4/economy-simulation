@@ -298,7 +298,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     1.75,
     0,
     2,
-    'Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.',
+    'Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Once broad money is above twice its opening stock, that stimulus term is scaled by 2 / money multiple so printing that has not cleared slack cannot compound alone. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.stimulusLag',
@@ -327,7 +327,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     'channel',
     'proRataDeposits',
     ['proRataDeposits', 'governmentSpending', 'newLoans', 'assetPurchase'],
-    'Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.',
+    'Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist; an asset-purchase contraction draws only reserves above the reserve requirement. Bitcoin and hybrid ignore this slider.',
   ),
   numberSlider(
     'centralBank.spendNewMoney',

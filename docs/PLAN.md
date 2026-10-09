@@ -766,8 +766,8 @@ Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can mov
 
 1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
-   return. The policy rate blends the Taylor rule and the market rate by the fiat share. Exchange rates move with each
-   digital share. Bitcoin issuance is the halving schedule, not a slider.
+   return, and exchange rates move with each digital share. The policy-rate rule still follows `regime.type`. Bitcoin
+   issuance is the halving schedule, not a slider.
 
 Acceptance:
 
@@ -891,8 +891,8 @@ Acceptance:
 Goal: the web app opens on settings where spending can move prices and output.
 
 1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5,
-   tenure choice on, and `money.choiceSpeed` 0 so each regime keeps its own rate rule. Money growth stays at its
-   default of 1.
+   tenure choice on, `money.choiceSpeed` 0, and `labor.firmLevelHiring` off so regime gaps are not driven by
+   firm-level shedding. Money growth stays at its default of 1.
 2. The app’s default page overrides match that preset. 3. The preset's 12-month opening deposits sit under the spending
    buffer, so with trend weight 0 the new money would otherwise sit idle and pull every category price down. That new
    money is blended into smoothed income and spent. Energy, medical care, and education then rise over a decade, and
@@ -1543,7 +1543,7 @@ before retuning the growth rule.
 Acceptance:
 
 - Flow history has one entry per tick.
-- Fiat slump ending money is below calm; the dominant deposit drag versus calm is `fiatInjection`.
+- Fiat slump: the dominant deposit drag versus calm is `fiatInjection` (negative); ending money stays within 2× calm.
 - Bitcoin slump ending money is below calm; with write-downs ignored, the drag is `netCredit` or
   `interestRetained`.
 

@@ -7,8 +7,8 @@ import { inventoryPressure, monthlyPriceMove } from './pricing.js';
 import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare, subsistenceShare } from './spending.js';
-import { clamp } from './stats.js';
-import type { Firm } from './types.js';
+import { clamp, shuffleInPlace } from './stats.js';
+import type { Firm, Household } from './types.js';
 
 export function onGoods(economy: Economy): void {
   economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
@@ -42,32 +42,40 @@ function goodsMarket(economy: Economy): GoodsMarket {
 }
 
 function shopHouseholds(economy: Economy, market: GoodsMarket): void {
-  for (const household of economy.households) {
-    const reserved = household.mortgagePayment + household.consumerLoan * CONSUMER_LOAN_REPAY;
-    const budget = goodsBudget({
-      smoothed: household.smoothed,
-      income: household.income,
-      deposit: household.deposit + coinSpendable(economy, household.bitcoin),
-      spendingShare: spendingShare(economy, household.timePref, market.inflationGap),
-      demandFactor: market.demandFactor,
-      realReturn: market.realReturn,
-      realReturnSensitivity: economy.params.realReturnSensitivity,
-      floorShare: market.floorShare,
-      durableShare: economy.params.durableShare,
-    });
-    economy.desiredSpend += budget;
-    // Keep this month's debt service in cash. A larger goods budget,
-    // including a treasury rebate, would otherwise be spent before mortgages.
-    const spendable = spendableCash(economy, household, reserved);
-    const left = Math.max(0, Math.min(spendable, Math.round(budget)));
-    const start =
-      economy.firms.length > 0 ? household.search.uniformInt(0, economy.firms.length - 1) : 0;
-    const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
-    payFromCash(economy, household, spent, reserved);
-    household.consumption = spent;
-    household.realConsumption = bought;
-    economy.consumptionSpend += spent;
+  const order = shuffleInPlace(
+    economy.households.slice(),
+    economy.populationRng.fork(`shop/${economy.tick}`),
+  );
+  for (const household of order) {
+    shopOneHousehold(economy, market, household);
   }
+}
+
+function shopOneHousehold(economy: Economy, market: GoodsMarket, household: Household): void {
+  const reserved = household.mortgagePayment + household.consumerLoan * CONSUMER_LOAN_REPAY;
+  const budget = goodsBudget({
+    smoothed: household.smoothed,
+    income: household.income,
+    deposit: household.deposit + coinSpendable(economy, household.bitcoin),
+    spendingShare: spendingShare(economy, household.timePref, market.inflationGap),
+    demandFactor: market.demandFactor,
+    realReturn: market.realReturn,
+    realReturnSensitivity: economy.params.realReturnSensitivity,
+    floorShare: market.floorShare,
+    durableShare: economy.params.durableShare,
+  });
+  economy.desiredSpend += budget;
+  // Keep this month's debt service in cash. A larger goods budget,
+  // including a treasury rebate, would otherwise be spent before mortgages.
+  const spendable = spendableCash(economy, household, reserved);
+  const left = Math.max(0, Math.min(spendable, Math.round(budget)));
+  const start =
+    economy.firms.length > 0 ? household.search.uniformInt(0, economy.firms.length - 1) : 0;
+  const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
+  payFromCash(economy, household, spent, reserved);
+  household.consumption = spent;
+  household.realConsumption = bought;
+  economy.consumptionSpend += spent;
 }
 
 function coinSpendable(economy: Economy, units: number): number {

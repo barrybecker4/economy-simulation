@@ -72,21 +72,17 @@ export function onCentralBank(economy: Economy): void {
   economy.zombieBudget = 0;
   economy.fiatInjectionFlow = 0;
   economy.reserveAccommodationFlow = 0;
+  // Currency shares may move with choiceSpeed; the policy rule follows the regime.
   updateMoneyChoice(economy);
-  if (economy.params.choiceSpeed > 0) {
-    setBlendedPolicy(economy);
-  } else if (economy.params.regime === 'fiat') {
-    setFiatPolicy(economy);
-  } else {
-    setMarketRate(economy);
-  }
   if (economy.params.regime === 'fiat') {
+    setFiatPolicy(economy);
     growFiatMoney(economy);
     accommodateReserves(economy);
-  } else if (economy.params.regime === 'hybrid') {
-    supportInsolventBanks(economy);
-  } else if (economy.params.choiceSpeed > 0 && economy.moneyShares.fiat > 0) {
-    accommodateReserves(economy);
+  } else {
+    setMarketRate(economy);
+    if (economy.params.regime === 'hybrid') {
+      supportInsolventBanks(economy);
+    }
   }
 }
 
@@ -109,7 +105,13 @@ export function growFiatMoney(economy: Economy): void {
   const pressure = stimulusPressure(economy);
   economy.contractionPressure.push(pressure);
   const lagged = laggedStimulusPressure(economy);
-  const stimulusAnnual = economy.params.stimulus * lagged;
+  // When money has already expanded a lot and slack remains, further stimulus
+  // only compounds deposits. Fade with the money multiple above 2× opening.
+  const moneyMultiple =
+    economy.openingDeposits > 0 ? totalDeposits(economy) / economy.openingDeposits : 1;
+  const stimulusEffective =
+    lagged > 0 ? clamp(2 / Math.max(moneyMultiple, 1), 0, 1) : 1;
+  const stimulusAnnual = economy.params.stimulus * lagged * stimulusEffective;
   const annual = secular + stimulusAnnual;
   const monthly = annual / 12;
   const deposits = totalDeposits(economy);
@@ -280,8 +282,9 @@ function repayInjectedLoans(economy: Economy, amount: number): number {
 }
 
 function unwindPurchasedClaims(economy: Economy, amount: number): number {
-  // Purchase booked −bonds +reserves +vault +deposits; reverse those legs.
-  const capacity = Math.min(amount, reserveStock(economy), vaultResidual(economy));
+  // Purchase booked −bonds +reserves +vault +deposits; reverse only from
+  // reserves above the requirement so accommodation is not immediately undone.
+  const capacity = Math.min(amount, excessReserveStock(economy), vaultResidual(economy));
   const removed = drainHouseholdDeposits(economy, capacity);
   releaseReserves(economy, removed);
   releaseVaultResidual(economy, removed);
@@ -291,6 +294,12 @@ function unwindPurchasedClaims(economy: Economy, amount: number): number {
     addBonds(bank, removed);
   }
   return removed;
+}
+
+/** Reserves above the reserve requirement. Required balances stay untouched. */
+function excessReserveStock(economy: Economy): number {
+  const required = Math.round(economy.params.reserveRequirement * totalDeposits(economy));
+  return Math.max(0, reserveStock(economy) - required);
 }
 
 /**
@@ -497,24 +506,6 @@ function blendIdleMoney(
   const shortfall = clamp((buffer - household.deposit) / buffer, 0, 1);
   const weight = Math.max(forced, shortfall);
   household.smoothed = Math.max(0, household.smoothed + flow * weight);
-}
-
-function setBlendedPolicy(economy: Economy): void {
-  const taylor = taylorRate({
-    timePrefMean: economy.params.timePrefMean,
-    inflation: expectedInflation(economy),
-    inflationTarget: economy.params.inflationTarget,
-    inflationWeight: economy.params.inflationWeight,
-    outputWeight: economy.params.outputWeight,
-    outputGap: outputGap(economy),
-  });
-  const market = marketLoanRate({
-    timePrefMean: economy.params.timePrefMean,
-    loans: totalLoans(economy),
-    savings: savingsStock(economy),
-  });
-  const fiat = economy.moneyShares.fiat;
-  publishRate(economy, fiat * taylor + (1 - fiat) * market);
 }
 
 function setMarketRate(economy: Economy): void {

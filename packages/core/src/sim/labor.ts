@@ -1,3 +1,4 @@
+import { totalDeposits } from './banking.js';
 import { firmCapacity } from './capacity.js';
 import {
   MAX_MONTHLY_PRICE_MOVE,
@@ -14,6 +15,7 @@ import {
   displaced,
   employedCount,
   humanWeight,
+  inflation,
   outputGap,
   separate,
 } from './helpers.js';
@@ -307,11 +309,28 @@ function placeAtUnderstaffed(
 }
 
 function updateWages(economy: Economy): void {
-  const growth = wageGrowth({
+  let growth = wageGrowth({
     posted: economy.wageLevel,
     agreed: agreedWageLevel(economy),
     rigidity: economy.params.rigidity,
   });
+  // Under fiat, damp upward catch-up once money has already expanded and
+  // trailing inflation is above target, so wages and prices do not chase a
+  // money-financed spiral. Supply-driven inflation without money growth is left
+  // alone so real wages can catch up after a productivity shock.
+  if (economy.params.regime === 'fiat' && growth > 0) {
+    const overshoot = inflation(economy) - economy.params.inflationTarget;
+    const moneyMultiple =
+      economy.openingDeposits > 0 ? totalDeposits(economy) / economy.openingDeposits : 1;
+    if (overshoot > 0 && moneyMultiple > 1.25) {
+      const scale = clamp(
+        1 - overshoot / Math.max(economy.params.inflationTarget, 0.01),
+        0,
+        1,
+      );
+      growth *= scale;
+    }
+  }
   economy.wageLevel *= 1 + growth;
   for (const firm of economy.firms) {
     firm.wage = economy.wageLevel * firm.productivity;

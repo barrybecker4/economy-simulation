@@ -93,11 +93,12 @@ Phase 70 records per-tick deposit-flow buckets on the economy (`fiatInjection`, 
 `interestRetained`, `writeDowns`, `reserveAccommodation`). On the monetary preset with a forced
 demand slump (seed 4, 40 households):
 
-- **Fiat.** Ending deposits sit below a calm run. The dominant gap versus calm is a smaller (often
-  negative) `fiatInjection`: the secular money-growth rule withdraws once inflation overshoots after
-  the crisis injection, and the smaller deposit base shrinks any positive monthly growth. Net credit
-  also contracts. The Taylor rate sets the policy rate and deposit coupon; the deposit stock itself
-  is moved by the money-growth channel.
+- **Fiat.** The dominant gap versus calm is a smaller (often negative) `fiatInjection`: the secular
+  money-growth rule withdraws once inflation overshoots after the crisis injection. Reserve
+  accommodation can offset that drag in the stock, so ending money may sit near or slightly above
+  calm; the flow decomposition still names the injection rule. Net credit also moves. The Taylor
+  rate sets the policy rate and deposit coupon; the deposit stock itself is moved by the
+  money-growth channel and accommodation.
 - **Bitcoin.** Ending deposits also sit below calm. There is no fiat injection. Write-downs hit bank
   equity, not deposits. The deposit drag is net credit and borrower interest retained in bank equity
   after deposit coupons (see Phase 73 on dividends paid to nobody).

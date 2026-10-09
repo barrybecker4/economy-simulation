@@ -111,6 +111,7 @@ export function blankEconomy(
     stablecoinPrice: 1,
     cbdcPrice: 1,
     equityClaims: [],
+    openingDeposits: 0,
   };
 }
 

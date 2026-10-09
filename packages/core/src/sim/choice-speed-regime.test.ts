@@ -81,6 +81,7 @@ describe('choice speed keeps regime operations', () => {
 
   it('pins the monetary preset to choice speed 0 so fiat grows versus bitcoin', () => {
     expect(monetaryPreset['money.choiceSpeed']).toBe(0);
+    expect(monetaryPreset['labor.firmLevelHiring']).toBe('off');
     const shared = {
       ...monetaryPreset,
       'scale.households': 40,

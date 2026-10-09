@@ -67,6 +67,13 @@ The monetary preset sets `household.skillSigma` to 1.1, skill-weighted bequests
 use skill to the 16th, and the transition can reassign deposits by holder
 concentration. Those are imposed. Regime gaps are also shown at skill sigma 0.5.
 
+## Firm-level hiring on the monetary preset
+
+The registry default for `labor.firmLevelHiring` is on. The monetary preset pins it
+off: with demand-led output, firm-level shedding drove most of the fiat–bitcoin
+unemployment gap on that preset. Report hiring-on cells separately when that
+mechanism is the claim under test.
+
 ## Registry versus app defaults
 
 The registry keeps `prices.trendWeight` at 1 so older phases stay money-irrelevant

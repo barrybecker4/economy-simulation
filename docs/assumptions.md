@@ -312,7 +312,7 @@ Registry version: 13.
 - Options: proRataDeposits, governmentSpending, newLoans, assetPurchase
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.
+- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist; an asset-purchase contraction draws only reserves above the reserve requirement. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.moneyGrowth
 
@@ -367,7 +367,7 @@ Registry version: 13.
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.
+- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Once broad money is above twice its opening stock, that stimulus term is scaled by 2 / money multiple so printing that has not cleared slack cannot compound alone. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.stimulusLag
 
@@ -924,11 +924,11 @@ Registry version: 13.
 - Label: Money choice speed
 - Group: regime
 - Unit: share per tick
-- Default: 0.01
+- Default: 0
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. The default of 0.01 closes about half the gap to the preferred mix in six years. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate blends the Taylor rule and the market rate by the fiat share, and exchange rates move with each money’s share. Fiat still grows broad money and accommodates reserves; hybrid still acts as lender of last resort. The monetary comparison preset pins this slider to 0.
+- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. At 0 the shares stay at that opening mix. Above 0 the shares and exchange rates move; the regime control still selects the policy-rate rule, fiat money growth, reserve accommodation, and the hybrid lender of last resort. The default of 0 keeps currency adoption off so regime comparisons are not blended.
 
 ## money.fiatLegalTender
 
@@ -1170,4 +1170,4 @@ Registry version: 13.
 - Range: 0 to 0.95
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.
+- Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted wage matches the agreed wage immediately. Under fiat, once money is already above 1.25× its opening stock and trailing inflation is above the target, upward catch-up is scaled down by the overshoot so wages and prices do not chase a money-financed spiral. Under rising prices the lag leaves employees behind; under falling prices it leaves them ahead.

@@ -77,6 +77,20 @@ export function monthlyFromAnnual(rate: number): number {
   return (1 + rate) ** (1 / 12) - 1;
 }
 
+/** Fisher–Yates shuffle. Mutates `items` and returns it. */
+export function shuffleInPlace<T>(items: T[], rng: { uniformInt(min: number, max: number): number }): T[] {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const draw = rng.uniformInt(0, index);
+    const current = items[index];
+    const picked = items[draw];
+    if (current !== undefined && picked !== undefined) {
+      items[index] = picked;
+      items[draw] = current;
+    }
+  }
+  return items;
+}
+
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }

@@ -19,8 +19,9 @@ times the opening stock. The Taylor rate cap did not stop that loop.
   matching the new deposits).
 - The retired bond seats on vault cash and the private-equity residual (`vault = equity + privateEquity`). That residual
   does not earn the policy rate and does not expand credit room.
-- A contraction reverses the same legs: drain deposits, release one reserve, reduce the vault residual, and restore the
-  bond. With no bonds, the channel places nothing.
+- A contraction reverses the same legs: drain deposits, release one reserve from the stock above the reserve
+  requirement, reduce the vault residual, and restore the bond. Required reserves stay. With no bonds, the channel
+  places nothing.
 
 ## Consequences
 
