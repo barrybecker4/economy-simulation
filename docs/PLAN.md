@@ -891,7 +891,8 @@ Acceptance:
 Goal: the web app opens on settings where spending can move prices and output.
 
 1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5,
-   and tenure choice on. Money growth stays at its default of 1.
+   tenure choice on, and `money.choiceSpeed` 0 so each regime keeps its own rate rule. Money growth stays at its
+   default of 1.
 2. The app’s default page overrides match that preset. 3. The preset's 12-month opening deposits sit under the spending
    buffer, so with trend weight 0 the new money would otherwise sit idle and pull every category price down. That new
    money is blended into smoothed income and spent. Energy, medical care, and education then rise over a decade, and
@@ -1553,14 +1554,16 @@ Goal: the Taylor rate cannot runaway, and named injection channels behave like l
 1. Cap the raw Taylor rate at 20 percent before smoothing.
 2. `governmentSpending` buys firm inventory; unspent injection stays in the treasury.
 3. `newLoans` books only up to credit room and stops the same-tick clawback.
-4. `assetPurchase` buys existing bank bonds, pays households, and adds reserves.
+4. `assetPurchase` buys existing bank bonds, pays households, and adds one reserve; the retired bond seats on vault
+   cash (see ADR 0024).
 
 Acceptance:
 
 - A Taylor input that would set 100 percent publishes 20 percent.
 - Government spending leaves unspent cash in the treasury when inventory runs out.
 - New-loan injections book less than an oversized request when credit room binds, and stay on the books that tick.
-- Asset purchase with no bonds places nothing; with bonds, household deposits and reserves rise and bonds fall.
+- Asset purchase with no bonds places nothing; with bonds, household deposits and reserves rise by the purchase, vault
+  and private equity rise by the same amount, and bonds fall.
 - Under hoarding, mean unemployment on `newLoans` and `governmentSpending` stays within 8 points of `proRataDeposits`.
 
 ### Phase 72: Mortgage user cost once

@@ -87,8 +87,9 @@ bitcoin, stablecoins, and CBDC toward the mix implied by legal tender, trust, fr
 opening share is fixed at 0.4 percent, about $2 trillion of bitcoin against about $500 trillion of global assets.
 Stablecoins and CBDC open at their start sliders. New bitcoin follows the halving schedule from a month-0 start in
 October 2026: the reward is 3.125 BTC, about 95.7 percent of the 21 million cap is already mined, and the reward halves
-every 48 months. At speed 0 the shares stay put and the rule is unchanged. Above 0 the policy rate is the fiat share
-times the Taylor rule plus the rest times the market rate, and exchange rates move with each money’s share. Bitcoin’s
+every 48 months. At speed 0 the shares stay put and each regime keeps its own rate rule. Above 0 the policy rate is the fiat share
+times the Taylor rule plus the rest times the market rate, and exchange rates move with each money’s share. Fiat still
+grows broad money and accommodates reserves; hybrid still acts as lender of last resort. Bitcoin’s
 rate also moves with that month’s issuance relative to coins already outstanding.
 
 ## Metrics
@@ -394,12 +395,14 @@ that positive injection sets a notional budget that may spare insolvent firms fr
 and [ADR 0019](adr/0019-zombie-support.md). `centralBank.injectionChannel` chooses the offsetting stock. Pro-rata
 deposits (default) create household deposits and reserves. A new-loan injection books firm loans only up to unused bank
 credit room and does not create reserves; those loans retire on the ordinary repayment path. An asset purchase buys
-bonds already on bank books, pays households, and adds reserves equal to twice the purchase (one leg replaces the
-retired bond, one matches the new deposits) so books close; with no bonds it places nothing. Government spending
+bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault
+cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places
+nothing. Government spending
 credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. A contraction
 withdraws from the sector that channel credits, and only up to the balances that exist. Reserve-backed channels still
-cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md) and
-[ADR 0021](adr/0021-rate-cap-and-real-channels.md). When
+cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md),
+[ADR 0021](adr/0021-rate-cap-and-real-channels.md), and
+[ADR 0024](adr/0024-asset-purchase-reserves-once.md). When
 `prices.trendWeight` is below 1 (default 0.75) and opening deposits are shorter than half the 48-month spending buffer,
 each household's share of pro-rata new money is added to smoothed income in proportion to how far the deposit sits under
 the buffer. `centralBank.spendNewMoney` (default 0.5) forces that blend even with thick opening deposits, and it is the

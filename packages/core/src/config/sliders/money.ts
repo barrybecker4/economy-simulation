@@ -10,7 +10,7 @@ export const MONEY_SLIDERS: readonly Slider[] = [
     0.01,
     0,
     1,
-    'How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. The default of 0.01 closes about half the gap to the preferred mix in six years. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.',
+    'How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. The default of 0.01 closes about half the gap to the preferred mix in six years. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate blends the Taylor rule and the market rate by the fiat share, and exchange rates move with each money’s share. Fiat still grows broad money and accommodates reserves; hybrid still acts as lender of last resort. The monetary comparison preset pins this slider to 0.',
   ),
   numberSlider(
     'money.stablecoinStart',

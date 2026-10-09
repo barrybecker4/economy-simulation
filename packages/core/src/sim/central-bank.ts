@@ -75,18 +75,18 @@ export function onCentralBank(economy: Economy): void {
   updateMoneyChoice(economy);
   if (economy.params.choiceSpeed > 0) {
     setBlendedPolicy(economy);
-    if (economy.moneyShares.fiat > 0) {
-      accommodateReserves(economy);
-    }
   } else if (economy.params.regime === 'fiat') {
     setFiatPolicy(economy);
-    growFiatMoney(economy);
-    accommodateReserves(economy);
   } else {
     setMarketRate(economy);
-    if (economy.params.regime === 'hybrid') {
-      supportInsolventBanks(economy);
-    }
+  }
+  if (economy.params.regime === 'fiat') {
+    growFiatMoney(economy);
+    accommodateReserves(economy);
+  } else if (economy.params.regime === 'hybrid') {
+    supportInsolventBanks(economy);
+  } else if (economy.params.choiceSpeed > 0 && economy.moneyShares.fiat > 0) {
+    accommodateReserves(economy);
   }
 }
 
@@ -280,10 +280,11 @@ function repayInjectedLoans(economy: Economy, amount: number): number {
 }
 
 function unwindPurchasedClaims(economy: Economy, amount: number): number {
-  // Purchase booked −bonds +2·reserves +deposits; reverse with enough reserves.
-  const capacity = Math.min(amount, Math.floor(reserveStock(economy) / 2));
+  // Purchase booked −bonds +reserves +vault +deposits; reverse those legs.
+  const capacity = Math.min(amount, reserveStock(economy), vaultResidual(economy));
   const removed = drainHouseholdDeposits(economy, capacity);
-  releaseReserves(economy, 2 * removed);
+  releaseReserves(economy, removed);
+  releaseVaultResidual(economy, removed);
   // Restore bonds on the first bank so a contraction reverses the purchase.
   const bank = economy.banks[0];
   if (bank && removed > 0) {
@@ -325,9 +326,9 @@ function buyFirmInventory(economy: Economy, firm: Firm, remaining: number): numb
 
 /**
  * Buy bonds already on bank books. Retires the bond asset, pays households, and
- * adds reserves twice the purchase: once to replace the retired bond (QE swap)
- * and once to match the new deposits so bank books close. Places nothing when
- * no bonds are available.
+ * adds one reserve leg to match the new deposits. The retired bond seats on
+ * vault cash and the private-equity residual so books close without a second
+ * interest-bearing reserve. Places nothing when no bonds are available.
  */
 function buyExistingBonds(economy: Economy, amount: number): number {
   let left = amount;
@@ -342,12 +343,33 @@ function buyExistingBonds(economy: Economy, amount: number): number {
       continue;
     }
     addBonds(bank, -take);
-    addReserves(bank, 2 * take);
+    addReserves(bank, take);
+    bank.vault += take;
+    economy.privateEquity += take;
     injectHouseholdDeposits(economy, take);
     bought += take;
     left -= take;
   }
   return bought;
+}
+
+/** Vault cash held as the private-equity residual (vault − bank equity). */
+function vaultResidual(economy: Economy): number {
+  return Math.max(0, economy.privateEquity);
+}
+
+/** Take vault residual from banks in id order. Keeps vault = equity + privateEquity. */
+function releaseVaultResidual(economy: Economy, amount: number): void {
+  let left = amount;
+  for (const bank of economy.banks) {
+    if (left <= 0) {
+      return;
+    }
+    const take = Math.min(Math.max(0, bank.vault - bank.equity), left);
+    bank.vault -= take;
+    economy.privateEquity -= take;
+    left -= take;
+  }
 }
 
 function drainFirmDeposits(economy: Economy, amount: number): number {

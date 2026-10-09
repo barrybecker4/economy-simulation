@@ -312,7 +312,7 @@ Registry version: 13.
 - Options: proRataDeposits, governmentSpending, newLoans, assetPurchase
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to twice the purchase so books close; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.
+- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.moneyGrowth
 
@@ -928,7 +928,7 @@ Registry version: 13.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. The default of 0.01 closes about half the gap to the preferred mix in six years. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.
+- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. The default of 0.01 closes about half the gap to the preferred mix in six years. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate blends the Taylor rule and the market rate by the fiat share, and exchange rates move with each money’s share. Fiat still grows broad money and accommodates reserves; hybrid still acts as lender of last resort. The monetary comparison preset pins this slider to 0.
 
 ## money.fiatLegalTender
 

@@ -9,6 +9,7 @@ import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 import { MAX_POLICY_RATE } from './rules.js';
+import { bankBalanceIdentity } from './stocks.js';
 import { simulate } from './simulate.js';
 
 const monetary = {
@@ -72,11 +73,39 @@ describe('phase 71 rate cap and real injection channels', () => {
     const openingBonds = bonds(funded);
     const openingHouseholds = householdDeposits(funded);
     const openingReserves = reserves(funded);
+    const openingVault = vault(funded);
+    const openingPrivate = funded.privateEquity;
     placeInjection(funded, 4_000);
     expect(bonds(funded)).toBe(openingBonds - 4_000);
     expect(householdDeposits(funded)).toBe(openingHouseholds + 4_000);
-    // QE swap replaces the bond; a second reserve leg matches new deposits.
-    expect(reserves(funded)).toBe(openingReserves + 8_000);
+    // One reserve leg matches new deposits; the retired bond seats on vault cash.
+    expect(reserves(funded)).toBe(openingReserves + 4_000);
+    expect(vault(funded)).toBe(openingVault + 4_000);
+    expect(funded.privateEquity).toBe(openingPrivate + 4_000);
+    expect(bankBalanceIdentity(funded)).toBeCloseTo(0, 6);
+  });
+
+  it('keeps assetPurchase money on the same order as proRataDeposits', () => {
+    const shared = {
+      ...monetary,
+      'prices.trendWeight': 0,
+      'production.demandWeight': 1,
+      'bank.depositPassThrough': 1,
+      'household.realReturnSensitivity': 1,
+      'household.openingDepositMonths': 12,
+      ticks: 120,
+    };
+    const deposits = run({ ...shared, 'centralBank.injectionChannel': 'proRataDeposits' });
+    const purchase = run({ ...shared, 'centralBank.injectionChannel': 'assetPurchase' });
+    expect(deposits.audit.ok && purchase.audit.ok).toBe(true);
+    const depositMoney = series(deposits, 'moneySupply');
+    const purchaseMoney = series(purchase, 'moneySupply');
+    const depositRatio =
+      (depositMoney.at(-1) ?? 0) / Math.max(depositMoney[0] ?? 1, 1);
+    const purchaseRatio =
+      (purchaseMoney.at(-1) ?? 0) / Math.max(purchaseMoney[0] ?? 1, 1);
+    expect(purchaseRatio).toBeLessThan(1_000);
+    expect(purchaseRatio / Math.max(depositRatio, 1e-9)).toBeLessThan(10);
   });
 
   it('keeps hoarding-channel unemployment near the other channels', () => {
@@ -133,6 +162,10 @@ function bonds(state: Economy): number {
 
 function reserves(state: Economy): number {
   return state.banks.reduce((sum, bank) => sum + bank.reserves, 0);
+}
+
+function vault(state: Economy): number {
+  return state.banks.reduce((sum, bank) => sum + bank.vault, 0);
 }
 
 function totalInventory(state: Economy): number {

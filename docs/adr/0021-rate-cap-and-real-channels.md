@@ -3,7 +3,8 @@
 ## Status
 
 Accepted. Supersedes the same-tick loan clawback and invented bond claim in
-[ADR 0010](0010-injection-channel.md).
+[ADR 0010](0010-injection-channel.md). Asset-purchase reserve booking updated by
+[ADR 0024](0024-asset-purchase-reserves-once.md).
 
 ## Context
 
@@ -17,9 +18,9 @@ purchases invented bond claims.
 - `governmentSpending` credits the treasury and buys firm inventory; unspent credit stays in the treasury.
 - `newLoans` books firm loans only up to unused bank credit room. Those loans retire on the ordinary interest and
   repayment path. A contraction still repays firm loans up to balances on hand.
-- `assetPurchase` buys bonds already on bank books, pays households, and adds reserves equal to twice the purchase
-  (one leg replaces the retired bond, one matches the new deposits) so bank books close. With no bonds, it places
-  nothing.
+- `assetPurchase` buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the
+  retired bond seats on vault cash and the private-equity residual (see [ADR 0024](0024-asset-purchase-reserves-once.md)).
+  With no bonds, it places nothing.
 
 ## Consequences
 

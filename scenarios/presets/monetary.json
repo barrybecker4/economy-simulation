@@ -14,6 +14,7 @@
     "bank.capitalRatio": 0.04,
     "bank.resolution": "merge",
     "household.openingDepositMonths": 12,
-    "household.skillSigma": 1.1
+    "household.skillSigma": 1.1,
+    "money.choiceSpeed": 0
   }
 }
