@@ -3,7 +3,7 @@ import type { ComparisonSession } from './compare.js';
 export const GUIDE_STORAGE_KEY = 'economy-simulation.guide';
 
 export const GUIDE_STEPS = [
-  'Press Run. Charts show one path of the economy for the months you set. Seed picks the random path. More than one seed charts the median. One chart group starts open; the others stay collapsed until opened.',
+  'Press Run. Charts show one path of the economy for the months you set. Seed picks the random path. More than one seed charts the median. The shocks chart charts the mean absolute impulse, so larger shocks count more. One chart group starts open; the others stay collapsed until opened.',
   'Under Parameters, change the regime or a preset, then run again. Each group starts collapsed on its preset. Expand a group to move its sliders. Hover a dotted name for unit, default, and whether the value is sourced, calibrated, or a guess.',
   'Press Pin as baseline, change one assumption, and run again. Charts draw both paths, and each caption says how the scenario differs.',
   'The address bar keeps the seed and sliders, so a link reopens the same settings.',

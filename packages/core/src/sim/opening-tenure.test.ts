@@ -7,6 +7,7 @@ import { loadParameters } from './parameters.js';
 import { openingTenureQuotas } from './opening-tenure.js';
 import { bankBalanceIdentity } from './stocks.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const sized = {
   'scale.households': 1000,
@@ -84,7 +85,7 @@ describe('opening housing tenure', () => {
           name: 'opening-tenure-off',
           seed: 1,
           ticks: 1,
-          sliders: sized,
+          sliders: { ...FEATURE_OFF, ...sized },
         }),
       ),
       1,

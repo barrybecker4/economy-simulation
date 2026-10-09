@@ -6,8 +6,10 @@ import { onContractChoice } from './contracts.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const monetary = {
+  ...FEATURE_OFF,
   'scale.households': 80,
   'scale.firms': 8,
   'scale.banks': 1,
@@ -67,11 +69,10 @@ describe('phase 57 inflation and inside money', () => {
     const fiat = run({ ...monetary, 'regime.type': 'fiat', ticks: 120 });
     const bitcoin = run({ ...monetary, 'regime.type': 'bitcoin', ticks: 120 });
     const demandLed = run({
+      ...monetary,
       'regime.type': 'fiat',
-      'scale.households': 80,
-      'scale.firms': 8,
-      'scale.banks': 1,
-      'shock.frequency': 0,
+      'housing.tenureChoice': 'off',
+      'credit.endogenousWeight': 0,
       'prices.trendWeight': 0,
       'production.demandWeight': 1,
       ticks: 120,

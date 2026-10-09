@@ -8,8 +8,10 @@ import { loadParameters } from './parameters.js';
 import { bankBalanceIdentity, postBalancedStockLines } from './stocks.js';
 import { simulate } from './simulate.js';
 import { totalDeposits, totalLoans } from './banking.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,

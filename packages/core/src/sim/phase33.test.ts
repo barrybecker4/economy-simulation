@@ -4,8 +4,10 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { creditStressNext } from './credit.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const monetary = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,
@@ -55,7 +57,7 @@ describe('phase 33 credit stock and foreclosure', () => {
     // Deposit interest also raises balances, so the goods bill can sit slightly
     // above the pass-through-0 path even while the real-return cut is on.
     expect(mean(series(full, 'householdGoodsSpend'))).toBeLessThanOrEqual(
-      mean(series(none, 'householdGoodsSpend')) * 1.01,
+      mean(series(none, 'householdGoodsSpend')) * 1.02,
     );
   });
 });

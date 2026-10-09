@@ -8,8 +8,10 @@ import { monthlyMortgagePayment } from './contracts.js';
 import { drawMortgage, payCashForHome } from './money.js';
 import { loadParameters } from './parameters.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const monetary = {
+  ...FEATURE_OFF,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,

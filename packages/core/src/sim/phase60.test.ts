@@ -7,8 +7,10 @@ import { onPopulation } from './population.js';
 import { loadParameters } from './parameters.js';
 import { gini } from './stats.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const monetary = {
+  ...FEATURE_OFF,
   'scale.households': 80,
   'scale.firms': 8,
   'scale.banks': 1,

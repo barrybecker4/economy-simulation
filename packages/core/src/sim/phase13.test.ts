@@ -4,8 +4,10 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { clearsInvestmentHurdle } from './credit.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,

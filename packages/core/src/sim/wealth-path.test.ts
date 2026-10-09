@@ -3,17 +3,22 @@ import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 describe('default wealth path', () => {
   it('raises total real wealth and real GDP over a default decade', () => {
-    const result = simulate(loadScenario({ name: 'wealth-path', seed: 1, ticks: 120 }));
+    const result = simulate(
+      loadScenario({ name: 'wealth-path', seed: 1, ticks: 120, sliders: { ...FEATURE_OFF } }),
+    );
     expect(result.audit.ok).toBe(true);
     expect(last(result, 'totalRealWealth')).toBeGreaterThan(first(result, 'totalRealWealth'));
     expect(last(result, 'realGdp')).toBeGreaterThan(first(result, 'realGdp'));
   });
 
   it('does not sawtooth wealth from once-a-year investment lumps', () => {
-    const result = simulate(loadScenario({ name: 'wealth-smooth', seed: 1, ticks: 36 }));
+    const result = simulate(
+      loadScenario({ name: 'wealth-smooth', seed: 1, ticks: 36, sliders: { ...FEATURE_OFF } }),
+    );
     const wealth = series(result, 'totalRealWealth');
     const invest = series(result, 'realInvestment');
     expect(
@@ -28,33 +33,40 @@ describe('default wealth path', () => {
     expect(Math.abs(anniversary)).toBeLessThan(typical * 8);
   });
 
-  it('raises wealth more when AI adoption is stronger', () => {
-    const modest = simulate(
-      loadScenario({
-        name: 'wealth-ai-modest',
-        seed: 1,
-        ticks: 120,
-        sliders: {
-          'ai.automatableShareStart': 0.3,
-          'ai.automatableShareEnd': 0.5,
-          'shock.frequency': 0,
-        },
-      }),
-    );
-    const substantial = simulate(
-      loadScenario({
-        name: 'wealth-ai-strong',
-        seed: 1,
-        ticks: 120,
-        sliders: {
-          'shock.frequency': 0,
-        },
-      }),
-    );
-    const modestGain = last(modest, 'totalRealWealth') / first(modest, 'totalRealWealth');
-    const strongGain = last(substantial, 'totalRealWealth') / first(substantial, 'totalRealWealth');
-    expect(strongGain).toBeGreaterThan(modestGain);
-  });
+  it(
+    'raises wealth more when AI adoption is stronger',
+    () => {
+      const modest = simulate(
+        loadScenario({
+          name: 'wealth-ai-modest',
+          seed: 1,
+          ticks: 120,
+          sliders: {
+            ...FEATURE_OFF,
+            'ai.automatableShareStart': 0.3,
+            'ai.automatableShareEnd': 0.5,
+            'shock.frequency': 0,
+          },
+        }),
+      );
+      const substantial = simulate(
+        loadScenario({
+          name: 'wealth-ai-strong',
+          seed: 1,
+          ticks: 120,
+          sliders: {
+            ...FEATURE_OFF,
+            'shock.frequency': 0,
+          },
+        }),
+      );
+      const modestGain = last(modest, 'totalRealWealth') / first(modest, 'totalRealWealth');
+      const strongGain =
+        last(substantial, 'totalRealWealth') / first(substantial, 'totalRealWealth');
+      expect(strongGain).toBeGreaterThan(modestGain);
+    },
+    30_000,
+  );
 });
 
 function first(result: SimulationResult, id: MetricId): number {

@@ -52,7 +52,7 @@
     </NameTip>
     <NameTip
       id="num-seeds"
-      intro="How many consecutive seeds to run, starting at Seed. Charts show the median across those runs, which depends less on one random draw. With more than one seed and no baseline pinned, CPI also shows the 5th and 95th percentiles."
+      intro="How many consecutive seeds to run, starting at Seed. Charts show the median across those runs, which depends less on one random draw. The shocks chart shows the mean absolute impulse, so a larger shock counts more than a smaller one. With more than one seed and no baseline pinned, CPI also shows the 5th and 95th percentiles."
     >
       <label>
         Num seeds
@@ -68,7 +68,7 @@
     </NameTip>
     <NameTip
       id="run"
-      intro="Runs the simulation with the current seed, month count, seed count, regime, and sliders. One seed draws that path. More than one seed runs Seed through Seed plus the count minus one; charts show the median, and CPI also shows the 5th and 95th percentiles when no baseline is pinned. Press Control or Command and Enter to run from anywhere."
+      intro="Runs the simulation with the current seed, month count, seed count, regime, and sliders. One seed draws that path. More than one seed runs Seed through Seed plus the count minus one; charts show the median, the shocks chart shows the mean absolute impulse, and CPI also shows the 5th and 95th percentiles when no baseline is pinned. Press Control or Command and Enter to run from anywhere."
     >
       <button
         type="button"

@@ -10,21 +10,8 @@ export interface PageState {
   overrides: Record<string, number | string>;
 }
 
-/** Opening comparison: spending can move prices and output; fiat money growth stays at its default of 1. */
-export const MONETARY_OVERRIDES: Readonly<Record<string, number | string>> = {
-  'prices.trendWeight': 0.8,
-  'production.demandWeight': 1,
-  'bank.depositPassThrough': 1,
-  'household.realReturnSensitivity': 1,
-  'expectations.anchorWeight': 0.5,
-  'housing.tenureChoice': 'on',
-  'credit.endogenousWeight': 1,
-  'credit.leverageStart': 1,
-  'bank.capitalRatio': 0.04,
-  'household.openingDepositMonths': 12,
-  'household.skillSigma': 1.1,
-  'government.bondRate': 0.02,
-};
+/** Opening page uses the registry defaults with no extra overrides. */
+export const MONETARY_OVERRIDES: Readonly<Record<string, number | string>> = {};
 
 export function defaultPage(): PageState {
   return {
@@ -32,7 +19,7 @@ export function defaultPage(): PageState {
     ticks: 120,
     seeds: 1,
     regime: defaultRegime(),
-    overrides: { ...MONETARY_OVERRIDES },
+    overrides: {},
   };
 }
 

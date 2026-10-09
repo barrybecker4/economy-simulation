@@ -9,7 +9,7 @@ export const ANNOTATIONS: Record<string, Pick<Slider, 'status' | 'source'>> = {
   'bank.capitalRatio': {
     status: 'sourced',
     source:
-      'The default is near the Basel III common-equity floor, applied here to all loans rather than risk-weighted assets.',
+      'The default of 0.06 sits below the Basel III common-equity headline because this model applies the ratio to every loan rather than to risk-weighted assets.',
   },
   'production.alpha': {
     status: 'sourced',

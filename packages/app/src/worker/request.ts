@@ -3,7 +3,7 @@ import { loadScenario } from '../../../core/src/config/load.js';
 import { simulate } from '../../../core/src/sim/simulate.js';
 import { tickBudget } from './budget.js';
 import type { PercentileBand, RunRequest, RunSuccess } from './protocol.js';
-import { seriesBand } from './quantile.js';
+import { meanAbsolute, seriesBand } from './quantile.js';
 import { CHART_METRICS, finiteMetric, requireSeries } from './series.js';
 
 interface ChartRun {
@@ -86,6 +86,9 @@ function chartSeries(table: MetricsTable['series']): Record<string, number[]> {
   return series;
 }
 
+/** Impulses whose median across seeds is usually zero because shocks do not line up. */
+const SHOCK_IMPULSES = new Set(['demandImpulse', 'creditImpulse', 'productivityImpulse']);
+
 function bandOf(runs: readonly ChartRun[]): RunSuccess {
   const first = runs[0];
   if (first === undefined) {
@@ -93,7 +96,12 @@ function bandOf(runs: readonly ChartRun[]): RunSuccess {
   }
   const bands: Record<string, PercentileBand> = {};
   for (const id of CHART_METRICS) {
-    bands[id] = seriesBand(runs.map((run) => requireSeries(run.series, id)));
+    const samples = runs.map((run) => requireSeries(run.series, id));
+    const band = seriesBand(samples);
+    if (SHOCK_IMPULSES.has(id)) {
+      band.mid = meanAbsolute(samples);
+    }
+    bands[id] = band;
   }
   return { kind: 'band', ticks: first.ticks, series: {}, bands };
 }

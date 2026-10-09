@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
+import { FEATURE_OFF } from './feature-off.js';
 import { simulate, type ForcedShock } from './simulate.js';
 
 const base = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,

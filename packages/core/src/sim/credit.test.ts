@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import { desiredCapital, onCredit } from './credit.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 describe('investment finance', () => {
   it('does not count a credit-impulse draw twice in the loan path', () => {
@@ -54,6 +55,7 @@ function readyEconomy() {
         seed: 1,
         ticks: 1,
         sliders: {
+          ...FEATURE_OFF,
           'scale.households': 20,
           'scale.firms': 4,
           'scale.banks': 1,

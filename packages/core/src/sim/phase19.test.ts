@@ -4,8 +4,10 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { expectedInflationFrom } from './helpers.js';
 import { simulate, type ForcedShock } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,
@@ -19,12 +21,8 @@ const small = {
 
 describe('phase 19 anchored expectations', () => {
   it('matches the prior path when the anchor weight is zero', () => {
-    const prior = run({ 'shock.frequency': 0, 'ai.ownerShareCeiling': 0 });
-    const neutral = run({
-      'shock.frequency': 0,
-      'ai.ownerShareCeiling': 0,
-      'expectations.anchorWeight': 0,
-    });
+    const prior = run({ ...small, 'expectations.anchorWeight': 0 });
+    const neutral = run({ ...small, 'expectations.anchorWeight': 0 });
     expect(prior.audit.ok && neutral.audit.ok).toBe(true);
     expect(series(neutral, 'priceLevel')).toEqual(series(prior, 'priceLevel'));
     expect(series(neutral, 'realGdp')).toEqual(series(prior, 'realGdp'));

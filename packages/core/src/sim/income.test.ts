@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
+import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
 import { distributeIncome } from './income.js';
 import { setDeposit } from './money.js';
@@ -8,7 +9,9 @@ import { loadParameters } from './parameters.js';
 describe('profit shares under a large AI factor', () => {
   it('pays a finite profit to the highest skill when the ownership exponent overflows', () => {
     const economy = createEconomy(
-      loadParameters(loadScenario({ name: 'income', seed: 1, ticks: 1 })),
+      loadParameters(
+        loadScenario({ name: 'income', seed: 1, ticks: 1, sliders: { ...FEATURE_OFF } }),
+      ),
       1,
       null,
     );

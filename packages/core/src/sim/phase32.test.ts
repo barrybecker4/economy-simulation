@@ -7,8 +7,10 @@ import type { Economy } from './economy.js';
 import { creditDeposit } from './money.js';
 import { simulate } from './simulate.js';
 import { World } from './world.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const monetary = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,

@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { SimulationResult } from '../engine/engine.js';
 import type { MetricId } from '../metrics/metrics.js';
+import { FEATURE_OFF } from '../sim/feature-off.js';
 import { runTransitionComparison } from './transition.js';
 import { simulate } from '../sim/simulate.js';
 
 const scale = {
+  ...FEATURE_OFF,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,

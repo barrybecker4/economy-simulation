@@ -70,7 +70,7 @@ describe('preset categories', () => {
     expect(option.values).toEqual({
       'centralBank.inflationTarget': 0.02,
       'centralBank.inflationWeight': 1.5,
-      'centralBank.outputWeight': 0.5,
+      'centralBank.outputWeight': 1,
       'centralBank.bondPurchaseShare': 0.5,
       'centralBank.rateSmoothing': 0.5,
       'bank.reserveRequirement': 0.1,
@@ -94,6 +94,7 @@ describe('preset categories', () => {
       'ai.bullishness': 1,
       'ai.automatableShareStart': 0.3,
       'ai.automatableShareEnd': 0.3,
+      'ai.adoptionMidpointYear': 10,
       'ai.adoptionSteepness': 0.4,
       'ai.physicalTaskShare': 0.3,
       'ai.roboticsStartYear': 10,
@@ -121,11 +122,12 @@ describe('preset categories', () => {
         'tax.incomeRate': 0.1,
         'government.spendingShareOfGDP': 0.1,
         'government.ubiShare': 0,
+        'government.stabilizer': 0,
       },
     });
     expect(composeScenario('keynesian').sliders).toEqual({
       'government.spendingShareOfGDP': 0.35,
-      'government.stabilizer': 1,
+      'government.stabilizer': 1.5,
       'centralBank.outputWeight': 1.2,
     });
   });

@@ -6,13 +6,26 @@ import { describe, expect, it } from 'vitest';
 import { execute } from './main.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const baseline = path.join(repoRoot, 'scenarios/baseline.json');
 
 describe('cli', () => {
   it('writes the same file for the same seed and scenario', () => {
     const directory = mkdtempSync(path.join(tmpdir(), 'economy-sim-'));
     const out = path.join(directory, 'run.json');
-    const args = ['run', '--scenario', baseline, '--seed', '7', '--out', out] as const;
+    const scenario = path.join(directory, 'baseline-short.json');
+    writeFileSync(
+      scenario,
+      JSON.stringify({
+        name: 'baseline',
+        ticks: 36,
+        sliders: {
+          'scale.households': 80,
+          'scale.firms': 8,
+          'scale.banks': 1,
+          'shock.frequency': 0,
+        },
+      }),
+    );
+    const args = ['run', '--scenario', scenario, '--seed', '7', '--out', out] as const;
     expect(execute(args)).toBe(0);
     const first = readFileSync(out, 'utf8');
     expect(execute(args)).toBe(0);

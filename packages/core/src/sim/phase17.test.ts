@@ -4,8 +4,10 @@ import { applyCategoryOption } from '../config/presets.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,
@@ -200,7 +202,7 @@ describe('phase 17 AI bullishness and robotics', () => {
         name: 'high-bullishness',
         seed: 1,
         ticks: 1200,
-        sliders: { 'ai.bullishness': 1.5 },
+        sliders: { ...FEATURE_OFF, 'ai.bullishness': 1.5 },
       }),
     );
     expect(result.audit.ok).toBe(true);
@@ -210,7 +212,7 @@ describe('phase 17 AI bullishness and robotics', () => {
 
   it('finishes 1200 months at extreme AI bullishness with closed bank books', async () => {
     await new Promise((resolve) => setImmediate(resolve));
-    const overrides = applyCategoryOption('aiBullishness', 'extreme', {});
+    const overrides = applyCategoryOption('aiBullishness', 'extreme', { ...FEATURE_OFF });
     const result = simulate(
       loadScenario({ name: 'extreme-bullishness', seed: 1, ticks: 1200, sliders: overrides }),
     );

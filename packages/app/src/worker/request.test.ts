@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { FEATURE_OFF } from '../../../core/src/sim/feature-off.js';
 import { handleRequest } from './request.js';
 import { safeHandleRequest } from './safe.js';
 
@@ -15,6 +16,7 @@ describe('handleRequest', () => {
       seed: 3,
       ticks: 360,
       sliders: {
+        ...FEATURE_OFF,
         'regime.type': 'bitcoin',
         'bank.capitalRatio': 0.16,
         'government.spendingShareOfGDP': 0.1,
@@ -48,6 +50,29 @@ describe('handleRequest', () => {
       [1, 2],
       [2, 2],
     ]);
+  });
+
+  it('charts the mean absolute shock impulse across seeds', () => {
+    const result = handleRequest({
+      kind: 'band',
+      seed: 1,
+      ticks: 36,
+      seeds: [1, 2, 3],
+      sliders: { ...small, 'shock.frequency': 1, 'shock.size': 0.1 },
+    });
+    expect(result.kind).toBe('band');
+    if (result.kind !== 'band') {
+      return;
+    }
+    expect(result.bands.demandImpulse?.mid[0]).toBe(0);
+    expect(result.bands.creditImpulse?.mid[0]).toBe(0);
+    expect(result.bands.productivityImpulse?.mid[0]).toBe(0);
+    for (let month = 24; month < 36; month += 1) {
+      const demand = result.bands.demandImpulse?.mid[month] ?? 0;
+      const credit = result.bands.creditImpulse?.mid[month] ?? 0;
+      const productivity = result.bands.productivityImpulse?.mid[month] ?? 0;
+      expect(demand + credit + productivity).toBeCloseTo(0.1);
+    }
   });
 
   it('rejects a band with no seeds before starting', () => {

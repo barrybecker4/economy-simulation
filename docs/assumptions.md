@@ -4,29 +4,29 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 12.
+Registry version: 13.
 
 ## agent.marketDepth
 
 - Label: Agent market depth
 - Group: aiClaims
 - Unit: coefficient
-- Default: 0
+- Default: 0.25
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How much crowding raises the price of agent compute. The ask starts at the adoption progress times 4 percent of the wage, marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm. Firms still buy only when the ask is under 4.2 percent of the wage, so enough crowding stops the sales. At 0 the ask is unchanged and the previous agent market is reproduced.
+- Description: How much crowding raises the price of agent compute. The ask starts at the adoption progress times 4 percent of the wage, marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm. Firms still buy only when the ask is under 4.2 percent of the wage, so enough crowding stops the sales. The default of 0.25 is a modest crowding markup. At 0 the ask is unchanged.
 
 ## ai.adoptionMidpointYear
 
 - Label: AI adoption midpoint
 - Group: ai
 - Unit: years
-- Default: 10
+- Default: 8
 - Range: 1 to 40
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Year when the automatable share is halfway from the start share to the end share. An earlier year brings the S-curve forward. The curve is flat, and this year does nothing, when the start and end shares are equal.
+- Description: Year when the automatable share is halfway from the start share to the end share. The default of 8 is earlier than a decade-long midpoint. The curve is flat, and this year does nothing, when the start and end shares are equal.
 
 ## ai.adoptionSteepness
 
@@ -77,11 +77,11 @@ Registry version: 12.
 - Label: AI bullishness
 - Group: ai
 - Unit: index
-- Default: 0
+- Default: 0.35
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How large the productivity gain is on each adopted task. At 0, the default, the gain is one tenth of the unit reference — about the scale of a decade of internet-era productivity gains once the adoption curve finishes — and unemployment barely moves. At 1 each adopted task adds its full share to capacity and the gain saturates with the S-curve. Above 1 the same level formula compounds: each point above 1 adds 15 percent a year of growth to the task gain with no ceiling, so at 2 the gain grows at 15 percent a year. Hiring still follows the adopted task share, capped by the physical-task share until robots open it. Equal start and end automatable shares still turn the whole AI channel off. The anchors are a modeling guess after Korinek et al. 2026 and the internet-era productivity literature.
+- Description: How large the productivity gain is on each adopted task. At 0 the gain is one tenth of the unit reference — about the scale of a decade of internet-era productivity gains once the adoption curve finishes — and unemployment barely moves. The default of 0.35 sits between that internet-sized gain and full task replacement; below 1 the gain still saturates with the S-curve. At 1 each adopted task adds its full share to capacity. Above 1 the same level formula compounds: each point above 1 adds 15 percent a year of growth to the task gain with no ceiling, so at 2 the gain grows at 15 percent a year. Hiring still follows the adopted task share, capped by the physical-task share until robots open it. Equal start and end automatable shares still turn the whole AI channel off. The anchors are a modeling guess after Korinek et al. 2026 and the internet-era productivity literature.
 
 ## ai.computeCostDeclineRate
 
@@ -99,11 +99,11 @@ Registry version: 12.
 - Label: Compute productivity
 - Group: ai
 - Unit: per unit
-- Default: 0
+- Default: 0.2
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How much one unit of agent compute raises the buying firm’s capacity next month. Capacity is multiplied by one plus this rate times units bought last month. At 0 the purchase is only a payment and capacity is unchanged, which reproduces the previous production path. Above 0, firms that buy compute produce more.
+- Description: How much one unit of agent compute raises the buying firm’s capacity next month. Capacity is multiplied by one plus this rate times units bought last month. The default of 0.2 raises capacity for firms that buy compute. At 0 the purchase is only a payment and capacity is unchanged.
 
 ## ai.ownerShareCeiling
 
@@ -165,33 +165,33 @@ Registry version: 12.
 - Label: Robotics ramp
 - Group: ai
 - Unit: years
-- Default: 16
+- Default: 12
 - Range: 1 to 30
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How many years the reachable share takes to rise from the control value to one after the robotics start year. The path is a straight line. At the defaults the block is intact through year 20, half gone around year 28, and gone by year 36. A finished ramp lets the automatable share that software already reached cover the old physical tasks as well. Tasks outside the final automatable share stay human.
+- Description: How many years the reachable share takes to rise from the control value to one after the robotics start year. The path is a straight line. At the defaults the block is intact through year 15, half gone around year 21, and gone by year 27. A finished ramp lets the automatable share that software already reached cover the old physical tasks as well. Tasks outside the final automatable share stay human.
 
 ## ai.roboticsStartYear
 
 - Label: Robotics start
 - Group: ai
 - Unit: years
-- Default: 20
+- Default: 15
 - Range: 0 to 50
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Year from the start of the run when mass robotics begins to open physical tasks. The core does not read the calendar. Tick 0 is month 0, and charts label that month as the month the page is opened, so the default of 20 is about 2046 when month 0 is read as late 2026. Until this year the reachable share stays at the control value. A start year at or past the last year of the run leaves the block intact for that run.
+- Description: Year from the start of the run when mass robotics begins to open physical tasks. The core does not read the calendar. Tick 0 is month 0, and charts label that month as the month the page is opened, so the default of 15 is about 2041 when month 0 is read as late 2026. Until this year the reachable share stays at the control value. A start year at or past the last year of the run leaves the block intact for that run.
 
 ## bank.capitalRatio
 
 - Label: Bank capital ratio
 - Group: credit
 - Unit: share
-- Default: 0.08
+- Default: 0.06
 - Range: 0.04 to 0.2
 - Status: sourced
-- Source: The default is near the Basel III common-equity floor, applied here to all loans rather than risk-weighted assets.
-- Description: Minimum bank equity relative to loans. Lending room is equity divided by this ratio, minus loans already outstanding. A higher ratio leaves less room to lend from the same equity and a thicker cushion when loans are written off. A lower ratio does the opposite. Banks start with extra equity so they have room to lend. Equity at or below zero is recorded as a bank failure. The default is near the Basel III common-equity floor, applied here to every loan rather than to risk-weighted assets.
+- Source: The default of 0.06 sits below the Basel III common-equity headline because this model applies the ratio to every loan rather than to risk-weighted assets.
+- Description: Minimum bank equity relative to loans. Lending room is equity divided by this ratio, minus loans already outstanding. A higher ratio leaves less room to lend from the same equity and a thicker cushion when loans are written off. A lower ratio does the opposite. Banks start with extra equity so they have room to lend. Equity at or below zero is recorded as a bank failure. The default of 0.06 is below the Basel III common-equity headline because this model applies the ratio to every loan rather than to risk-weighted assets.
 
 ## bank.depositHaircut
 
@@ -209,22 +209,22 @@ Registry version: 12.
 - Label: Deposit interest subsidy
 - Group: credit
 - Unit: share
-- Default: 0
+- Default: 0.35
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves, up to the steady-state money-growth budget. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. That creation is subtracted from the same tick’s money-growth injection. It does not spend the capital buffer. Coupon above the budget is not paid. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.
+- Description: Share of any household deposit-interest shortfall the fiat central bank covers after loan interest and interest on reserves, up to the steady-state money-growth budget. The subsidy adds reserves and equity and lowers private equity so the vault identity holds, then interest is paid to depositors. That creation is subtracted from the same tick’s money-growth injection. It does not spend the capital buffer. Coupon above the budget is not paid. The default of 0.35 covers about a third of a shortfall. At 0 there is no subsidy. Bitcoin and hybrid ignore this slider.
 
 ## bank.depositPassThrough
 
 - Label: Deposit rate pass-through
 - Group: credit
 - Unit: share
-- Default: 0
+- Default: 0.45
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.
+- Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 pays just under half the policy rate. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.
 
 ## bank.reserveRequirement
 
@@ -242,11 +242,11 @@ Registry version: 12.
 - Label: Bank resolution
 - Group: credit
 - Unit: mode
-- Default: off
+- Default: merge
 - Options: off, merge
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: What happens when bank equity falls to zero or below. Off only marks the bank failed so it stops lending (previous behavior). Merge transfers deposits and loans to a surviving bank by id, or bails in depositors at a sole bank, including the treasury deposit at bank 0, until equity meets the capital target. A bank already at that target is not bailed in again. Hybrid lender-of-last-resort injection still runs first; if equity is still negative, hybrid uses the same resolution. The monetary preset uses merge.
+- Description: What happens when bank equity falls to zero or below. Off only marks the bank failed so it stops lending. Merge transfers deposits and loans to a surviving bank by id, or bails in depositors at a sole bank, including the treasury deposit at bank 0, until equity meets the capital target. A bank already at that target is not bailed in again. Hybrid lender-of-last-resort injection still runs first; if equity is still negative, hybrid uses the same resolution. The default is merge so deposits stay spendable after a failure.
 
 ## bitcoin.lendingModel
 
@@ -264,22 +264,22 @@ Registry version: 12.
 - Label: Bitcoin market price weight
 - Group: regime
 - Unit: share
-- Default: 0
+- Default: 0.4
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How far the recorded bitcoin exchange rate can move with issuance and trust separately from the goods CPI in satoshis. At 0 the bitcoin price series stays on the previous path. Above 0 it also responds to that month’s issuance relative to coins outstanding and to money.bitcoinTrust.
+- Description: How far the recorded bitcoin exchange rate can move with issuance and trust separately from the goods CPI in satoshis. The default of 0.4 lets the exchange rate respond to that month’s issuance relative to coins outstanding and to money.bitcoinTrust. At 0 the bitcoin price series stays on the goods path alone.
 
 ## centralBank.bondPurchaseShare
 
 - Label: Central-bank bond purchase share
 - Group: centralBank
 - Unit: share
-- Default: 0
+- Default: 0.25
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of new government bonds bought by creating central-bank reserves in the fiat regime. The rest stay on commercial-bank balance sheets. Bitcoin and hybrid ignore this slider; their base money does not rise with bond finance. At 0 every shortfall is held by the first bank with no new reserves from this channel.
+- Description: Share of new government bonds bought by creating central-bank reserves in the fiat regime. The rest stay on commercial-bank balance sheets. Bitcoin and hybrid ignore this slider; their base money does not rise with bond finance. The default of 0.25 is standing partial monetization. At 0 every shortfall is held by the first bank with no new reserves from this channel.
 
 ## centralBank.inflationTarget
 
@@ -330,11 +330,11 @@ Registry version: 12.
 - Label: Output weight
 - Group: centralBank
 - Unit: coefficient
-- Default: 0.5
+- Default: 1
 - Range: 0 to 1.5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How hard the fiat policy rate reacts when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity. The rule adds this weight times (natural unemployment minus the unemployment rate) times the human share of output. A slack labor market cuts the rate and a tight one raises it. At 0.5 with no AI, unemployment one point below the natural rate adds half a point to the policy rate. Late in adoption the same point gap moves the rate less. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
+- Description: How hard the fiat policy rate reacts when unemployment is away from the natural rate. The natural rate starts at 6 percent and rises as AI raises capacity. The rule adds this weight times (natural unemployment minus the unemployment rate) times the human share of output. A slack labor market cuts the rate and a tight one raises it. The default of 1 is a dual-mandate weight: with no AI, unemployment one point below the natural rate adds one point to the policy rate. Late in adoption the same point gap moves the rate less. Bitcoin and hybrid regimes do not use this weight. The policy rate cannot fall below zero.
 
 ## centralBank.rateSmoothing
 
@@ -352,77 +352,77 @@ Registry version: 12.
 - Label: Spend new money
 - Group: centralBank
 - Unit: share
-- Default: 0
+- Default: 0.5
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of new fiat blended into household smoothed income when prices.trendWeight is below 1. On the household channel, 0 still blends a thin opening (deposits below 24 months). On the loan, bond, and treasury channels, only this share is blended, so those receipts are not a silent hoard. Bitcoin and hybrid ignore this slider.
+- Description: Share of new fiat blended into household smoothed income when prices.trendWeight is below 1. The default of 0.5 spends half of new money into demand. On the household channel, 0 still blends a thin opening (deposits below 24 months). On the loan, bond, and treasury channels, only this share is blended, so those receipts are not a silent hoard. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.stimulus
 
 - Label: Crisis stimulus
 - Group: centralBank
 - Unit: coefficient
-- Default: 1
+- Default: 1.75
 - Range: 0.05 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Extra annual fiat broad-money growth per unit of lagged contraction pressure. Pressure is the largest of minus demand impulse and minus credit impulse when either is negative. The central bank uses the pressure from stimulusLag months ago. At 1, a demand contraction of half the default shock size adds about 2.5 percent a year once the lag has passed. The weight cannot be 0. Bitcoin and hybrid ignore this slider.
+- Description: Extra annual fiat broad-money growth per unit of lagged contraction pressure. Pressure is the largest of minus demand impulse and minus credit impulse when either is negative. The central bank uses the pressure from stimulusLag months ago. At the default of 1.75, a demand contraction of half the default shock size adds about 4 percent a year once the lag has passed. The weight cannot be 0. Bitcoin and hybrid ignore this slider.
 
 ## centralBank.stimulusLag
 
 - Label: Stimulus lag
 - Group: centralBank
 - Unit: months
-- Default: 6
+- Default: 3
 - Range: 1 to 24
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Months before crisis stimulus begins after a demand or credit contraction starts, and months the stimulus continues after that contraction ends. At 6, the first six months of a contraction run on the secular money-growth rule alone, so prices can fall before the extra injection arrives. The lag cannot be 0. Unused when the regime is not fiat.
+- Description: Months before crisis stimulus begins after a demand or credit contraction starts, and months the stimulus continues after that contraction ends. At the default of 3, the first three months of a contraction run on the secular money-growth rule alone, so prices can fall briefly before the extra injection arrives. The lag cannot be 0. Unused when the regime is not fiat.
 
 ## credit.endogenousWeight
 
 - Label: Endogenous credit weight
 - Group: credit
 - Unit: share
-- Default: 0
+- Default: 0.5
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed credit.leverageStart times household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. At 0 the previous credit path is unchanged.
+- Description: How strongly lending expands in calm periods and contracts when leverage or defaults rise. At 0, credit moves only with the credit shock and with ordinary firm borrowing. Above 0, calm lending room is wider by one plus four times this weight. From the first anniversary, calm banks lend this weight times 12 percent of household deposits, split across firms and still inside that room. Stress builds when loans exceed credit.leverageStart times household deposits or when loans are written off. Above a small stress limit, new endogenous borrowing stops, lending room shrinks, and firms repay. The default of 0.5 is a moderate boom-bust credit cycle.
 
 ## credit.householdMortgageShare
 
 - Label: Household mortgage credit share
 - Group: credit
 - Unit: share
-- Default: 0
+- Default: 0.3
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of each bank’s capital capacity reserved for household mortgages and consumer loans. At 0, households compete with firms for the same lending room, which often leaves no room for new mortgages after the opening book. Above 0, that share of equity over the capital ratio is kept for household credit, and firm lending uses the remainder. The monetary preset uses 0.25.
+- Description: Share of each bank’s capital capacity reserved for household mortgages and consumer loans. At 0, households compete with firms for the same lending room, which often leaves no room for new mortgages after the opening book. The default of 0.3 keeps that share of equity over the capital ratio for household credit, and firm lending uses the remainder.
 
 ## credit.leverageStart
 
 - Label: Credit leverage start
 - Group: credit
 - Unit: share
-- Default: 0.02
+- Default: 0.85
 - Range: 0.02 to 1.5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Loan-to-deposit ratio above which endogenous credit stress begins to build. At the default of 0.02, calm lending stops once loans exceed 2 percent of household deposits. Raise it toward 1 so calm banks can hold a loan book on the order of deposits before stress cuts lending. Unused when endogenous credit weight is 0.
+- Description: Loan-to-deposit ratio above which endogenous credit stress begins to build. The default of 0.85 lets calm banks hold a loan book near deposits before stress cuts lending. At 0.02, calm lending stops once loans exceed 2 percent of household deposits. Unused when endogenous credit weight is 0.
 
 ## credit.rateTransmission
 
 - Label: Policy-rate transmission
 - Group: credit
 - Unit: share
-- Default: 0
+- Default: 0.6
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly the real policy rate cuts new consumer borrowing and firm capital installation. The factor is max(0, 1 − weight × max(0, policy rate − inflation)). At 0 the previous credit and investment path is unchanged.
+- Description: How strongly the real policy rate cuts new consumer borrowing and firm capital installation. The factor is max(0, 1 − weight × max(0, policy rate − inflation)). The default of 0.6 transmits part of a rate rise into lower borrowing and investment. At 0 the credit and investment path ignores the rate.
 
 ## deflation.sensitivity
 
@@ -451,11 +451,11 @@ Registry version: 12.
 - Label: Inflation anchor
 - Group: behavior
 - Unit: share
-- Default: 0
+- Default: 0.65
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price trends keep the regime path at weight 0, and follow the expectation above 0. Wages negotiate toward the agreed wage from the price level and do not take this path directly. At 0 every expectation is the trailing rate, which reproduces the previous phase. At 1 expectations sit on the regime path.
+- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price trends keep the regime path at weight 0, and follow the expectation above 0. Wages negotiate toward the agreed wage from the price level and do not take this path directly. The default of 0.65 puts most weight on the regime path. At 0 every expectation is the trailing rate. At 1 expectations sit on the regime path.
 
 ## firm.hurdlePremium
 
@@ -473,11 +473,11 @@ Registry version: 12.
 - Label: Investment hurdle
 - Group: behavior
 - Unit: mode
-- Default: off
+- Default: on
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Whether firms install capital only when the expected return clears the real return on money plus a premium. Off keeps the scheduled capital rule and the profit-sharing formula tied to the deflation penalty. On: expected return is baseline productivity growth plus a quarter of the firm markup. The real return on money is the deposit rate minus inflation. If the project clears, capital is installed as before. If it fails, only a quarter of the gap is installed from retained claims and the rest is recorded as profit-sharing finance. Measured profit-sharing share is profit-sharing finance over that plus loan-path finance.
+- Description: Whether firms install capital only when the expected return clears the real return on money plus a premium. On: expected return is baseline productivity growth plus a quarter of the firm markup. The real return on money is the deposit rate minus inflation. If the project clears, capital is installed as before. If it fails, only a quarter of the gap is installed from retained claims and the rest is recorded as profit-sharing finance. Measured profit-sharing share is profit-sharing finance over that plus loan-path finance. Off keeps the scheduled capital rule and the profit-sharing formula tied to the deflation penalty.
 
 ## firm.markup
 
@@ -561,11 +561,11 @@ Registry version: 12.
 - Label: Housing supply growth
 - Group: goods
 - Unit: 1/year
-- Default: 0
+- Default: 0.004
 - Range: -0.01 to 0.02
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term. When housing.marketClearing is on, this growth also eases the market scarcity index.
+- Description: Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security. The default of 0.004 sits just under population growth, so scarcity can build when market clearing is on. At zero, housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation term. When housing.marketClearing is on, this growth also eases the market scarcity index.
 
 ## goods.medicalProductivity
 
@@ -616,11 +616,11 @@ Registry version: 12.
 - Label: Government bond rate
 - Group: publicFinance
 - Unit: 1/year
-- Default: 0
+- Default: 0.04
 - Range: 0 to 0.12
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual coupon on government bonds held by banks. Each month the treasury pays one twelfth of this rate times bonds outstanding. The payment leaves the treasury deposit and raises bank equity. If the treasury cannot cover it, the shortfall is financed like any other deficit. At 0 bonds pay no coupon and the previous fiscal path is unchanged.
+- Description: Annual coupon on government bonds held by banks. Each month the treasury pays one twelfth of this rate times bonds outstanding. The payment leaves the treasury deposit and raises bank equity. If the treasury cannot cover it, the shortfall is financed like any other deficit. The default of 0.04 is a 4 percent coupon. At 0 bonds pay no coupon.
 
 ## government.spendingShareOfGDP
 
@@ -638,11 +638,11 @@ Registry version: 12.
 - Label: Fiscal stabilizer
 - Group: publicFinance
 - Unit: coefficient
-- Default: 0
+- Default: 1
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How much government goods spending responds to unemployment. Under fiat, the spending share rises by this coefficient times the gap of unemployment above the natural rate, capped at 0.8. Under bitcoin or hybrid, spending cannot exceed tax deposits plus bonds banks can hold from unused savings, so the stabilizer cannot expand base money. At 0 the spending share stays at the government spending slider.
+- Description: How much government goods spending responds to unemployment. Under fiat, the spending share rises by this coefficient times the gap of unemployment above the natural rate, capped at 0.8. Under bitcoin or hybrid, spending cannot exceed tax deposits plus bonds banks can hold from unused savings, so the stabilizer cannot expand base money. The default of 1 raises purchases one-for-one with the unemployment gap. At 0 the spending share stays at the government spending slider.
 
 ## government.treasuryBufferMonths
 
@@ -671,11 +671,11 @@ Registry version: 12.
 - Label: Durable spending share
 - Group: behavior
 - Unit: share
-- Default: 0
+- Default: 0.25
 - Range: 0 to 0.5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of discretionary goods spending treated as durable purchases that can be delayed when the real return on money is high. At 0 all goods spending is nondurable as before.
+- Description: Share of discretionary goods spending treated as durable purchases that can be delayed when the real return on money is high. The default of 0.25 is a quarter of discretionary spending. At 0 all goods spending is nondurable.
 
 ## household.inflationTimePreference
 
@@ -693,33 +693,33 @@ Registry version: 12.
 - Label: Opening deposit months
 - Group: behavior
 - Unit: months
-- Default: 36
+- Default: 18
 - Range: 6 to 60
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. At 36, deposits are about three years of income and velocity is low. Lower values raise velocity. The monetary preset can shorten this toward a year of income.
+- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. The default of 18 is about a year and a half of income. Lower values raise velocity. At 36 deposits are about three years of income and velocity is low.
 
 ## household.realReturnSensitivity
 
 - Label: Real-return spending sensitivity
 - Group: behavior
 - Unit: coefficient
-- Default: 0
+- Default: 0.8
 - Range: 0 to 5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly a positive real return on money cuts discretionary goods spending. The real return is the deposit rate minus year-over-year inflation. Deposits pay nothing until the deposit pass-through slider is raised, so under deflation the return equals the absolute inflation rate. The household budget from income and deposits is split into a food and housing floor, about 58 percent of the basket, and a discretionary remainder. Only the remainder shrinks: it is multiplied by max(0, 1 − this sensitivity × the real return). The floor is still bought. At 0 the whole budget is unchanged. Credit-financed discretionary spending is a later mechanism.
+- Description: How strongly a positive real return on money cuts discretionary goods spending. The real return is the deposit rate minus year-over-year inflation. The household budget from income and deposits is split into a food and housing floor, about 58 percent of the basket, and a discretionary remainder. Only the remainder shrinks: it is multiplied by max(0, 1 − this sensitivity × the real return). The floor is still bought. The default of 0.8 cuts discretionary spending when money pays a real return. At 0 the whole budget is unchanged.
 
 ## household.skillSigma
 
 - Label: Skill dispersion
 - Group: behavior
 - Unit: log points
-- Default: 0.5
+- Default: 0.7
 - Range: 0.1 to 1.2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Spread of innate earning power, as the standard deviation of a lognormal skill draw. Draws are kept between 0.2 and 5, then divided by their average so mean skill is 1. A worker is paid the firm wage times skill. Starting deposits scale with skill squared, about three years of the base wage for a skill of 1, so wealth begins more unequal than pay. Profits are shared with weights of skill raised to 1.5 or more, which concentrates capital income on high-skill households. A larger value thickens the high-skill tail.
+- Description: Spread of innate earning power, as the standard deviation of a lognormal skill draw. Draws are kept between 0.2 and 5, then divided by their average so mean skill is 1. A worker is paid the firm wage times skill. Starting deposits scale with skill squared, about the opening-deposit months of the base wage for a skill of 1, so wealth begins more unequal than pay. Profits are shared with weights of skill raised to 1.5 or more, which concentrates capital income on high-skill households. The default of 0.7 thickens the high-skill tail relative to 0.5.
 
 ## household.timePreferenceMean
 
@@ -770,22 +770,22 @@ Registry version: 12.
 - Label: Housing market clearing
 - Group: goods
 - Unit: switch
-- Default: off
+- Default: on
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Whether housing scarcity is a market outcome. Off keeps the formula price and a home price of 48 months of income times the monetary-premium multiple. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off reproduces the previous housing prices.
+- Description: Whether housing scarcity is a market outcome. On, scarcity starts at 1 and moves with the share of households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays at 1 unless supply growth moves it. Off keeps the formula price and a home price of 48 months of income times the monetary-premium multiple.
 
 ## housing.monetaryPremium
 
 - Label: Housing monetary premium
 - Group: goods
 - Unit: share
-- Default: 0
+- Default: 0.25
 - Range: 0 to 0.75
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat, and minus baseline productivity under bitcoin and hybrid. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so a value of 0.5 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line in half under bitcoin. At 0 the previous 48-month price is unchanged.
+- Description: Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat, and minus baseline productivity under bitcoin and hybrid. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so the default of 0.25 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line by a quarter under bitcoin. At 0 the previous 48-month price is unchanged.
 
 ## housing.mortgageDefaultShare
 
@@ -847,22 +847,22 @@ Registry version: 12.
 - Label: Housing tenure choice
 - Group: credit
 - Unit: mode
-- Default: off
+- Default: on
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Whether households choose rent, a nominal mortgage, or cash ownership. Off keeps the penalty formulas for non-mortgage housing and property turnover, and households hold no mortgages or consumer loans. On: households open already housed at the opening owner share, then each month pick the tenure with the lowest expected real burden. Expected deflation raises the mortgage burden, so fewer new mortgages are taken. Shelter stays inside the food and housing spending floor. Consumer loans fund only discretionary spending above that floor and fall as the deflation penalty rises, down to zero. Household loans count in total credit and the bank capital rule.
+- Description: Whether households choose rent, a nominal mortgage, or cash ownership. On: households open already housed at the opening owner share, then each month pick the tenure with the lowest expected real burden. Expected deflation raises the mortgage burden, so fewer new mortgages are taken. Shelter stays inside the food and housing spending floor. Consumer loans fund only discretionary spending above that floor and fall as the deflation penalty rises, down to zero. Household loans count in total credit and the bank capital rule. Off keeps the penalty formulas for non-mortgage housing and property turnover, and households hold no mortgages or consumer loans.
 
 ## labor.firmLevelHiring
 
 - Label: Firm-level hiring
 - Group: behavior
 - Unit: switch
-- Default: off
+- Default: on
 - Options: off, on
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Who sets the hiring target. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity. On, each firm wants the headcount whose capacity matches its smoothed sales, vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. Firms shed at most 5 percent of employed workers in a month when the target falls. Off reproduces the previous hiring rule.
+- Description: Who sets the hiring target. On, each firm wants the headcount whose capacity matches its smoothed sales, vacancies go to understaffed firms, and the aggregate sits between the cost quota times one minus the monthly shed share and the cost quota. Firms shed at most 5 percent of employed workers in a month when the target falls. Off keeps the economy-wide quota: 94 percent of households times the human share of output, tilted by demand and by the wage elasticity.
 
 ## labor.maxApplications
 
@@ -891,88 +891,88 @@ Registry version: 12.
 - Label: Bitcoin trust
 - Group: regime
 - Unit: score
-- Default: 0.3
+- Default: 0.4
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How willing holders are to keep bitcoin. The bitcoin score is this trust plus the real return, minus a small payment friction. A higher value raises the bitcoin share when money choice is on. Unused when money choice speed is 0.
+- Description: How willing holders are to keep bitcoin. The bitcoin score is this trust plus the real return, minus a small payment friction. The default of 0.4 is a modest stake beside fiat legal tender. Unused when money choice speed is 0.
 
 ## money.cbdcStart
 
 - Label: Opening CBDC share
 - Group: regime
 - Unit: share
-- Default: 0
+- Default: 0.005
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of money balances that start as a central-bank digital currency. At 0 none of the opening mix is CBDC.
+- Description: Share of money balances that start as a central-bank digital currency. The default of 0.005 is a small opening stake. At 0 none of the opening mix is CBDC.
 
 ## money.choiceSpeed
 
 - Label: Money choice speed
 - Group: regime
 - Unit: share per tick
-- Default: 0
+- Default: 0.01
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.
+- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. The default of 0.01 closes about half the gap to the preferred mix in six years. At 0 the shares stay at that opening mix and the regime control still selects the monetary rule. Above 0 the policy rate and reserve accommodation follow the fiat share, and exchange rates move with each money’s share.
 
 ## money.fiatLegalTender
 
 - Label: Fiat legal-tender pull
 - Group: regime
 - Unit: score
-- Default: 1
+- Default: 1.5
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly fiat is pulled into use by taxes, courts, and legal tender. It is the fiat score in the money-choice softmax. A higher value holds the fiat share up when money choice is on. Unused when money choice speed is 0.
+- Description: How strongly fiat is pulled into use by taxes, courts, and legal tender. It is the fiat score in the money-choice softmax. The default of 1.5 keeps fiat the largest money when choice is on. Unused when money choice speed is 0.
 
 ## money.stablecoinStart
 
 - Label: Opening stablecoin share
 - Group: regime
 - Unit: share
-- Default: 0
+- Default: 0.01
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of money balances that start as stablecoins. Stablecoin trust and friction are fixed in the model. At 0 none of the opening mix is a stablecoin.
+- Description: Share of money balances that start as stablecoins. Stablecoin trust and friction are fixed in the model. The default of 0.01 is a small opening stake. At 0 none of the opening mix is a stablecoin.
 
 ## population.bequests
 
 - Label: Bequest rule
 - Group: background
 - Unit: mode
-- Default: firstHousehold
+- Default: skillWeighted
 - Options: firstHousehold, skillWeighted
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Who receives a household’s deposit when population growth removes that household. firstHousehold keeps the previous transfer to household 0. skillWeighted gives the estate to the remaining households in proportion to skill to the 16th, so it concentrates on the highest-skill heirs instead of spreading the estate evenly.
+- Description: Who receives a household’s deposit when population growth removes that household. skillWeighted gives the estate to the remaining households in proportion to skill to the 16th, so it concentrates on the highest-skill heirs. firstHousehold transfers everything to household 0.
 
 ## population.growth
 
 - Label: Population growth
 - Group: background
 - Unit: 1/year
-- Default: 0
+- Default: 0.005
 - Range: -0.01 to 0.02
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual change in the number of households. The monthly rate adds or removes people deterministically, carrying a fractional remainder so a small rate still changes the count. New households enter unemployed, with no deposit, a fresh skill draw, and the next id. A household who exits leaves any deposit to the first household and any loan is written off against bank equity. At 0 the household count stays at the Households slider, which keeps the previous population path. The old default of 0.005 was stored but never applied.
+- Description: Annual change in the number of households. The monthly rate adds or removes people deterministically, carrying a fractional remainder so a small rate still changes the count. New households enter unemployed, with no deposit, a fresh skill draw, and the next id. A household who exits leaves any deposit under the bequest rule and any loan is written off against bank equity. The default of 0.005 is a half-percent annual rise. At 0 the household count stays at the Households slider.
 
 ## prices.trendWeight
 
 - Label: Price trend weight
 - Group: behavior
 - Unit: share
-- Default: 1
+- Default: 0.75
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. At 1 the posted-price rule is unchanged and the fiat inflation target or bitcoin productivity trend still writes the path. At 0 prices move only with excess demand, so a shortfall can pull the CPI down even when the regime trend is positive.
+- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. The default of 0.75 keeps most of the regime path and lets demand move a quarter of the growth. At 1 the fiat inflation target or bitcoin productivity trend writes the path alone. At 0 prices move only with excess demand.
 
 ## production.alpha
 
@@ -990,11 +990,11 @@ Registry version: 12.
 - Label: Demand weight on output
 - Group: behavior
 - Unit: share
-- Default: 0
+- Default: 0.5
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How far monthly output follows recent sales instead of full capacity. At 0 every firm produces its capacity, and unsold goods pile into inventory. Above 0, desired output is smoothed sales plus the gap to one month of inventory, capped at capacity, and output is a mix of that quantity and full capacity. At 1, output equals desired sales. A demand shortfall then lowers real GDP in later months. The default of 0 reproduces capacity-determined output.
+- Description: How far monthly output follows recent sales instead of full capacity. At 0 every firm produces its capacity, and unsold goods pile into inventory. Above 0, desired output is smoothed sales plus the gap to one month of inventory, capped at capacity, and output is a mix of that quantity and full capacity. The default of 0.5 mixes capacity and demand so a calm opening mortgage book does not collapse employment. At 1, output equals desired sales. A demand shortfall then lowers real GDP in later months.
 
 ## productivity.baseGrowth
 
@@ -1012,11 +1012,11 @@ Registry version: 12.
 - Label: Endogenous productivity weight
 - Group: background
 - Unit: share
-- Default: 0
+- Default: 0.2
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of productivity growth that tracks capacity utilization (real GDP over a reference staffing path) instead of only the baseline rate. At 0 growth follows productivity.baseGrowth alone.
+- Description: Share of productivity growth that tracks capacity utilization (real GDP over a reference staffing path) instead of only the baseline rate. The default of 0.2 mixes a fifth of growth with utilization. At 0 growth follows productivity.baseGrowth alone.
 
 ## regime.type
 

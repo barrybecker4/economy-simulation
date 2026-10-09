@@ -8,6 +8,7 @@
     "deflation.sensitivity": 2,
     "tax.incomeRate": 0.1,
     "government.spendingShareOfGDP": 0.1,
-    "government.ubiShare": 0
+    "government.ubiShare": 0,
+    "government.stabilizer": 0
   }
 }

@@ -3,8 +3,10 @@ import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate, type ForcedShock } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,

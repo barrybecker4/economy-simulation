@@ -82,9 +82,10 @@ audit. The result's audit is taken again after the tick. A caller of the schedul
 fills every step.
 
 The ledger unit follows `regime.type`: fiat uses cents; bitcoin and hybrid use satoshis. That control is only the
-opening monetary rule. It does not rewrite other sliders. `money.choiceSpeed` can move the shares of fiat, bitcoin,
-stablecoins, and CBDC away from the opening mix. Bitcoin’s opening share is fixed at 0.4 percent, about $2 trillion of
-bitcoin against about $500 trillion of global assets. New bitcoin follows the halving schedule from a month-0 start in
+opening monetary rule. It does not rewrite other sliders. `money.choiceSpeed` (default 0.01) moves the shares of fiat,
+bitcoin, stablecoins, and CBDC toward the mix implied by legal tender, trust, friction, and real return. Bitcoin’s
+opening share is fixed at 0.4 percent, about $2 trillion of bitcoin against about $500 trillion of global assets.
+Stablecoins and CBDC open at their start sliders. New bitcoin follows the halving schedule from a month-0 start in
 October 2026: the reward is 3.125 BTC, about 95.7 percent of the 21 million cap is already mined, and the reward halves
 every 48 months. At speed 0 the shares stay put and the rule is unchanged. Above 0 the policy rate is the fiat share
 times the Taylor rule plus the rest times the market rate, and exchange rates move with each money’s share. Bitcoin’s
@@ -189,7 +190,7 @@ money wage times the firm's productivity. Pay offered to a worker is that wage t
 
 ## Goods and relative prices
 
-Opening household deposits are `household.openingDepositMonths` (default 36) times the base wage, scaled by skill
+Opening household deposits are `household.openingDepositMonths` (default 18) times the base wage, scaled by skill
 squared.
 
 There is one consumption good. A household's budget is a smoothed income, times a marginal propensity of
@@ -202,7 +203,7 @@ previous value plus 10 percent of this tick's income. That uncut budget is split
 discretionary remainder. The floor share is the sum of the food and housing CPI weights, about 0.585. When
 `household.realReturnSensitivity` is positive and the real return on money is positive, only the remainder is multiplied
 by `max(0, 1 − sensitivity × real return)`. The real return is the deposit rate minus year-over-year inflation. Deposits
-pay nothing until `bank.depositPassThrough` is raised in a later phase. At sensitivity 0 the uncut budget is unchanged.
+pay at `bank.depositPassThrough` times the policy rate (default 0.45). At sensitivity 0 the uncut budget is unchanged.
 The household visits up to `goods.sampleSize` firms and buys from those that have stock. The spend stops at the deposit
 minus this month's mortgage payment and consumer-loan installment, so a larger budget is not spent ahead of debt service.
 
@@ -249,11 +250,12 @@ equals bank equity plus the private-equity residual. The capital rule constrains
 stay in the banking system. Mortgage holders who want to own outright must repay the loan; the model does not erase an
 outstanding mortgage when tenure switches to owned.
 
-When `credit.endogenousWeight` is above zero, stress rises with loan losses and with loans above `credit.leverageStart`
-times household deposits (default 0.02), and decays otherwise. While stress is low, lending room is wider by
-`1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household deposits once a
-year, inside the wider room and not above the firm's capital value. Expansion loans that fund new capital are outside that cap. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay. At
-weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The
+When `credit.endogenousWeight` is above zero (default 0.5), stress rises with loan losses and with loans above
+`credit.leverageStart` times household deposits (default 0.85), and decays otherwise. While stress is low, lending room
+is wider by `1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household
+deposits once a year, inside the wider room and not above the firm's capital value. Expansion loans that fund new
+capital are outside that cap. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay.
+At weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The
 payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next from this
 tick's borrower interest and, under fiat, from reserve interest and an optional subsidy inside the money-growth budget,
 then equity above the capital target is paid out. When tenure choice is on, a household that misses full mortgage payments
@@ -376,8 +378,8 @@ private equity. The annualized rate actually paid enters the real return on mone
 `(inflation target + baseline productivity + inflation gap) / 12` times deposits. On the 2 percent target with 1 percent
 productivity growth, that is about 3 percent a year when inflation is on target. The weight cannot be 0: some fiat
 expansion always happens when the gap is non-negative. High inflation can still slow or shrink the stock.
-`centralBank.stimulus` (default 1, minimum 0.05) times contraction pressure from `centralBank.stimulusLag` months ago
-(default 6, minimum 1) adds to that annual rate. Pressure is the largest of minus demand impulse and minus credit
+`centralBank.stimulus` (default 1.75, minimum 0.05) times contraction pressure from `centralBank.stimulusLag` months ago
+(default 3, minimum 1) adds to that annual rate. Pressure is the largest of minus demand impulse and minus credit
 impulse when either is negative. A productivity shock does not create pressure. The lag is how long prices can fall
 before the extra injection, and how long the injection continues after the contraction ends. See
 [ADR 0017](adr/0017-fiat-cannot-freeze.md). `centralBank.injectionChannel` chooses the offsetting stock. Pro-rata
@@ -386,11 +388,11 @@ create reserves; those loans are repaid before the cash is paid as wages. An ass
 of a loan. Government spending buys goods from firms in the same tick, so the new money does not sit in the treasury. A
 contraction withdraws from the sector that channel credits, and only up to the balances that exist. Reserve-backed
 channels still cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md). When
-`prices.trendWeight` is below 1 and opening deposits are shorter than half the 48-month spending buffer, each
-household's share of pro-rata new money is added to smoothed income in proportion to how far the deposit sits under the
-buffer. `centralBank.spendNewMoney` forces that blend even with thick opening deposits, and it is the only blend applied
-to loan, bond, and treasury receipts. A trend weight of 1 leaves the blend off. Bitcoin and hybrid ignore money growth
-and crisis stimulus. If bank reserves are below `bank.reserveRequirement` times deposits, the central bank issues the
+`prices.trendWeight` is below 1 (default 0.75) and opening deposits are shorter than half the 48-month spending buffer,
+each household's share of pro-rata new money is added to smoothed income in proportion to how far the deposit sits under
+the buffer. `centralBank.spendNewMoney` (default 0.5) forces that blend even with thick opening deposits, and it is the
+only blend applied to loan, bond, and treasury receipts. A trend weight of 1 leaves the blend off. Bitcoin and hybrid
+ignore money growth and crisis stimulus. If bank reserves are below `bank.reserveRequirement` times deposits, the central bank issues the
 gap to the first bank and credits matching firm deposits. Bitcoin and hybrid do not create reserves to meet the
 requirement. The hybrid lender of last resort is described under regimes.
 

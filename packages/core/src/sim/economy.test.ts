@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate, type ForcedShock } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const TARGET = 0.02;
 
@@ -172,7 +173,7 @@ function run(options: {
       name: 'phase-2',
       seed: options.seed,
       ticks: options.ticks,
-      sliders: { 'shock.frequency': 0, ...options.sliders },
+      sliders: { ...FEATURE_OFF, 'shock.frequency': 0, ...options.sliders },
     }),
     options.shock ?? null,
   );

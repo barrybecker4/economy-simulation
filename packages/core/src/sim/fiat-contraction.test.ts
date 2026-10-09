@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import { totalDeposits } from './banking.js';
 import { growFiatMoney } from './central-bank.js';
 import type { Economy } from './economy.js';
+import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 import { simulate } from './simulate.js';
@@ -10,6 +11,7 @@ import { bankBalanceIdentity } from './stocks.js';
 
 /** Monetary preset. Seed 8 of a 20-seed run fails at tick 22 with these settings. */
 const MONETARY_PRESET: Record<string, number | string> = {
+  ...FEATURE_OFF,
   'prices.trendWeight': 0,
   'production.demandWeight': 1,
   'bank.depositPassThrough': 1,

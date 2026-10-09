@@ -190,20 +190,22 @@ Three channels, each with its own sliders.
 
 ### Initial slider registry
 
-Defaults are placeholders. The calibration phase sources them or labels them as guesses. Each slider also has a
-plain-language description and a status.
+The registry default is a 2026-trajectory baseline: money choice is on, most later mechanisms run at modest strength,
+and fiat expands hard in a crisis. Setting a later mechanism to 0 (or `off`) still reproduces the feature-off path from
+the phase that added it. Each slider also has a plain-language description and a status of sourced, calibrated, or
+guess. The full list is generated into `docs/assumptions.md`.
 
 | Group       | Slider id                              | Default         | Range                        |
 | ----------- | -------------------------------------- | --------------- | ---------------------------- |
 | Behavior    | household.timePreferenceMean (annual)  | 0.04            | 0.01 to 0.15                 |
 | Behavior    | household.timePreferenceStd            | 0.02            | 0 to 0.08                    |
 | Behavior    | household.inflationTimePreference      | 0.1             | 0 to 0.5                     |
-| Behavior    | household.skillSigma                   | 0.5             | 0.1 to 1.2                   |
+| Behavior    | household.skillSigma                   | 0.7             | 0.1 to 1.2                   |
 | Behavior    | firm.markup                            | 0.2             | 0.05 to 0.6                  |
 | Behavior    | firm.priceAdjustSpeed                  | 0.3             | 0.05 to 1                    |
 | Behavior    | wage.nominalRigidity                   | 0.9             | 0 to 0.95                    |
 | Environment | productivity.baseGrowth (annual)       | 0.01            | 0 to 0.04                    |
-| Environment | population.growth (annual)             | 0               | -0.01 to 0.02                |
+| Environment | population.growth (annual)             | 0.005           | -0.01 to 0.02                |
 | Environment | shock.frequency (per year)             | 0.1             | 0 to 1                       |
 | Environment | shock.size                             | 0.05            | 0 to 0.3                     |
 | Policy      | tax.incomeRate                         | 0.2             | 0 to 0.5                     |
@@ -211,14 +213,14 @@ plain-language description and a status.
 | Policy      | government.ubiShare                    | 0.25            | 0 to 1                       |
 | Policy      | centralBank.inflationTarget            | 0.02            | 0 to 0.06                    |
 | Policy      | centralBank.inflationWeight            | 1.5             | 1 to 3                       |
-| Policy      | centralBank.outputWeight               | 0.5             | 0 to 1.5                     |
+| Policy      | centralBank.outputWeight               | 1               | 0 to 1.5                     |
 | Policy      | bank.reserveRequirement                | 0.1             | 0 to 0.3                     |
-| Policy      | bank.capitalRatio                      | 0.08            | 0.04 to 0.2                  |
+| Policy      | bank.capitalRatio                      | 0.06            | 0.04 to 0.2                  |
 | Regime      | regime.type                            | fiat            | fiat, bitcoin, hybrid        |
 | Regime      | bitcoin.lendingModel                   | maturityMatched | maturityMatched, fullReserve |
 | Goods       | goods.electronicsProductivity (annual) | 0.08            | 0 to 0.3                     |
 | Goods       | goods.foodProductivity (annual)        | 0.01            | 0 to 0.3                     |
-| Goods       | goods.housingSupplyGrowth (annual)     | 0               | -0.01 to 0.02                |
+| Goods       | goods.housingSupplyGrowth (annual)     | 0.004           | -0.01 to 0.02                |
 | Goods       | goods.energyProductivity (annual)      | 0.005           | 0 to 0.3                     |
 | Goods       | goods.apparelProductivity (annual)     | 0.04            | 0 to 0.3                     |
 | Goods       | goods.transportProductivity (annual)   | 0.02            | 0 to 0.3                     |
@@ -228,10 +230,13 @@ plain-language description and a status.
 | Contracts   | deflation.sensitivity                  | 1               | 0 to 5                       |
 | AI          | ai.automatableShareStart               | 0.1             | 0 to 0.5                     |
 | AI          | ai.automatableShareEnd                 | 0.9             | 0.3 to 1                     |
-| AI          | ai.adoptionMidpointYear                | 10              | 1 to 40                      |
+| AI          | ai.adoptionMidpointYear                | 8               | 1 to 40                      |
 | AI          | ai.adoptionSteepness                   | 0.15            | 0.1 to 1.5                   |
 | AI          | ai.computeCostDeclineRate (annual)     | 0.3             | 0 to 0.6                     |
-| AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7                     |     | AI  | ai.bullishness | 0   | 0 to 2 |     | AI  | ai.roboticsStartYear | 20  | 0 to 50 |     | AI  | ai.roboticsRampYears | 16  | 1 to 30 |
+| AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7                     |
+| AI          | ai.bullishness                         | 0.35            | 0 to 2                       |
+| AI          | ai.roboticsStartYear                   | 15              | 0 to 50                      |
+| AI          | ai.roboticsRampYears                   | 12              | 1 to 30                      |
 | AI          | ai.ownershipConcentration              | 0.8             | 0.1 to 0.99                  |
 | AI          | ai.ownerShareCeiling                   | 0.95            | 0 to 1                       |
 | AI          | ai.agentsPerOwnerCeiling               | 20              | 0 to 50                      |
@@ -466,6 +471,8 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
    The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed.
    Seed selector and a seed-count field beside months. One seed draws that path. More than one seed draws the median,
    and CPI also shows the 5th to the 95th percentile when no baseline is overlaid.
+   The shocks chart is the exception: it draws the mean absolute impulse of each type, so a larger shock counts more
+   than a smaller one, because the median impulse is zero whenever a shock is missing from half the seeds.
    Shaded bands and vertical rules mark demand, credit, and productivity shocks and a fiat-to-bitcoin transition;
    the cursor legend names the event under the pointer.
 5. Shareable links encode the resolved configuration.

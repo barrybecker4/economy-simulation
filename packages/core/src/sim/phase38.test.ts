@@ -7,8 +7,10 @@ import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
 import { resolveInsolventBanks } from './resolution.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 2,

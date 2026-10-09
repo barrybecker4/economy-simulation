@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const scale = {
   'scale.households': 80,
@@ -53,7 +54,9 @@ describe('AI agents', () => {
 });
 
 function run(sliders: Record<string, number | string>): SimulationResult {
-  return simulate(loadScenario({ name: 'agents', seed: 9, ticks: 80, sliders }));
+  return simulate(
+    loadScenario({ name: 'agents', seed: 9, ticks: 80, sliders: { ...FEATURE_OFF, ...sliders } }),
+  );
 }
 
 function series(result: SimulationResult, id: MetricId): number[] {

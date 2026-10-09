@@ -5,9 +5,11 @@ import { applyCategoryOption } from '../config/presets.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
-/** Same monetary overrides as the web app default page. */
+/** Demand-led monetary comparison bundle on top of the feature-off path. */
 const MONETARY: Record<string, number | string> = {
+  ...FEATURE_OFF,
   'prices.trendWeight': 0.8,
   'production.demandWeight': 1,
   'bank.depositPassThrough': 1,

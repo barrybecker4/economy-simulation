@@ -51,7 +51,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'hawkish',
         name: 'Hawkish',
         detail:
-          'Inflation weight 2.5, output weight 0.2. Other central-bank sliders stay at their defaults.',
+          'Inflation weight 2.5, output weight 0.2, bond purchase share 0. Other central-bank sliders stay at their defaults.',
         values: {
           'centralBank.inflationTarget': 0.02,
           'centralBank.inflationWeight': 2.5,
@@ -65,12 +65,12 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'balanced',
         name: 'Balanced',
         detail:
-          'Inflation weight 1.5, output weight 0.5, and every other owned slider at its default.',
+          'Inflation weight 1.5, output weight 1, bond purchase share 0.25, and every other owned slider at its default.',
         values: {
           'centralBank.inflationTarget': 0.02,
           'centralBank.inflationWeight': 1.5,
-          'centralBank.outputWeight': 0.5,
-          'centralBank.bondPurchaseShare': 0,
+          'centralBank.outputWeight': 1,
+          'centralBank.bondPurchaseShare': 0.25,
           'bank.reserveRequirement': 0.1,
           'centralBank.rateSmoothing': 0.5,
         },
@@ -79,12 +79,12 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'employment-leaning',
         name: 'Employment-leaning',
         detail:
-          'Output weight 1.2, inflation weight left at 1.5. Other owned sliders stay at their defaults.',
+          'Output weight 1.2, inflation weight left at 1.5, bond purchase share left at 0.25.',
         values: {
           'centralBank.inflationTarget': 0.02,
           'centralBank.inflationWeight': 1.5,
           'centralBank.outputWeight': 1.2,
-          'centralBank.bondPurchaseShare': 0,
+          'centralBank.bondPurchaseShare': 0.25,
           'bank.reserveRequirement': 0.1,
           'centralBank.rateSmoothing': 0.5,
         },
@@ -97,7 +97,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         values: {
           'centralBank.inflationTarget': 0.02,
           'centralBank.inflationWeight': 1.5,
-          'centralBank.outputWeight': 0.5,
+          'centralBank.outputWeight': 1,
           'centralBank.bondPurchaseShare': 0.5,
           'bank.reserveRequirement': 0.1,
           'centralBank.rateSmoothing': 0.5,
@@ -134,24 +134,25 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
       {
         id: 'moderate',
         name: 'Moderate',
-        detail: 'Tax and spending at 20 percent, UBI at 25 percent of AI GDP, stabilizer off.',
+        detail:
+          'Tax and spending at 20 percent, UBI at 25 percent of AI GDP, stabilizer at 1. This is the registry default.',
         values: {
           'tax.incomeRate': 0.2,
           'government.spendingShareOfGDP': 0.2,
           'government.ubiShare': 0.25,
-          'government.stabilizer': 0,
+          'government.stabilizer': 1,
           'government.treasuryBufferMonths': 1,
         },
       },
       {
         id: 'large',
         name: 'Large',
-        detail: 'Tax and spending at 35 percent, UBI at 25 percent of AI GDP, stabilizer off.',
+        detail: 'Tax and spending at 35 percent, UBI at 25 percent of AI GDP, stabilizer at 1.',
         values: {
           'tax.incomeRate': 0.35,
           'government.spendingShareOfGDP': 0.35,
           'government.ubiShare': 0.25,
-          'government.stabilizer': 0,
+          'government.stabilizer': 1,
           'government.treasuryBufferMonths': 1,
         },
       },
@@ -159,12 +160,12 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'deficit-spending',
         name: 'Deficit spending',
         detail:
-          'Tax at 20 percent, spending at 35 percent, UBI at 25 percent of AI GDP, stabilizer at 1.',
+          'Tax at 20 percent, spending at 35 percent, UBI at 25 percent of AI GDP, stabilizer at 1.5.',
         values: {
           'tax.incomeRate': 0.2,
           'government.spendingShareOfGDP': 0.35,
           'government.ubiShare': 0.25,
-          'government.stabilizer': 1,
+          'government.stabilizer': 1.5,
           'government.treasuryBufferMonths': 1,
         },
       },
@@ -190,9 +191,10 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
       {
         id: 'moderate',
         name: 'Moderate',
-        detail: 'Capital ratio 8 percent, maturity-matched lending, deflation sensitivity 1.',
+        detail:
+          'Capital ratio 6 percent, maturity-matched lending, deflation sensitivity 1. This is the registry default.',
         values: {
-          'bank.capitalRatio': 0.08,
+          'bank.capitalRatio': 0.06,
           'bitcoin.lendingModel': 'maturityMatched',
           'deflation.sensitivity': 1,
         },
@@ -200,9 +202,9 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
       {
         id: 'easy',
         name: 'Easy',
-        detail: 'Capital ratio 6 percent, maturity-matched lending, deflation sensitivity 0.',
+        detail: 'Capital ratio 4 percent, maturity-matched lending, deflation sensitivity 0.',
         values: {
-          'bank.capitalRatio': 0.06,
+          'bank.capitalRatio': 0.04,
           'bitcoin.lendingModel': 'maturityMatched',
           'deflation.sensitivity': 0,
         },
@@ -237,16 +239,16 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'modest',
         name: 'Modest',
         detail:
-          'Bullishness 0, medium-slow adoption (midpoint year 10, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 20 over 16 years). This is the registry default.',
+          'Bullishness 0.35, medium-slow adoption (midpoint year 8, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 15 over 12 years). This is the registry default.',
         values: {
-          'ai.bullishness': 0,
+          'ai.bullishness': 0.35,
           'ai.automatableShareStart': 0.1,
           'ai.automatableShareEnd': 0.9,
-          'ai.adoptionMidpointYear': 10,
+          'ai.adoptionMidpointYear': 8,
           'ai.adoptionSteepness': 0.15,
           'ai.physicalTaskShare': 0.7,
-          'ai.roboticsStartYear': 20,
-          'ai.roboticsRampYears': 16,
+          'ai.roboticsStartYear': 15,
+          'ai.roboticsRampYears': 12,
         },
       },
       {

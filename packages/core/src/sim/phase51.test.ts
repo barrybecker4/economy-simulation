@@ -10,8 +10,10 @@ import { subsidizeDepositInterest } from './money.js';
 import { loadParameters } from './parameters.js';
 import { moneyAmount } from './helpers.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const monetary = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,

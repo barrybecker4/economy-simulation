@@ -379,7 +379,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Shocks',
     unit: 'share',
     description:
-      'Demand, credit, and productivity impulses. A positive spell is the twelve-month expansion; a negative spell is the contraction. Zero when no shock is active. More than one seed draws each median.',
+      'Demand, credit, and productivity impulses. A positive spell is the twelve-month expansion; a negative spell is the contraction. Zero when no shock is active. One seed draws that impulse. More than one seed draws the mean absolute impulse, so a larger shock counts more than a smaller one.',
     lines: [
       { id: 'demandImpulse', label: 'Demand', color: '#b45309' },
       { id: 'creditImpulse', label: 'Credit', color: '#7c3aed' },

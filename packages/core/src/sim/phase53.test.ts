@@ -18,9 +18,11 @@ import { onProduction } from './production.js';
 import { onBookkeeping } from './bookkeeping.js';
 import { onShocks } from './shocks.js';
 import { onTransition } from './transition.js';
+import { FEATURE_OFF } from './feature-off.js';
 import { onWelfare } from './welfare.js';
 
 const calm = {
+  ...FEATURE_OFF,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,

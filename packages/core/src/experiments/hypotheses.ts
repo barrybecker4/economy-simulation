@@ -1,6 +1,7 @@
 import { loadScenario } from '../config/load.js';
 import { BITCOIN_OPENING_SHARE } from '../sim/bitcoin-supply.js';
 import type { MetricId } from '../metrics/metrics.js';
+import { FEATURE_OFF } from '../sim/feature-off.js';
 import { simulate } from '../sim/simulate.js';
 import type { SimulationResult } from '../engine/engine.js';
 
@@ -12,6 +13,7 @@ export interface HypothesisResult {
 }
 
 const base = {
+  ...FEATURE_OFF,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,

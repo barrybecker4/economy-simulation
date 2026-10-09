@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { percentile, seriesBand } from './quantile.js';
+import { meanAbsolute, percentile, seriesBand } from './quantile.js';
 
 describe('percentile', () => {
   const sample = [10, 20, 30, 40, 50];
@@ -37,5 +37,24 @@ describe('seriesBand', () => {
   it('rejects runs of different lengths', () => {
     expect(() => seriesBand([[1, 2], [3]])).toThrow(/different lengths/);
     expect(() => seriesBand([])).toThrow(/at least one run/);
+  });
+});
+
+describe('meanAbsolute', () => {
+  it('weights a larger impulse more than several smaller ones', () => {
+    const means = meanAbsolute([
+      [0, 0.05, 0],
+      [0, 0, -0.2],
+      [0, 0.1, 0],
+    ]);
+    expect(means[0]).toBe(0);
+    expect(means[1]).toBeCloseTo(0.05);
+    expect(means[2]).toBeCloseTo(0.2 / 3);
+    expect(means[2]).toBeGreaterThan(means[1] ?? 0);
+  });
+
+  it('rejects runs of different lengths', () => {
+    expect(() => meanAbsolute([[1, 2], [3]])).toThrow(/different lengths/);
+    expect(() => meanAbsolute([])).toThrow(/at least one run/);
   });
 });

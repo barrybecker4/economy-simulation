@@ -30,6 +30,25 @@ export function seriesBand(samples: readonly (readonly number[])[]): PercentileB
   return { low, mid, high };
 }
 
+/**
+ * Mean of the absolute value at each tick.
+ * A shock impulse is zero in most seeds at a given month, so the median is zero
+ * even when shocks are common. The absolute value keeps a contraction from
+ * cancelling an expansion, and a larger impulse pulls the mean up more.
+ */
+export function meanAbsolute(samples: readonly (readonly number[])[]): number[] {
+  const length = sharedLength(samples);
+  const means: number[] = [];
+  for (let index = 0; index < length; index += 1) {
+    let total = 0;
+    for (const series of samples) {
+      total += Math.abs(columnValue(series, index));
+    }
+    means.push(total / samples.length);
+  }
+  return means;
+}
+
 function blend(low: number, high: number, position: number): number {
   const weight = position - Math.floor(position);
   return low * (1 - weight) + high * weight;

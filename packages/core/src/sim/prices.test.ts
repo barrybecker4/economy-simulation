@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const matched = {
   'goods.electronicsProductivity': 0.01,
@@ -90,6 +91,7 @@ function run(sliders: Record<string, number>): SimulationResult {
       seed: 3,
       ticks: 120,
       sliders: {
+        ...FEATURE_OFF,
         'scale.households': 80,
         'scale.firms': 8,
         'scale.banks': 1,

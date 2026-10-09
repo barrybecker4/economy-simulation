@@ -4,8 +4,10 @@ import type { MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { creditStressNext, endogenousBorrowing } from './credit.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 80,
   'scale.firms': 8,
   'scale.banks': 1,

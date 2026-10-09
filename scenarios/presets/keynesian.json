@@ -3,7 +3,7 @@
   "ticks": 600,
   "sliders": {
     "government.spendingShareOfGDP": 0.35,
-    "government.stabilizer": 1,
+    "government.stabilizer": 1.5,
     "centralBank.outputWeight": 1.2
   }
 }

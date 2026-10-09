@@ -3,6 +3,7 @@ import { loadScenario } from '../config/load.js';
 import type { SimulationResult } from '../engine/engine.js';
 import type { MetricId } from '../metrics/metrics.js';
 import { simulate, type ForcedShock } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const scale = {
   'scale.households': 80,
@@ -100,7 +101,9 @@ describe('household census', () => {
 });
 
 function run(sliders: Record<string, number | string>): SimulationResult {
-  return simulate(loadScenario({ name: 'flows', seed: 11, ticks: 60, sliders }));
+  return simulate(
+    loadScenario({ name: 'flows', seed: 11, ticks: 60, sliders: { ...FEATURE_OFF, ...sliders } }),
+  );
 }
 
 function runShock(shock: ForcedShock): SimulationResult {

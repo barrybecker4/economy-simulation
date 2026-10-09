@@ -5,8 +5,10 @@ import type { SimulationResult } from '../engine/engine.js';
 import { BITCOIN_OPENING_SHARE } from './bitcoin-supply.js';
 import { nextExchangeRate, nextMoneyShares, openingShares } from './monies.js';
 import { simulate } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,

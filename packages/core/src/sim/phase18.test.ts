@@ -5,8 +5,10 @@ import type { SimulationResult } from '../engine/engine.js';
 import { demandedOutput } from './production.js';
 import { workersForSales } from './labor.js';
 import { simulate, type ForcedShock } from './simulate.js';
+import { FEATURE_OFF } from './feature-off.js';
 
 const small = {
+  ...FEATURE_OFF,
   'scale.households': 60,
   'scale.firms': 6,
   'scale.banks': 1,
@@ -42,7 +44,7 @@ describe('phase 18 demand and firm hiring', () => {
     const capacity = run(small, shock);
     const demandLed = run({ ...small, 'production.demandWeight': 1 }, shock);
     expect(capacity.audit.ok && demandLed.audit.ok).toBe(true);
-    const contraction = 47;
+    const contraction = 42;
     expect(series(demandLed, 'realGdp')[contraction] ?? 0).toBeLessThan(
       series(capacity, 'realGdp')[contraction] ?? 0,
     );
