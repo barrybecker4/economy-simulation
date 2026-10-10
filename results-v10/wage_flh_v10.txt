@@ -1,0 +1,15 @@
+preset firmLevelHiring = on
+M fiat preset: u 4.6%  CPI 1.7%/yr  money 1.05x  failures 3.0  months CPI>target 45%  nominal real-wage-x-P growth in those months 3.8%/yr
+M fiat flhOff: u 4.7%  CPI 1.8%/yr  money 1.05x  failures 2.7  months CPI>target 47%  nominal real-wage-x-P growth in those months 3.5%/yr
+M fiat flhOn: u 4.6%  CPI 1.7%/yr  money 1.05x  failures 3.0  months CPI>target 45%  nominal real-wage-x-P growth in those months 3.8%/yr
+M fiat flhOff el0: u 6.0%  CPI 3.1%/yr  money 1.17x  failures 4.5  months CPI>target 61%  nominal real-wage-x-P growth in those months 6.1%/yr
+M fiat flhOn el0: u 6.0%  CPI 3.5%/yr  money 1.21x  failures 4.2  months CPI>target 57%  nominal real-wage-x-P growth in those months 5.9%/yr
+M fiat flhOff rig0: u 5.2%  CPI 2.5%/yr  money 1.03x  failures 4.0  months CPI>target 54%  nominal real-wage-x-P growth in those months 7.7%/yr
+M fiat flhOn rig0: u 5.1%  CPI 2.3%/yr  money 0.94x  failures 3.8  months CPI>target 52%  nominal real-wage-x-P growth in those months 8.5%/yr
+M bitcoin preset: u 8.4%  CPI -6.4%/yr  money 0.46x  failures 24.7  months CPI>target 2%  nominal real-wage-x-P growth in those months 1.0%/yr
+M bitcoin flhOff: u 8.3%  CPI -6.5%/yr  money 0.46x  failures 23.2  months CPI>target 3%  nominal real-wage-x-P growth in those months 2.4%/yr
+M bitcoin flhOn: u 8.4%  CPI -6.4%/yr  money 0.46x  failures 24.7  months CPI>target 2%  nominal real-wage-x-P growth in those months 1.0%/yr
+M bitcoin flhOff el0: u 6.0%  CPI -5.8%/yr  money 0.46x  failures 23.0  months CPI>target 4%  nominal real-wage-x-P growth in those months 0.7%/yr
+M bitcoin flhOn el0: u 6.0%  CPI -5.9%/yr  money 0.47x  failures 23.2  months CPI>target 4%  nominal real-wage-x-P growth in those months -0.3%/yr
+M bitcoin flhOff rig0: u 6.2%  CPI -5.9%/yr  money 0.47x  failures 22.8  months CPI>target 3%  nominal real-wage-x-P growth in those months 6.0%/yr
+M bitcoin flhOn rig0: u 6.3%  CPI -5.7%/yr  money 0.47x  failures 21.8  months CPI>target 3%  nominal real-wage-x-P growth in those months -0.6%/yr
