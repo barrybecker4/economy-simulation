@@ -27,10 +27,13 @@ export function stampRealMortgages(economy: Economy): void {
  * principal change seats on bank equity; the rest seats on deposits at that bank.
  */
 export function revalueRealMortgages(economy: Economy): void {
-  // Revalue if the transition slider is on OR if there are any indexed mortgages
-  // (which can be created automatically in Bitcoin regimes)
-  const hasIndexedMortgages = economy.realMortgagePrice > 0;
-  if (economy.params.realMortgage !== 'on' && !hasIndexedMortgages) {
+  // Revalue if the transition slider is on OR if any households have indexed mortgages
+  // (which can be created automatically in Bitcoin regimes via drawMortgage)
+  const hasIndexedHouseholds = economy.households.some((h) => h.mortgageIndexed && h.mortgage > 0);
+  if (economy.params.realMortgage !== 'on' && !hasIndexedHouseholds) {
+    return;
+  }
+  if (economy.realMortgagePrice <= 0) {
     return;
   }
   const anchor = economy.realMortgagePrice;

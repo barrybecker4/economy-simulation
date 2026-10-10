@@ -32,6 +32,8 @@ describe('phase 66 real mortgage at the rebase', () => {
     const bank = requireBank(economy);
     const equity = bank.equity;
     const deposits = totalDeposits(economy);
+    // Clear the indexed flag to simulate slider-off behavior
+    household.mortgageIndexed = false;
     economy.priceLevel *= 0.9;
     revalueRealMortgages(economy);
     expect(household.mortgage).toBe(10_000);
