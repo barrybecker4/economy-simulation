@@ -5,6 +5,7 @@ import {
   historyLine,
   isHistoryMetric,
   padHistoryValues,
+  wellbeingHistoryNote,
 } from '../history/history.js';
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
 import { readSeries } from '../worker/series.js';
@@ -94,7 +95,7 @@ export function chartViews(
     withBand.splice(
       pricesAt + 1,
       0,
-      cpiBandView(result, regime, marks, axisTicks, showHistory),
+      cpiBandView(result, regime, marks, axisTicks, showHistory, origin),
     );
     return withBand;
   }
@@ -160,7 +161,10 @@ function viewFromSpec(
     marks,
   };
   if (historyLines.length > 0) {
-    view.note = historyChartNote();
+    view.note =
+      spec.key === 'wellbeing'
+        ? `${historyChartNote()} ${wellbeingHistoryNote()}`
+        : historyChartNote();
   }
   return view;
 }
@@ -234,7 +238,10 @@ function pairedViewFromSpec(
     caption: comparisonCaption(captionSeries(spec.lines, scaled.lines)),
   };
   if (historyLines.length > 0) {
-    view.note = historyChartNote();
+    view.note =
+      spec.key === 'wellbeing'
+        ? `${historyChartNote()} ${wellbeingHistoryNote()}`
+        : historyChartNote();
   }
   return view;
 }
@@ -412,12 +419,13 @@ function cpiBandView(
   marks: ChartMarks,
   axisTicks: number[],
   showHistory: boolean,
+  origin: Date,
 ): ChartView {
   const band = result.bands.priceLevel;
   if (band === undefined) {
     throw new Error('Missing band priceLevel');
   }
-  const scaled = scaleCents(moneyUnit(regime), [
+  const modelLines = [
     padModelLine(
       checkedLine(result.ticks, '5th', band.low, '#99b'),
       axisTicks,
@@ -433,8 +441,13 @@ function cpiBandView(
       axisTicks,
       result.ticks,
     ),
-  ]);
-  return {
+  ];
+  const historyLines =
+    showHistory
+      ? [historyLine('priceLevel', 'CPI', '#246', axisTicks, origin, band.mid[0] ?? null)]
+      : [];
+  const scaled = scaleCents(moneyUnit(regime), [...modelLines, ...historyLines]);
+  const view: ChartView = {
     key: 'cpi-band',
     title: 'CPI band',
     group: 'Prices',
@@ -447,6 +460,10 @@ function cpiBandView(
     lines: scaled.lines,
     marks,
   };
+  if (historyLines.length > 0) {
+    view.note = historyChartNote();
+  }
+  return view;
 }
 
 function checkedLine(

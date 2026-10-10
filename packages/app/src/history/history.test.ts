@@ -137,7 +137,7 @@ describe('chartViews with US history', () => {
     );
   });
 
-  it('extends the CPI band axis without adding a US line', () => {
+  it('draws a US CPI line on the CPI band chart, rebased to the median opening', () => {
     const ticks = [0, 1];
     const views = chartViews(
       { kind: 'band', ticks, series: {}, bands: bands([100, 101]) },
@@ -148,7 +148,30 @@ describe('chartViews with US history', () => {
     );
     const band = views.find((view) => view.key === 'cpi-band');
     expect(band?.ticks[0]).toBe(-HISTORY_MONTHS);
-    expect(band?.lines.every((line) => !line.label.startsWith('US '))).toBe(true);
+    const us = band?.lines.find((line) => line.label === 'US CPI');
+    const median = band?.lines.find((line) => line.label === 'Median');
+    const open = median?.values.find((value) => value !== null);
+    const historyPoints = us?.values.filter((value): value is number => value !== null) ?? [];
+    expect(us?.dash).toEqual(HISTORY_DASH);
+    expect(historyPoints.at(-1)).toBeCloseTo(open ?? 0, 6);
+  });
+
+  it('overlays an approximate US mean well-being line with a caption', () => {
+    const ticks = [0, 1];
+    const views = chartViews(runOf(ticks, [2, 2.1]), 'fiat', null, 0, {
+      showHistory: true,
+      origin,
+    });
+    const wellbeing = views.find((view) => view.key === 'wellbeing');
+    const us = wellbeing?.lines.find((line) => line.label === 'US Mean well-being');
+    expect(us).not.toBeUndefined();
+    expect(wellbeing?.lines.some((line) => line.label === 'US Median well-being')).toBe(false);
+    expect(wellbeing?.note).toMatch(/approximate/i);
+    expect(wellbeing?.note).toMatch(/real PCE per capita/i);
+    const model = wellbeing?.lines.find((line) => line.label === 'Mean well-being');
+    const open = model?.values.find((value) => value !== null);
+    const historyPoints = us?.values.filter((value): value is number => value !== null) ?? [];
+    expect(historyPoints.at(-1)).toBeCloseTo(open ?? 0, 6);
   });
 
   it('overlays labor and capital shares from the annual labor-share series', () => {

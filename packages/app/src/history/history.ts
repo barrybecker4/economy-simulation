@@ -28,10 +28,14 @@ export const REBASED_HISTORY_METRICS = new Set<HistoryMetricId>([
   'baseMoney',
   'totalRealWealth',
   'meanRealWealth',
+  'meanWellbeing',
 ]);
 
 const HISTORY_NOTE =
-  'Dotted lines are the previous ten years of US data. Price levels, real GDP, money stocks, and wealth are scaled to this run’s opening level. Velocity is annual M2 velocity divided by 12. Labor share is annual through the latest Penn World Table year.';
+  'Dotted lines are the previous ten years of US data. Price levels, real GDP, money stocks, wealth, and mean well-being are scaled to this run’s opening level. Velocity is annual M2 velocity divided by 12. Labor share is annual through the latest Penn World Table year.';
+
+const WELLBEING_HISTORY_NOTE =
+  'US mean well-being is approximate: natural log of real PCE per capita plus 0.5 divided by one plus shelter CPI over all-items CPI, then scaled to this run’s opening level.';
 
 /** Calendar month key `YYYY-MM` for `origin` plus `tick` months. */
 export function calendarMonthKey(origin: Date, tick: number): string {
@@ -144,4 +148,9 @@ export function isHistoryMetric(id: string): id is HistoryMetricId {
 
 export function historyChartNote(): string {
   return HISTORY_NOTE;
+}
+
+/** Extra caption for the well-being chart when the US approximation is drawn. */
+export function wellbeingHistoryNote(): string {
+  return WELLBEING_HISTORY_NOTE;
 }
