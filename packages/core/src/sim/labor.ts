@@ -158,9 +158,8 @@ function vacancyLimit(economy: Economy, target: number): number {
 
 function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
   const scale = wageHiringScale(economy);
-  return economy.firms.map((firm) => ({
-    firm,
-    wanted: Math.round(
+  return economy.firms.map((firm) => {
+    let wanted = Math.round(
       workersForSales({
         workers: firm.workers.length,
         capacity: firmCapacity(economy, firm),
@@ -168,7 +167,14 @@ function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
         alpha: economy.params.alpha,
         humanWeight: humanWeight(economy),
       }) * scale,
-    ),
+    );
+    // During a supply shock (negative productivity impulse), cap hiring at
+    // current headcount to prevent perverse labor demand when sales expectations
+    // haven't yet adjusted to the lower capacity.
+    if (economy.productivityImpulse < 0) {
+      wanted = Math.min(wanted, firm.workers.length);
+    }
+    return { firm, wanted };
   }));
 }
 
