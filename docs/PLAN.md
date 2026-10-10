@@ -57,13 +57,13 @@ Layout:
 - Use the seeded RNG and pass it explicitly. Iterate agents by numeric id. Give agents independent streams so one
   agent's draws do not move another's.
 - Keep every tunable in the slider registry.
-- Agents decide in `decide()` and act through the ledger and markets.
+- Agents act through the ledger and markets inside the tick steps. They do not modify other agents directly. There is no `decide()` method.
 - Do not add a dependency without noting why.
 - Do not start a later phase.
 
 ## Time and scale
 
-- One tick is one month. A default run is 50 years (600 ticks). Both are configuration.
+- One tick is one month. A scenario file defaults to 50 years (600 ticks). The web app opens at 120 ticks. Both are configuration.
 - Development population: 4,000 households, 200 firms, 4 banks, about 20 households per firm. Release target: 10,000 households and 500 firms.
 - The agent count is a share of households, not a hard cap.
 - Performance, measured and adjusted as phases land: a development run of 600 ticks finishes in about 7 seconds in Node. A release-size run stays under 15 seconds.
@@ -192,7 +192,7 @@ Three channels, each with its own sliders.
 
 ### Initial slider registry
 
-The registry default is a 2026-trajectory baseline: money choice is on, most later mechanisms run at modest strength,
+The registry default is a 2026-trajectory baseline: money choice speed is 0, so currency shares stay at the opening mix, most later mechanisms run at modest strength,
 and fiat expands hard in a crisis. Setting a later mechanism to 0 (or `off`) still reproduces the feature-off path from
 the phase that added it. Each slider also has a plain-language description and a status of sourced, calibrated, or
 guess. The full list is generated into `docs/assumptions.md`.
@@ -552,7 +552,7 @@ Acceptance:
 Goal: households choose tenure and borrow for discretionary spending; deflation raises the burden of nominal mortgages
 and cuts new consumer credit without removing the food and housing floor.
 
-1. `housing.tenureChoice` defaults to `off`. Off keeps the penalty formulas for profit-sharing, non-mortgage housing,
+1. `housing.tenureChoice` defaults to `on`. Off keeps the penalty formulas for profit-sharing, non-mortgage housing,
    and property turnover.
 2. On: each household picks rent, mortgage, or owned by expected real burden. Shelter payments stay inside the Phase 10
    floor. Consumer loans fund only discretionary spending and fall as expected deflation rises.
@@ -575,7 +575,7 @@ Acceptance:
 
 Goal: firms invest only when expected return beats the real return on money plus a premium.
 
-1. `firm.investmentHurdle` defaults to `off`. Off keeps the scheduled capital rule and the profit-sharing formula.
+1. `firm.investmentHurdle` defaults to `on`. Off keeps the scheduled capital rule and the profit-sharing formula.
 2. On: install capital only when expected profit clears the hurdle; otherwise fund with a profit-sharing claim.
    `profitSharingShare` becomes the measured finance share.
 
@@ -648,10 +648,10 @@ Acceptance:
 
 Goal: the size of the AI productivity gain is a slider, and mass robotics later opens the physical-task ceiling.
 
-1. `ai.bullishness` defaults to 0 (Modest). At 0 the gain on each adopted task is one tenth of the unit reference and
+1. `ai.bullishness` defaults to 0.35 (Modest). At 0 the gain on each adopted task is one tenth of the unit reference and
    saturates with the adoption curve. At 1 the AI factor is `1 + adopted`, matching Phase 16 when robotics has not
    started. Above 1 the task gain compounds at `0.15 × (bullishness − 1)` per year with no ceiling.
-2. `ai.roboticsStartYear` defaults to 20 and `ai.roboticsRampYears` defaults to 16. From the start year the effective
+2. `ai.roboticsStartYear` defaults to 15 and `ai.roboticsRampYears` defaults to 12. From the start year the effective
    physical-task block falls in a straight line to zero. A start year at or past the last year of the run leaves the
    block intact.
 3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain does not drive unemployment to one. The
@@ -673,9 +673,9 @@ Acceptance:
 
 Goal: a demand shortfall lowers output and hours, not just inventory and bankruptcies.
 
-1. `production.demandWeight` defaults to 0. At 0 every firm produces capacity. Above 0, desired output is smoothed sales
+1. `production.demandWeight` defaults to 0.5. At 0 every firm produces capacity. Above 0, desired output is smoothed sales
    plus the inventory gap, capped at capacity, and output mixes that quantity with capacity.
-2. `labor.firmLevelHiring` defaults to `off`. Off keeps the economy-wide hiring quota. On, each firm posts vacancies
+2. `labor.firmLevelHiring` defaults to `on`. Off keeps the economy-wide hiring quota. On, each firm posts vacancies
    from smoothed sales versus capacity, and sheds at most 5 percent of employed workers in a month.
 
 Acceptance:
@@ -690,7 +690,7 @@ Acceptance:
 
 Goal: expected inflation can sit on the regime path instead of the last year of prices.
 
-1. `expectations.anchorWeight` defaults to 0. Expected inflation is that weight times the regime path plus the rest
+1. `expectations.anchorWeight` defaults to 0.65. Expected inflation is that weight times the regime path plus the rest
    times trailing inflation. Spending, the real return, the deflation penalty, tenure choice, and the fiat policy rate
    use it. At 0 they keep using the trailing rate, and posted prices and wages keep the regime path.
 
@@ -705,9 +705,9 @@ Acceptance:
 
 Goal: credit booms and busts can come from balance sheets, and government bonds pay a coupon.
 
-1. `credit.endogenousWeight` defaults to 0. Above 0, calm periods lend a share of household deposits and stress from
+1. `credit.endogenousWeight` defaults to 0.5. Above 0, calm periods lend a share of household deposits and stress from
    leverage or defaults cuts lending and repays loans.
-2. `government.bondRate` defaults to 0. Above 0, the treasury pays that annual rate on bank-held bonds. The coupon goes
+2. `government.bondRate` defaults to 0.04. Above 0, the treasury pays that annual rate on bank-held bonds. The coupon goes
    through the ledger. At 0 no coupon is paid.
 
 Acceptance:
@@ -720,7 +720,7 @@ Acceptance:
 
 Goal: housing scarcity can clear against tenure demand and supply, instead of only a time formula.
 
-1. `housing.marketClearing` defaults to `off`. Off keeps the formula category price and a home price of 48 months of
+1. `housing.marketClearing` defaults to `on`. Off keeps the formula category price and a home price of 48 months of
    income.
 2. On: a scarcity index starts at 1 and moves with the share of owners and mortgage holders and with housing supply
    growth. It multiplies the housing category price and the home price. Tenure choice off holds demand at the neutral
@@ -736,9 +736,9 @@ Acceptance:
 
 Goal: population growth changes the household count, and agent compute can raise the buyer’s capacity.
 
-1. `population.growth` now changes the number of households. The default is 0, which holds the count fixed. The previous
-   default of 0.005 was stored and not applied.
-2. `ai.computeProductivity` defaults to 0. Above 0, each compute unit a firm buys multiplies next month’s capacity by
+1. `population.growth` changes the number of households. The default is 0.005, a half percent a year. At 0 the count
+   stays at the Households slider.
+2. `ai.computeProductivity` defaults to 0.2. Above 0, each compute unit a firm buys multiplies next month’s capacity by
    one plus that rate times the units.
 
 Acceptance:
@@ -766,14 +766,16 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` defaults to 0.01 and
+   `money.cbdcStart` defaults to 0.005. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
    return, and exchange rates move with each digital share. The policy-rate rule still follows `regime.type`. Bitcoin
    issuance is the halving schedule, not a slider.
 
 Acceptance:
 
-- Choice speed 0 matches Phase 23 for the same seeds, and the fiat share stays 1.
+- Choice speed 0 matches Phase 23 for the same seeds, and the shares stay at the opening mix. Fiat is not the whole stock:
+  bitcoin opens at 0.4 percent, and the stablecoin and CBDC start sliders take their defaults.
 - A higher bitcoin trust raises the bitcoin share and, with no issuance, its exchange rate.
 - The main ledger audit still passes.
 
@@ -814,7 +816,7 @@ Acceptance:
 
 Goal: the price of agent compute can rise when agents crowd firms.
 
-1. `agent.marketDepth` defaults to 0. At 0 the ask is adoption progress times 4 percent of the wage, marked up by
+1. `agent.marketDepth` defaults to 0.25. At 0 the ask is adoption progress times 4 percent of the wage, marked up by
    payment friction.
 2. Above 0 the ask is multiplied by one plus depth times agents per firm. Firms still refuse an ask at or above 4.2
    percent of the wage.
@@ -890,12 +892,13 @@ Acceptance:
 
 ### Phase 32: Monetary comparison preset
 
-Goal: the web app opens on settings where spending can move prices and output.
+Goal: a CLI preset where spending can move prices and output. The web app does not open on it.
 
 1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5,
    tenure choice on, `money.choiceSpeed` 0, and `labor.firmLevelHiring` on. Money growth stays at its default of 1.
    Firm-level hiring keeps an aggregate employment floor so demand-led bitcoin runs do not shed into mass unemployment.
-2. The app’s default page overrides match that preset. 3. The preset's 12-month opening deposits sit under the spending
+2. The web app opens on the registry defaults and does not apply this preset.
+3. The preset's 12-month opening deposits sit under the spending
    buffer, so with trend weight 0 the new money would otherwise sit idle and pull every category price down. That new
    money is blended into smoothed income and spent. Energy, medical care, and education then rise over a decade, and
    apparel and electronics fall, while the money stock rises.
@@ -912,7 +915,7 @@ Acceptance:
 
 Goal: calm lending can reach a larger loan book, and unpaid mortgages can be written off.
 
-1. `credit.leverageStart` defaults to 0.02. The monetary preset sets it to 1 with endogenous credit weight 1 and a 4
+1. `credit.leverageStart` defaults to 0.85. The monetary preset sets it to 1 with endogenous credit weight 1 and a 4
    percent capital ratio.
 2. `housing.mortgageDefaultShare` defaults to 0.4. After three missed full payments while the payment exceeds that share
    of income, the unpaid mortgage is written off against bank equity and the household returns to rent.
@@ -926,8 +929,10 @@ Acceptance:
 
 Goal: fix the supply-shock hiring sign and remeasure unemployment, velocity, and inequality on the monetary preset.
 
-1. The employment quota scales with the productivity impulse so an adverse supply shock raises unemployment.
-2. `household.openingDepositMonths` defaults to 36. The monetary preset uses 12.
+1. The employment quota scales with the productivity impulse so an adverse supply shock raises unemployment. Phase 68
+   removes that scale: the impulse stays out of the hiring reference, and a negative impulse only caps the hiring scale
+   at 1.
+2. `household.openingDepositMonths` defaults to 18. The monetary preset uses 12.
 
 Acceptance:
 
@@ -1003,8 +1008,10 @@ Acceptance:
 
 Goal: an adverse productivity shock raises unemployment on both hiring paths.
 
-1. Firm-level hiring scales labor demand with the productivity impulse the same way the economy-wide quota does.
-2. A negative productivity impulse raises unemployment while the shock is active.
+1. Firm-level hiring scales labor demand with the productivity impulse the same way the economy-wide quota does. Phase 68
+   removes that scale.
+2. A negative productivity impulse raises unemployment while the shock is active. Phase 68 keeps the output loss and
+   stops a hiring boom; the cost quota itself does not fall with the impulse.
 
 Acceptance:
 
@@ -1030,24 +1037,24 @@ Acceptance:
 
 Goal: demand-led prices can chase the inflation target without hoarding every new dollar.
 
-1. Document that the registry default `prices.trendWeight` is 1 (money-irrelevant) while the app and monetary preset
-   use 0.
-2. `centralBank.spendNewMoney` (default 0) blends a share of new fiat into smoothed income when trend weight is below 1,
+1. The registry default `prices.trendWeight` is 0.75. The web app opens on that registry. `scenarios/presets/monetary.json`
+   still sets trend weight 0, and the app does not apply that file.
+2. `centralBank.spendNewMoney` (default 0.5) blends a share of new fiat into smoothed income when trend weight is below 1,
    even with thick opening deposits.
 3. Recheck fiat inflation near target on the monetary preset with shocks off.
 
 Acceptance:
 
 - A 50 percent helicopter raise still lifts the CPI by more than 1 percent within two years on the monetary preset.
-- Velocity is higher than under the thick registry-default opening stock.
+- Velocity with 12 months of opening deposits is higher than with 36. The registry default is 18, not 36.
 - Bitcoin is unchanged by the fiat-only blend slider.
 
 ### Phase 42: Extreme sticky-wage guard
 
 Goal: very sticky wages no longer drive near-total unemployment under routine shocks.
 
-1. `wage.emergencyFlex` (default 0) temporarily lowers effective nominal rigidity when unemployment sits above the
-   natural rate plus a gap for several months.
+1. `wage.emergencyFlex` temporarily lowers effective nominal rigidity when unemployment sits above the
+   natural rate plus a gap for several months. Phase 59 removes the slider.
 2. At 0 the Phase 41 path is unchanged.
 
 Acceptance:
@@ -1280,8 +1287,8 @@ Acceptance:
 Goal: a productivity impulse changes hiring through the real-wage reference, not through a second multiplier on the quota.
 
 1. Neither hiring target is scaled by `clamp(1 + productivityImpulse, 0.5, 1.5)`.
-2. The reference real wage is the opening real wage times one plus the impulse. Default elasticity then cuts the quota
-   when the impulse is negative. Elasticity 0 does not.
+2. The reference real wage is the opening real wage times one plus the impulse. Phase 68 drops the impulse and tightness
+   from the hiring reference. Elasticity 0 does not move the quota.
 
 Acceptance:
 
@@ -1294,7 +1301,7 @@ Acceptance:
 
 Goal: remove the emergency flexibility override, and stop firm-level hiring from shedding the labor force when sales fall.
 
-1. `wage.emergencyFlex` is gone. Downward wage gaps stay scaled by the square of `1 − rigidity`.
+1. `wage.emergencyFlex` is gone. Phase 63 drops squared downward rigidity: both sides close `1 − rigidity` of the gap.
 2. Firm-level hiring's aggregate target is the sales headcount clamped so it cannot rise above the cost quota or fall
    more than one month's shed below it. The quota still falls when the real wage is above the productivity-adjusted
    reference. Phase 62 restores the live sales target inside that band.
@@ -1349,7 +1356,7 @@ real buy-or-wait cost.
 2. Firm-level hiring's aggregate target is the sales headcount clamped to
    `[costQuota × (1 − monthly shed), costQuota]`. Vacancies go to understaffed firms.
 3. The hiring real-wage reference glides the productivity impulse to zero with nominal rigidity after the raw impulse
-   ends, and cannot raise the hiring scale above 1 while that glided impulse is negative.
+   ends, and cannot raise the hiring scale above 1 while that glided impulse is negative. Phase 68 removes the glide.
 4. Fiat deposit-interest subsidy draws on the same money-growth budget as reserve interest and is netted from the same
    tick's injection.
 5. Mortgage and ownership burdens use the real loan rate and expected capital loss. The offered term shortens until the
@@ -1398,16 +1405,17 @@ can fall first.
 1. `centralBank.moneyGrowth` keeps the secular rule
    `weight × (inflation target + productivity growth + inflation gap) / 12` times deposits. Its minimum rises from 0 to
    0.05. A value of 0 fails validation. High inflation can still slow or shrink the stock.
-2. `centralBank.stimulus` (default 1, minimum 0.05) times lagged contraction pressure adds to that annual rate.
-   Pressure is `max(0, −demandImpulse, −creditImpulse)`. A productivity shock does not create pressure.
-3. `centralBank.stimulusLag` (default 6, minimum 1) is how many months before that extra growth starts and how many months
+2. `centralBank.stimulus` (default 1.75, minimum 0) times lagged contraction pressure adds to that annual rate.
+   Pressure is `max(0, −demandImpulse, −creditImpulse)`. A productivity shock does not create pressure. Phase 69 replaces
+   that pressure with the unemployment gap and allows stimulus 0.
+3. `centralBank.stimulusLag` (default 3, minimum 1) is how many months before that extra growth starts and how many months
    it continues after the contraction ends. Same-month stimulus is not allowed.
 4. The sum still uses the existing injection channel and nets reserve interest and the deposit subsidy. Bitcoin and
    hybrid ignore both new sliders. Unemployment does not trigger this injection.
 
 Acceptance:
 
-- Loading money growth 0 or stimulus 0 throws.
+- Loading money growth 0 throws. Phase 69 allows stimulus 0.
 - A calm fiat run has the same money-supply path at stimulus 1 and at the 0.05 floor.
 - A forced demand contraction with posted prices following demand has a lower CPI at the end of the lag than when the
   contraction starts.
@@ -1420,7 +1428,7 @@ Acceptance:
 Goal: homes lose their inflation-hedge bid when holding money itself protects purchasing power, so bitcoin and hybrid
 home prices fall in months of income relative to fiat.
 
-1. `housing.monetaryPremium` defaults to 0. It is the share of the current 48-month home price that exists because
+1. `housing.monetaryPremium` defaults to 0.25. It is the share of the current 48-month home price that exists because
    housing is held as an inflation hedge. Zero reproduces Phase 64.
 2. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat, and minus baseline
    productivity under bitcoin and hybrid. Hedge share is that path over the inflation target, clamped to [0, 1], and 0
@@ -1664,6 +1672,7 @@ tests on a fixed set of seeds. Each test states a tolerance. Failures report the
   investment hurdle is on.
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
-- Mechanisms sketched in Phases 43–50 until those phases land: rate transmission beyond deposits, a gradual dual-currency
-  transition, a bitcoin market price separate from goods prices in satoshis, durable purchase timing, endogenous
-  productivity, life-cycle bequests, inequality and velocity calibration, and design-symmetry cleanup.
+- A free-choice hybrid in which goods, labor, credit, and tax clear in the money-choice shares. Those shares move the
+  chart and the bitcoin price only.
+- New jobs that offset AI displacement. The hiring quota and the natural employment rate shrink with the human share of
+  output, and the AI factor does not enter wages.

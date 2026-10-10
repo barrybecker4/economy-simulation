@@ -87,8 +87,9 @@ seeds were a shortage allocation bug; proportional spending scales and stockout
 price lift clear them. Further consumption-gap work should start from tenure
 and inventory, not from the stabilizer.
 
-## Registry versus app defaults
+## Registry versus the monetary preset
 
-The registry keeps `prices.trendWeight` at 1 so older phases stay money-irrelevant
-under S0. The web app and `scenarios/presets/monetary.json` open with trend weight
-0 so money can move prices. Document both when reporting experiments.
+The registry default `prices.trendWeight` is 0.75. The web app opens on the registry
+defaults and does not apply a separate override set. `scenarios/presets/monetary.json`
+still sets trend weight 0, demand weight 1, deposit pass-through 1, and anchor weight
+0.5 for CLI comparisons. Document which of those two worlds an experiment used.

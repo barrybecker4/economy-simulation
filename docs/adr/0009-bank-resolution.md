@@ -13,7 +13,7 @@ regime comparisons stay meaningful.
 
 ## Decision
 
-- `bank.resolution` is `off` (prior behavior) or `merge` (monetary preset).
+- `bank.resolution` is `off` or `merge`. The registry default is `merge`. `off` is the feature-off path.
 - On merge, deposits and loans move to the lowest-id surviving bank. A sole bank
   is bailed in until equity meets the capital target from `equityFor`, then the
   failed flag clears. A bank already at that target is not bailed in again.
