@@ -37,6 +37,26 @@ describe('core determinism lint', () => {
     );
   });
 
+  it('rejects platform Math.exp in packages/core', async () => {
+    const result = await lintSnippet(
+      'packages/core/src/forbidden-exp.ts',
+      'export const value = Math.exp(1);\n',
+    );
+    expect(result.messages.some((message) => message.ruleId === 'no-restricted-properties')).toBe(
+      true,
+    );
+  });
+
+  it('allows Math.exp in a core test', async () => {
+    const result = await lintSnippet(
+      'packages/core/src/allowed-exp.test.ts',
+      'export const value = Math.exp(1);\n',
+    );
+    expect(
+      result.messages.filter((message) => message.ruleId === 'no-restricted-properties'),
+    ).toEqual([]);
+  });
+
   it('allows Math.random outside packages/core', async () => {
     const result = await lintSnippet(
       'packages/cli/src/allowed-random.ts',

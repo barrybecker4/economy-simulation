@@ -1,3 +1,4 @@
+import { log } from '../math/elementary.js';
 import { splitBasket, type BasketSplit } from './basket.js';
 import type { Economy } from './economy.js';
 import { refreshEquityClaims } from './equity.js';
@@ -171,7 +172,7 @@ function housingSecurities(
 function wellbeingOf(consumption: readonly number[], securities: readonly number[]): number[] {
   return consumption.map(
     (value, index) =>
-      Math.log(Math.max(value, 0.01)) + HOUSING_SECURITY_WEIGHT * (securities[index] ?? 0),
+      log(Math.max(value, 0.01)) + HOUSING_SECURITY_WEIGHT * (securities[index] ?? 0),
   );
 }
 

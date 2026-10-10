@@ -5,22 +5,22 @@ Named files in `scenarios/presets/` are compositions of orthogonal category opti
 rewrites only that category's sliders. Each parameter group starts collapsed with its preset visible; expand the group
 to adjust the underlying sliders.
 
-| File                                              | Composition                                                                                 |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `scenarios/baseline.json`                         | Defaults, 600 months.                                                                       |
-| `scenarios/presets/neutral.json`                  | Fiat; every category at its default option.                                                 |
-| `scenarios/presets/no-ai.json`                    | AI bullishness: none (start and end automatable shares both 0.3).                           |
-| `scenarios/presets/slow-adoption.json`            | AI bullishness: modest (slow adoption, narrow reach, bullishness 0).                        |
-| `scenarios/presets/fast-adoption.json`            | AI bullishness: high (fast adoption, bullishness 1.5, typical reach).                       |
-| `scenarios/presets/high-physical.json`            | Same as modest / slow-adoption (kept for CLI name compatibility).                           |
-| `scenarios/presets/austrian.json`                 | Bitcoin; credit: tight; public finance: small.                                              |
-| `scenarios/presets/keynesian.json`                | Fiat; public finance: deficit spending; central bank: employment-leaning.                   |
-| `scenarios/presets/monetized-dividend.json`       | Fiat; monetizing; AI dividend; moderate credit; extreme AI.                                 |
-| `scenarios/presets/hawkish-dividend.json`         | Fiat; hawkish; AI dividend; moderate credit; extreme AI.                                    |
-| `scenarios/presets/modest-dividend.json`          | Fiat; monetizing; AI dividend; moderate credit; modest AI.                                  |
-| `scenarios/presets/private-surplus.json`          | Fiat; hawkish; private surplus; moderate credit; extreme AI.                                |
-| `scenarios/presets/bitcoin-dividend.json`         | Bitcoin; balanced (ignored); AI dividend; moderate credit; extreme AI.                      |
-| `scenarios/presets/bitcoin-private-surplus.json`  | Bitcoin; balanced (ignored); private surplus; moderate credit; extreme AI.                  |
+| File                                             | Composition                                                                |
+| ------------------------------------------------ | -------------------------------------------------------------------------- |
+| `scenarios/baseline.json`                        | Defaults, 600 months.                                                      |
+| `scenarios/presets/neutral.json`                 | Fiat; every category at its default option.                                |
+| `scenarios/presets/no-ai.json`                   | AI bullishness: none (start and end automatable shares both 0.3).          |
+| `scenarios/presets/slow-adoption.json`           | AI bullishness: modest (slow adoption, narrow reach, bullishness 0).       |
+| `scenarios/presets/fast-adoption.json`           | AI bullishness: high (fast adoption, bullishness 1.5, typical reach).      |
+| `scenarios/presets/high-physical.json`           | Same as modest / slow-adoption (kept for CLI name compatibility).          |
+| `scenarios/presets/austrian.json`                | Bitcoin; credit: tight; public finance: small.                             |
+| `scenarios/presets/keynesian.json`               | Fiat; public finance: deficit spending; central bank: employment-leaning.  |
+| `scenarios/presets/monetized-dividend.json`      | Fiat; monetizing; AI dividend; moderate credit; extreme AI.                |
+| `scenarios/presets/hawkish-dividend.json`        | Fiat; hawkish; AI dividend; moderate credit; extreme AI.                   |
+| `scenarios/presets/modest-dividend.json`         | Fiat; monetizing; AI dividend; moderate credit; modest AI.                 |
+| `scenarios/presets/private-surplus.json`         | Fiat; hawkish; private surplus; moderate credit; extreme AI.               |
+| `scenarios/presets/bitcoin-dividend.json`        | Bitcoin; balanced (ignored); AI dividend; moderate credit; extreme AI.     |
+| `scenarios/presets/bitcoin-private-surplus.json` | Bitcoin; balanced (ignored); private surplus; moderate credit; extreme AI. |
 
 Compare two regimes of one preset:
 

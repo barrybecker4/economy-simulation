@@ -12,8 +12,10 @@ Phase 2."
 
 ## Principles
 
-- Determinism: the same seed and configuration produce the same output. `packages/core` never calls `Math.random`,
-  `Date.now`, or any other source of nondeterminism.
+- Determinism: the same seed and configuration produce the same output in Node and in a browser. `packages/core`
+  never calls `Math.random`, `Date.now`, `Math.exp`, `Math.log`, `Math.sin`, or `Math.cos`. Those four functions are
+  computed in software because host libraries disagree by a unit in the last place. See
+  [ADR 0026](adr/0026-cross-engine-elementary-math.md).
 - Stock-flow consistency: every movement of money or debt goes through a double-entry ledger. No agent creates or
   destroys money except through the active regime.
 - Questions decide roles: a variable used to draw a conclusion is an output, never a slider. A variable the user wants
@@ -22,7 +24,7 @@ Phase 2."
 - Simple first: each phase adds one mechanism, validates it, and only then moves on. Each mechanism has a neutral
   setting that reproduces the previous phase.
 - Core logic is independent of the user interface. The simulation runs in Node and in a browser worker with identical
-  results on the same runtime.
+  results, including across JavaScript engines.
 
 ## Technology and layout
 

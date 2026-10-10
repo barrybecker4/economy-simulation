@@ -51,7 +51,11 @@ describe('phase 68 hiring reference without tightness or impulse', () => {
     const economy = opened({ 'labor.wageElasticity': 1, 'regime.type': 'fiat' });
     // Cheap real wage → hiringScale above 1 unless capped.
     economy.wageLevel = economy.priceLevel * 0.5;
-    economy.priceHistory = Array.from({ length: 13 }, (_, i) => 100 * 1.1 ** (i / 12));
+    economy.priceHistory.splice(
+      0,
+      economy.priceHistory.length,
+      ...Array.from({ length: 13 }, (_, index) => 100 * 1.1 ** (index / 12)),
+    );
     economy.productivityImpulse = 0;
     const open = employmentTarget(economy);
     economy.productivityImpulse = -0.2;

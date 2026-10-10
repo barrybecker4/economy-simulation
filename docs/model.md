@@ -98,8 +98,10 @@ rate also moves with that month’s issuance relative to coins already outstandi
 ## Metrics
 
 Every tick stores one row. Series that nothing has set are null. `auditOk` is 1 when the end-of-tick audit passes and 0
-otherwise. JSON output is deterministic for a seed and scenario. Hashes use a second form of that output in which object
-keys are sorted and every number is written in exponential form with 12 digits after the decimal point.
+otherwise. JSON output is deterministic for a seed and scenario, in Node and in a browser. Exp, log, sin, and cos are
+software functions, so that identity does not depend on the host math library. See
+[ADR 0026](adr/0026-cross-engine-elementary-math.md). Hashes use a second form of that output in which object keys are
+sorted and every number is written in exponential form with 12 digits after the decimal point.
 
 `giniSkill` is the dispersion of skill. `realInvestment` is the sum of capital gaps installed that tick. Well-being is
 `log(max(real consumption, 0.01))` plus 0.5 times housing security, as defined in the welfare section. AI shares and

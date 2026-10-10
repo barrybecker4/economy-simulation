@@ -105,7 +105,9 @@ function buyGoods(economy: Economy): void {
 
 function spendOnInventory(economy: Economy, purchases: number): number {
   let remaining = purchases;
-  const byStock = [...economy.firms].sort((left, right) => right.inventory - left.inventory);
+  const byStock = [...economy.firms].sort(
+    (left, right) => right.inventory - left.inventory || left.id - right.id,
+  );
   for (const firm of byStock) {
     remaining = buyFirmInventory(economy, firm, remaining);
   }

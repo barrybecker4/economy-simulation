@@ -45,11 +45,7 @@ export function calendarMonthKey(origin: Date, tick: number): string {
 }
 
 /** Raw history value for a metric on the calendar month of `origin` + `tick`, or null. */
-export function historyValue(
-  metricId: HistoryMetricId,
-  origin: Date,
-  tick: number,
-): number | null {
+export function historyValue(metricId: HistoryMetricId, origin: Date, tick: number): number | null {
   const key = calendarMonthKey(origin, tick);
   const value = US_HISTORY[metricId][key];
   return value === undefined ? null : value;

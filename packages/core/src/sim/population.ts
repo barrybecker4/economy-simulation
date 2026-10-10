@@ -1,3 +1,4 @@
+import { exp } from '../math/elementary.js';
 import { powerWeights, splitProportional } from './allocate.js';
 import type { Economy } from './economy.js';
 import { separate } from './helpers.js';
@@ -24,7 +25,7 @@ export function adoptionProgress(
   if (autoEnd === autoStart) {
     return 0;
   }
-  return 1 / (1 + Math.exp(-adoptionSteepness * (years - adoptionMidpoint)));
+  return 1 / (1 + exp(-adoptionSteepness * (years - adoptionMidpoint)));
 }
 
 /** Logistic automatable-share path from start to end. Flat when the ends match. */
@@ -87,7 +88,7 @@ export function computeAdoptionFactor(wage: number, computeCost: number): number
 export function taskGain(bullishness: number, years: number): number {
   const level = AI_INTERNET_TASK_GAIN + (1 - AI_INTERNET_TASK_GAIN) * Math.min(bullishness, 1);
   const compoundYears = Math.max(0, bullishness - 1) * AI_UNBOUNDED_GROWTH * years;
-  return level * Math.exp(compoundYears);
+  return level * exp(compoundYears);
 }
 
 export function onPopulation(economy: Economy): void {
@@ -149,8 +150,7 @@ function applyPopulationGrowth(economy: Economy): void {
 function addHousehold(economy: Economy): void {
   const id = economy.households.length;
   const sigma = economy.params.skillSigma;
-  const skill =
-    clamp(economy.populationRng.lognormal(0, sigma), 0.2, 5) / Math.exp((sigma * sigma) / 2);
+  const skill = clamp(economy.populationRng.lognormal(0, sigma), 0.2, 5) / exp((sigma * sigma) / 2);
   const timePref = clamp(
     economy.populationRng.normal(economy.params.timePrefMean, economy.params.prefStd),
     0.01,
