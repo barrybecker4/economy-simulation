@@ -88,7 +88,8 @@ function h3(): HypothesisResult {
   const ownershipMatters = last(fast, 'giniWealth') !== last(spread, 'giniWealth');
   return {
     id: 'H3',
-    claim: 'AI adoption raises capital share or productivity per human, and ownership changes the wealth Gini.',
+    claim:
+      'AI adoption raises capital share or productivity per human, and ownership changes the wealth Gini.',
     supported: (capitalRises || productivityRises) && ownershipMatters,
     detail: `capital share ${last(quiet, 'capitalShare')} -> ${last(fast, 'capitalShare')}; labor share ${last(quiet, 'laborShare')} -> ${last(fast, 'laborShare')}`,
   };

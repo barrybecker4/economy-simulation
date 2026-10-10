@@ -52,7 +52,8 @@ describe('preset stability fixes', () => {
     });
     issueBonds(state, 10_000);
     placeInjection(state, 8_000);
-    const deposits = state.households.reduce((sum, household) => sum + household.deposit, 0) +
+    const deposits =
+      state.households.reduce((sum, household) => sum + household.deposit, 0) +
       state.firms.reduce((sum, firm) => sum + firm.deposit, 0) +
       state.govDeposits;
     const required = Math.round(0.1 * deposits);
@@ -148,7 +149,7 @@ describe('preset stability fixes', () => {
     const average =
       unemployment.reduce((sum, value) => sum + value, 0) / Math.max(unemployment.length, 1);
     expect(average).toBeLessThan(0.15);
-    expect(Math.max(...unemployment, 0)).toBeLessThan(0.23);
+    expect(Math.max(...unemployment, 0)).toBeLessThan(0.2);
     expect(failures.at(-1) ?? 0).toBeLessThan(20);
   });
 
@@ -197,7 +198,10 @@ function run(
   shock?: { tick: number; kind: 'credit' | 'demand' | 'productivity'; size: number },
 ): SimulationResult {
   const { ticks = 48, ...rest } = sliders;
-  return simulate(loadScenario({ name: 'preset-stability-run', seed: 4, ticks, sliders: rest }), shock);
+  return simulate(
+    loadScenario({ name: 'preset-stability-run', seed: 4, ticks, sliders: rest }),
+    shock,
+  );
 }
 
 function series(result: SimulationResult, id: MetricId): number[] {

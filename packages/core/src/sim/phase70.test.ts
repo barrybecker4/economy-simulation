@@ -161,12 +161,7 @@ function series(result: SimulationResult, id: MetricId): number[] {
   return result.metrics.series[id].flatMap((value) => (value === null ? [] : [value]));
 }
 
-function meanSeries(
-  result: SimulationResult,
-  id: MetricId,
-  start: number,
-  end: number,
-): number {
+function meanSeries(result: SimulationResult, id: MetricId, start: number, end: number): number {
   const values = series(result, id).slice(start, end + 1);
   if (values.length === 0) {
     return 0;

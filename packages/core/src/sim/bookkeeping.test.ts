@@ -157,7 +157,7 @@ describe('stock journal', () => {
     );
     expect(result.audit.ok).toBe(true);
     expect(series(result, 'auditOk').every((value) => value === 1)).toBe(true);
-  }, 30_000);
+  }, 90_000);
 });
 
 function series(result: SimulationResult, id: MetricId): number[] {

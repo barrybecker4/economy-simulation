@@ -22,9 +22,7 @@ describe('phase 65 housing monetary premium', () => {
     const fiat = run({ ...small, 'regime.type': 'fiat', 'housing.monetaryPremium': 0 });
     const bitcoinPrior = run({ ...small, 'regime.type': 'bitcoin' });
     const bitcoin = run({ ...small, 'regime.type': 'bitcoin', 'housing.monetaryPremium': 0 });
-    expect(prior.audit.ok && fiat.audit.ok && bitcoinPrior.audit.ok && bitcoin.audit.ok).toBe(
-      true,
-    );
+    expect(prior.audit.ok && fiat.audit.ok && bitcoinPrior.audit.ok && bitcoin.audit.ok).toBe(true);
     expect(series(fiat, 'homePriceMonths')).toEqual(series(prior, 'homePriceMonths'));
     expect(series(fiat, 'priceHousing')).toEqual(series(prior, 'priceHousing'));
     expect(series(bitcoin, 'homePriceMonths')).toEqual(series(bitcoinPrior, 'homePriceMonths'));

@@ -1,7 +1,7 @@
 import { bondNumber } from './banking.js';
 import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
-import { expectedInflation, moneyAmount } from './helpers.js';
+import { moneyAmount } from './helpers.js';
 import type { Bank, Firm, Household } from './types.js';
 
 /** Household, firm, or agent cash balance. */

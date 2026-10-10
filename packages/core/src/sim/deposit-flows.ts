@@ -24,9 +24,7 @@ export function depositFlowBuckets(economy: Economy): DepositFlowBuckets {
   };
 }
 
-export function sumDepositFlows(
-  buckets: readonly DepositFlowBuckets[],
-): DepositFlowBuckets {
+export function sumDepositFlows(buckets: readonly DepositFlowBuckets[]): DepositFlowBuckets {
   return buckets.reduce(
     (total, row) => ({
       fiatInjection: total.fiatInjection + row.fiatInjection,

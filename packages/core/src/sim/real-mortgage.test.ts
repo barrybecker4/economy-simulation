@@ -56,10 +56,7 @@ describe('phase 66 real mortgage at the rebase', () => {
     expect(household.mortgagePayment).toBeCloseTo(90, 6);
     const principalDelta = -1_000;
     expect(bank.equity).toBeCloseTo(equity + principalDelta * ratio, 6);
-    expect(totalDeposits(economy)).toBeCloseTo(
-      deposits + principalDelta * (1 - ratio),
-      4,
-    );
+    expect(totalDeposits(economy)).toBeCloseTo(deposits + principalDelta * (1 - ratio), 4);
     expect(bank.failed).toBe(false);
     expect(bank.equity).toBeGreaterThan(0);
     auditOnce(economy);
@@ -79,10 +76,7 @@ describe('phase 66 real mortgage at the rebase', () => {
     expect(household.mortgagePayment).toBeCloseTo(110, 6);
     const principalDelta = 1_000;
     expect(bank.equity).toBeCloseTo(equity + principalDelta * ratio, 6);
-    expect(totalDeposits(economy)).toBeCloseTo(
-      deposits + principalDelta * (1 - ratio),
-      4,
-    );
+    expect(totalDeposits(economy)).toBeCloseTo(deposits + principalDelta * (1 - ratio), 4);
     auditOnce(economy);
   });
 
@@ -235,7 +229,12 @@ function auditOnce(economy: Economy): void {
     name: 'phase66-audit',
     seed: 2,
     ticks: 1,
-    sliders: { 'regime.type': 'bitcoin', 'scale.households': 20, 'scale.firms': 4, 'scale.banks': 1 },
+    sliders: {
+      'regime.type': 'bitcoin',
+      'scale.households': 20,
+      'scale.firms': 4,
+      'scale.banks': 1,
+    },
   });
   const ledger = new Ledger(economy.params.unit);
   const recorder = new MetricsRecorder();

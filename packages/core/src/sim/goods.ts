@@ -69,15 +69,8 @@ function shopHouseholds(economy: Economy, market: GoodsMarket): void {
   for (const plan of plans) {
     const left = Math.max(0, Math.round(plan.spendable * scale));
     const start =
-      economy.firms.length > 0
-        ? plan.household.search.uniformInt(0, economy.firms.length - 1)
-        : 0;
-    const { spent, bought } = buyFromFirms(
-      economy.firms,
-      left,
-      start,
-      economy.params.sampleSize,
-    );
+      economy.firms.length > 0 ? plan.household.search.uniformInt(0, economy.firms.length - 1) : 0;
+    const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
     payFromCash(economy, plan.household, spent, plan.reserved);
     plan.household.consumption = spent;
     plan.household.realConsumption = bought;
@@ -87,11 +80,7 @@ function shopHouseholds(economy: Economy, market: GoodsMarket): void {
   economy.unmetGoodsDemand = Math.max(0, desired - spentTotal);
 }
 
-function planHouseholdShop(
-  economy: Economy,
-  market: GoodsMarket,
-  household: Household,
-): ShopPlan {
+function planHouseholdShop(economy: Economy, market: GoodsMarket, household: Household): ShopPlan {
   const reserved = household.mortgagePayment + household.consumerLoan * CONSUMER_LOAN_REPAY;
   const budget = goodsBudget({
     smoothed: household.smoothed,
@@ -164,12 +153,10 @@ function excessDemandRatio(economy: Economy): number {
   for (const firm of economy.firms) {
     capacityValue += firmCapacity(economy, firm) * firm.price;
   }
-  const fromCapacity =
-    capacityValue > 0 ? economy.desiredSpend / capacityValue - 1 : 0;
+  const fromCapacity = capacityValue > 0 ? economy.desiredSpend / capacityValue - 1 : 0;
   const cleared = economy.consumptionSpend + economy.unmetGoodsDemand;
   const fromStockout = cleared > 0 ? economy.unmetGoodsDemand / cleared : 0;
-  const excess =
-    fromCapacity < 0 ? fromCapacity : Math.max(fromCapacity, fromStockout);
+  const excess = fromCapacity < 0 ? fromCapacity : Math.max(fromCapacity, fromStockout);
   return clamp(excess, -EXCESS_DEMAND_CAP, EXCESS_DEMAND_CAP);
 }
 

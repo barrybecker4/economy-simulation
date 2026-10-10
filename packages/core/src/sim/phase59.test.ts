@@ -37,10 +37,7 @@ describe('phase 59 sticky wages', () => {
 });
 
 function run(sliders: Record<string, number | string>): SimulationResult {
-  return simulate(
-    loadScenario({ name: 'phase59', seed: 5, ticks: 72, sliders }),
-    shock,
-  );
+  return simulate(loadScenario({ name: 'phase59', seed: 5, ticks: 72, sliders }), shock);
 }
 
 function end(result: SimulationResult, id: MetricId): number {

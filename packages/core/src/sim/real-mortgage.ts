@@ -139,10 +139,7 @@ function seatPrincipalMark(economy: Economy, bankId: number, principalDelta: num
   }
 }
 
-function depositAccountsAt(
-  economy: Economy,
-  bankId: number,
-): Array<{ deposit: number }> {
+function depositAccountsAt(economy: Economy, bankId: number): Array<{ deposit: number }> {
   const accounts: Array<{ deposit: number }> = [];
   for (const household of economy.households) {
     if (household.bank === bankId) {

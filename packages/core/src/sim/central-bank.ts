@@ -7,6 +7,7 @@ import {
   totalDeposits,
   totalLoans,
 } from './banking.js';
+import { markBitcoinToMarket } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import {
   expectedInflation,
@@ -74,6 +75,10 @@ export function onCentralBank(economy: Economy): void {
   economy.reserveAccommodationFlow = 0;
   // Currency shares may move with choiceSpeed; the policy rule follows the regime.
   updateMoneyChoice(economy);
+  // After money choice updates the bitcoin price, remark deposits and loans to market
+  // to maintain bank identity during gradual transitions. The price change would otherwise
+  // leave a residual in the carried values.
+  markBitcoinToMarket(economy);
   if (economy.params.regime === 'fiat') {
     setFiatPolicy(economy);
     growFiatMoney(economy);
@@ -165,14 +170,14 @@ export function stimulusMoneyFade(moneyMultiple: number): number {
 }
 
 /**
- * Unemployment gap for the stimulus lag queue. Returns positive slack
- * (unemployment above natural rate) or zero. Never returns negative values,
- * so stimulus helps in slumps without withdrawing in tight labor markets.
- * Gaps inside two points are treated as zero.
+ * Unemployment gap for the stimulus lag queue. Returns positive during slumps
+ * (unemployment above natural rate) to expand money, and negative during booms
+ * (unemployment below natural rate) to withdraw, helping stabilize without
+ * lifting trend inflation. Gaps inside the deadband are treated as zero.
  */
 export function stimulusPressure(economy: Economy): number {
   const gap = unemploymentRate(economy) - naturalUnemployment(economy);
-  if (gap < STIMULUS_GAP_DEADBAND) {
+  if (Math.abs(gap) < STIMULUS_GAP_DEADBAND) {
     return 0;
   }
   return gap;

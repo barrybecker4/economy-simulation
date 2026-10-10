@@ -6,11 +6,7 @@ import type { Bank } from './types.js';
  * vault = equity + privateEquity still holds when vault is unchanged.
  * Positive delta is income (equity up, residual down). Negative is a loss.
  */
-export function adjustBankEquity(
-  bank: Bank | undefined,
-  economy: Economy,
-  delta: number,
-): void {
+export function adjustBankEquity(bank: Bank | undefined, economy: Economy, delta: number): void {
   if (delta === 0) {
     return;
   }

@@ -33,40 +33,35 @@ describe('default wealth path', () => {
     expect(Math.abs(anniversary)).toBeLessThan(typical * 8);
   });
 
-  it(
-    'raises wealth more when AI adoption is stronger',
-    () => {
-      const modest = simulate(
-        loadScenario({
-          name: 'wealth-ai-modest',
-          seed: 1,
-          ticks: 120,
-          sliders: {
-            ...FEATURE_OFF,
-            'ai.automatableShareStart': 0.3,
-            'ai.automatableShareEnd': 0.5,
-            'shock.frequency': 0,
-          },
-        }),
-      );
-      const substantial = simulate(
-        loadScenario({
-          name: 'wealth-ai-strong',
-          seed: 1,
-          ticks: 120,
-          sliders: {
-            ...FEATURE_OFF,
-            'shock.frequency': 0,
-          },
-        }),
-      );
-      const modestGain = last(modest, 'totalRealWealth') / first(modest, 'totalRealWealth');
-      const strongGain =
-        last(substantial, 'totalRealWealth') / first(substantial, 'totalRealWealth');
-      expect(strongGain).toBeGreaterThan(modestGain);
-    },
-    30_000,
-  );
+  it('raises wealth more when AI adoption is stronger', () => {
+    const modest = simulate(
+      loadScenario({
+        name: 'wealth-ai-modest',
+        seed: 1,
+        ticks: 120,
+        sliders: {
+          ...FEATURE_OFF,
+          'ai.automatableShareStart': 0.3,
+          'ai.automatableShareEnd': 0.5,
+          'shock.frequency': 0,
+        },
+      }),
+    );
+    const substantial = simulate(
+      loadScenario({
+        name: 'wealth-ai-strong',
+        seed: 1,
+        ticks: 120,
+        sliders: {
+          ...FEATURE_OFF,
+          'shock.frequency': 0,
+        },
+      }),
+    );
+    const modestGain = last(modest, 'totalRealWealth') / first(modest, 'totalRealWealth');
+    const strongGain = last(substantial, 'totalRealWealth') / first(substantial, 'totalRealWealth');
+    expect(strongGain).toBeGreaterThan(modestGain);
+  }, 30_000);
 });
 
 function first(result: SimulationResult, id: MetricId): number {

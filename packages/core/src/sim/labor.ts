@@ -39,10 +39,7 @@ export function agreedWage(input: {
  * zero tightness, without a productivity impulse, so slack and supply shocks
  * do not amplify each other through the quota.
  */
-export function hiringReferenceRealWage(input: {
-  markup: number;
-  productivity: number;
-}): number {
+export function hiringReferenceRealWage(input: { markup: number; productivity: number }): number {
   return (1 / (1 + input.markup)) * input.productivity;
 }
 
@@ -75,9 +72,17 @@ export function workersForSales(input: {
   expectedSales: number;
   alpha: number;
   humanWeight: number;
+  productivityImpulse?: number;
 }): number {
   const capacity = Math.max(input.capacity, 1e-9);
-  const sales = input.expectedSales > 0 ? input.expectedSales : capacity;
+  let sales = input.expectedSales > 0 ? input.expectedSales : capacity;
+
+  // During negative productivity shocks, cap expected sales at capacity to prevent
+  // perverse hiring when capacity falls but sales expectations haven't adjusted yet
+  if (input.productivityImpulse !== undefined && input.productivityImpulse < 0) {
+    sales = Math.min(sales, capacity);
+  }
+
   if (input.workers <= 0) {
     return sales > 0 ? 1 : 0;
   }
@@ -90,8 +95,7 @@ export function onLabor(economy: Economy): void {
   refreshExpectedSales(economy);
   separateAtRandom(economy);
   const costQuota = employmentTarget(economy);
-  const firmTargets =
-    economy.params.firmLevelHiring === 'on' ? firmHeadcounts(economy) : null;
+  const firmTargets = economy.params.firmLevelHiring === 'on' ? firmHeadcounts(economy) : null;
   // Sales can pull the aggregate about one month's shed below the cost quota,
   // and cannot raise it above that quota. That keeps firm-level hiring live
   // without letting a sales drop shed the whole labor force.
@@ -117,19 +121,26 @@ function refreshExpectedSales(economy: Economy): void {
     return;
   }
   // Unmet demand is nominal. Spread it across firms as units at the CPI so a
-  // stockout does not look like a sales collapse for firm-level hiring. Only
-  // add during strong demand booms, not during normal times or contractions,
-  // to avoid overcorrection during recovery from demand slumps.
+  // stockout does not look like a sales collapse for firm-level hiring.
+  // Scale the unmet demand contribution based on demand impulse to prevent
+  // post-slump overshooting while maintaining normal-time staffing.
+  let unmetScale = 1.0;
+  if (economy.demandImpulse < -0.01) {
+    // During demand contractions, don't add unmet demand (there is none)
+    unmetScale = 0;
+  } else if (economy.demandImpulse > 0.01 && economy.demandImpulse < 0.05) {
+    // During mild recovery (small positive impulse), dampen to prevent overshoot
+    unmetScale = 0.3;
+  }
+  // Otherwise use full unmet demand (normal times and strong booms)
+
   const unmetUnits =
-    economy.demandImpulse > 0.01 &&
-    economy.firms.length > 0 &&
-    economy.priceLevel > 0
-      ? economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)
+    unmetScale > 0 && economy.firms.length > 0 && economy.priceLevel > 0
+      ? (economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)) * unmetScale
       : 0;
   for (const firm of economy.firms) {
     const observed = firm.sales + unmetUnits;
-    firm.expectedSales =
-      SALES_SMOOTHING * firm.expectedSales + (1 - SALES_SMOOTHING) * observed;
+    firm.expectedSales = SALES_SMOOTHING * firm.expectedSales + (1 - SALES_SMOOTHING) * observed;
     firm.sales = 0;
   }
 }
@@ -160,26 +171,16 @@ function vacancyLimit(economy: Economy, target: number): number {
 function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
   const scale = wageHiringScale(economy);
   return economy.firms.map((firm) => {
-    let wanted = Math.round(
+    const wanted = Math.round(
       workersForSales({
         workers: firm.workers.length,
         capacity: firmCapacity(economy, firm),
         expectedSales: firm.expectedSales,
         alpha: economy.params.alpha,
         humanWeight: humanWeight(economy),
+        productivityImpulse: economy.productivityImpulse,
       }) * scale,
     );
-    // During a supply shock (negative productivity impulse), dampen hiring
-    // to prevent perverse labor demand when capacity falls but sales expectations
-    // haven't yet adjusted. Scale down the hiring impulse proportionally.
-    if (economy.productivityImpulse < 0) {
-      const current = firm.workers.length;
-      const impulse = wanted - current;
-      if (impulse > 0) {
-        // Reduce expansion during negative productivity shocks
-        wanted = Math.round(current + impulse * 0.2);
-      }
-    }
     return { firm, wanted };
   });
 }
@@ -241,13 +242,12 @@ function shedFromOverstaffed(
   let shed = 0;
   const over = firmTargets
     .filter((row) => row.firm.workers.length > row.wanted)
-    .sort((left, right) => right.firm.workers.length - right.wanted - (left.firm.workers.length - left.wanted));
+    .sort(
+      (left, right) =>
+        right.firm.workers.length - right.wanted - (left.firm.workers.length - left.wanted),
+    );
   for (const row of over) {
-    while (
-      employed > target &&
-      shed < cap &&
-      row.firm.workers.length > row.wanted
-    ) {
+    while (employed > target && shed < cap && row.firm.workers.length > row.wanted) {
       const workerId = row.firm.workers[row.firm.workers.length - 1];
       const household = workerId === undefined ? undefined : economy.households[workerId];
       if (!household) {
@@ -341,7 +341,7 @@ export function fiatWageCatchUpScale(overshoot: number, inflationTarget: number)
   if (!(overshoot > 0)) {
     return 1;
   }
-  return clamp(1 - 0.5 * overshoot / Math.max(inflationTarget, 0.01), 0.5, 1);
+  return clamp(1 - (0.5 * overshoot) / Math.max(inflationTarget, 0.01), 0.5, 1);
 }
 
 function updateWages(economy: Economy): void {

@@ -207,7 +207,7 @@ export function onContractChoice(economy: Economy): void {
       household.tenure !== 'owned' &&
       household.tenure !== 'mortgage' &&
       homePrice > 0 &&
-      household.deposit >= homePrice
+      household.deposit + household.bitcoin * economy.bitcoinPrice >= homePrice
     ) {
       fundFromBitcoin(economy, household, homePrice);
       payCashForHome(household, economy, homePrice);

@@ -22,8 +22,7 @@ describe('mortgage buy-or-wait', () => {
     const inflation = -0.08;
     const realRate = loanRate - inflation;
     const rent = homePrice * 0.007;
-    const mortgage =
-      monthlyMortgagePayment(loan, realRate, 30) + monthlyOwnedCost(down, realRate);
+    const mortgage = monthlyMortgagePayment(loan, realRate, 30) + monthlyOwnedCost(down, realRate);
     const owned = monthlyOwnedCost(homePrice, realRate);
     expect(tenureFromBurdens({ rent, mortgage, owned })).toBe('rent');
     expect(
