@@ -207,7 +207,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Living standards',
     unit: 'money',
     description:
-      'Real wage is the money wage divided by CPI. Mean and median real income and real consumption use households only. More than one seed draws each median.',
+      'Real wage is the money wage divided by CPI. Mean and median real income are household wages and profits, plus the UBI grant and any treasury surplus rebate, divided by the CPI. Real income and real consumption use households only. More than one seed draws each median.',
     lines: [
       { id: 'realWage', label: 'Real wage', color: '#1d4ed8', better: 'higher' },
       { id: 'meanRealIncome', label: 'Mean real income', color: '#0f766e', better: 'higher' },
