@@ -6,6 +6,7 @@ import {
   creditBitcoinLoan,
   foldBitcoinCash,
   foldBitcoinLoan,
+  markBitcoinToMarket,
 } from './dual-currency.js';
 import {
   chargeEquityForDefault,
@@ -47,6 +48,8 @@ export function onTransition(economy: Economy): void {
   redistributeDeposits(economy, step);
   convertDeposits(economy, fraction);
   convertDebts(economy, fraction);
+  // Clean up any rounding errors from gradual conversion to maintain bank identity
+  markBitcoinToMarket(economy);
   if (economy.tick >= length - 1) {
     finishTransition(economy);
   }
@@ -78,7 +81,7 @@ function convertDeposits(economy: Economy, fraction: number): void {
   for (const agent of economy.agents) {
     moveDeposit(economy, agent, fraction, price);
   }
-  const treasurySlice = Math.max(0, economy.govDeposits) * fraction;
+  const treasurySlice = moneyAmount(economy, Math.max(0, economy.govDeposits) * fraction);
   if (treasurySlice > 0) {
     economy.govDeposits -= treasurySlice;
     creditBitcoin(economy, treasuryBitcoin(economy), treasurySlice / price);
@@ -152,13 +155,11 @@ function convertClaim(
   write: (next: number) => void,
   bank: Economy['banks'][number] | undefined,
 ): number {
-  // During gradual transition, use raw floating-point amounts to avoid
-  // cent-rounding artifacts when converting to bitcoin units.
-  const slice = Math.max(0, balance) * fraction;
+  const slice = moneyAmount(economy, Math.max(0, balance) * fraction);
   if (slice <= 0) {
     return 0;
   }
-  const cut = slice * haircut;
+  const cut = moneyAmount(economy, slice * haircut);
   write(Math.max(0, balance - slice));
   if (cut > 0) {
     chargeEquityForDefault(bank, economy, cut);
@@ -172,9 +173,7 @@ function moveDeposit(
   fraction: number,
   price: number,
 ): void {
-  // During gradual transition, use raw floating-point amounts to avoid
-  // cent-rounding artifacts when converting to bitcoin units.
-  const slice = Math.max(0, account.deposit) * fraction;
+  const slice = moneyAmount(economy, Math.max(0, account.deposit) * fraction);
   if (slice <= 0) {
     return;
   }
