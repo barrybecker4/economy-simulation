@@ -117,10 +117,11 @@ function refreshExpectedSales(economy: Economy): void {
     return;
   }
   // Unmet demand is nominal. Spread it across firms as units at the CPI so a
-  // stockout does not look like a sales collapse for firm-level hiring. Skip
-  // during a demand contraction: soft demand is not a shortage.
+  // stockout does not look like a sales collapse for firm-level hiring. Only
+  // add during strong demand booms, not during normal times or contractions,
+  // to avoid overcorrection during recovery from demand slumps.
   const unmetUnits =
-    economy.demandImpulse >= 0 &&
+    economy.demandImpulse > 0.01 &&
     economy.firms.length > 0 &&
     economy.priceLevel > 0
       ? economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)
