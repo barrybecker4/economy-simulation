@@ -40,6 +40,8 @@ interface FocusedSeries extends uPlot.Series {
 
 /** Chart surface color. The scenario dash is outlined in this so it reads against a same-color solid line. */
 const CHART_SURFACE = '#fff';
+/** uPlot logarithmic distribution. */
+const LOG_DISTR = 3 as const;
 
 export interface PlottableLine extends PlotLine {
   values: readonly (number | null)[];
@@ -52,10 +54,11 @@ export function buildPlot(
   lines: readonly PlottableLine[],
   origin: Date,
   marks: ChartMarks = emptyMarks(),
+  logScale = false,
 ): { key: string; options: ReturnType<typeof plotOptions>; data: uPlot.AlignedData } {
   return {
-    key: chartKey(width, ticks, lines, marks),
-    options: plotOptions(width, lines, marks, ticks),
+    key: chartKey(width, ticks, lines, marks, logScale),
+    options: plotOptions(width, lines, marks, ticks, logScale),
     data: plotData(ticks, lines, origin),
   };
 }
@@ -65,6 +68,7 @@ function chartKey(
   ticks: readonly number[],
   lines: readonly PlottableLine[],
   marks: ChartMarks,
+  logScale: boolean,
 ): string {
   return JSON.stringify([
     width,
@@ -80,6 +84,7 @@ function chartKey(
       line.values,
     ]),
     marks,
+    logScale,
   ]);
 }
 
@@ -88,6 +93,7 @@ export function plotOptions(
   lines: readonly PlotLine[],
   marks: ChartMarks = emptyMarks(),
   ticks: readonly number[] = [],
+  logScale = false,
 ) {
   const paired = lines.some((line) => line.pair !== undefined);
   const rightScale = lines.find(
@@ -98,7 +104,8 @@ export function plotOptions(
     height: CHART_HEIGHT,
     scales: {
       x: { time: true },
-      ...(rightScale !== undefined ? { [rightScale]: {} } : {}),
+      ...yScaleOpts(lines, LEFT_SCALE, logScale),
+      ...(rightScale !== undefined ? yScaleOpts(lines, rightScale, logScale) : {}),
     },
     series: [
       { label: 'Month', value: monthLegendValue(marks, ticks) },
@@ -116,6 +123,22 @@ export function plotOptions(
     axes: yAxes(lines, rightScale),
     hooks: plotHooks(lines, marks, ticks),
   };
+}
+
+/** Log scale when requested and the scale has at least one positive sample. */
+function yScaleOpts(
+  lines: readonly PlotLine[],
+  scale: string,
+  logScale: boolean,
+): Record<string, { distr: typeof LOG_DISTR; log: 10 } | Record<string, never>> {
+  if (!logScale || !hasPositiveSample(lines, scale)) {
+    return scale === LEFT_SCALE ? {} : { [scale]: {} };
+  }
+  return { [scale]: { distr: LOG_DISTR, log: 10 } };
+}
+
+function hasPositiveSample(lines: readonly PlotLine[], scale: string): boolean {
+  return samplesOn(lines, scale).some((value) => value > 0);
 }
 
 function yAxes(lines: readonly PlotLine[], rightScale: string | undefined) {

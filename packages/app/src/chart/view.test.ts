@@ -100,6 +100,28 @@ describe('chartViews', () => {
     expect(views[pricesAt + 1]?.lines.map((line) => line.label)).toEqual(['5th', 'Median', '95th']);
   });
 
+  it('offers a log-scale toggle on charts that often grow exponentially', () => {
+    const views = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'fiat');
+    const withToggle = [
+      'prices',
+      'cpi-band',
+      'ubi',
+      'tax',
+      'consumer-borrowing',
+      'output',
+      'living',
+      'total-wealth',
+      'typical-wealth',
+      'money',
+      'flows',
+    ];
+    for (const key of withToggle) {
+      expect(views.find((view) => view.key === key)?.logToggle).toBe(true);
+    }
+    expect(views.find((view) => view.key === 'wellbeing')?.logToggle).toBeUndefined();
+    expect(views.find((view) => view.key === 'labor')?.logToggle).toBeUndefined();
+  });
+
   it('shows fiat money charts in dollars when a point is above 1000 cents', () => {
     const cents = [500, 250_000];
     const dollars = [5, 2_500];

@@ -41,6 +41,8 @@ export interface ChartView {
   note?: string;
   /** Under a pinned baseline: how the scenario differs from the baseline. */
   caption?: string;
+  /** When true, the chart offers a log-scale checkbox for the y-axis. */
+  logToggle?: boolean;
 }
 
 export function moneyUnit(regime: string): string {
@@ -159,6 +161,7 @@ function viewFromSpec(
     ticks: axisTicks,
     lines: scaled.lines,
     marks,
+    ...logToggleField(spec),
   };
   if (historyLines.length > 0) {
     view.note =
@@ -236,6 +239,7 @@ function pairedViewFromSpec(
     lines: scaled.lines,
     marks,
     caption: comparisonCaption(captionSeries(spec.lines, scaled.lines)),
+    ...logToggleField(spec),
   };
   if (historyLines.length > 0) {
     view.note =
@@ -273,6 +277,7 @@ function mixedMoneyView(
     lines,
     marks,
     caption: comparisonCaption([], { mixedUnits: true }),
+    ...logToggleField(spec),
   };
 }
 
@@ -353,6 +358,10 @@ function asDollars(line: ChartLine): ChartLine {
     ...line,
     values: line.values.map((value) => (value === null ? null : value / CENTS_PER_DOLLAR)),
   };
+}
+
+function logToggleField(spec: ChartPanel): { logToggle?: true } {
+  return spec.logToggle === true ? { logToggle: true } : {};
 }
 
 function unitText(unit: ChartPanel['unit'], regime: string): string {
@@ -459,6 +468,7 @@ function cpiBandView(
     ticks: axisTicks,
     lines: scaled.lines,
     marks,
+    logToggle: true,
   };
   if (historyLines.length > 0) {
     view.note = historyChartNote();

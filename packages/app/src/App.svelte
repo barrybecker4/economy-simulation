@@ -365,6 +365,7 @@
                   <p class="hint">{chart.note}</p>
                 {/if}
                 <Chart
+                  chartKey={chart.key}
                   title={chart.title}
                   unit={chart.unit}
                   description={chart.description}
@@ -373,6 +374,7 @@
                   marks={chart.marks}
                   origin={chartOrigin}
                   caption={chart.caption ?? ''}
+                  logToggle={chart.logToggle === true}
                 />
               {/each}
             {/if}
@@ -392,6 +394,7 @@
                   <p class="hint">{chart.note}</p>
                 {/if}
                 <Chart
+                  chartKey={chart.key}
                   title={chart.title}
                   unit={chart.unit}
                   description={chart.description}
@@ -400,6 +403,7 @@
                   marks={chart.marks}
                   origin={chartOrigin}
                   caption={chart.caption ?? ''}
+                  logToggle={chart.logToggle === true}
                 />
               {/each}
               <Month

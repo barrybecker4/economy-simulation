@@ -15,6 +15,8 @@ export interface ChartPanel {
   unit: 'money' | 'share' | 'log' | 'output' | 'count' | 'index' | 'months';
   description: string;
   lines: readonly ChartLineSpec[];
+  /** When true, the chart offers a log-scale checkbox for the y-axis. */
+  logToggle?: boolean;
 }
 
 export interface FlowEdgeSpec {
@@ -50,6 +52,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Prices',
     group: 'Prices',
     unit: 'money',
+    logToggle: true,
     description:
       'CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. More than one seed draws each median.',
     lines: [
@@ -95,6 +98,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Household grant',
     group: 'Public accounts',
     unit: 'money',
+    logToggle: true,
     description:
       'Monthly UBI outlay. The pool is the UBI share slider times the AI share of output times nominal GDP, split equally across households. It starts at zero when AI capacity is not adopted.',
     lines: [{ id: 'ubiOutlay', label: 'UBI outlay', color: '#047857' }],
@@ -104,6 +108,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Tax revenue',
     group: 'Public accounts',
     unit: 'money',
+    logToggle: true,
     description:
       'Income tax collected from households and from AI agents. More than one seed draws each median.',
     lines: [
@@ -146,6 +151,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'New consumer borrowing',
     group: 'Credit',
     unit: 'money',
+    logToggle: true,
     description:
       'New household consumer loans that month. Stays at zero until Housing tenure choice is on. More than one seed draws the median.',
     lines: [{ id: 'newConsumerBorrowing', label: 'New consumer loans', color: '#a16207' }],
@@ -179,6 +185,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Output',
     group: 'Output',
     unit: 'output',
+    logToggle: true,
     description:
       'Real GDP is the sum of firm capacities. Productivity per human is real GDP divided by employed households. Real investment is capital gaps installed that month. More than one seed draws each median.',
     lines: [
@@ -206,6 +213,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Living standards',
     group: 'Living standards',
     unit: 'money',
+    logToggle: true,
     description:
       'Real wage is the money wage divided by CPI. Mean and median real income are household wages and profits, plus the UBI grant and any treasury surplus rebate, divided by the CPI. Real income and real consumption use households only. More than one seed draws each median.',
     lines: [
@@ -305,6 +313,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Total wealth',
     group: 'Inequality',
     unit: 'money',
+    logToggle: true,
     description:
       'Sum of household wealth divided by CPI — the stock the wealth-by-fifth shares divide. Cash and capital claims partition that stock: cash is deposits (and bitcoin valued at the exchange rate), and claims are equity claims on firm capital when the equity market is on. Negative holdings count as zero. Agent deposits are not included. For the output pie that grows like historical real GDP, see the Output chart. More than one seed draws the median.',
     lines: [
@@ -318,6 +327,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Typical wealth',
     group: 'Inequality',
     unit: 'money',
+    logToggle: true,
     description:
       'Mean and median household wealth divided by CPI. Households only; agent deposits are not included. More than one seed draws each median.',
     lines: [
@@ -343,6 +353,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Money stocks',
     group: 'Money',
     unit: 'money',
+    logToggle: true,
     description:
       'Money supply is household, firm, agent, and government deposits. Base money is bank reserves. More than one seed draws each median.',
     lines: [
@@ -403,6 +414,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     title: 'Monthly payment flows',
     group: 'This month',
     unit: 'money',
+    logToggle: true,
     description:
       'Who paid whom that month: household and agent goods, government purchases, wages, profits, tax, the household grant, AI compute sales and fees, sweeps to owners, interest, new loans, and loan repayment. More than one seed draws each median.',
     lines: [

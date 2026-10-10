@@ -343,6 +343,45 @@ describe('plotOptions', () => {
     expect(yAxis?.values?.(null as never, [0, 250_000, 1_200_000])).toEqual(['0', '250k', '1.2M']);
   });
 
+  it('uses a log left scale when logScale is on and values are positive', () => {
+    const linear = plotOptions(640, [{ label: 'CPI', color: '#246', values: [100, 200] }]);
+    expect(linear.scales.y).toBeUndefined();
+    const log = plotOptions(
+      640,
+      [{ label: 'CPI', color: '#246', values: [100, 200] }],
+      undefined,
+      [],
+      true,
+    );
+    expect(log.scales.y).toEqual({ distr: 3, log: 10 });
+  });
+
+  it('keeps a scale linear when logScale is on but samples are all zero', () => {
+    const options = plotOptions(
+      640,
+      [{ label: 'Grant', color: '#047857', values: [0, 0, 0] }],
+      undefined,
+      [],
+      true,
+    );
+    expect(options.scales.y).toBeUndefined();
+  });
+
+  it('logs both money axes when a mixed-unit chart has positive values', () => {
+    const options = plotOptions(
+      640,
+      [
+        { label: 'CPI', color: '#1e3a8a', values: [100, 200], scale: 'y', unit: 'cents' },
+        { label: 'CPI', color: '#1e3a8a', values: [50, 80], scale: 'sats', unit: 'satoshis' },
+      ],
+      undefined,
+      [],
+      true,
+    );
+    expect(options.scales.y).toEqual({ distr: 3, log: 10 });
+    expect(options.scales.sats).toEqual({ distr: 3, log: 10 });
+  });
+
   it('paints solid and hatched bands behind the series', () => {
     const marks = {
       bands: [

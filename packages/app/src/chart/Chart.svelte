@@ -1,5 +1,7 @@
 <script lang="ts" module>
   let chartSeq = 0;
+  /** Session memory for log-scale checkboxes, keyed by chart identity. */
+  const logByKey = new Map<string, boolean>();
 </script>
 
 <script lang="ts">
@@ -13,6 +15,8 @@
   import { emptyMarks, type ChartMarks } from './marks.js';
 
   interface Props {
+    /** Stable chart identity for remembering the log-scale checkbox. */
+    chartKey: string;
     title: string;
     /** Shown in parentheses after the title. Omit when the chart has no single unit. */
     unit?: string;
@@ -24,9 +28,12 @@
     origin?: Date;
     /** Under a pinned baseline: how the scenario differs from the baseline. */
     caption?: string;
+    /** When true, show a log-scale checkbox for the y-axis. */
+    logToggle?: boolean;
   }
 
   let {
+    chartKey,
     title,
     unit = '',
     description,
@@ -35,15 +42,27 @@
     marks = emptyMarks(),
     origin = new Date(),
     caption = '',
+    logToggle = false,
   }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
   let drawnKey = '';
+  let logScale = $state(false);
   const axisNote = $derived(`Months run from ${monthAxisLabel(ticks, origin)}.`);
   const heading = $derived(unit ? `${title} (${unit})` : title);
   const titleId = `chart-title-${chartSeq}`;
   const tipId = `chart-tip-${chartSeq}`;
+  const logId = `chart-log-${chartSeq}`;
   chartSeq += 1;
+
+  $effect.pre(() => {
+    logScale = logByKey.get(chartKey) === true;
+  });
+
+  function onLogChange(checked: boolean): void {
+    logScale = checked;
+    logByKey.set(chartKey, checked);
+  }
 
   let infoEl: HTMLButtonElement | undefined = $state();
   let tipEl: HTMLDivElement | undefined = $state();
@@ -124,7 +143,7 @@
       return;
     }
     const width = host.clientWidth;
-    const built = buildPlot(width, ticks, lines, origin, marks);
+    const built = buildPlot(width, ticks, lines, origin, marks, logScale);
     if (plot !== undefined && built.key === drawnKey) {
       return;
     }
@@ -161,6 +180,7 @@
     lines;
     marks;
     origin;
+    logScale;
     draw();
   });
 
@@ -202,6 +222,17 @@
     >
       <span aria-hidden="true">i</span>
     </button>
+    {#if logToggle}
+      <label class="log" for={logId}>
+        <input
+          id={logId}
+          type="checkbox"
+          checked={logScale}
+          onchange={(event) => onLogChange(event.currentTarget.checked)}
+        />
+        Log scale
+      </label>
+    {/if}
   </div>
   <div
     bind:this={tipEl}
@@ -274,6 +305,21 @@
   .info:focus-visible {
     outline: 2px solid #1c1917;
     outline-offset: 2px;
+  }
+  .log {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0 0 0.15rem;
+    color: #44403c;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+  .log input {
+    margin: 0;
   }
   .tip:not(.open) {
     position: absolute;
