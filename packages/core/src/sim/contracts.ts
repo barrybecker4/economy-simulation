@@ -209,6 +209,7 @@ export function onContractChoice(economy: Economy): void {
       homePrice > 0 &&
       household.deposit >= homePrice
     ) {
+      fundFromBitcoin(economy, household, homePrice);
       payCashForHome(household, economy, homePrice);
       setMortgage(household, 0);
       household.mortgagePayment = 0;

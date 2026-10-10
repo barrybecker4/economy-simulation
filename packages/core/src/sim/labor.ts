@@ -117,10 +117,11 @@ function refreshExpectedSales(economy: Economy): void {
     return;
   }
   // Unmet demand is nominal. Spread it across firms as units at the CPI so a
-  // stockout does not look like a sales collapse for firm-level hiring. Skip
-  // during a demand contraction: soft demand is not a shortage.
+  // stockout does not look like a sales collapse for firm-level hiring. Only
+  // add during strong demand booms, not during normal times or contractions,
+  // to avoid overcorrection during recovery from demand slumps.
   const unmetUnits =
-    economy.demandImpulse >= 0 &&
+    economy.demandImpulse > 0.01 &&
     economy.firms.length > 0 &&
     economy.priceLevel > 0
       ? economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)
@@ -158,9 +159,8 @@ function vacancyLimit(economy: Economy, target: number): number {
 
 function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
   const scale = wageHiringScale(economy);
-  return economy.firms.map((firm) => ({
-    firm,
-    wanted: Math.round(
+  return economy.firms.map((firm) => {
+    let wanted = Math.round(
       workersForSales({
         workers: firm.workers.length,
         capacity: firmCapacity(economy, firm),
@@ -168,8 +168,20 @@ function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
         alpha: economy.params.alpha,
         humanWeight: humanWeight(economy),
       }) * scale,
-    ),
-  }));
+    );
+    // During a supply shock (negative productivity impulse), dampen hiring
+    // to prevent perverse labor demand when capacity falls but sales expectations
+    // haven't yet adjusted. Scale down the hiring impulse proportionally.
+    if (economy.productivityImpulse < 0) {
+      const current = firm.workers.length;
+      const impulse = wanted - current;
+      if (impulse > 0) {
+        // Reduce expansion during negative productivity shocks
+        wanted = Math.round(current + impulse * 0.2);
+      }
+    }
+    return { firm, wanted };
+  });
 }
 
 function agreedWageLevel(economy: Economy): number {

@@ -78,7 +78,7 @@ function convertDeposits(economy: Economy, fraction: number): void {
   for (const agent of economy.agents) {
     moveDeposit(economy, agent, fraction, price);
   }
-  const treasurySlice = moneyAmount(economy, Math.max(0, economy.govDeposits) * fraction);
+  const treasurySlice = Math.max(0, economy.govDeposits) * fraction;
   if (treasurySlice > 0) {
     economy.govDeposits -= treasurySlice;
     creditBitcoin(economy, treasuryBitcoin(economy), treasurySlice / price);
@@ -152,11 +152,13 @@ function convertClaim(
   write: (next: number) => void,
   bank: Economy['banks'][number] | undefined,
 ): number {
-  const slice = moneyAmount(economy, Math.max(0, balance) * fraction);
+  // During gradual transition, use raw floating-point amounts to avoid
+  // cent-rounding artifacts when converting to bitcoin units.
+  const slice = Math.max(0, balance) * fraction;
   if (slice <= 0) {
     return 0;
   }
-  const cut = moneyAmount(economy, slice * haircut);
+  const cut = slice * haircut;
   write(Math.max(0, balance - slice));
   if (cut > 0) {
     chargeEquityForDefault(bank, economy, cut);
@@ -170,7 +172,9 @@ function moveDeposit(
   fraction: number,
   price: number,
 ): void {
-  const slice = moneyAmount(economy, Math.max(0, account.deposit) * fraction);
+  // During gradual transition, use raw floating-point amounts to avoid
+  // cent-rounding artifacts when converting to bitcoin units.
+  const slice = Math.max(0, account.deposit) * fraction;
   if (slice <= 0) {
     return;
   }
