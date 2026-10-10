@@ -1,0 +1,16 @@
+{
+  "name": "bitcoin-dividend",
+  "ticks": 600,
+  "sliders": {
+    "regime.type": "bitcoin",
+    "tax.incomeRate": 0.35,
+    "government.ubiShare": 0.75,
+    "ai.bullishness": 2,
+    "ai.automatableShareEnd": 0.99,
+    "ai.adoptionMidpointYear": 3,
+    "ai.adoptionSteepness": 1.2,
+    "ai.physicalTaskShare": 0.1,
+    "ai.roboticsStartYear": 1,
+    "ai.roboticsRampYears": 4
+  }
+}

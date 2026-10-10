@@ -3,12 +3,15 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   applyCategoryOption,
+  applyScenarioWorld,
   composeCategoryOptions,
   composeScenario,
   matchingCategoryOption,
+  matchingScenarioWorld,
   optionById,
   PRESET_CATEGORIES,
   SCENARIO_COMPOSITIONS,
+  SCENARIO_WORLDS,
 } from './presets.js';
 import { assertSliderValue, getSlider } from './registry.js';
 
@@ -130,6 +133,57 @@ describe('preset categories', () => {
       'government.stabilizer': 1.5,
       'centralBank.outputWeight': 1.2,
     });
+  });
+
+  it('names AI dividend and private surplus public-finance options', () => {
+    expect(optionById('publicFinance', 'ai-dividend').values).toEqual({
+      'tax.incomeRate': 0.35,
+      'government.spendingShareOfGDP': 0.2,
+      'government.ubiShare': 0.75,
+      'government.stabilizer': 1,
+      'government.treasuryBufferMonths': 1,
+    });
+    expect(applyCategoryOption('publicFinance', 'ai-dividend', {})).toEqual({
+      'tax.incomeRate': 0.35,
+      'government.ubiShare': 0.75,
+    });
+    expect(applyCategoryOption('publicFinance', 'private-surplus', {})).toEqual({
+      'government.ubiShare': 0,
+    });
+  });
+
+  it('applies Monetized dividend and clears a prior hawkish choice', () => {
+    const hawkish = applyCategoryOption('centralBank', 'hawkish', {});
+    expect(hawkish['centralBank.inflationWeight']).toBe(2.5);
+    const next = applyScenarioWorld('monetized-dividend', hawkish);
+    expect(next.regime).toBe('fiat');
+    expect(next.overrides['centralBank.bondPurchaseShare']).toBe(0.5);
+    expect(next.overrides['centralBank.inflationWeight']).toBeUndefined();
+    expect(next.overrides['centralBank.outputWeight']).toBeUndefined();
+    expect(next.overrides['tax.incomeRate']).toBe(0.35);
+    expect(next.overrides['government.ubiShare']).toBe(0.75);
+    expect(next.overrides['ai.bullishness']).toBe(2);
+    expect(matchingCategoryOption('centralBank', next.overrides)).toBe('monetizing');
+    expect(matchingCategoryOption('publicFinance', next.overrides)).toBe('ai-dividend');
+    expect(matchingCategoryOption('credit', next.overrides)).toBe('moderate');
+    expect(matchingCategoryOption('aiBullishness', next.overrides)).toBe('extreme');
+    expect(matchingScenarioWorld(next.regime, next.overrides)).toBe('monetized-dividend');
+  });
+
+  it('reads Custom after a world when one category changes', () => {
+    const world = applyScenarioWorld('monetized-dividend', {});
+    expect(matchingScenarioWorld(world.regime, world.overrides)).toBe('monetized-dividend');
+    const next = applyCategoryOption('aiBullishness', 'high', world.overrides);
+    expect(matchingScenarioWorld(world.regime, next)).toBeNull();
+  });
+
+  it('lists every scenario world in SCENARIO_COMPOSITIONS', () => {
+    for (const world of SCENARIO_WORLDS) {
+      expect(SCENARIO_COMPOSITIONS[world.id]).toEqual({
+        regime: world.regime,
+        choices: world.choices,
+      });
+    }
   });
 
   it('keeps each scenario JSON file equal to its composition', () => {

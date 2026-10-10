@@ -1607,6 +1607,26 @@ Acceptance:
 - A replaced firm keeps its worker list and household employer links.
 - A monetary fiat demand shock does not jump unemployment by 20 points or more in one month.
 
+### Phase 75: Scenario world presets
+
+Goal: name six comparable worlds from the existing category selects, and add the public-finance stances they need.
+
+1. Public finance gains **AI dividend** (tax 35 percent, grant 75 percent of AI GDP, purchases 20 percent) and
+   **Private surplus** (tax and purchases 20 percent, grant off).
+2. Six scenario worlds compose a regime and one option in every category: Monetized dividend, Hawkish dividend, Modest
+   dividend, Private surplus, Bitcoin dividend, and Bitcoin private surplus. Each world has a CLI file under
+   `scenarios/presets/`. Applying a world clears other category choices so the group selects match.
+3. The Parameters panel has a Scenario select above the groups. It shows Custom when the live regime and categories do
+   not match a world.
+
+Acceptance:
+
+- Each world JSON equals `composeScenario` for that id.
+- Applying Monetized dividend after Hawkish clears the hawkish rate weights and sets monetizing, AI dividend, and
+  Extreme AI.
+- Changing one category after a world is chosen makes the Scenario select read Custom.
+- The opening page stays Custom (Balanced, Moderate, Modest).
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

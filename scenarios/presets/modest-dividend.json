@@ -1,0 +1,9 @@
+{
+  "name": "modest-dividend",
+  "ticks": 600,
+  "sliders": {
+    "centralBank.bondPurchaseShare": 0.5,
+    "tax.incomeRate": 0.35,
+    "government.ubiShare": 0.75
+  }
+}

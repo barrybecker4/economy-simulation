@@ -1,0 +1,15 @@
+{
+  "name": "bitcoin-private-surplus",
+  "ticks": 600,
+  "sliders": {
+    "regime.type": "bitcoin",
+    "government.ubiShare": 0,
+    "ai.bullishness": 2,
+    "ai.automatableShareEnd": 0.99,
+    "ai.adoptionMidpointYear": 3,
+    "ai.adoptionSteepness": 1.2,
+    "ai.physicalTaskShare": 0.1,
+    "ai.roboticsStartYear": 1,
+    "ai.roboticsRampYears": 4
+  }
+}

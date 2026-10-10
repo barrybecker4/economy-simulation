@@ -89,6 +89,102 @@ export function composeCategoryOptions(
   return overrides;
 }
 
+export interface ScenarioWorld {
+  id: string;
+  name: string;
+  detail: string;
+  regime: string;
+  choices: Readonly<Record<string, string>>;
+}
+
+/** Named scenario worlds: one regime and one option in every category. */
+export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
+  {
+    id: 'monetized-dividend',
+    name: 'Monetized dividend',
+    detail:
+      'Fiat; monetizing central bank; AI dividend; moderate credit; extreme AI. The central bank buys half of new bonds while the grant rises with adoption.',
+    regime: 'fiat',
+    choices: {
+      centralBank: 'monetizing',
+      publicFinance: 'ai-dividend',
+      credit: 'moderate',
+      aiBullishness: 'extreme',
+    },
+  },
+  {
+    id: 'hawkish-dividend',
+    name: 'Hawkish dividend',
+    detail:
+      'Fiat; hawkish central bank; AI dividend; moderate credit; extreme AI. Same grant as Monetized dividend; the central bank fights inflation and leaves bonds with banks.',
+    regime: 'fiat',
+    choices: {
+      centralBank: 'hawkish',
+      publicFinance: 'ai-dividend',
+      credit: 'moderate',
+      aiBullishness: 'extreme',
+    },
+  },
+  {
+    id: 'modest-dividend',
+    name: 'Modest dividend',
+    detail:
+      'Fiat; monetizing central bank; AI dividend; moderate credit; modest AI. Same fiscal and money rule as Monetized dividend; AI stays on the registry default path.',
+    regime: 'fiat',
+    choices: {
+      centralBank: 'monetizing',
+      publicFinance: 'ai-dividend',
+      credit: 'moderate',
+      aiBullishness: 'modest',
+    },
+  },
+  {
+    id: 'private-surplus',
+    name: 'Private surplus',
+    detail:
+      'Fiat; hawkish central bank; private surplus; moderate credit; extreme AI. Same AI and rate rule as Hawkish dividend; the household grant is off.',
+    regime: 'fiat',
+    choices: {
+      centralBank: 'hawkish',
+      publicFinance: 'private-surplus',
+      credit: 'moderate',
+      aiBullishness: 'extreme',
+    },
+  },
+  {
+    id: 'bitcoin-dividend',
+    name: 'Bitcoin dividend',
+    detail:
+      'Bitcoin; balanced central bank (ignored); AI dividend; moderate credit; extreme AI. Same grant as Hawkish dividend; the regime cannot monetize bonds.',
+    regime: 'bitcoin',
+    choices: {
+      centralBank: 'balanced',
+      publicFinance: 'ai-dividend',
+      credit: 'moderate',
+      aiBullishness: 'extreme',
+    },
+  },
+  {
+    id: 'bitcoin-private-surplus',
+    name: 'Bitcoin private surplus',
+    detail:
+      'Bitcoin; balanced central bank (ignored); private surplus; moderate credit; extreme AI. Hard money with no household grant.',
+    regime: 'bitcoin',
+    choices: {
+      centralBank: 'balanced',
+      publicFinance: 'private-surplus',
+      credit: 'moderate',
+      aiBullishness: 'extreme',
+    },
+  },
+];
+
+const WORLD_COMPOSITIONS: Readonly<
+  Record<string, { regime: string; choices: Readonly<Record<string, string>> }>
+> = Object.fromEntries(
+  SCENARIO_WORLDS.map((world) => [world.id, { regime: world.regime, choices: world.choices }]),
+);
+
 /** Named CLI scenario files as compositions of category options plus an optional regime. */
 export const SCENARIO_COMPOSITIONS: Readonly<
   Record<string, { regime: string; choices: Readonly<Record<string, string>> }>
@@ -121,7 +217,57 @@ export const SCENARIO_COMPOSITIONS: Readonly<
     regime: 'fiat',
     choices: { publicFinance: 'deficit-spending', centralBank: 'employment-leaning' },
   },
+  ...WORLD_COMPOSITIONS,
 };
+
+export function worldById(id: string): ScenarioWorld {
+  const world = SCENARIO_WORLDS.find((item) => item.id === id);
+  if (world === undefined) {
+    throw new Error(`Unknown scenario world ${id}`);
+  }
+  return world;
+}
+
+/**
+ * Applies every category option for a world. Sliders no category owns stay.
+ * Does not write regime.type into overrides; the caller sets the regime.
+ */
+export function applyScenarioWorld(
+  id: string,
+  overrides: Readonly<Record<string, number | string>>,
+): { regime: string; overrides: Record<string, number | string> } {
+  const world = worldById(id);
+  let next = { ...overrides };
+  for (const category of PRESET_CATEGORIES) {
+    const optionId = world.choices[category.id];
+    if (optionId === undefined) {
+      throw new Error(`World ${id} is missing category ${category.id}`);
+    }
+    next = applyCategoryOption(category.id, optionId, next);
+  }
+  return { regime: world.regime, overrides: next };
+}
+
+/** Which world matches the regime and every category, or null for Custom. */
+export function matchingScenarioWorld(
+  regime: string,
+  overrides: Readonly<Record<string, number | string>>,
+): string | null {
+  for (const world of SCENARIO_WORLDS) {
+    if (world.regime !== regime) {
+      continue;
+    }
+    if (
+      PRESET_CATEGORIES.every((category) => {
+        const optionId = world.choices[category.id];
+        return optionId !== undefined && matchingCategoryOption(category.id, overrides) === optionId;
+      })
+    ) {
+      return world.id;
+    }
+  }
+  return null;
+}
 
 export function composeScenario(name: string): {
   regime: string;

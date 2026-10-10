@@ -145,6 +145,32 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         },
       },
       {
+        id: 'ai-dividend',
+        name: 'AI dividend',
+        detail:
+          'Tax at 35 percent, spending at 20 percent, UBI at 75 percent of AI GDP, stabilizer at 1. The grant phases in with AI adoption.',
+        values: {
+          'tax.incomeRate': 0.35,
+          'government.spendingShareOfGDP': 0.2,
+          'government.ubiShare': 0.75,
+          'government.stabilizer': 1,
+          'government.treasuryBufferMonths': 1,
+        },
+      },
+      {
+        id: 'private-surplus',
+        name: 'Private surplus',
+        detail:
+          'Tax and spending at 20 percent, UBI off, stabilizer at 1. Purchases match Moderate; the grant does not.',
+        values: {
+          'tax.incomeRate': 0.2,
+          'government.spendingShareOfGDP': 0.2,
+          'government.ubiShare': 0,
+          'government.stabilizer': 1,
+          'government.treasuryBufferMonths': 1,
+        },
+      },
+      {
         id: 'large',
         name: 'Large',
         detail: 'Tax and spending at 35 percent, UBI at 25 percent of AI GDP, stabilizer at 1.',

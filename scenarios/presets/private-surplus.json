@@ -1,0 +1,17 @@
+{
+  "name": "private-surplus",
+  "ticks": 600,
+  "sliders": {
+    "centralBank.inflationWeight": 2.5,
+    "centralBank.outputWeight": 0.2,
+    "centralBank.bondPurchaseShare": 0,
+    "government.ubiShare": 0,
+    "ai.bullishness": 2,
+    "ai.automatableShareEnd": 0.99,
+    "ai.adoptionMidpointYear": 3,
+    "ai.adoptionSteepness": 1.2,
+    "ai.physicalTaskShare": 0.1,
+    "ai.roboticsStartYear": 1,
+    "ai.roboticsRampYears": 4
+  }
+}

@@ -11,6 +11,7 @@
     editCategory,
     editRegime,
     editSlider,
+    editWorld,
     IDLE_STATUS,
     isPinned,
     noteFailure,
@@ -28,7 +29,7 @@
   } from './session/compare.js';
   import { monthCensus } from './session/census.js';
   import { monthFlows } from './session/flows.js';
-  import { matchingCategories } from './session/presets.js';
+  import { matchingCategories, matchingWorld } from './session/presets.js';
   import { defaultPage, pageSearch, parsePageState } from './session/query.js';
   import { activityLabel, readyLabel, runRequest } from './session/run.js';
   import {
@@ -90,6 +91,7 @@
   const monthViews = $derived(views.filter((view) => view.group === 'This month'));
   const outcomeGroups = $derived(groupedChartViews(outcomeViews));
   const categories = $derived(matchingCategories(session.overrides));
+  const world = $derived(matchingWorld(session.regime, session.overrides));
   const flows = $derived(
     bundle.variant === null
       ? null
@@ -247,6 +249,10 @@
     session = editCategory(session, categoryId, optionId);
   }
 
+  function applyWorldChoice(worldId: string): void {
+    session = editWorld(session, worldId);
+  }
+
   function onRegime(value: string): void {
     session = editRegime(session, value);
   }
@@ -323,9 +329,11 @@
       <Parameters
         {parameters}
         regime={session.regime}
+        {world}
         {categories}
         {pinned}
         value={valueOf}
+        onWorld={applyWorldChoice}
         onRegime={onRegime}
         onCategory={applyCategoryChoice}
         onSlider={onSlider}

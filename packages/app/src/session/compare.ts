@@ -1,5 +1,5 @@
 import { getSlider, type Slider } from '../../../core/src/config/registry.js';
-import { applyCategory } from './presets.js';
+import { applyCategory, applyWorld } from './presets.js';
 import { defaultPage } from './query.js';
 import { assertSeedCount, MAX_SEEDS, MIN_SEEDS, readyLabel } from './run.js';
 import { parameterSliders, presentedSliderValue, sliderValue, writeSlider } from './sliders.js';
@@ -213,6 +213,10 @@ export function editCategory(
   optionId: string,
 ): ComparisonSession {
   return writeSide(session, applyCategory(categoryId, optionId, session.regime, session.overrides));
+}
+
+export function editWorld(session: ComparisonSession, worldId: string): ComparisonSession {
+  return writeSide(session, applyWorld(worldId, session.overrides));
 }
 
 export function resetDiffToBaseline(session: ComparisonSession, id: string): ComparisonSession {

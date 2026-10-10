@@ -16,15 +16,19 @@ export type {
 export {
   PRESET_CATEGORIES,
   SCENARIO_COMPOSITIONS,
+  SCENARIO_WORLDS,
   applyCategoryOption,
+  applyScenarioWorld,
   categoryById,
   categoryForGroup,
   composeCategoryOptions,
   composeScenario,
   matchingCategoryOption,
+  matchingScenarioWorld,
   optionById,
+  worldById,
 } from './config/presets.js';
-export type { CategoryOption, PresetCategory } from './config/presets.js';
+export type { CategoryOption, PresetCategory, ScenarioWorld } from './config/presets.js';
 export { runSimulation } from './engine/engine.js';
 export type {
   PhaseHandler,

@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyCategory,
+  applyWorld,
   categoryForGroup,
   matchingCategories,
+  matchingWorld,
   PRESET_CATEGORIES,
+  SCENARIO_WORLDS,
 } from './presets.js';
 import { assertSliderValue } from '../../../core/src/config/registry.js';
 
@@ -24,6 +27,7 @@ describe('presets', () => {
     expect(match.publicFinance).toBe('moderate');
     expect(match.credit).toBe('moderate');
     expect(match.aiBullishness).toBe('modest');
+    expect(matchingWorld('fiat', {})).toBeNull();
   });
 
   it('applies one category and leaves the others matched', () => {
@@ -34,6 +38,29 @@ describe('presets', () => {
     const match = matchingCategories(next.overrides);
     expect(match.aiBullishness).toBe('high');
     expect(match.credit).toBe('moderate');
+  });
+
+  it('applies a world and returns Custom after one category changes', () => {
+    const next = applyWorld('monetized-dividend', {});
+    expect(next.regime).toBe('fiat');
+    expect(matchingWorld(next.regime, next.overrides)).toBe('monetized-dividend');
+    const match = matchingCategories(next.overrides);
+    expect(match.centralBank).toBe('monetizing');
+    expect(match.publicFinance).toBe('ai-dividend');
+    expect(match.aiBullishness).toBe('extreme');
+    const changed = applyCategory('aiBullishness', 'high', next.regime, next.overrides);
+    expect(matchingWorld(changed.regime, changed.overrides)).toBeNull();
+  });
+
+  it('applies a bitcoin world without writing regime.type into overrides', () => {
+    const next = applyWorld('bitcoin-dividend', {});
+    expect(next.regime).toBe('bitcoin');
+    expect(next.overrides['regime.type']).toBeUndefined();
+    expect(matchingWorld(next.regime, next.overrides)).toBe('bitcoin-dividend');
+  });
+
+  it('lists every scenario world', () => {
+    expect(SCENARIO_WORLDS).toHaveLength(6);
   });
 
   it('finds the category hosted by a panel group', () => {

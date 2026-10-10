@@ -3,25 +3,35 @@
   import { comparisonFrame } from '../session/compare.js';
   import NameTip from '../tip/NameTip.svelte';
   import { GROUP_ORDER, groupLabel } from '../tip/labels.js';
-  import { categoryForGroup, categoryTipItems, type PresetCategory } from '../session/presets.js';
+  import {
+    categoryForGroup,
+    categoryTipItems,
+    SCENARIO_WORLDS,
+    worldTipItems,
+    type PresetCategory,
+  } from '../session/presets.js';
   import { sliderStep } from '../session/sliders.js';
-import { controlRange, storePresented } from '../tip/labels.js';
+  import { controlRange, storePresented } from '../tip/labels.js';
 
   let {
     parameters,
     regime,
+    world,
     categories,
     pinned,
     value,
+    onWorld,
     onRegime,
     onCategory,
     onSlider,
   }: {
     parameters: readonly Slider[];
     regime: string;
+    world: string | null;
     categories: Readonly<Record<string, string | null>>;
     pinned: boolean;
     value: (slider: Slider) => number | string;
+    onWorld: (worldId: string) => void;
     onRegime: (value: string) => void;
     onCategory: (categoryId: string, optionId: string) => void;
     onSlider: (slider: Slider, raw: string) => void;
@@ -58,6 +68,14 @@ import { controlRange, storePresented } from '../tip/labels.js';
       return null;
     }
     return FRAME_HINT;
+  }
+
+  function chooseWorld(event: Event): void {
+    const next = (event.target as HTMLSelectElement).value;
+    if (next === '') {
+      return;
+    }
+    onWorld(next);
   }
 
   function chooseCategory(categoryId: string, event: Event): void {
@@ -104,6 +122,30 @@ import { controlRange, storePresented } from '../tip/labels.js';
 
 <section class="parameters">
   <h2>Parameters</h2>
+  <div class="world">
+    <label class="preset">
+      <NameTip
+        id="scenario-world"
+        label="Scenario"
+        kicker="Scenario world"
+        intro="One named composition of the regime and every category preset. Changing a group afterward returns this control to Custom."
+        items={worldTipItems()}
+      />
+      <select
+        aria-labelledby="label-scenario-world"
+        aria-describedby="help-scenario-world"
+        value={world ?? ''}
+        onchange={chooseWorld}
+      >
+        {#if world === null}
+          <option value="">Custom</option>
+        {/if}
+        {#each SCENARIO_WORLDS as option (option.id)}
+          <option value={option.id}>{option.name}</option>
+        {/each}
+      </select>
+    </label>
+  </div>
   {#each groups as block (block.group)}
     <div class="block">
       <div class="header">
@@ -248,6 +290,11 @@ import { controlRange, storePresented } from '../tip/labels.js';
     font-size: 1.05rem;
     font-weight: 600;
     min-width: 10rem;
+  }
+  .world {
+    border-bottom: 1px solid #eee;
+    margin: 0 0 0.75rem;
+    padding: 0 0 0.75rem;
   }
   .preset {
     align-items: center;
