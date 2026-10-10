@@ -28,7 +28,7 @@ const monetaryBitcoin = {
 
 describe('stock journal', () => {
   it('sets satoshi private equity as the vault residual', () => {
-    const targets = roundedStockTargets('satoshi', 100, 40, 10, 0, 50, 20, 29.999);
+    const targets = roundedStockTargets('satoshi', 100, 40, 10, 0, 50, 20);
     expect(targets.get('private-equity')).toBe(30);
     expect((targets.get('vault') ?? 0) - (targets.get('bank-equity') ?? 0)).toBe(
       targets.get('private-equity'),

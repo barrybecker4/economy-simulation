@@ -160,7 +160,7 @@ export function releaseBankEquity(bank: Bank, economy: Economy, amount: number):
     const share =
       index === lastIndex
         ? remaining
-        : moneyAmount(economy, (weights[index]! / totalWeight) * payable);
+        : moneyAmount(economy, ((weights[index] ?? 0) / totalWeight) * payable);
     const take = Math.min(share, remaining);
     if (take > 0) {
       household.deposit += take;

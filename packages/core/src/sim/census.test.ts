@@ -47,7 +47,11 @@ describe('household census', () => {
     expect(off.cashWealthTotal).toBe(off.wealth.total);
 
     economy.params.equityMarket = 'on';
-    economy.households[0]!.deposit = -2;
+    const household = economy.households[0];
+    if (!household) {
+      throw new Error('missing household');
+    }
+    household.deposit = -2;
     const on = measureHouseholds(economy);
     expect(on.cashWealthTotal + on.claimWealthTotal).toBeCloseTo(on.wealth.total);
     expect(on.claimWealthTotal).toBeGreaterThan(0);

@@ -89,7 +89,6 @@ export function plotOptions(
   marks: ChartMarks = emptyMarks(),
 ) {
   const paired = lines.some((line) => line.pair !== undefined);
-  const marked = hasMarks(marks);
   const rightScale = lines.find(
     (line) => line.scale !== undefined && line.scale !== LEFT_SCALE,
   )?.scale;

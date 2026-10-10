@@ -284,7 +284,7 @@ function bookFirmLoans(economy: Economy, amount: number): number {
  * Injection loans retire on the ordinary repayment path. Kept as a no-op so
  * older call sites still compile; contractions use withdrawInjection.
  */
-export function repayChannelLoans(_economy: Economy): void {
+export function repayChannelLoans(): void {
   // Intentionally empty: newLoans injections are real loans, not same-tick gifts.
 }
 

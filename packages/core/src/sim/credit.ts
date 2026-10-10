@@ -92,7 +92,7 @@ export function endogenousBorrowing(input: {
 }
 
 export function onCredit(economy: Economy): void {
-  repayChannelLoans(economy);
+  repayChannelLoans();
   resolveInsolventBanks(economy);
   economy.investmentSpend = 0;
   economy.realInvestment = 0;

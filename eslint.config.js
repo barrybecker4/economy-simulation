@@ -11,6 +11,17 @@ export default tseslint.config(
       '**/*.svelte',
     ],
   },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'readonly',
+        exports: 'writable',
+        require: 'readonly',
+      },
+    },
+  },
   eslint.configs.recommended,
   ...tseslint.configs.strict,
   {

@@ -410,17 +410,6 @@ describe('comparison session', () => {
   });
 
   it('resets seed, months, seed count, regime, and sliders to page defaults', () => {
-    let session = posted(
-      openComparisonSession({
-        seed: 9,
-        ticks: 36,
-        seeds: 3,
-        regime: 'bitcoin',
-        overrides: { 'firm.markup': 0.4, 'government.ubiShare': 0.3 },
-      }),
-      finishedRun(),
-    );
-    session = pinBaseline(session, sliders).session;
     const update = resetToDefaults();
     const page = defaultPage();
     expect(update.status).toBe('Set the parameters and run.');

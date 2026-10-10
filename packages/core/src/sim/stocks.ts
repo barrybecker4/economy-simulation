@@ -56,7 +56,6 @@ export function postStocks(economy: Economy, ledger: Ledger): void {
     bonds,
     vault,
     equity,
-    economy.privateEquity,
   );
   const seatedPrivateEquity = postBalancedStockLines(ledger, stockLines(ledger, targets));
   // Seating can nudge the ledger residual by float dust. Keep the economy on
@@ -192,7 +191,6 @@ export function roundedStockTargets(
   bonds: number,
   vault: number,
   equity: number,
-  _privateEquity: number,
 ): Map<string, number> {
   if (unit !== 'cent') {
     return stockTargets(deposits, loans, reserves, bonds, vault, equity, vault - equity);

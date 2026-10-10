@@ -129,7 +129,7 @@ describe('nextStep', () => {
   });
 
   it('asks to rerun when months or seed count differ from the charts', () => {
-    let session = posted(
+    const session = posted(
       openComparisonSession({ seed: 1, ticks: 24, seeds: 1, regime: 'fiat', overrides: {} }),
       finishedRun(),
     );

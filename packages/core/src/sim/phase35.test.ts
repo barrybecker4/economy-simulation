@@ -37,7 +37,6 @@ describe('phase 35 integer-safe stock journal', () => {
       0,
       37_664,
       -63_012.5,
-      100_676.5,
     );
     expect(targets.get('vault')).toBe(37_664);
     expect(targets.get('bank-equity')).toBe(-63_012);
