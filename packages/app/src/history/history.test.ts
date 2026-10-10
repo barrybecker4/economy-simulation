@@ -150,4 +150,47 @@ describe('chartViews with US history', () => {
     expect(band?.ticks[0]).toBe(-HISTORY_MONTHS);
     expect(band?.lines.every((line) => !line.label.startsWith('US '))).toBe(true);
   });
+
+  it('overlays labor and capital shares from the annual labor-share series', () => {
+    const ticks = [0, 1];
+    const views = chartViews(runOf(ticks, [0.6, 0.6]), 'fiat', null, 0, {
+      showHistory: true,
+      origin,
+    });
+    const earnings = views.find((view) => view.key === 'earnings');
+    const labor = earnings?.lines.find((line) => line.label === 'US Labor share');
+    const capital = earnings?.lines.find((line) => line.label === 'US Capital share');
+    expect(labor?.values[0]).toBe(historyValue('laborShare', origin, -HISTORY_MONTHS));
+    expect(capital?.values[0]).toBe(historyValue('capitalShare', origin, -HISTORY_MONTHS));
+    const laborPoint = labor?.values.find((value) => value !== null);
+    const capitalPoint = capital?.values.find((value) => value !== null);
+    expect(laborPoint).not.toBeUndefined();
+    expect(capitalPoint).not.toBeUndefined();
+    expect((laborPoint ?? 0) + (capitalPoint ?? 0)).toBeCloseTo(1, 4);
+  });
+
+  it('rebases money stocks and mean wealth to the run opening', () => {
+    const ticks = [0, 1];
+    const open = 50_000;
+    const values = series([open, open + 1]);
+    const views = chartViews({ kind: 'run', ticks, series: values }, 'fiat', null, 0, {
+      showHistory: true,
+      origin,
+    });
+    for (const [key, modelLabel, usLabel] of [
+      ['money', 'Money supply', 'US Money supply'],
+      ['typical-wealth', 'Mean real wealth', 'US Mean real wealth'],
+      ['total-wealth', 'Total real wealth', 'US Total real wealth'],
+    ] as const) {
+      const chart = views.find((view) => view.key === key);
+      const model = chart?.lines.find((line) => line.label === modelLabel);
+      const us = chart?.lines.find((line) => line.label === usLabel);
+      const openPoint = model?.values.find((value) => value !== null);
+      const historyPoints = us?.values.filter((value): value is number => value !== null) ?? [];
+      expect(openPoint).not.toBeUndefined();
+      expect(historyPoints.at(-1)).toBeCloseTo(openPoint ?? 0, 6);
+    }
+    const typical = views.find((view) => view.key === 'typical-wealth');
+    expect(typical?.lines.some((line) => line.label === 'US Median real wealth')).toBe(false);
+  });
 });

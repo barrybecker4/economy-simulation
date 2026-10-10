@@ -24,10 +24,14 @@ export const REBASED_HISTORY_METRICS = new Set<HistoryMetricId>([
   'priceRecreation',
   'priceElectronics',
   'realGdp',
+  'moneySupply',
+  'baseMoney',
+  'totalRealWealth',
+  'meanRealWealth',
 ]);
 
 const HISTORY_NOTE =
-  'Dotted lines are the previous ten years of US data. Price levels and real GDP are scaled to this run’s opening level. Velocity is annual M2 velocity divided by 12.';
+  'Dotted lines are the previous ten years of US data. Price levels, real GDP, money stocks, and wealth are scaled to this run’s opening level. Velocity is annual M2 velocity divided by 12. Labor share is annual through the latest Penn World Table year.';
 
 /** Calendar month key `YYYY-MM` for `origin` plus `tick` months. */
 export function calendarMonthKey(origin: Date, tick: number): string {
