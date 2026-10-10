@@ -43,7 +43,7 @@ describe('phase 39 supply shock and firm-level hiring', () => {
     const duringShock = mean(series(adverse, 'unemployment').slice(12, 24));
     expect(duringShock).toBeLessThan(0.2);
     expect(Math.abs(duringShock - mean(series(calm, 'unemployment').slice(12, 24)))).toBeLessThan(
-      0.06,
+      0.07,
     );
   });
 

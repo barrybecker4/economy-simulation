@@ -75,9 +75,17 @@ export function workersForSales(input: {
   expectedSales: number;
   alpha: number;
   humanWeight: number;
+  productivityImpulse?: number;
 }): number {
   const capacity = Math.max(input.capacity, 1e-9);
-  const sales = input.expectedSales > 0 ? input.expectedSales : capacity;
+  let sales = input.expectedSales > 0 ? input.expectedSales : capacity;
+  
+  // During negative productivity shocks, cap expected sales at capacity to prevent
+  // perverse hiring when capacity falls but sales expectations haven't adjusted yet
+  if (input.productivityImpulse !== undefined && input.productivityImpulse < 0) {
+    sales = Math.min(sales, capacity);
+  }
+  
   if (input.workers <= 0) {
     return sales > 0 ? 1 : 0;
   }
@@ -170,26 +178,16 @@ function vacancyLimit(economy: Economy, target: number): number {
 function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
   const scale = wageHiringScale(economy);
   return economy.firms.map((firm) => {
-    let wanted = Math.round(
+    const wanted = Math.round(
       workersForSales({
         workers: firm.workers.length,
         capacity: firmCapacity(economy, firm),
         expectedSales: firm.expectedSales,
         alpha: economy.params.alpha,
         humanWeight: humanWeight(economy),
+        productivityImpulse: economy.productivityImpulse,
       }) * scale,
     );
-    // During a supply shock (negative productivity impulse), dampen hiring
-    // to prevent perverse labor demand when capacity falls but sales expectations
-    // haven't yet adjusted. Scale down the hiring impulse proportionally.
-    if (economy.productivityImpulse < 0) {
-      const current = firm.workers.length;
-      const impulse = wanted - current;
-      if (impulse > 0) {
-        // Reduce expansion during negative productivity shocks
-        wanted = Math.round(current + impulse * 0.2);
-      }
-    }
     return { firm, wanted };
   });
 }
