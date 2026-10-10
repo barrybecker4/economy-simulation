@@ -53,4 +53,28 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['packages/core/**/*.ts'],
+    ignores: ['packages/core/**/*.test.ts'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message: 'Use the seeded RNG. Math.random is forbidden in packages/core.',
+        },
+        {
+          object: 'Date',
+          property: 'now',
+          message: 'Date.now is forbidden in packages/core. Pass time in explicitly.',
+        },
+        ...['exp', 'log', 'sin', 'cos', 'pow', 'log1p', 'expm1'].map((property) => ({
+          object: 'Math',
+          property,
+          message: `Platform Math.${property} can differ across JavaScript engines. Use the helpers in math/elementary.ts.`,
+        })),
+      ],
+    },
+  },
 );

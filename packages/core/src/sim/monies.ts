@@ -1,3 +1,4 @@
+import { exp } from '../math/elementary.js';
 import { bitcoinIssuanceRate } from './bitcoin-supply.js';
 import type { Economy } from './economy.js';
 import { clamp } from './stats.js';
@@ -60,7 +61,7 @@ export function nextMoneyShares(
     return shares;
   }
   const current = [shares.fiat, shares.bitcoin, shares.stablecoin, shares.cbdc];
-  const weights = scores.map((score) => Math.exp(clamp(score, -4, 4)));
+  const weights = scores.map((score) => exp(clamp(score, -4, 4)));
   const weightSum = weights.reduce((total, weight) => total + weight, 0);
   const mixed = current.map((share, index) => {
     const target = weightSum > 0 ? (weights[index] ?? 0) / weightSum : share;

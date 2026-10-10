@@ -148,9 +148,7 @@ function viewFromSpec(
   const modelLines = spec.lines.map((line) =>
     padModelLine(lineOf(result, line), axisTicks, result.ticks),
   );
-  const historyLines = showHistory
-    ? historyLinesFor(spec, result, axisTicks, origin)
-    : [];
+  const historyLines = showHistory ? historyLinesFor(spec, result, axisTicks, origin) : [];
   const scaled = scaleCents(unitText(spec.unit, regime), [...modelLines, ...historyLines]);
   const view: ChartView = {
     key: spec.key,
@@ -216,9 +214,7 @@ function pairedViewFromSpec(
       money: variantMoney,
     });
   }
-  const historyLines = showHistory
-    ? historyLinesFor(spec, variant, axisTicks, origin)
-    : [];
+  const historyLines = showHistory ? historyLinesFor(spec, variant, axisTicks, origin) : [];
   if (mixedMoney) {
     const mixed = mixedMoneyView(spec, rows, marks, axisTicks);
     if (historyLines.length > 0) {
@@ -435,26 +431,13 @@ function cpiBandView(
     throw new Error('Missing band priceLevel');
   }
   const modelLines = [
-    padModelLine(
-      checkedLine(result.ticks, '5th', band.low, '#99b'),
-      axisTicks,
-      result.ticks,
-    ),
-    padModelLine(
-      checkedLine(result.ticks, 'Median', band.mid, '#246'),
-      axisTicks,
-      result.ticks,
-    ),
-    padModelLine(
-      checkedLine(result.ticks, '95th', band.high, '#99b'),
-      axisTicks,
-      result.ticks,
-    ),
+    padModelLine(checkedLine(result.ticks, '5th', band.low, '#99b'), axisTicks, result.ticks),
+    padModelLine(checkedLine(result.ticks, 'Median', band.mid, '#246'), axisTicks, result.ticks),
+    padModelLine(checkedLine(result.ticks, '95th', band.high, '#99b'), axisTicks, result.ticks),
   ];
-  const historyLines =
-    showHistory
-      ? [historyLine('priceLevel', 'CPI', '#246', axisTicks, origin, band.mid[0] ?? null)]
-      : [];
+  const historyLines = showHistory
+    ? [historyLine('priceLevel', 'CPI', '#246', axisTicks, origin, band.mid[0] ?? null)]
+    : [];
   const scaled = scaleCents(moneyUnit(regime), [...modelLines, ...historyLines]);
   const view: ChartView = {
     key: 'cpi-band',

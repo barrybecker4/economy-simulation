@@ -260,7 +260,9 @@ export function matchingScenarioWorld(
     if (
       PRESET_CATEGORIES.every((category) => {
         const optionId = world.choices[category.id];
-        return optionId !== undefined && matchingCategoryOption(category.id, overrides) === optionId;
+        return (
+          optionId !== undefined && matchingCategoryOption(category.id, overrides) === optionId
+        );
       })
     ) {
       return world.id;

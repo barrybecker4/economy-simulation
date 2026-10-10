@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
-import type { MetricId } from '../metrics/metrics.js';
+import { MetricsRecorder, type MetricId } from '../metrics/metrics.js';
 import type { SimulationResult } from '../engine/engine.js';
 import { Ledger } from '../ledger/ledger.js';
 import { addBonds } from './banking.js';
@@ -67,11 +67,7 @@ describe('phase 74 bond cap and replacement employment', () => {
       config,
       rng: economy.shockRng,
       ledger,
-      metrics: {
-        set() {
-          /* unused */
-        },
-      },
+      metrics: new MetricsRecorder(),
       audit: null,
     });
     expect(ledger.audit().ok).toBe(true);

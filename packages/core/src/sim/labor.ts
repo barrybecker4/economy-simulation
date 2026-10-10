@@ -244,7 +244,8 @@ function shedFromOverstaffed(
     .filter((row) => row.firm.workers.length > row.wanted)
     .sort(
       (left, right) =>
-        right.firm.workers.length - right.wanted - (left.firm.workers.length - left.wanted),
+        right.firm.workers.length - right.wanted - (left.firm.workers.length - left.wanted) ||
+        left.firm.id - right.firm.id,
     );
   for (const row of over) {
     while (employed > target && shed < cap && row.firm.workers.length > row.wanted) {

@@ -7,6 +7,7 @@ alwaysApply: false
 # Core determinism
 
 - Do not call Math.random or Date.now. Pass the seeded RNG explicitly.
+- Do not call Math.exp, Math.log, Math.sin, Math.cos, or Math.pow. Use `math/elementary.ts`. Those platform functions are not bit-identical across JavaScript engines.
 - Iterate agents in a fixed order by numeric id.
 - Fiat money is integer cents. Bitcoin money is a floating-point number of satoshis and may be fractional.
 - Every movement of money or debt goes through the double-entry ledger.

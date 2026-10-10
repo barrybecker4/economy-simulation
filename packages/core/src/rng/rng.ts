@@ -1,3 +1,5 @@
+import { cos, exp, log, sin } from '../math/elementary.js';
+
 /** Discarded draws so the first user-visible value is mixed. Recommended for sfc32. */
 const SFC32_WARMUP = 12;
 
@@ -83,14 +85,14 @@ export class Rng {
       u = this.uniform();
     }
     const v = this.uniform();
-    const magnitude = Math.sqrt(-2 * Math.log(u));
+    const magnitude = Math.sqrt(-2 * log(u));
     const angle = 2 * Math.PI * v;
-    this.spareNormal = magnitude * Math.sin(angle);
-    return mean + std * magnitude * Math.cos(angle);
+    this.spareNormal = magnitude * sin(angle);
+    return mean + std * magnitude * cos(angle);
   }
 
   lognormal(mu: number, sigma: number): number {
-    return Math.exp(this.normal(mu, sigma));
+    return exp(this.normal(mu, sigma));
   }
 
   poisson(lambda: number): number {
@@ -103,7 +105,7 @@ export class Rng {
     if (lambda > POISSON_MAX_LAMBDA) {
       throw new Error(`poisson lambda must be <= ${POISSON_MAX_LAMBDA}`);
     }
-    const limit = Math.exp(-lambda);
+    const limit = exp(-lambda);
     let count = 0;
     let product = 1;
     do {

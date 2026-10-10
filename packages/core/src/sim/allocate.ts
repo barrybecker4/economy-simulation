@@ -1,3 +1,5 @@
+import { exp, log } from '../math/elementary.js';
+
 /**
  * Weights proportional to each base raised to a non-negative `exponent`.
  * A large exponent is scored against the biggest base so the powers stay finite
@@ -24,8 +26,8 @@ export function powerWeights(bases: readonly number[], exponent: number): number
     if (base === maxBase) {
       return 1;
     }
-    const gap = exponent * Math.log(maxBase / base);
-    return gap > 0 && gap <= 700 ? Math.exp(-gap) : 0;
+    const gap = exponent * log(maxBase / base);
+    return gap > 0 && gap <= 700 ? exp(-gap) : 0;
   });
 }
 

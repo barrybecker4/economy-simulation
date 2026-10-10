@@ -336,7 +336,9 @@ function excessReserveStock(economy: Economy): number {
 export function spendTreasuryOnInventory(economy: Economy, amount: number): number {
   let left = Math.min(amount, Math.max(0, economy.govDeposits));
   const spentAtStart = left;
-  const byStock = [...economy.firms].sort((a, b) => b.inventory - a.inventory);
+  const byStock = [...economy.firms].sort(
+    (left, right) => right.inventory - left.inventory || left.id - right.id,
+  );
   for (const firm of byStock) {
     left = buyFirmInventory(economy, firm, left);
   }
