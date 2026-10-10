@@ -117,14 +117,24 @@ function refreshExpectedSales(economy: Economy): void {
     return;
   }
   // Unmet demand is nominal. Spread it across firms as units at the CPI so a
-  // stockout does not look like a sales collapse for firm-level hiring. Only
-  // add during strong demand booms, not during normal times or contractions,
-  // to avoid overcorrection during recovery from demand slumps.
+  // stockout does not look like a sales collapse for firm-level hiring.
+  // Scale the unmet demand contribution based on demand impulse to prevent
+  // post-slump overshooting while maintaining normal-time staffing.
+  let unmetScale = 1.0;
+  if (economy.demandImpulse < -0.01) {
+    // During demand contractions, don't add unmet demand (there is none)
+    unmetScale = 0;
+  } else if (economy.demandImpulse > 0.01 && economy.demandImpulse < 0.05) {
+    // During mild recovery (small positive impulse), dampen to prevent overshoot
+    unmetScale = 0.3;
+  }
+  // Otherwise use full unmet demand (normal times and strong booms)
+  
   const unmetUnits =
-    economy.demandImpulse > 0.01 &&
+    unmetScale > 0 &&
     economy.firms.length > 0 &&
     economy.priceLevel > 0
-      ? economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)
+      ? (economy.unmetGoodsDemand / (economy.priceLevel * economy.firms.length)) * unmetScale
       : 0;
   for (const firm of economy.firms) {
     const observed = firm.sales + unmetUnits;
