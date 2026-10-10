@@ -55,7 +55,7 @@ other quarter.
 An empty slider map still grows fiat broad money at `centralBank.moneyGrowth` default 1. The weight cannot be 0; the
 floor is 0.05. Crisis stimulus defaults to 1.75 with a three-month lag and can be set to 0. Zombie support defaults to
 0; when positive it is a cap on skipped firm replacements from the stimulus budget and does not move deposits. The web
-app opens on the registry defaults. It does not apply a separate monetary-comparison override set. Price trend weight
+app opens on the registry defaults, for 120 ticks. It does not apply a separate monetary-comparison override set. Price trend weight
 is 0.75, demand weight on output is 0.5, deposit pass-through is 0.45, real-return sensitivity is 0.8, the bond coupon
 is 4 percent, and the inflation anchor is 0.65. Tenure choice is on. Opening deposits are 18 months of the skill-scaled
 wage, under the 48-month spending buffer, so that opening stock is not spent as excess cash. Because the trend weight
@@ -64,13 +64,24 @@ deposits sit further under the buffer. Apparel and electronics productivity sit 
 prices fall relative to the CPI, while housing supply growth sits under population growth and that category can rise.
 `scenarios/baseline.json` stays empty for CLI regression.
 
-Money choice does not pick the unit the economy clears in. `money.choiceSpeed` defaults to 0. Above 0, the shares of
-fiat, bitcoin, stablecoin, and CBDC move on the currency-share chart and write the bitcoin, stablecoin, and CBDC
-exchange rates. Only the bitcoin rate is read again, by goods, wealth, and the transition. Stablecoin and CBDC rates
-are stored and scaled on a redenomination, and nothing else reads them. The bitcoin rate also moves with issuance and
-trust when `bitcoin.marketPriceWeight` is positive (the default is 0.4), using the bitcoin share, including when
-choice speed is 0. No goods, labor, credit, tax, or regime rule reads the shares. Hybrid is still one unit with a
-lender of last resort, not a basket that spends in the shares the chart shows.
+Money-choice shares only move the currency-share chart and the exchange rates. `money.choiceSpeed` defaults to 0. Above
+0, the shares of fiat, bitcoin, stablecoin, and CBDC step on the chart and write the bitcoin, stablecoin, and CBDC
+rates. Only the bitcoin rate is read again, by goods, wealth, and the transition. Stablecoin and CBDC rates are stored
+and scaled on a redenomination, and nothing else reads them. The bitcoin rate also moves with issuance and trust when
+`bitcoin.marketPriceWeight` is positive (the default is 0.4), using the bitcoin share, including when choice speed is 0. No goods, labor, credit, tax, or regime rule reads the shares. There is no free-choice hybrid currency: hybrid is
+still one unit with a lender of last resort, not a basket that spends in the shares the chart shows.
+
+The AI factor multiplies firm capacity and never enters the agreed wage. Wages follow economy-wide productivity, which
+grows at baseline productivity (and a utilization mix when that weight is positive), and the regime price trend does
+the same. A high bullishness setting can pull real output away from the wage bill.
+
+The hiring quota is 94 percent of households times the human share of output, so the quota shrinks as AI displacement
+rises. The natural unemployment rate is one minus that same human-weighted employment share: it starts at 6 percent and
+rises as the quota shrinks. No step creates new jobs to replace the ones the quota drops.
+
+Household AI agents sell compute only while the ask is under 4.2 percent of the wage. The ask is adoption progress
+times 4 percent of the wage, marked up by payment friction and by `agent.marketDepth` (default 0.25). Progress does not
+fall, so once the ask crosses that cap the agents stop selling for the rest of the run. They may still spend deposits.
 
 Development runs use 4,000 households, 200 firms, and 4 banks. The phase 2 test allows 45 seconds for 600 ticks. Sweeps
 in the CLI run in this process at a small scale, 40 households. A 50-seed development sweep is a manual command, not

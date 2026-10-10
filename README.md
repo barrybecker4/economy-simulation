@@ -6,7 +6,9 @@ compare results across random seeds. The model shows which assumptions a conclus
 The economy has households, firms, banks, a government, and a central bank. You can run it as fiat, bitcoin, or a hybrid
 with a lender of last resort. Category prices split the CPI into food and beverages, housing, energy, apparel,
 transportation, medical care, education, recreation, and electronics, so some of those prices can cheapen while others
-rise. AI adoption and autonomous agents are sliders with neutral settings that turn them off. The specification is
+rise. AI adoption and autonomous agents are sliders. Equal start and end automatable shares turn the productivity
+channel off, and an owner-share ceiling of zero creates no agents. The registry default is the modest path, bullishness
+0.35. The specification is
 [docs/PLAN.md](docs/PLAN.md). The equations are in [docs/model.md](docs/model.md). Limits are in
 [docs/limits.md](docs/limits.md). Working agreements are in [AGENTS.md](AGENTS.md).
 

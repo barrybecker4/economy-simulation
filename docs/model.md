@@ -51,7 +51,7 @@ exactly; the last household takes the residual.
 
 ## Time
 
-One tick is one month. A scenario's `ticks` field sets the length of a run. The default is 600 ticks, which is 50 years.
+One tick is one month. A scenario's `ticks` field sets the length of a run. A scenario file defaults to 600 ticks, which is 50 years. The web app opens at 120 ticks.
 The maximum accepted value is 12,000 ticks, a guard against an accidental huge run, not an economic assumption. The core
 never reads the wall clock. The web charts place tick 0 on the first day of the month when the page is viewed, and each
 later tick on that day in a later month. The run itself still starts at month 0.
@@ -93,7 +93,9 @@ Stablecoins and CBDC open at their start sliders. New bitcoin follows the halvin
 October 2026: the reward is 3.125 BTC, about 95.7 percent of the 21 million cap is already mined, and the reward halves
 every 48 months. At speed 0 the shares stay put. Above 0 the shares and exchange rates move; the policy-rate rule,
 fiat money growth, reserve accommodation, and the hybrid lender of last resort still follow `regime.type`. Bitcoin’s
-rate also moves with that month’s issuance relative to coins already outstanding.
+rate also moves with that month’s issuance relative to coins already outstanding, including when choice speed is 0 and
+`bitcoin.marketPriceWeight` is positive (default 0.4). The shares themselves are a chart series and an input to those
+exchange rates. No goods, labor, credit, tax, or regime rule reads them, so there is no free-choice hybrid currency.
 
 ## Metrics
 
@@ -110,7 +112,7 @@ households only. `totalRealWealth` is the sum of non-negative household wealth d
 `wealthQuintile1` through `wealthQuintile5` divide. That stock partitions into `realCashWealth` and `realClaimWealth`:
 for each household, combined wealth is `max(0, cash + claim)`, the cash part is `min(combined, max(cash, 0))`, and the
 rest is the claim part; both sums are then divided by the CPI. With the equity market off, claims are zero and cash
-wealth equals total real wealth. `realGdp` is the sum of firm capacities. `aiShareOfWealth` is agent deposits divided
+wealth equals total real wealth. `realGdp` is the sum of firm output this month, after `production.demandWeight` mixes capacity with sales. `aiShareOfWealth` is agent deposits divided
 by household deposits plus agent deposits, and 0 when that total is not positive.
 
 Payment-flow series are observations of money that already moved that tick. `householdGoodsSpend` is household shopping
@@ -122,8 +124,9 @@ compute sales, payment fees into bank equity, agent shopping, agent income tax, 
 deflation-driven repayment. `demandImpulse`, `creditImpulse`, and `productivityImpulse` copy the active shock impulses
 for that month (positive in the twelve-month expansion, negative in the contraction, zero when idle).
 
-Census series describe the household cross-section. `wealthQuintile1` through `wealthQuintile5` are shares of household
-deposits from poorest to richest fifth and sum to 1. `jobUnemployedShare`, `jobSmallFirmShare`, and `jobLargeFirmShare`
+Census series describe the household cross-section. `wealthQuintile1` through `wealthQuintile5` are shares of
+non-negative household wealth, cash plus equity claims when the equity market is on, from poorest to richest fifth, and
+sum to 1. `jobUnemployedShare`, `jobSmallFirmShare`, and `jobLargeFirmShare`
 partition households into unemployed, employed at a firm at or below the median firm size, and employed at a larger
 firm, and sum to 1. `ownerWealthShare` is deposits of households that own at least one AI agent, over all household
 deposits, and is 0 when there are no agents.
@@ -137,9 +140,10 @@ squared, so wealth starts more unequal than income. That order holds when the au
 households own an agent, ownership follows household id, and wealth can be less concentrated than income. Households are
 assigned to banks round-robin. The default population is 4,000 households, 200 firms, and 4 banks, about 20 households
 per firm. The release target is 10,000 households and 500 firms. `population.growth` adds or removes households at the
-monthly rate, carrying a fractional remainder. Entrants are unemployed, unfunded, and take the next id. An exit
-transfers its deposit to the first household and writes its loans off against bank equity. A rate of 0 leaves the count
-fixed.
+monthly rate, carrying a fractional remainder. The default is 0.005. Entrants are unemployed, unfunded, and take the
+next id. An exit writes its loans off against bank equity. Its deposit follows `population.bequests`: the default
+`skillWeighted` splits the estate by skill to the 16th, and `firstHousehold` sends the whole deposit to household 0.
+Agents the exiting household owned are reassigned to household 0 either way. A rate of 0 leaves the count fixed.
 
 ## Production
 
@@ -184,7 +188,8 @@ productivity. That reference omits labor-market tightness and the productivity i
 does not amplify itself through the quota. The default elasticity is 0.5, so a real wage 10 percent above that reference
 cuts the quota by 5 percent. At elasticity 0 the quota is unchanged. When the scaled quota is below current employment,
 firms separate workers down to it. A searcher applies to at most `labor.maxApplications` firms. The natural unemployment
-rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is zero and rises as adopted tasks grow.
+rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is zero and rises as adopted tasks grow,
+because the hiring quota shrinks with `humanWeight`. No labor step opens new jobs to replace the ones that quota drops.
 
 The agreed money wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus
 `0.4` times tightness, where tightness is `(natural unemployment − unemployment) × humanWeight`. The posted money wage
@@ -439,8 +444,9 @@ capital valued at posted prices times a wealth valuation multiplier, split by th
 multiplier makes capital claims a material share of household wealth without resizing production capital or opening
 loans. The claims are not traded and do not move deposits. Capital share is profits divided by wages plus profits. Real
 wealth and real income divide nominal stocks by the CPI. Total real wealth is the sum of non-negative household wealth
-over the CPI — the stock the wealth quintile shares divide. Real GDP is the sum of firm capacities, the output pie. Real
-consumption is goods bought by households. The Gini of wealth, income, and skill uses the standard sorted-share formula.
+over the CPI — the stock the wealth quintile shares divide. Real GDP is the sum of firm output this month, the output
+pie. Real consumption is goods bought by households. The Gini of wealth, income, and skill uses the standard sorted-share
+formula.
 Negative wealth is shifted before the Gini so the measure stays defined. Shares of total treat negatives as zero. The
 consumption floor share is the fraction of households below one quarter of median real consumption. Housing security for
 a household is its real income divided by median real income and by `1 + housing/CPI`, clamped to [0, 1]. Well-being is
@@ -504,20 +510,24 @@ switching on in one month.
 The blocked share is `ai.physicalTaskShare`. The control shows one minus that value, the reachable share. The default
 stored block is 0.7, so the control reads 0.3. The effective block starts at the stored share and falls to zero after
 `ai.roboticsStartYear` across `ai.roboticsRampYears`. Progress is `clamp((years − start) / ramp, 0, 1)`, and the
-effective block is the stored share times one minus that progress. The default start year is 20 and the default ramp is
-16 years, so if month 0 is read as late 2026 the ceiling begins to lift around 2046 and is gone by about year 36. The
+effective block is the stored share times one minus that progress. The default start year is 15 and the default ramp is
+12 years, so if month 0 is read as late 2026 the ceiling begins to lift around 2041 and is gone by about year 27. The
 core does not read the wall clock. A start year at or past the last year of the run leaves the ceiling intact.
 
 Adopted tasks are that cost-weighted gain in the automatable share times one minus the effective physical share. The task gain is
-`0.1 + 0.9 × min(bullishness, 1)`, then multiplied by `exp(max(0, bullishness − 1) × 0.15 × years)`. At bullishness 0,
-the default, the gain is one tenth of the unit reference. At 1 it is one and saturates with the S-curve. Above 1 the
-same level compounds without a ceiling. The AI factor is `1 + adopted × taskGain`. Displacement is
+`0.1 + 0.9 × min(bullishness, 1)`, then multiplied by `exp(max(0, bullishness − 1) × 0.15 × years)`. At bullishness 0
+the gain is one tenth of the unit reference. The default is 0.35, between that floor and full task replacement, and
+below 1 the gain still saturates with the S-curve. At 1 it is one. Above 1 the same level compounds without a ceiling.
+The AI factor is `1 + adopted × taskGain`. Displacement is
 `adopted × min(taskGain, 1)`, and `humanWeight = 1 / (1 + displacement)`. Capacity uses the AI factor as the multiplier
-and `humanWeight` for the staffing weight. Hiring, wages, and the fiat policy rate scale with `humanWeight`. The AI
-share of output and the household grant use `1 − 1 / AI factor`. A displaced worker, one whose skill is below the
-automated share while capacity has increased, makes only one job application a month. Profit shares use `skill` raised
-to `1.5 + ownershipConcentration × (AI factor − 1)`, so the AI capital income is more concentrated. When a raw power
-overflows, the weights are scored against the highest skill. The ordering stays the same and every share stays finite.
+and `humanWeight` for the staffing weight. The AI factor does not enter the agreed wage or the regime price trend. Both
+follow economy-wide productivity, which grows at `productivity.baseGrowth` (mixed with utilization when
+`productivity.endogenousWeight` is positive) and does not include the AI factor. Hiring and the fiat policy rate scale
+with `humanWeight`. The AI share of output and the household grant use `1 − 1 / AI factor`. A displaced worker, one
+whose skill is below the automated share while capacity has increased, makes only one job application a month. Profit
+shares use `skill` raised to `1.5 + ownershipConcentration × (AI factor − 1)`, so the AI capital income is more
+concentrated. When a raw power overflows, the weights are scored against the highest skill. The ordering stays the same
+and every share stays finite.
 
 ## AI agents
 
@@ -531,9 +541,10 @@ See [ADR 0006](adr/0006-adoption-curve-agents.md).
 
 An agent has an owning household, a deposit in the regime's unit, an income, and a smoothed income. It sells one unit of
 compute to a firm when its ask is below 4.2 percent of the wage. The ask is adoption progress times 4 percent of the
-wage, marked up by payment friction. `agent.marketDepth` multiplies that ask by one plus depth times agents per firm. At
-depth 0 the multiplier is one. Friction is `ai.paymentFrictionFiat` in the fiat regime and `ai.paymentFrictionBitcoin`
-otherwise. The fee is paid into bank equity. The purchase also delivers one unit of compute to that firm. Next month the
+wage, marked up by payment friction. `agent.marketDepth` (default 0.25) multiplies that ask by one plus depth times
+agents per firm. At depth 0 the multiplier is one. Adoption progress does not fall, so once the ask reaches 4.2 percent
+of the wage, compute sales stop for the rest of the run. Agents may still spend deposits. Friction is
+`ai.paymentFrictionFiat` in the fiat regime and `ai.paymentFrictionBitcoin` otherwise. The fee is paid into bank equity. The purchase also delivers one unit of compute to that firm. Next month the
 firm’s capacity is multiplied by `1 + ai.computeProductivity × units`. At productivity 0 the factor is 1, so the
 purchase does not change output. The agent then shops with the household budget rule at mean time preference plus the
 common inflation gap addend, reserving enough deposit to pay income tax. It pays `tax.incomeRate` on its income. After
