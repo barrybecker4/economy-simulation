@@ -1,7 +1,7 @@
 import { bondNumber } from './banking.js';
 import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
-import { moneyAmount } from './helpers.js';
+import { expectedInflation, moneyAmount } from './helpers.js';
 import type { Bank, Firm, Household } from './types.js';
 
 /** Household, firm, or agent cash balance. */
@@ -90,6 +90,16 @@ export function payFirmInterest(firm: Firm, bank: Bank, economy: Economy, intere
  */
 export function drawMortgage(household: Household, economy: Economy, principal: number): void {
   household.mortgage = principal;
+  // In Bitcoin/hybrid regimes, automatically index new mortgages to the price
+  // level, similar to HOLC loans during the Great Depression. This prevents
+  // debt-deflation spirals where nominal payments become unpayable as prices fall.
+  // Bitcoin regimes typically experience deflation equal to productivity growth.
+  if (economy.params.regime === 'bitcoin' || economy.params.regime === 'hybrid') {
+    household.mortgageIndexed = true;
+    if (economy.realMortgagePrice <= 0) {
+      economy.realMortgagePrice = economy.priceLevel;
+    }
+  }
   creditFirms(economy, principal);
 }
 

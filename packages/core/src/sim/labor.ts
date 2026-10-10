@@ -169,14 +169,19 @@ function firmHeadcounts(economy: Economy): { firm: Firm; wanted: number }[] {
         humanWeight: humanWeight(economy),
       }) * scale,
     );
-    // During a supply shock (negative productivity impulse), cap hiring at
-    // current headcount to prevent perverse labor demand when sales expectations
-    // haven't yet adjusted to the lower capacity.
+    // During a supply shock (negative productivity impulse), dampen hiring
+    // to prevent perverse labor demand when capacity falls but sales expectations
+    // haven't yet adjusted. Scale down the hiring impulse proportionally.
     if (economy.productivityImpulse < 0) {
-      wanted = Math.min(wanted, firm.workers.length);
+      const current = firm.workers.length;
+      const impulse = wanted - current;
+      if (impulse > 0) {
+        // Reduce expansion during negative productivity shocks
+        wanted = Math.round(current + impulse * 0.2);
+      }
     }
     return { firm, wanted };
-  }));
+  });
 }
 
 function agreedWageLevel(economy: Economy): number {

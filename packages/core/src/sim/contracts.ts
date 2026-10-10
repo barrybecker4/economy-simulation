@@ -326,15 +326,7 @@ function serviceDebts(economy: Economy, household: Household): void {
 }
 
 function shouldForeclose(economy: Economy, household: Household): boolean {
-  // Under bitcoin deflation, allow more forbearance (6 months vs 3) since
-  // nominal debt burdens rise even with falling home prices. This better
-  // matches real-world crisis forbearance practices and avoids excessive
-  // foreclosures from transitory income shocks.
-  const threshold =
-    economy.params.regime === 'bitcoin' || economy.params.regime === 'hybrid'
-      ? MORTGAGE_ARREARS_MONTHS * 2
-      : MORTGAGE_ARREARS_MONTHS;
-  if (household.mortgageArrears < threshold) {
+  if (household.mortgageArrears < MORTGAGE_ARREARS_MONTHS) {
     return false;
   }
   const income = Math.max(household.income, household.smoothed, 1);

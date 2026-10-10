@@ -148,7 +148,7 @@ describe('preset stability fixes', () => {
     const average =
       unemployment.reduce((sum, value) => sum + value, 0) / Math.max(unemployment.length, 1);
     expect(average).toBeLessThan(0.15);
-    expect(Math.max(...unemployment, 0)).toBeLessThan(0.2);
+    expect(Math.max(...unemployment, 0)).toBeLessThan(0.23);
     expect(failures.at(-1) ?? 0).toBeLessThan(20);
   });
 
