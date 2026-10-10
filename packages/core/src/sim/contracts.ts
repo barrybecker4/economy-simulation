@@ -206,19 +206,15 @@ export function onContractChoice(economy: Economy): void {
       choice === 'owned' &&
       household.tenure !== 'owned' &&
       household.tenure !== 'mortgage' &&
-      homePrice > 0
+      homePrice > 0 &&
+      household.deposit + household.bitcoin * economy.bitcoinPrice >= homePrice
     ) {
-      // Check if household can afford home with deposit + bitcoin
-      const bitcoinValue = household.bitcoin * economy.bitcoinPrice;
-      const totalWealth = household.deposit + bitcoinValue;
-      if (totalWealth >= homePrice) {
-        fundFromBitcoin(economy, household, homePrice);
-        payCashForHome(household, economy, homePrice);
-        setMortgage(household, 0);
-        household.mortgagePayment = 0;
-        household.mortgageIndexed = false;
-        household.tenure = 'owned';
-      }
+      fundFromBitcoin(economy, household, homePrice);
+      payCashForHome(household, economy, homePrice);
+      setMortgage(household, 0);
+      household.mortgagePayment = 0;
+      household.mortgageIndexed = false;
+      household.tenure = 'owned';
     } else if (
       (choice === 'mortgage' || choice === 'owned') &&
       household.tenure !== 'mortgage' &&
