@@ -156,6 +156,19 @@ describe('chartViews with US history', () => {
     expect(historyPoints.at(-1)).toBeCloseTo(open ?? 0, 6);
   });
 
+  it('overlays US home price in months of income without rebasing', () => {
+    const ticks = [0, 1];
+    const views = chartViews(runOf(ticks, [48, 50]), 'fiat', null, 0, {
+      showHistory: true,
+      origin,
+    });
+    const chart = views.find((view) => view.key === 'home-price');
+    const us = chart?.lines.find((line) => line.label === 'US Home price');
+    expect(us?.values[0]).toBe(historyValue('homePriceMonths', origin, -HISTORY_MONTHS));
+    expect(us?.values[0]).not.toBe(48);
+    expect(us?.values.at(-1)).toBeNull();
+  });
+
   it('overlays an approximate US mean well-being line with a caption', () => {
     const ticks = [0, 1];
     const views = chartViews(runOf(ticks, [2, 2.1]), 'fiat', null, 0, {
