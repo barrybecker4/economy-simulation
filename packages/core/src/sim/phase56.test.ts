@@ -39,7 +39,9 @@ describe('phase 56 injection channels', () => {
     expect(reserves(loans)).toBe(beforeReserves);
     expect(bonds(assets)).toBe(beforeBonds - 4_000);
     expect(householdDeposits(assets)).toBe(beforeHouseholds + 4_000);
-    expect(firmDeposits(fiscal) + fiscal.govDeposits).toBe(beforeFiscalFirms + beforeTreasury + 4_000);
+    expect(firmDeposits(fiscal) + fiscal.govDeposits).toBe(
+      beforeFiscalFirms + beforeTreasury + 4_000,
+    );
     expect(firmLoans(loans)).not.toBe(firmLoans(assets));
   });
 

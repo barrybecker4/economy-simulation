@@ -44,11 +44,10 @@ describe('consumption gap round-7 defaults', () => {
       'government.stabilizer': 0,
       'housing.tenureChoice': 'off',
     });
-    expect(baseline.audit.ok && noStabilizer.audit.ok && noTenure.audit.ok && bothOff.audit.ok).toBe(
-      true,
-    );
-    const end = (result: SimulationResult) =>
-      series(result, 'medianRealConsumption').at(-1) ?? 0;
+    expect(
+      baseline.audit.ok && noStabilizer.audit.ok && noTenure.audit.ok && bothOff.audit.ok,
+    ).toBe(true);
+    const end = (result: SimulationResult) => series(result, 'medianRealConsumption').at(-1) ?? 0;
     const base = end(baseline);
     const stabilizerGap = end(noStabilizer) / Math.max(base, 1e-9) - 1;
     const tenureGap = end(noTenure) / Math.max(base, 1e-9) - 1;

@@ -17,7 +17,6 @@ import {
   setMortgage,
 } from './money.js';
 import { stampRealMortgages } from './real-mortgage.js';
-import { bankBalanceIdentity } from './stocks.js';
 import type { Household } from './types.js';
 
 /**
@@ -51,8 +50,6 @@ export function onTransition(economy: Economy): void {
   convertDebts(economy, fraction);
   // Clean up any rounding errors from gradual conversion to maintain bank identity
   markBitcoinToMarket(economy);
-  // After conversion, seat any bank identity residual on private equity
-  seatBankIdentityResidual(economy);
   if (economy.tick >= length - 1) {
     finishTransition(economy);
   }
@@ -344,17 +341,4 @@ function requireHousehold(economy: Economy, index: number): Household {
 
 function positiveDeposits(economy: Economy): number {
   return economy.households.reduce((sum, household) => sum + Math.max(0, household.deposit), 0);
-}
-
-/**
- * Seat any bank balance identity residual from rounding errors on private equity.
- * During gradual transition, individual moneyAmount roundings accumulate across
- * many conversions, and the residual may not be absorbed by bitcoin valuation
- * adjustments alone.
- */
-function seatBankIdentityResidual(economy: Economy): void {
-  const residual = bankBalanceIdentity(economy);
-  if (Math.abs(residual) > 1e-9) {
-    economy.privateEquity += residual;
-  }
 }

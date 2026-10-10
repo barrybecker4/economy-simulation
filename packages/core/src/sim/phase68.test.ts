@@ -51,7 +51,7 @@ describe('phase 68 hiring reference without tightness or impulse', () => {
     const economy = opened({ 'labor.wageElasticity': 1, 'regime.type': 'fiat' });
     // Cheap real wage → hiringScale above 1 unless capped.
     economy.wageLevel = economy.priceLevel * 0.5;
-    economy.priceHistory = Array.from({ length: 13 }, (_, i) => 100 * (1.1 ** (i / 12)));
+    economy.priceHistory = Array.from({ length: 13 }, (_, i) => 100 * 1.1 ** (i / 12));
     economy.productivityImpulse = 0;
     const open = employmentTarget(economy);
     economy.productivityImpulse = -0.2;
@@ -213,7 +213,8 @@ function meanUnemploymentGap(
   let total = 0;
   let count = 0;
   for (let tick = from; tick <= to; tick += 1) {
-    total += (series(shocked, 'unemployment')[tick] ?? 0) - (series(calm, 'unemployment')[tick] ?? 0);
+    total +=
+      (series(shocked, 'unemployment')[tick] ?? 0) - (series(calm, 'unemployment')[tick] ?? 0);
     count += 1;
   }
   return total / Math.max(count, 1);

@@ -100,10 +100,8 @@ describe('phase 71 rate cap and real injection channels', () => {
     expect(deposits.audit.ok && purchase.audit.ok).toBe(true);
     const depositMoney = series(deposits, 'moneySupply');
     const purchaseMoney = series(purchase, 'moneySupply');
-    const depositRatio =
-      (depositMoney.at(-1) ?? 0) / Math.max(depositMoney[0] ?? 1, 1);
-    const purchaseRatio =
-      (purchaseMoney.at(-1) ?? 0) / Math.max(purchaseMoney[0] ?? 1, 1);
+    const depositRatio = (depositMoney.at(-1) ?? 0) / Math.max(depositMoney[0] ?? 1, 1);
+    const purchaseRatio = (purchaseMoney.at(-1) ?? 0) / Math.max(purchaseMoney[0] ?? 1, 1);
     expect(purchaseRatio).toBeLessThan(1_000);
     expect(purchaseRatio / Math.max(depositRatio, 1e-9)).toBeLessThan(10);
   });

@@ -23,6 +23,7 @@ The suite runs these configurations:
 - **D**: Pure v7 registry defaults
 
 Each structure runs with:
+
 - Fiat regime
 - Bitcoin regime
 - Additional variants for S3 and M with `realReturnSensitivity: 3` (hoarding 3)

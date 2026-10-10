@@ -129,7 +129,8 @@ function unemploymentGap(
   let total = 0;
   let count = 0;
   for (let tick = from; tick <= to; tick += 1) {
-    total += (series(shocked, 'unemployment')[tick] ?? 0) - (series(calm, 'unemployment')[tick] ?? 0);
+    total +=
+      (series(shocked, 'unemployment')[tick] ?? 0) - (series(calm, 'unemployment')[tick] ?? 0);
     count += 1;
   }
   return total / Math.max(count, 1);

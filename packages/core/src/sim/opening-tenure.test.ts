@@ -32,8 +32,9 @@ describe('opening housing tenure', () => {
     );
     const count = economy.households.length;
     const rent = economy.households.filter((household) => household.tenure === 'rent').length;
-    const mortgage = economy.households.filter((household) => household.tenure === 'mortgage')
-      .length;
+    const mortgage = economy.households.filter(
+      (household) => household.tenure === 'mortgage',
+    ).length;
     const owned = economy.households.filter((household) => household.tenure === 'owned').length;
     expect(rent / count).toBeCloseTo(0.345, 2);
     expect((mortgage + owned) / count).toBeCloseTo(0.655, 2);

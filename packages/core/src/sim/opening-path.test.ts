@@ -41,7 +41,12 @@ describe('monetary opening path', () => {
     for (const preset of ['modest', 'substantial'] as const) {
       const overrides = applyCategoryOption('aiBullishness', preset, MONETARY);
       const result = simulate(
-        loadScenario({ name: 'opening-path', seed: 1, ticks: 36, sliders: resolved('fiat', overrides) }),
+        loadScenario({
+          name: 'opening-path',
+          seed: 1,
+          ticks: 36,
+          sliders: resolved('fiat', overrides),
+        }),
       );
       expect(result.audit.ok).toBe(true);
       const unemployment = series(result, 'unemployment');

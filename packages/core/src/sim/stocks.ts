@@ -48,15 +48,7 @@ export function postStocks(economy: Economy, ledger: Ledger): void {
   const equity = sumBank(economy, (bank) => bank.equity);
   alignPrivateEquity(economy, ledger.unit, vault, equity);
   assertBankBalance(economy, ledger.unit, deposits, loans, reserves, bonds, vault, equity);
-  const targets = roundedStockTargets(
-    ledger.unit,
-    deposits,
-    loans,
-    reserves,
-    bonds,
-    vault,
-    equity,
-  );
+  const targets = roundedStockTargets(ledger.unit, deposits, loans, reserves, bonds, vault, equity);
   const seatedPrivateEquity = postBalancedStockLines(ledger, stockLines(ledger, targets));
   // Seating can nudge the ledger residual by float dust. Keep the economy on
   // vault − equity unless that nudge stays inside the unit tolerance.

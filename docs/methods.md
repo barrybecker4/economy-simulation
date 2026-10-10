@@ -102,4 +102,3 @@ demand slump (seed 4, 40 households):
 - **Bitcoin.** Ending deposits also sit below calm. There is no fiat injection. Write-downs hit bank
   equity, not deposits. The deposit drag is net credit and borrower interest retained in bank equity
   after deposit coupons (see Phase 73 on dividends paid to nobody).
-
