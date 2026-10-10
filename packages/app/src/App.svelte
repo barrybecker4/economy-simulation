@@ -64,8 +64,11 @@
   let progressCompleted = $state(0);
   let progressTotal = $state(0);
   let monthIndex = $state(0);
+  let showHistory = $state(false);
   let resultsEl: HTMLElement | undefined = $state();
   let openChartGroups = $state<Record<string, boolean>>({ [FIRST_CHART_GROUP]: true });
+  /** Shared chart origin so history lines and axis labels use the same calendar. */
+  const chartOrigin = new Date();
 
   const result = $derived(session.result);
   const bundle = $derived(comparisonBundle(session));
@@ -85,6 +88,7 @@
                 transitionLength: bundle.baseline.transitionLength,
               },
           bundle.variant.transitionLength,
+          { showHistory, origin: chartOrigin },
         ),
   );
   const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
@@ -303,6 +307,7 @@
       bind:seed={() => session.seed, (seed) => (session = setSeed(session, seed))}
       bind:ticks={() => session.ticks, (ticks) => (session = setTicks(session, ticks))}
       bind:seeds={() => session.seeds, (seeds) => (session = setSeeds(session, seeds))}
+      bind:showHistory
       {busy}
       runPrimary={primaryRun}
       {pinned}
@@ -363,9 +368,10 @@
                   title={chart.title}
                   unit={chart.unit}
                   description={chart.description}
-                  ticks={result.ticks}
+                  ticks={chart.ticks}
                   lines={chart.lines}
                   marks={chart.marks}
+                  origin={chartOrigin}
                   caption={chart.caption ?? ''}
                 />
               {/each}
@@ -389,9 +395,10 @@
                   title={chart.title}
                   unit={chart.unit}
                   description={chart.description}
-                  ticks={result.ticks}
+                  ticks={chart.ticks}
                   lines={chart.lines}
                   marks={chart.marks}
+                  origin={chartOrigin}
                   caption={chart.caption ?? ''}
                 />
               {/each}

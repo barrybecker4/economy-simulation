@@ -1,4 +1,11 @@
 import { CHART_PANELS, type ChartLineSpec, type ChartPanel } from '../dashboard/catalog.js';
+import {
+  historyAxisTicks,
+  historyChartNote,
+  historyLine,
+  isHistoryMetric,
+  padHistoryValues,
+} from '../history/history.js';
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
 import { readSeries } from '../worker/series.js';
 import { comparisonCaption, type CaptionSeries } from './caption.js';
@@ -6,7 +13,7 @@ import { hasMarks, MARKS_TIP, mergeMarks, runMarks, type ChartMarks } from './ma
 
 export interface ChartLine {
   label: string;
-  values: number[];
+  values: (number | null)[];
   color: string;
   /** Stroke dash segments for uPlot. Omit for a solid line. */
   dash?: readonly number[];
@@ -25,6 +32,8 @@ export interface ChartView {
   title: string;
   unit: string;
   description: string;
+  /** Horizontal axis months, including a negative history prefix when history is on. */
+  ticks: number[];
   lines: ChartLine[];
   group: string;
   marks: ChartMarks;
@@ -52,24 +61,41 @@ export interface BaselineRun {
   transitionLength: number;
 }
 
+export interface ChartViewOptions {
+  /** Draw the previous ten years of US data before the run. */
+  showHistory?: boolean;
+  /** Calendar month of tick 0. Shared with the chart axis. */
+  origin?: Date;
+}
+
 export function chartViews(
   result: RunSuccess,
   regime: string,
   baseline: BaselineRun | null = null,
   transitionLength = 0,
+  options: ChartViewOptions = {},
 ): ChartView[] {
   if (result.ticks.length === 0) {
     throw new Error('Run has no ticks');
   }
+  const showHistory = options.showHistory === true;
+  const origin = options.origin ?? new Date();
+  const axisTicks = showHistory ? historyAxisTicks(result.ticks) : [...result.ticks];
   if (baseline !== null) {
-    return pairedViews(result, regime, baseline, transitionLength);
+    return pairedViews(result, regime, baseline, transitionLength, axisTicks, showHistory, origin);
   }
   const marks = runMarks(result, transitionLength, 'solo');
-  const views = CHART_PANELS.map((spec) => viewFromSpec(spec, result, regime, marks));
+  const views = CHART_PANELS.map((spec) =>
+    viewFromSpec(spec, result, regime, marks, axisTicks, showHistory, origin),
+  );
   if (result.kind === 'band') {
     const withBand = [...views];
     const pricesAt = withBand.findIndex((view) => view.key === 'prices');
-    withBand.splice(pricesAt + 1, 0, cpiBandView(result, regime, marks));
+    withBand.splice(
+      pricesAt + 1,
+      0,
+      cpiBandView(result, regime, marks, axisTicks, showHistory),
+    );
     return withBand;
   }
   return views;
@@ -88,6 +114,9 @@ function pairedViews(
   regime: string,
   baseline: BaselineRun,
   transitionLength: number,
+  axisTicks: number[],
+  showHistory: boolean,
+  origin: Date,
 ): ChartView[] {
   if (baseline.result.ticks.length === 0) {
     throw new Error('Baseline run has no ticks');
@@ -99,7 +128,9 @@ function pairedViews(
     runMarks(baseline.result, baseline.transitionLength, 'baseline'),
     runMarks(variant, transitionLength, 'variant'),
   );
-  return CHART_PANELS.map((spec) => pairedViewFromSpec(spec, variant, regime, baseline, marks));
+  return CHART_PANELS.map((spec) =>
+    pairedViewFromSpec(spec, variant, regime, baseline, marks, axisTicks, showHistory, origin),
+  );
 }
 
 function viewFromSpec(
@@ -107,20 +138,31 @@ function viewFromSpec(
   result: RunSuccess,
   regime: string,
   marks: ChartMarks,
+  axisTicks: number[],
+  showHistory: boolean,
+  origin: Date,
 ): ChartView {
-  const scaled = scaleCents(
-    unitText(spec.unit, regime),
-    spec.lines.map((line) => lineOf(result, line)),
+  const modelLines = spec.lines.map((line) =>
+    padModelLine(lineOf(result, line), axisTicks, result.ticks),
   );
-  return {
+  const historyLines = showHistory
+    ? historyLinesFor(spec, result, axisTicks, origin)
+    : [];
+  const scaled = scaleCents(unitText(spec.unit, regime), [...modelLines, ...historyLines]);
+  const view: ChartView = {
     key: spec.key,
     title: spec.title,
     group: spec.group,
     unit: scaled.unit,
     description: withMarksTip(spec.description, marks),
+    ticks: axisTicks,
     lines: scaled.lines,
     marks,
   };
+  if (historyLines.length > 0) {
+    view.note = historyChartNote();
+  }
+  return view;
 }
 
 function pairedViewFromSpec(
@@ -129,6 +171,9 @@ function pairedViewFromSpec(
   regime: string,
   baseline: BaselineRun,
   marks: ChartMarks,
+  axisTicks: number[],
+  showHistory: boolean,
+  origin: Date,
 ): ChartView {
   const baselineMoney = moneyUnit(baseline.regime);
   const variantMoney = moneyUnit(regime);
@@ -136,41 +181,62 @@ function pairedViewFromSpec(
   const rows: MoneyLine[] = [];
   for (const line of spec.lines) {
     rows.push({
-      line: checkedLine(
+      line: padModelLine(
+        checkedLine(
+          baseline.result.ticks,
+          line.label,
+          readSeries(baseline.result, line.id),
+          line.color,
+          {
+            omitLegend: true,
+            pair: line.id,
+          },
+        ),
+        axisTicks,
         baseline.result.ticks,
-        line.label,
-        readSeries(baseline.result, line.id),
-        line.color,
-        {
-          omitLegend: true,
-          pair: line.id,
-        },
       ),
       money: baselineMoney,
     });
     rows.push({
-      line: checkedLine(variant.ticks, line.label, readSeries(variant, line.id), line.color, {
-        dash: VARIANT_DASH,
-        pair: line.id,
-      }),
+      line: padModelLine(
+        checkedLine(variant.ticks, line.label, readSeries(variant, line.id), line.color, {
+          dash: VARIANT_DASH,
+          pair: line.id,
+        }),
+        axisTicks,
+        variant.ticks,
+      ),
       money: variantMoney,
     });
   }
+  const historyLines = showHistory
+    ? historyLinesFor(spec, variant, axisTicks, origin)
+    : [];
   if (mixedMoney) {
-    return mixedMoneyView(spec, rows, marks);
+    const mixed = mixedMoneyView(spec, rows, marks, axisTicks);
+    if (historyLines.length > 0) {
+      mixed.lines = [...mixed.lines, ...historyLines];
+      mixed.note = `${mixed.note ?? ''} ${historyChartNote()}`.trim();
+    }
+    return mixed;
   }
-  const lines = rows.map((row) => row.line);
+  const lines = [...rows.map((row) => row.line), ...historyLines];
   const scaled = scaleCents(unitText(spec.unit, regime), lines);
-  return {
+  const view: ChartView = {
     key: spec.key,
     title: spec.title,
     group: spec.group,
     unit: scaled.unit,
     description: withMarksTip(spec.description, marks),
+    ticks: axisTicks,
     lines: scaled.lines,
     marks,
     caption: comparisonCaption(captionSeries(spec.lines, scaled.lines)),
   };
+  if (historyLines.length > 0) {
+    view.note = historyChartNote();
+  }
+  return view;
 }
 
 interface MoneyLine {
@@ -182,6 +248,7 @@ function mixedMoneyView(
   spec: ChartPanel,
   rows: readonly MoneyLine[],
   marks: ChartMarks,
+  axisTicks: number[],
 ): ChartView {
   const fiatLines = rows.filter((row) => row.money === 'cents').map((row) => row.line);
   const fiatUnit = peakAbs(fiatLines) > CENT_DISPLAY_MAX ? 'dollars' : 'cents';
@@ -195,6 +262,7 @@ function mixedMoneyView(
     unit: '',
     note: `Solid lines are the baseline, in ${baselineUnit} (${axisName(baselineUnit)} axis). Dashed lines are the scenario, in ${variantUnit} (${axisName(variantUnit)} axis).`,
     description: withMarksTip(spec.description, marks),
+    ticks: axisTicks,
     lines,
     marks,
     caption: comparisonCaption([], { mixedUnits: true }),
@@ -209,7 +277,9 @@ function placeMoneyLine(row: MoneyLine, fiatUnit: string): ChartLine {
     unit: fiat ? fiatUnit : 'satoshis',
   };
   if (fiat && fiatUnit === 'dollars') {
-    line.values = row.line.values.map((value) => value / CENTS_PER_DOLLAR);
+    line.values = row.line.values.map((value) =>
+      value === null ? null : value / CENTS_PER_DOLLAR,
+    );
   }
   return line;
 }
@@ -230,14 +300,19 @@ function captionSeries(
     }
     const series: CaptionSeries = {
       label: spec.label,
-      baseline: baseline.values,
-      variant: variant.values,
+      baseline: finiteSeries(baseline.values),
+      variant: finiteSeries(variant.values),
     };
     if (spec.better !== undefined) {
       series.better = spec.better;
     }
     return series;
   });
+}
+
+/** Captions score the run months only; history nulls are dropped. */
+function finiteSeries(values: readonly (number | null)[]): number[] {
+  return values.filter((value): value is number => value !== null && Number.isFinite(value));
 }
 
 function withMarksTip(description: string, marks: ChartMarks): string {
@@ -258,7 +333,7 @@ function peakAbs(lines: readonly ChartLine[]): number {
   let peak = 0;
   for (const line of lines) {
     for (const value of line.values) {
-      if (Number.isFinite(value)) {
+      if (value !== null && Number.isFinite(value)) {
         peak = Math.max(peak, Math.abs(value));
       }
     }
@@ -267,7 +342,10 @@ function peakAbs(lines: readonly ChartLine[]): number {
 }
 
 function asDollars(line: ChartLine): ChartLine {
-  return { ...line, values: line.values.map((value) => value / CENTS_PER_DOLLAR) };
+  return {
+    ...line,
+    values: line.values.map((value) => (value === null ? null : value / CENTS_PER_DOLLAR)),
+  };
 }
 
 function unitText(unit: ChartPanel['unit'], regime: string): string {
@@ -296,15 +374,65 @@ function lineOf(result: RunSuccess, spec: ChartLineSpec): ChartLine {
   return checkedLine(result.ticks, spec.label, readSeries(result, spec.id), spec.color);
 }
 
-function cpiBandView(result: BandRunResult, regime: string, marks: ChartMarks): ChartView {
+function padModelLine(
+  line: ChartLine,
+  axisTicks: readonly number[],
+  runTicks: readonly number[],
+): ChartLine {
+  if (axisTicks.length === runTicks.length) {
+    return line;
+  }
+  return {
+    ...line,
+    values: padHistoryValues(axisTicks, line.values, runTicks),
+  };
+}
+
+function historyLinesFor(
+  spec: ChartPanel,
+  result: RunSuccess,
+  axisTicks: readonly number[],
+  origin: Date,
+): ChartLine[] {
+  const lines: ChartLine[] = [];
+  for (const line of spec.lines) {
+    if (!isHistoryMetric(line.id)) {
+      continue;
+    }
+    const model = readSeries(result, line.id);
+    const open = model[0] ?? null;
+    lines.push(historyLine(line.id, line.label, line.color, axisTicks, origin, open));
+  }
+  return lines;
+}
+
+function cpiBandView(
+  result: BandRunResult,
+  regime: string,
+  marks: ChartMarks,
+  axisTicks: number[],
+  showHistory: boolean,
+): ChartView {
   const band = result.bands.priceLevel;
   if (band === undefined) {
     throw new Error('Missing band priceLevel');
   }
   const scaled = scaleCents(moneyUnit(regime), [
-    checkedLine(result.ticks, '5th', band.low, '#99b'),
-    checkedLine(result.ticks, 'Median', band.mid, '#246'),
-    checkedLine(result.ticks, '95th', band.high, '#99b'),
+    padModelLine(
+      checkedLine(result.ticks, '5th', band.low, '#99b'),
+      axisTicks,
+      result.ticks,
+    ),
+    padModelLine(
+      checkedLine(result.ticks, 'Median', band.mid, '#246'),
+      axisTicks,
+      result.ticks,
+    ),
+    padModelLine(
+      checkedLine(result.ticks, '95th', band.high, '#99b'),
+      axisTicks,
+      result.ticks,
+    ),
   ]);
   return {
     key: 'cpi-band',
@@ -315,6 +443,7 @@ function cpiBandView(result: BandRunResult, regime: string, marks: ChartMarks): 
       'Median CPI across these seeds, with the 5th and 95th percentiles.',
       marks,
     ),
+    ticks: axisTicks,
     lines: scaled.lines,
     marks,
   };
@@ -330,7 +459,7 @@ function checkedLine(
   if (values.length !== ticks.length) {
     throw new Error(`${label} has ${values.length} points for ${ticks.length} ticks`);
   }
-  const line: ChartLine = { label, values, color };
+  const line: ChartLine = { label, values: [...values], color };
   if (options?.dash !== undefined) {
     line.dash = options.dash;
   }

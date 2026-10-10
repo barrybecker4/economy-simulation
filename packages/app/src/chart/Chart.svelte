@@ -20,6 +20,8 @@
     ticks: number[];
     lines: ChartLine[];
     marks?: ChartMarks;
+    /** Calendar month of tick 0. Shared across charts so history lines align. */
+    origin?: Date;
     /** Under a pinned baseline: how the scenario differs from the baseline. */
     caption?: string;
   }
@@ -31,13 +33,13 @@
     ticks,
     lines,
     marks = emptyMarks(),
+    origin = new Date(),
     caption = '',
   }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
   let drawnKey = '';
-  const opened = new Date();
-  const axisNote = $derived(`Months run from ${monthAxisLabel(ticks, opened)}.`);
+  const axisNote = $derived(`Months run from ${monthAxisLabel(ticks, origin)}.`);
   const heading = $derived(unit ? `${title} (${unit})` : title);
   const titleId = `chart-title-${chartSeq}`;
   const tipId = `chart-tip-${chartSeq}`;
@@ -122,7 +124,7 @@
       return;
     }
     const width = host.clientWidth;
-    const built = buildPlot(width, ticks, lines, opened, marks);
+    const built = buildPlot(width, ticks, lines, origin, marks);
     if (plot !== undefined && built.key === drawnKey) {
       return;
     }
@@ -158,6 +160,7 @@
     ticks;
     lines;
     marks;
+    origin;
     draw();
   });
 

@@ -23,7 +23,7 @@ const RULE_ALPHA = 0.9;
 export interface PlotLine {
   label: string;
   color: string;
-  values?: readonly number[];
+  values?: readonly (number | null)[];
   dash?: readonly number[];
   omitLegend?: boolean;
   pair?: string;
@@ -42,7 +42,7 @@ interface FocusedSeries extends uPlot.Series {
 const CHART_SURFACE = '#fff';
 
 export interface PlottableLine extends PlotLine {
-  values: readonly number[];
+  values: readonly (number | null)[];
 }
 
 /** One plot: identity, uPlot options, and aligned data, including paired-legend behavior. */
@@ -55,7 +55,7 @@ export function buildPlot(
 ): { key: string; options: ReturnType<typeof plotOptions>; data: uPlot.AlignedData } {
   return {
     key: chartKey(width, ticks, lines, marks),
-    options: plotOptions(width, lines, marks),
+    options: plotOptions(width, lines, marks, ticks),
     data: plotData(ticks, lines, origin),
   };
 }
@@ -87,6 +87,7 @@ export function plotOptions(
   width: number,
   lines: readonly PlotLine[],
   marks: ChartMarks = emptyMarks(),
+  ticks: readonly number[] = [],
 ) {
   const paired = lines.some((line) => line.pair !== undefined);
   const rightScale = lines.find(
@@ -100,7 +101,7 @@ export function plotOptions(
       ...(rightScale !== undefined ? { [rightScale]: {} } : {}),
     },
     series: [
-      { label: 'Month', value: monthLegendValue(marks) },
+      { label: 'Month', value: monthLegendValue(marks, ticks) },
       ...lines.map((line, index) => ({
         label: line.label,
         stroke: line.color,
@@ -113,7 +114,7 @@ export function plotOptions(
       })),
     ],
     axes: yAxes(lines, rightScale),
-    hooks: plotHooks(lines, marks),
+    hooks: plotHooks(lines, marks, ticks),
   };
 }
 
@@ -150,7 +151,8 @@ function axisLabels(lines: readonly PlotLine[], scale: string): string[] {
 function samplesOn(lines: readonly PlotLine[], scale: string): number[] {
   return lines
     .filter((line) => (line.scale ?? LEFT_SCALE) === scale)
-    .flatMap((line) => line.values ?? []);
+    .flatMap((line) => line.values ?? [])
+    .filter((value): value is number => value !== null);
 }
 
 function scaleUnit(lines: readonly PlotLine[], scale: string): string {
@@ -183,7 +185,11 @@ export function focusedSeries(lines: readonly { pair?: string }[], seriesIdx: nu
   return group;
 }
 
-function plotHooks(lines: readonly PlotLine[], marks: ChartMarks): uPlot.Hooks.Arrays {
+function plotHooks(
+  lines: readonly PlotLine[],
+  marks: ChartMarks,
+  ticks: readonly number[],
+): uPlot.Hooks.Arrays {
   const paired = lines.some((line) => line.pair !== undefined);
   const marked = hasMarks(marks);
   const hooks: uPlot.Hooks.Arrays = {
@@ -191,7 +197,7 @@ function plotHooks(lines: readonly PlotLine[], marks: ChartMarks): uPlot.Hooks.A
       (plot) => {
         bindLegend(plot, lines);
         if (marked) {
-          bindEventLegend(plot, marks);
+          bindEventLegend(plot, marks, ticks);
         }
       },
     ],
@@ -199,12 +205,12 @@ function plotHooks(lines: readonly PlotLine[], marks: ChartMarks): uPlot.Hooks.A
   if (marked) {
     hooks.drawClear = [
       (plot) => {
-        paintMarks(plot, marks);
+        paintMarks(plot, marks, ticks);
       },
     ];
     hooks.setCursor = [
       (plot) => {
-        refreshEventLegend(plot, marks);
+        refreshEventLegend(plot, marks, ticks);
       },
     ];
   }
@@ -256,7 +262,7 @@ function bindLegend(plot: uPlot, lines: readonly PlotLine[]): void {
   });
 }
 
-function bindEventLegend(plot: uPlot, marks: ChartMarks): void {
+function bindEventLegend(plot: uPlot, marks: ChartMarks, ticks: readonly number[]): void {
   const legend = plot.root.querySelector('.u-legend');
   if (legend === null) {
     return;
@@ -267,10 +273,10 @@ function bindEventLegend(plot: uPlot, marks: ChartMarks): void {
     host.className = 'u-event-legend';
     legend.appendChild(host);
   }
-  refreshEventLegend(plot, marks);
+  refreshEventLegend(plot, marks, ticks);
 }
 
-function refreshEventLegend(plot: uPlot, marks: ChartMarks): void {
+function refreshEventLegend(plot: uPlot, marks: ChartMarks, ticks: readonly number[]): void {
   const host = plot.root.querySelector<HTMLElement>('.u-event-legend');
   if (host === null) {
     return;
@@ -280,9 +286,28 @@ function refreshEventLegend(plot: uPlot, marks: ChartMarks): void {
   if (idx === null || idx === undefined) {
     return;
   }
-  for (const event of eventsAt(marks, idx)) {
+  const month = simulationMonth(ticks, idx);
+  if (month === null) {
+    return;
+  }
+  for (const event of eventsAt(marks, month)) {
     host.appendChild(eventRow(event));
   }
+}
+
+/** Simulation month at a data index, or null on a historical prefix month. */
+function simulationMonth(ticks: readonly number[], idx: number): number | null {
+  const month = ticks[idx];
+  if (month === undefined || month < 0) {
+    return null;
+  }
+  return month;
+}
+
+/** Data index of a simulation month on the axis, or null when that month is absent. */
+function indexOfSimulationMonth(ticks: readonly number[], month: number): number | null {
+  const index = ticks.indexOf(month);
+  return index === -1 ? null : index;
 }
 
 function eventRow(event: ChartEvent): HTMLElement {
@@ -382,7 +407,7 @@ function paintDashedLines(plot: uPlot, lines: readonly PlotLine[]): void {
   ctx.restore();
 }
 
-function paintMarks(plot: uPlot, marks: ChartMarks): void {
+function paintMarks(plot: uPlot, marks: ChartMarks, ticks: readonly number[]): void {
   const { left, top, width, height } = plot.bbox;
   if (width <= 0 || height <= 0) {
     return;
@@ -399,11 +424,20 @@ function paintMarks(plot: uPlot, marks: ChartMarks): void {
   ctx.rect(left, top, width, height);
   ctx.clip();
   for (const band of marks.bands) {
-    const span = monthSpan(plot, xs, band.start, band.end, scale);
+    const startIdx = indexOfSimulationMonth(ticks, band.start);
+    const endIdx = indexOfSimulationMonth(ticks, band.end);
+    if (startIdx === null || endIdx === null) {
+      continue;
+    }
+    const span = monthSpan(plot, xs, startIdx, endIdx, scale);
     fillBand(ctx, span.left, top, span.right, bottom, band.color, band.style === 'variant', scale);
   }
   for (const rule of marks.rules) {
-    const x = plot.valToPos(Number(xs[rule.tick]), 'x', true);
+    const ruleIdx = indexOfSimulationMonth(ticks, rule.tick);
+    if (ruleIdx === null) {
+      continue;
+    }
+    const x = plot.valToPos(Number(xs[ruleIdx]), 'x', true);
     strokeRule(ctx, x, top, bottom, rule.color, rule.style === 'variant', scale);
   }
   ctx.restore();
@@ -412,8 +446,8 @@ function paintMarks(plot: uPlot, marks: ChartMarks): void {
 function monthSpan(
   plot: uPlot,
   xs: unknown[],
-  start: number,
-  end: number,
+  startIdx: number,
+  endIdx: number,
   scale: number,
 ): { left: number; right: number } {
   const first = Number(xs[0]);
@@ -423,8 +457,8 @@ function monthSpan(
       ? Math.abs(plot.valToPos(second, 'x', true) - plot.valToPos(first, 'x', true)) / 2
       : 4 * scale;
   return {
-    left: plot.valToPos(Number(xs[start]), 'x', true) - half,
-    right: plot.valToPos(Number(xs[end]), 'x', true) + half,
+    left: plot.valToPos(Number(xs[startIdx]), 'x', true) - half,
+    right: plot.valToPos(Number(xs[endIdx]), 'x', true) + half,
   };
 }
 
@@ -502,13 +536,18 @@ function rgba(hex: string, alpha: number): string {
 
 function monthLegendValue(
   marks: ChartMarks,
+  ticks: readonly number[],
 ): (self: uPlot, raw: number, seriesIdx: number, idx: number | null) => string {
   return (_self, raw, _seriesIdx, idx) => {
     if (idx === null || !Number.isFinite(raw)) {
       return '--';
     }
     const month = formatLegendMonth(raw);
-    const events = eventsAt(marks, idx);
+    const simMonth = simulationMonth(ticks, idx);
+    if (simMonth === null) {
+      return month;
+    }
+    const events = eventsAt(marks, simMonth);
     if (events.length === 0) {
       return month;
     }
@@ -558,7 +597,7 @@ function pointText(value: unknown): string {
 
 export function plotData(
   ticks: readonly number[],
-  lines: readonly { values: readonly number[] }[],
+  lines: readonly { values: readonly (number | null)[] }[],
   origin: Date,
 ): uPlot.AlignedData {
   const data: uPlot.AlignedData = [monthAxisSeconds(ticks, origin)];

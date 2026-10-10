@@ -6,6 +6,7 @@
     seed = $bindable(),
     ticks = $bindable(),
     seeds = $bindable(),
+    showHistory = $bindable(),
     busy,
     runPrimary,
     pinned,
@@ -20,6 +21,7 @@
     seed: number;
     ticks: number;
     seeds: number;
+    showHistory: boolean;
     busy: boolean;
     runPrimary: boolean;
     pinned: boolean;
@@ -64,6 +66,15 @@
           disabled={busy}
           aria-describedby="help-num-seeds"
         />
+      </label>
+    </NameTip>
+    <NameTip
+      id="us-history"
+      intro="Extends the chart axis ten years before the run and draws dotted US lines on charts that have a matching series. Turning this on does not rerun the simulation."
+    >
+      <label class="toggle">
+        <input type="checkbox" bind:checked={showHistory} aria-describedby="help-us-history" />
+        US history
       </label>
     </NameTip>
     <NameTip
@@ -156,6 +167,9 @@
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
+  }
+  .controls label.toggle {
+    gap: 0.4rem;
   }
   button {
     font: inherit;

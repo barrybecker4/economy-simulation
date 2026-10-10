@@ -39,7 +39,13 @@ describe('plotOptions', () => {
       ],
       rules: [],
     };
-    const options = plotOptions(640, [{ label: 'CPI', color: '#246', values: [1, 2, 3] }], marks);
+    const ticks = [0, 1, 2];
+    const options = plotOptions(
+      640,
+      [{ label: 'CPI', color: '#246', values: [1, 2, 3] }],
+      marks,
+      ticks,
+    );
     const monthValue = options.series[0]?.value;
     expect(typeof monthValue).toBe('function');
     if (typeof monthValue !== 'function') {
@@ -49,6 +55,32 @@ describe('plotOptions', () => {
     expect(monthValue({} as uPlot, april, 0, null)).toBe('--');
     expect(monthValue({} as uPlot, april, 0, 0)).toBe('Apr 2031');
     expect(monthValue({} as uPlot, april, 0, 1)).toBe('Apr 2031 · Productivity expansion');
+  });
+
+  it('keeps mark events on simulation months after a history prefix', () => {
+    const marks = {
+      bands: [
+        {
+          kind: 'demand-expansion' as const,
+          label: 'Demand expansion',
+          color: '#0f766e',
+          start: 0,
+          end: 0,
+          style: 'solo' as const,
+        },
+      ],
+      rules: [],
+    };
+    const ticks = [-2, -1, 0, 1];
+    const options = plotOptions(640, [{ label: 'CPI', color: '#246' }], marks, ticks);
+    const monthValue = options.series[0]?.value;
+    expect(typeof monthValue).toBe('function');
+    if (typeof monthValue !== 'function') {
+      return;
+    }
+    const oct = new Date(2024, 9, 1).getTime() / 1000;
+    expect(monthValue({} as uPlot, oct, 0, 0)).toBe('Oct 2024');
+    expect(monthValue({} as uPlot, oct, 0, 2)).toBe('Oct 2024 · Demand expansion');
   });
 
   it('dashes a variant line and leaves the baseline solid', () => {
@@ -341,7 +373,12 @@ describe('plotOptions', () => {
         },
       ],
     };
-    const options = plotOptions(640, [{ label: 'CPI', color: '#246', values: [1, 2] }], marks);
+    const options = plotOptions(
+      640,
+      [{ label: 'CPI', color: '#246', values: [1, 2] }],
+      marks,
+      [0, 1],
+    );
     const fills: string[] = [];
     const strokes: { style: string; dash: string }[] = [];
     let dash = '';
