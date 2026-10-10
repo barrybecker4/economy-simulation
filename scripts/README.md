@@ -53,28 +53,29 @@ The script produces:
 1. **headline-spec.json**: The specification file for the runner
 2. **headline-results.jsonl**: Line-delimited JSON with all simulation results
 3. **Console report**: Tables showing:
-   - Median metrics for each configuration (years 2-20)
-   - Bitcoin vs fiat gaps (consumption %, unemployment pp, GDP %)
+   - Median month-239 real consumption and real GDP across 20 seeds
+   - Median year 2-20 unemployment (months 12-239) across 20 seeds
+   - Bitcoin vs fiat gaps: month-239 consumption and GDP medians, year 2-20 unemployment medians
 
 ### Example Output
 
 ```
-=== HEADLINE SUITE RESULTS (Years 2-20) ===
+=== HEADLINE SUITE RESULTS ===
 
-Config                          | Median Real Consumption | Unemployment % | Real GDP
---------------------------------|------------------------|----------------|----------
-S0|fiat                         |                 12.345 |           5.10 |   1250.0
-S0|bitcoin                      |                 12.012 |           6.10 |   1252.5
+Config                          | Real Consumption (m239) | Unemployment (y2-20) % | Real GDP (m239)
+--------------------------------|-------------------------|------------------------|----------------
+S0|fiat                         |                  12.345 |                   5.10 |          1250.0
+S0|bitcoin                      |                  12.012 |                   6.10 |          1252.5
 ...
 
-=== Bitcoin vs Fiat Gaps ===
+=== Bitcoin vs Fiat Gaps (month 239 consumption) ===
 
-Config         | ΔConsumption % | ΔUnemployment pp | ΔGDP %
----------------|----------------|------------------|--------
-S0             |           -2.7 |            +1.00 |   +0.2
-S1             |           -1.9 |            +2.57 |   -1.5
-S2             |           -2.7 |            +2.78 |  -17.1
-S3             |           -2.0 |            +2.41 |   -2.0
+Config         | ΔConsumption % (m239) | ΔUnemployment pp (y2-20) | ΔGDP % (m239)
+---------------|----------------------|--------------------------|---------------
+S0             |                 -2.7 |                    +1.00 |          +0.2
+S1             |                 -1.9 |                    +2.57 |          -1.5
+S2             |                 -2.7 |                    +2.78 |         -17.1
+S3             |                 -2.0 |                    +2.41 |          -2.0
 ...
 ```
 

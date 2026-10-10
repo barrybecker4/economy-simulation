@@ -159,8 +159,8 @@ function analyzeResults(resultsPath) {
     const c239 = series.medianRealConsumption[239];
     const g239 = series.realGdp[239];
 
-    // Year 2-20 averages for unemployment
-    const u = series.unemployment.slice(12, 239);
+    // Year 2-20 averages for unemployment (months 12-239 inclusive)
+    const u = series.unemployment.slice(12, 240);
 
     data[row.cond].seeds.push(row.seed);
     data[row.cond].unemployment.push(u.reduce((a, b) => a + b, 0) / u.length);
