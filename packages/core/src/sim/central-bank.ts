@@ -165,13 +165,17 @@ export function stimulusMoneyFade(moneyMultiple: number): number {
 }
 
 /**
- * Signed unemployment gap for the stimulus lag queue. Positive is slack;
- * negative is a tight labor market. Gaps inside two points of the natural rate
- * are treated as zero so calm runs and small staffing noise do not drift the stock.
+ * Unemployment gap for the stimulus lag queue. Returns positive slack
+ * (unemployment above natural rate) or zero. Never returns negative values,
+ * so stimulus helps in slumps without withdrawing in tight labor markets.
+ * Gaps inside two points are treated as zero.
  */
 export function stimulusPressure(economy: Economy): number {
   const gap = unemploymentRate(economy) - naturalUnemployment(economy);
-  return Math.abs(gap) < STIMULUS_GAP_DEADBAND ? 0 : gap;
+  if (gap < STIMULUS_GAP_DEADBAND) {
+    return 0;
+  }
+  return gap;
 }
 
 /** @deprecated Use stimulusPressure. Kept for older phase imports. */
