@@ -109,8 +109,8 @@ function runSuite(outputDir) {
   // Build the core package first
   console.log('\nBuilding core package...');
   try {
-    execFileSync('pnpm', ['--filter', '@economy-simulation/core', 'build'], {
-      cwd: REPO_ROOT,
+    execFileSync('npx', ['tsc'], {
+      cwd: join(REPO_ROOT, 'packages/core'),
       stdio: 'inherit',
     });
   } catch {
