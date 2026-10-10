@@ -46,10 +46,10 @@ function recordOutput(snapshot: MetricSnapshot, metrics: MetricSink): void {
 }
 
 function recordPrices(snapshot: MetricSnapshot, metrics: MetricSink): void {
-  metrics.set('priceLevel', snapshot.priceLevel);
-  metrics.set('priceGeneral', snapshot.categories.priceGeneral);
+  metrics.set('priceLevel', reported(snapshot, snapshot.priceLevel));
+  metrics.set('priceGeneral', reported(snapshot, snapshot.categories.priceGeneral));
   for (const id of BASKET_METRICS) {
-    metrics.set(id, snapshot.categories[id]);
+    metrics.set(id, reported(snapshot, snapshot.categories[id]));
   }
   metrics.set('housingSecurity', snapshot.housingSecurity);
   metrics.set('homePriceMonths', snapshot.homePriceMonths);
@@ -58,8 +58,8 @@ function recordPrices(snapshot: MetricSnapshot, metrics: MetricSink): void {
 }
 
 function recordMoney(snapshot: MetricSnapshot, metrics: MetricSink): void {
-  metrics.set('moneySupply', snapshot.deposits);
-  metrics.set('baseMoney', snapshot.reserves);
+  metrics.set('moneySupply', reported(snapshot, snapshot.deposits));
+  metrics.set('baseMoney', reported(snapshot, snapshot.reserves));
   metrics.set('loanToSavings', snapshot.savings > 0 ? snapshot.loans / snapshot.savings : 0);
   metrics.set(
     'velocity',
@@ -75,7 +75,7 @@ function recordMoney(snapshot: MetricSnapshot, metrics: MetricSink): void {
   metrics.set('bitcoinShare', snapshot.bitcoinShare);
   metrics.set('stablecoinShare', snapshot.stablecoinShare);
   metrics.set('cbdcShare', snapshot.cbdcShare);
-  metrics.set('bitcoinPrice', snapshot.bitcoinPrice);
+  metrics.set('bitcoinPrice', reported(snapshot, snapshot.bitcoinPrice));
 }
 
 function recordTenure(snapshot: MetricSnapshot, metrics: MetricSink, penalty: number): void {
@@ -95,7 +95,7 @@ function recordTenure(snapshot: MetricSnapshot, metrics: MetricSink, penalty: nu
       'consumerCreditToGdp',
       snapshot.nominalOutput > 0 ? tenure.consumerCredit / (snapshot.nominalOutput * 12) : 0,
     );
-    metrics.set('newConsumerBorrowing', tenure.newConsumerBorrowing);
+    metrics.set('newConsumerBorrowing', reported(snapshot, tenure.newConsumerBorrowing));
     metrics.set('medianDebtService', tenure.medianDebtService);
     return;
   }
@@ -128,27 +128,27 @@ function recordProfitSharing(snapshot: MetricSnapshot, metrics: MetricSink, pena
 }
 
 function recordFlows(snapshot: MetricSnapshot, metrics: MetricSink): void {
-  metrics.set('taxRevenue', snapshot.taxRevenue);
-  metrics.set('agentTaxRevenue', snapshot.agentTaxRevenue);
-  metrics.set('ubiOutlay', snapshot.ubiOutlay);
-  metrics.set('wageBill', snapshot.wageBill);
-  metrics.set('profitPaid', snapshot.profitPaid);
+  metrics.set('taxRevenue', reported(snapshot, snapshot.taxRevenue));
+  metrics.set('agentTaxRevenue', reported(snapshot, snapshot.agentTaxRevenue));
+  metrics.set('ubiOutlay', reported(snapshot, snapshot.ubiOutlay));
+  metrics.set('wageBill', reported(snapshot, snapshot.wageBill));
+  metrics.set('profitPaid', reported(snapshot, snapshot.profitPaid));
   metrics.set(
     'householdGoodsSpend',
-    Math.max(0, snapshot.consumptionSpend - snapshot.agentGoodsSpend),
+    reported(snapshot, Math.max(0, snapshot.consumptionSpend - snapshot.agentGoodsSpend)),
   );
-  metrics.set('govGoodsSpend', snapshot.govGoodsSpend);
-  metrics.set('agentGoodsSpend', snapshot.agentGoodsSpend);
-  metrics.set('agentVolume', snapshot.agentVolume);
-  metrics.set('agentFees', snapshot.agentFees);
-  metrics.set('agentSweep', snapshot.agentSweep);
-  metrics.set('interestPaid', snapshot.interestPaid);
-  metrics.set('newBorrowing', snapshot.newBorrowing);
-  metrics.set('loanRepaid', snapshot.loanRepaid);
+  metrics.set('govGoodsSpend', reported(snapshot, snapshot.govGoodsSpend));
+  metrics.set('agentGoodsSpend', reported(snapshot, snapshot.agentGoodsSpend));
+  metrics.set('agentVolume', reported(snapshot, snapshot.agentVolume));
+  metrics.set('agentFees', reported(snapshot, snapshot.agentFees));
+  metrics.set('agentSweep', reported(snapshot, snapshot.agentSweep));
+  metrics.set('interestPaid', reported(snapshot, snapshot.interestPaid));
+  metrics.set('newBorrowing', reported(snapshot, snapshot.newBorrowing));
+  metrics.set('loanRepaid', reported(snapshot, snapshot.loanRepaid));
   metrics.set('demandImpulse', snapshot.demandImpulse);
   metrics.set('creditImpulse', snapshot.creditImpulse);
   metrics.set('productivityImpulse', snapshot.productivityImpulse);
-  metrics.set('defaults', snapshot.defaultsThisTick);
+  metrics.set('defaults', reported(snapshot, snapshot.defaultsThisTick));
   metrics.set('bankFailures', snapshot.cumulativeFailures);
   metrics.set('boomLength', snapshot.boomLength);
   metrics.set('bustLength', snapshot.bustLength);
@@ -179,6 +179,11 @@ function recordDistributions(snapshot: MetricSnapshot, metrics: MetricSink): voi
   metrics.set('consumptionFloorShare', snapshot.consumptionFloorShare);
   metrics.set('meanWellbeing', snapshot.wellbeingMean);
   metrics.set('medianWellbeing', snapshot.wellbeingMedian);
+}
+
+/** Charted fiat levels are internal units times the redenomination scale. */
+function reported(snapshot: MetricSnapshot, value: number): number {
+  return value * snapshot.nominalScale;
 }
 
 function recordPopulation(snapshot: MetricSnapshot, metrics: MetricSink): void {

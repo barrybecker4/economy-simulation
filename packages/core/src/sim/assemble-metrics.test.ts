@@ -176,6 +176,17 @@ describe('assembleMetrics', () => {
       values.get('totalRealWealth'),
     );
   });
+
+  it('reports fiat levels in original cents after redenomination', () => {
+    const values = recorded({
+      ...snapshot({ priceLevel: 4, deposits: 7, inflation: 0.2, wageLevel: 2 }),
+      nominalScale: 1000,
+    });
+    expect(values.get('priceLevel')).toBe(4000);
+    expect(values.get('moneySupply')).toBe(7000);
+    expect(values.get('inflation')).toBe(0.2);
+    expect(values.get('realWage')).toBe(0.5);
+  });
 });
 
 function snapshot(
@@ -195,6 +206,7 @@ function snapshot(
     householdCount: input.householdCount,
     agentCount: input.agentCount,
     priceLevel: input.priceLevel,
+    nominalScale: 1,
     categories: {
       priceFood: 1,
       priceHousing: 1,

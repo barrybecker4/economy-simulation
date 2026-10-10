@@ -32,6 +32,7 @@ function metricSnapshot(economy: Economy): MetricSnapshot {
     jobs: jobShares(economy),
     ownerWealthShare: ownerWealthShare(economy),
     aiShareOfWealth: aiShareOfWealth(economy),
+    nominalScale: economy.nominalScale,
     aiFactor: economy.aiFactor,
     automatedShare: economy.automatedShare,
     naturalUnemployment: naturalUnemployment(economy),

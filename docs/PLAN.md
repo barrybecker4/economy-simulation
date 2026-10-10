@@ -1604,6 +1604,8 @@ workforce for one month.
 Acceptance:
 
 - Adding bonds past the safe integer throws.
+- Gradual nominal growth is redenominated before a fiat stock reaches that ceiling, so a hyperinflation still finishes
+  and charted prices stay in original cents. See the accounting section of `docs/model.md`.
 - A replaced firm keeps its worker list and household employer links.
 - A monetary fiat demand shock does not jump unemployment by 20 points or more in one month.
 

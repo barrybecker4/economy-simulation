@@ -39,6 +39,8 @@ export interface MetricSnapshot {
   householdCount: number;
   agentCount: number;
   priceLevel: number;
+  /** Multiplier from internal fiat units to original cents. One when nothing has been redenominated. */
+  nominalScale: number;
   categories: BasketSplit;
   housingSecurity: number;
   homePriceMonths: number;

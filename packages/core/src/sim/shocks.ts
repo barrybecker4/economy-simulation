@@ -4,9 +4,11 @@ import { clamp, monthlyFromAnnual } from './stats.js';
 import type { Economy } from './economy.js';
 import { writeOffFirmLoan } from './money.js';
 import { clearLenderOfLastResort } from './resolution.js';
+import { rebaseNominal } from './nominal-scale.js';
 import { ensureOpen } from './stocks.js';
 
 export function onShocks(economy: Economy, ctx: TickContext): void {
+  rebaseNominal(economy);
   ensureOpen(economy, ctx.ledger);
   economy.tick = ctx.tick;
   clearLenderOfLastResort(economy);

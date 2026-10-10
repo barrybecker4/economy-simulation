@@ -54,6 +54,7 @@ export function blankEconomy(
     ubiOutlay: 0,
     wageLevel,
     priceLevel,
+    nominalScale: 1,
     productivity: 1,
     demandImpulse: 0,
     productivityImpulse: 0,

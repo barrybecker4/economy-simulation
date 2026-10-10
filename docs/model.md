@@ -9,8 +9,12 @@ Implemented in Phase 1. See [ADR 0002](adr/0002-money-agents-prices-welfare.md).
 
 A ledger holds one unit. Fiat amounts are integer cents. One household, firm, or bank balance is rejected above
 `Number.MAX_SAFE_INTEGER` (2^53 − 1). An aggregate ledger account may hold the sum of those balances up to 2^63 − 1, so
-the books still close when that sum no longer fits in a JavaScript number. Bitcoin amounts are IEEE-754 doubles in
-satoshis and may be a fraction of a satoshi.
+the books still close when that sum no longer fits in a JavaScript number. Before a price or money stock passes 10^12
+internal cents, every nominal fiat quantity is divided by 1,000 and a nominal scale is multiplied by 1,000. Reported
+prices and money flows are the internal quantities times that scale, in original cents. Real ratios, including
+inflation, are unchanged. The division repeats so a hyperinflation can finish a run. Bitcoin amounts are IEEE-754
+doubles in satoshis and may be a fraction of a satoshi. A redenomination divides the fiat price of bitcoin with the
+other prices and leaves bitcoin unit balances unchanged. See [ADR 0025](adr/0025-nominal-redenomination.md).
 
 Each account is an asset, a liability, or equity. A debit increases an asset and decreases a liability or equity. A
 credit does the opposite. A transaction has at least two lines, and its debits equal its credits. The books update only
@@ -302,7 +306,9 @@ reset firm keeps its current workers; later labor steps still shed under the mon
 notional budget is the crisis-stimulus share of the positive money-growth injection times the slider, and a firm is
 spared in id order when the remaining budget covers its equity shortfall. The failure clock is not reset. The budget is
 a cap on skipped replacements, not a cash transfer. See [ADR 0019](adr/0019-zombie-support.md). One bank bond balance
-must stay inside `Number.MAX_SAFE_INTEGER`; overflow throws instead of spilling into an imprecise overflow field.
+must stay inside `Number.MAX_SAFE_INTEGER`; a single posting that would pass it throws instead of spilling into an
+imprecise overflow field. Gradual nominal growth is redenominated, as described above, before a balance reaches that
+ceiling.
 
 When expected deflation is positive and `deflation.sensitivity` is positive, a share of loans is repaid each month. When
 `housing.tenureChoice` is off, the recorded profit-sharing and non-mortgage housing shares rise with the penalty; those

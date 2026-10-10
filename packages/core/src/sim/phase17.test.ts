@@ -210,15 +210,18 @@ describe('phase 17 AI bullishness and robotics', () => {
     expect(gdp.every((value) => value !== null && Number.isFinite(value))).toBe(true);
   }, 60_000);
 
-  it('throws when extreme AI bullishness drives bonds past the safe integer', async () => {
+  it('finishes 1200 months of extreme AI with a finite price level', async () => {
     await new Promise((resolve) => setImmediate(resolve));
     const overrides = applyCategoryOption('aiBullishness', 'extreme', { ...FEATURE_OFF });
-    expect(() =>
-      simulate(
-        loadScenario({ name: 'extreme-bullishness', seed: 1, ticks: 1200, sliders: overrides }),
-      ),
-    ).toThrow(/safe integer/);
-  }, 120_000);
+    const result = simulate(
+      loadScenario({ name: 'extreme-bullishness', seed: 1, ticks: 1200, sliders: overrides }),
+    );
+    expect(result.audit.ok).toBe(true);
+    const prices = result.metrics.series.priceLevel;
+    expect(prices.every((value) => value !== null && Number.isFinite(value) && value > 0)).toBe(
+      true,
+    );
+  }, 180_000);
 });
 
 function run(

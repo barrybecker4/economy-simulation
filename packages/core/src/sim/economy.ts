@@ -39,6 +39,11 @@ export interface Economy {
   ubiOutlay: number;
   wageLevel: number;
   priceLevel: number;
+  /**
+   * Multiplier from the internal fiat unit back to original cents.
+   * Starts at 1 and grows by 1,000 each time nominal stocks are redenominated.
+   */
+  nominalScale: number;
   productivity: number;
   demandImpulse: number;
   productivityImpulse: number;
