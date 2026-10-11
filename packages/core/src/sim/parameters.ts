@@ -59,6 +59,14 @@ export interface Parameters {
   frictionFiat: number;
   frictionBitcoin: number;
   marketDepth: number;
+  agentCostHalvingMonths: number;
+  agentInitialCostShare: number;
+  agentEnergyStepMonth: number;
+  agentEnergyStepSize: number;
+  agentValueWageShare: number;
+  agentDemandElasticity: number;
+  agentCapabilityGrowth: number;
+  agentCapabilityCeiling: number;
   ubiShare: number;
   treasuryBufferMonths: number;
   shockFrequency: number;
@@ -176,6 +184,14 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     frictionFiat: slider(config, 'ai.paymentFrictionFiat'),
     frictionBitcoin: slider(config, 'ai.paymentFrictionBitcoin'),
     marketDepth: slider(config, 'agent.marketDepth'),
+    agentCostHalvingMonths: slider(config, 'agent.costHalvingMonths'),
+    agentInitialCostShare: slider(config, 'agent.initialCostShare'),
+    agentEnergyStepMonth: Math.round(slider(config, 'agent.energyStepMonth')),
+    agentEnergyStepSize: slider(config, 'agent.energyStepSize'),
+    agentValueWageShare: slider(config, 'agent.valueWageShare'),
+    agentDemandElasticity: slider(config, 'agent.demandElasticity'),
+    agentCapabilityGrowth: slider(config, 'agent.capabilityGrowth'),
+    agentCapabilityCeiling: slider(config, 'agent.capabilityCeiling'),
     ubiShare: slider(config, 'government.ubiShare'),
     treasuryBufferMonths: slider(config, 'government.treasuryBufferMonths'),
     shockFrequency: slider(config, 'shock.frequency'),

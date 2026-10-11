@@ -13,6 +13,8 @@
     "ai.adoptionSteepness": 1.2,
     "ai.physicalTaskShare": 0.1,
     "ai.roboticsStartYear": 1,
-    "ai.roboticsRampYears": 4
+    "ai.roboticsRampYears": 4,
+    "agent.energyStepMonth": 48,
+    "agent.energyStepSize": 0.9
   }
 }

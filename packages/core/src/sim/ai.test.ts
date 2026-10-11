@@ -183,11 +183,16 @@ describe('AI productivity', () => {
       'ai.adoptionSteepness': 1.2,
       'ai.physicalTaskShare': 0.1,
       'ai.paymentFrictionFiat': 0,
+      'agent.initialCostShare': 0.2,
+      'agent.costHalvingMonths': 120,
+      'agent.marketDepth': 0,
+      'agent.valueWageShare': 0.25,
+      'agent.demandElasticity': 1,
     });
     expect(last(none, 'aiShareOfAgents')).toBe(0);
     expect(last(agents, 'aiShareOfAgents')).toBeGreaterThan(0);
-    expect(last(agents, 'agentTaxRevenue')).toBeGreaterThan(0);
-    expect(last(none, 'agentTaxRevenue')).toBe(0);
+    expect(Math.max(...series(agents, 'agentTaxRevenue'))).toBeGreaterThan(0);
+    expect(Math.max(...series(none, 'agentTaxRevenue'))).toBe(0);
     expect(last(agents, 'taxRevenue')).toBeGreaterThanOrEqual(last(agents, 'agentTaxRevenue'));
     expect(Math.max(...series(agents, 'agentGoodsSpend'))).toBeGreaterThan(0);
     expect(Math.max(...series(none, 'agentGoodsSpend'))).toBe(0);

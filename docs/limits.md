@@ -46,6 +46,12 @@ internet-sized floor. Below 1 the gain saturates with the adoption curve. Above 
 ceiling, and that path is a scenario assumption, not a forecast. Wages and the regime price trend still follow baseline
 productivity growth, so a very high setting pulls real output away from the wage bill.
 
+Household agents no longer stop selling once their ask crosses a fixed share of the wage. Agent compute has a falling
+real cost, a smooth takeup curve against the real wage, and a saturating capacity gain capped at
+`1 + agent.capabilityCeiling` (default: at most a doubling). The optional energy cost step is off for None and Modest
+(`agent.energyStepSize` 0). Substantial removes half of remaining cost at month 96, High three quarters at month 72, and
+Extreme nine tenths at month 48. That step is a scenario switch, not a forecast of fusion.
+
 Expected deflation can cut only discretionary goods spending above the food and housing floor. That floor is the sum of
 the food and housing CPI weights, about 58 percent of the basket. Consumer credit, when tenure choice is on, adds to
 discretionary spending above that floor and does not pay the floor itself. When `prices.trendWeight` is below 1, the

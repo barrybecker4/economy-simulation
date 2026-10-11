@@ -110,6 +110,8 @@ describe('preset categories', () => {
       'ai.physicalTaskShare': 0.3,
       'ai.roboticsStartYear': 4,
       'ai.roboticsRampYears': 8,
+      'agent.energyStepMonth': 72,
+      'agent.energyStepSize': 0.75,
     });
     expect(composeScenario('slow-adoption').sliders).toEqual({});
     expect(composeScenario('high-physical').sliders).toEqual(

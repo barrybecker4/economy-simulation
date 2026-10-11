@@ -2,6 +2,8 @@
   "name": "fast-adoption",
   "ticks": 600,
   "sliders": {
+    "agent.energyStepMonth": 72,
+    "agent.energyStepSize": 0.75,
     "ai.adoptionMidpointYear": 3,
     "ai.adoptionSteepness": 1.2,
     "ai.bullishness": 1.5,

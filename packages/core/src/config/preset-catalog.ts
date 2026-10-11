@@ -28,6 +28,8 @@ const AI_OWNED = [
   'ai.physicalTaskShare',
   'ai.roboticsStartYear',
   'ai.roboticsRampYears',
+  'agent.energyStepMonth',
+  'agent.energyStepSize',
 ] as const;
 
 export const PRESET_CATEGORIES: readonly PresetCategory[] = [
@@ -249,7 +251,7 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
         id: 'none',
         name: 'None',
         detail:
-          'Start and end automatable shares both 30 percent, so the curve stays put. Bullishness 1, medium adoption timing, and a 70 percent reachable share; robotics would start at year 10 and finish at year 20.',
+          'Start and end automatable shares both 30 percent, so the curve stays put. Bullishness 1, medium adoption timing, and a 70 percent reachable share; robotics would start at year 10 and finish at year 20. No energy cost step.',
         values: {
           'ai.bullishness': 1,
           'ai.automatableShareStart': 0.3,
@@ -259,13 +261,15 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'ai.physicalTaskShare': 0.3,
           'ai.roboticsStartYear': 10,
           'ai.roboticsRampYears': 10,
+          'agent.energyStepMonth': 120,
+          'agent.energyStepSize': 0,
         },
       },
       {
         id: 'modest',
         name: 'Modest',
         detail:
-          'Bullishness 0.35, medium-slow adoption (midpoint year 8, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 15 over 12 years). This is the registry default.',
+          'Bullishness 0.35, medium-slow adoption (midpoint year 8, steepness 0.15), and a narrow reach (reachable share 30 percent, robotics from year 15 over 12 years). No energy cost step. This is the registry default.',
         values: {
           'ai.bullishness': 0.35,
           'ai.automatableShareStart': 0.1,
@@ -275,13 +279,15 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'ai.physicalTaskShare': 0.7,
           'ai.roboticsStartYear': 15,
           'ai.roboticsRampYears': 12,
+          'agent.energyStepMonth': 120,
+          'agent.energyStepSize': 0,
         },
       },
       {
         id: 'substantial',
         name: 'Substantial',
         detail:
-          'Bullishness 1, medium adoption (midpoint year 5, steepness 0.4), and typical reach (reachable share 70 percent, robotics from year 8 over 12 years).',
+          'Bullishness 1, medium adoption (midpoint year 5, steepness 0.4), and typical reach (reachable share 70 percent, robotics from year 8 over 12 years). Agent compute cost halves again from an energy breakthrough at month 96.',
         values: {
           'ai.bullishness': 1,
           'ai.automatableShareStart': 0.1,
@@ -291,13 +297,15 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'ai.physicalTaskShare': 0.3,
           'ai.roboticsStartYear': 8,
           'ai.roboticsRampYears': 12,
+          'agent.energyStepMonth': 96,
+          'agent.energyStepSize': 0.5,
         },
       },
       {
         id: 'high',
         name: 'High',
         detail:
-          'Bullishness 1.5, fast adoption (midpoint year 3, steepness 1.2), and typical reach. Robotics start at year 4 and finish at year 12.',
+          'Bullishness 1.5, fast adoption (midpoint year 3, steepness 1.2), and typical reach. Robotics start at year 4 and finish at year 12. Agent compute cost falls by three quarters from an energy breakthrough at month 72.',
         values: {
           'ai.bullishness': 1.5,
           'ai.automatableShareStart': 0.1,
@@ -307,13 +315,15 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'ai.physicalTaskShare': 0.3,
           'ai.roboticsStartYear': 4,
           'ai.roboticsRampYears': 8,
+          'agent.energyStepMonth': 72,
+          'agent.energyStepSize': 0.75,
         },
       },
       {
         id: 'extreme',
         name: 'Extreme',
         detail:
-          'Bullishness 2, fast adoption (midpoint year 3), and broad reach (reachable share 90 percent, automatable share ends at 99 percent, robotics from year 1 over 4 years).',
+          'Bullishness 2, fast adoption (midpoint year 3), and broad reach (reachable share 90 percent, automatable share ends at 99 percent, robotics from year 1 over 4 years). Agent compute cost falls by nine tenths from an energy breakthrough at month 48.',
         values: {
           'ai.bullishness': 2,
           'ai.automatableShareStart': 0.1,
@@ -323,6 +333,8 @@ export const PRESET_CATEGORIES: readonly PresetCategory[] = [
           'ai.physicalTaskShare': 0.1,
           'ai.roboticsStartYear': 1,
           'ai.roboticsRampYears': 4,
+          'agent.energyStepMonth': 48,
+          'agent.energyStepSize': 0.9,
         },
       },
     ],

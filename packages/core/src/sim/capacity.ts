@@ -1,8 +1,15 @@
 import type { Economy } from './economy.js';
+import { computeProductivitySlope, saturatingCapacityFactor } from './agent-cost.js';
 import { humanWeight, referenceWorkersPerFirm } from './helpers.js';
 import type { Firm } from './types.js';
 
 export function firmCapacity(economy: Economy, firm: Firm): number {
+  const years = economy.tick / 12;
+  const slope = computeProductivitySlope(
+    economy.params.computeProductivity,
+    economy.params.agentCapabilityGrowth,
+    years,
+  );
   return (
     productionCapacity({
       firmProductivity: firm.productivity,
@@ -14,7 +21,7 @@ export function firmCapacity(economy: Economy, firm: Firm): number {
       laborStar: referenceWorkersPerFirm(economy),
       aiFactor: economy.aiFactor,
       humanWeight: humanWeight(economy),
-    }) * computeCapacityFactor(firm.computeReady, economy.params.computeProductivity)
+    }) * computeCapacityFactor(firm.computeReady, slope, economy.params.agentCapabilityCeiling)
   );
 }
 
@@ -47,10 +54,21 @@ export function productionCapacity(input: {
   );
 }
 
-/** Capacity multiplier from compute bought last month. Zero productivity leaves capacity unchanged. */
-export function computeCapacityFactor(units: number, productivity: number): number {
+/**
+ * Capacity multiplier from compute bought last month.
+ * With a finite ceiling, gains saturate at 1 + ceiling. Without a ceiling
+ * (or with a non-positive one), the factor is linear: 1 + slope × units.
+ */
+export function computeCapacityFactor(
+  units: number,
+  productivity: number,
+  ceiling?: number,
+): number {
   if (productivity <= 0 || units <= 0) {
     return 1;
+  }
+  if (ceiling !== undefined && ceiling > 0 && Number.isFinite(ceiling)) {
+    return saturatingCapacityFactor(units, productivity, ceiling);
   }
   return 1 + productivity * units;
 }

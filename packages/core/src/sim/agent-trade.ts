@@ -2,7 +2,8 @@ import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import { payFromCash, spendableCash } from './dual-currency.js';
 import { collectBankFee, creditDeposit, debitDeposit } from './money.js';
-import { AI_SERVICE_PRICE_CAP, AI_SERVICE_WAGE_SHARE } from './rules.js';
+import { agentTakeup, quotedServicePrice, realUnitCost } from './agent-cost.js';
+import { INITIAL_WAGE } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare } from './spending.js';
 import type { Agent } from './types.js';
@@ -14,21 +15,7 @@ export interface GoodsMarket {
   demandFactor: number;
 }
 
-/** Ask for one compute unit. Depth 0 is the adoption price marked up by friction. */
-export function quotedServicePrice(input: {
-  wage: number;
-  progress: number;
-  friction: number;
-  depth: number;
-  agents: number;
-  firms: number;
-}): number {
-  const base = input.wage * AI_SERVICE_WAGE_SHARE * input.progress * (1 + input.friction);
-  if (input.depth <= 0 || input.firms <= 0) {
-    return base;
-  }
-  return base * (1 + input.depth * (input.agents / input.firms));
-}
+export { quotedServicePrice, realUnitCost, agentTakeup } from './agent-cost.js';
 
 export function tradeAgents(economy: Economy): void {
   economy.agentVolume = 0;
@@ -37,21 +24,40 @@ export function tradeAgents(economy: Economy): void {
     return;
   }
   const friction = paymentFriction(economy);
-  const progress = economy.adoptionProgress;
+  const openingPriceLevel = INITIAL_WAGE * (1 + economy.params.markup);
+  const cost = realUnitCost({
+    tick: economy.tick,
+    openingWage: INITIAL_WAGE,
+    initialCostShare: economy.params.agentInitialCostShare,
+    costHalvingMonths: economy.params.agentCostHalvingMonths,
+    energyStepMonth: economy.params.agentEnergyStepMonth,
+    energyStepSize: economy.params.agentEnergyStepSize,
+  });
   const ask = quotedServicePrice({
-    wage: economy.wageLevel,
-    progress,
+    realUnitCost: cost,
+    priceLevel: economy.priceLevel,
+    openingPriceLevel,
     friction,
     depth: economy.params.marketDepth,
     agents: economy.agents.length,
     firms: economy.firms.length,
   });
-  if (!(economy.wageLevel > 0 && ask < economy.wageLevel * AI_SERVICE_PRICE_CAP)) {
+  if (!(ask > 0) || !(economy.wageLevel > 0)) {
+    clearAgentIncome(economy);
+    return;
+  }
+  const takeup = agentTakeup({
+    ask,
+    wage: economy.wageLevel,
+    valueWageShare: economy.params.agentValueWageShare,
+    demandElasticity: economy.params.agentDemandElasticity,
+  });
+  if (!(takeup > 0)) {
     clearAgentIncome(economy);
     return;
   }
   for (const agent of economy.agents) {
-    sellCompute(economy, agent, ask, friction);
+    sellCompute(economy, agent, ask, takeup, friction);
   }
 }
 
@@ -104,22 +110,39 @@ function clearAgentIncome(economy: Economy): void {
   }
 }
 
-function sellCompute(economy: Economy, agent: Agent, ask: number, friction: number): void {
+function sellCompute(
+  economy: Economy,
+  agent: Agent,
+  ask: number,
+  takeup: number,
+  friction: number,
+): void {
   const firm = economy.firms[agent.id % economy.firms.length];
   const bank = firm ? economy.banks[firm.bank] : undefined;
-  if (!firm || !bank || firm.deposit < ask) {
+  if (!firm || !bank) {
     agent.income = 0;
     return;
   }
-  const bill = moneyAmount(economy, ask);
+  const continuous = ask * takeup;
+  let bill = moneyAmount(economy, continuous);
+  // Fiat cents round a tiny bill to zero once real cost has fallen. Keep a
+  // one-cent floor so cheaper compute still clears instead of shutting off.
+  if (bill <= 0 && continuous > 0 && economy.params.unit === 'cent') {
+    bill = 1;
+  }
   if (bill <= 0 || firm.deposit < bill) {
     agent.income = 0;
     return;
   }
-  const fee = moneyAmount(economy, bill * friction);
+  let fee = moneyAmount(economy, bill * friction);
+  // One-cent sales round a modest fee to zero. When friction is material, keep a
+  // one-cent fee so higher friction still leaves agents with less to spend (H4).
+  if (fee <= 0 && friction >= 0.05 && bill > 0 && economy.params.unit === 'cent') {
+    fee = Math.min(bill, 1);
+  }
   debitDeposit(firm, bill);
   creditDeposit(agent, bill - fee);
-  firm.computeReady += 1;
+  firm.computeReady += takeup;
   agent.income = bill - fee;
   if (fee > 0) {
     collectBankFee(bank, economy, fee);

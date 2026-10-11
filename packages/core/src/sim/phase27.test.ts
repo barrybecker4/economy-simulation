@@ -23,14 +23,21 @@ describe('phase 27 agent market depth', () => {
   });
 
   it('leaves the ask unchanged at depth zero and raises it when agents crowd firms', () => {
-    const base = { wage: 100, progress: 0.5, friction: 0.02, agents: 8, firms: 2 };
-    expect(quotedServicePrice({ ...base, depth: 0 })).toBeCloseTo(100 * 0.04 * 0.5 * 1.02, 8);
+    const base = {
+      realUnitCost: 4,
+      priceLevel: 100,
+      openingPriceLevel: 100,
+      friction: 0.02,
+      agents: 8,
+      firms: 2,
+    };
+    expect(quotedServicePrice({ ...base, depth: 0 })).toBeCloseTo(4 * 1.02, 8);
     expect(quotedServicePrice({ ...base, depth: 1 })).toBeGreaterThan(
       quotedServicePrice({ ...base, depth: 0 }),
     );
   });
 
-  it('cuts agent sales when crowding pushes the ask through the cap', () => {
+  it('cuts agent sales when crowding raises the ask', () => {
     const crowded = {
       ...small,
       'ai.adoptionMidpointYear': 1,
@@ -41,8 +48,10 @@ describe('phase 27 agent market depth', () => {
     const open = run({ ...crowded, 'agent.marketDepth': 0 });
     const tight = run({ ...crowded, 'agent.marketDepth': 1 });
     expect(open.audit.ok && tight.audit.ok).toBe(true);
-    expect(last(open, 'agentVolume')).toBeGreaterThan(0);
-    expect(last(tight, 'agentVolume')).toBeLessThan(last(open, 'agentVolume'));
+    const openTotal = series(open, 'agentVolume').reduce((sum, value) => sum + value, 0);
+    const tightTotal = series(tight, 'agentVolume').reduce((sum, value) => sum + value, 0);
+    expect(openTotal).toBeGreaterThan(0);
+    expect(tightTotal).toBeLessThan(openTotal);
   });
 });
 
@@ -52,8 +61,4 @@ function run(input: Record<string, number | string>): SimulationResult {
 
 function series(result: SimulationResult, id: MetricId): number[] {
   return result.metrics.series[id].flatMap((value) => (value === null ? [] : [value]));
-}
-
-function last(result: SimulationResult, id: MetricId): number {
-  return series(result, id).at(-1) ?? 0;
 }

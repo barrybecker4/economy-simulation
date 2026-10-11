@@ -4,7 +4,84 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 13.
+Registry version: 14.
+
+## agent.capabilityCeiling
+
+- Label: Agent capability ceiling
+- Group: aiClaims
+- Unit: capacity add
+- Default: 1
+- Range: 0 to 4
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Largest capacity adder from bought compute at one firm. Capacity is multiplied by one plus this ceiling times one minus an exponential in units, so small purchases match the linear slope and large ones saturate. The default of 1 can at most double a firm. At 0 bought compute does not raise capacity.
+
+## agent.capabilityGrowth
+
+- Label: Agent capability growth
+- Group: aiClaims
+- Unit: doublings/year
+- Default: 0.25
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Extra doublings per year of the productivity slope from one unit of bought compute. The month-zero slope is ai.computeProductivity. At 0.25 the slope doubles every four years. At 0 the slope stays at its opening value.
+
+## agent.costHalvingMonths
+
+- Label: Agent cost half-life
+- Group: aiClaims
+- Unit: months
+- Default: 24
+- Range: 6 to 240
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Months for the real cost of one agent compute unit to fall by half. Cost starts at the initial cost share of the opening wage and declines exponentially. The default of 24 is about two years. A shorter half-life cheapens agents sooner.
+
+## agent.demandElasticity
+
+- Label: Agent demand elasticity
+- Group: aiClaims
+- Unit: elasticity
+- Default: 2
+- Range: 0.5 to 8
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How sharply takeup falls as the real ask rises above the value wage share. Takeup is one over one plus the relative price to that power. The default of 2 is a moderate falloff. Higher values concentrate demand on cheaper months.
+
+## agent.energyStepMonth
+
+- Label: Energy breakthrough month
+- Group: aiClaims
+- Unit: months
+- Default: 120
+- Range: 0 to 600
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Month when an optional energy breakthrough multiplies agent cost by one minus the energy step size. Unused while the step size is 0. The default of 120 is year 10. Stronger AI presets move this earlier.
+
+## agent.energyStepSize
+
+- Label: Energy breakthrough size
+- Group: aiClaims
+- Unit: share of cost
+- Default: 0
+- Range: 0 to 0.9
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Share of remaining agent cost removed from the energy-breakthrough month onward. At 0 there is no step and cost follows the half-life only; that is the registry default for None and Modest. Substantial removes half, High three quarters, Extreme nine tenths.
+
+## agent.initialCostShare
+
+- Label: Agent initial cost share
+- Group: aiClaims
+- Unit: share of opening wage
+- Default: 0.04
+- Range: 0 to 0.5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Real cost of one agent compute unit at month zero, as a share of the opening wage, before payment friction and market depth. The nominal ask scales that cost with the price level so general inflation does not make agents permanently uneconomic. At 0 the ask is zero.
 
 ## agent.marketDepth
 
@@ -15,7 +92,18 @@ Registry version: 13.
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How much crowding raises the price of agent compute. The ask starts at the adoption progress times 4 percent of the wage, marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm. Firms still buy only when the ask is under 4.2 percent of the wage, so enough crowding stops the sales. The default of 0.25 is a modest crowding markup. At 0 the ask is unchanged.
+- Description: How much crowding raises the price of agent compute. The ask starts at the real unit cost scaled by the price level and marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm. Takeup falls smoothly as that ask rises relative to the wage. The default of 0.25 is a modest crowding markup. At 0 the ask is unchanged.
+
+## agent.valueWageShare
+
+- Label: Agent value wage share
+- Group: aiClaims
+- Unit: share of wage
+- Default: 0.04
+- Range: 0.001 to 0.5
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Real ask relative to the wage at which a firm buys half of an agent’s compute that month. Below that share takeup rises toward one; above it takeup falls smoothly toward zero. There is no hard cutoff.
 
 ## ai.adoptionMidpointYear
 
@@ -136,7 +224,7 @@ Registry version: 13.
 - Range: 0 to 0.1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Fee on an AI agent sale in the bitcoin and hybrid regimes, as a share of the payment. The fee is paid into bank equity. The asking price rises along the adoption curve toward 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales once output is near that ceiling. The default of 0.005 stays well under that cutoff. The fiat regime uses the fiat fee instead. The fee does nothing when no agents are created.
+- Description: Fee on an AI agent sale in the bitcoin and hybrid regimes, as a share of the payment. The fee is paid into bank equity. The asking price is the real unit cost scaled by the price level, marked up by this fee and by market depth. A higher fee raises the ask and leaves agents with less income to spend. The default of 0.005 is a light fee that does not force a one-cent minimum. The fiat regime uses the fiat fee instead. The fee does nothing when no agents are created.
 
 ## ai.paymentFrictionFiat
 
@@ -147,7 +235,7 @@ Registry version: 13.
 - Range: 0 to 0.1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Fee on an AI agent sale in the fiat regime, as a share of the payment. The fee is paid into bank equity. The asking price rises along the adoption curve toward 4 percent of the wage and is marked up by this fee. Firms buy only when the ask is still under 4.2 percent of the wage, so a fee of about 5 percent or more stops the sales once output is near that ceiling. Below that, a higher fee makes the agent a worse deal and can leave the ask uncompetitive. The bitcoin and hybrid regimes use the bitcoin fee instead. The fee does nothing when no agents are created.
+- Description: Fee on an AI agent sale in the fiat regime, as a share of the payment. The fee is paid into bank equity. The asking price is the real unit cost scaled by the price level, marked up by this fee and by market depth. A higher fee raises the ask and, on small bills, can take the whole cent as the fee, so agents spend less and the AI transaction share falls. The bitcoin and hybrid regimes use the bitcoin fee instead. The fee does nothing when no agents are created.
 
 ## ai.physicalTaskShare
 

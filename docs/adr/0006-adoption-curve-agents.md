@@ -19,8 +19,8 @@ Agent output was a flat 4 percent of the wage from the first month.
 - `ai.ownerShareCeiling` defaults to 0.95. `ai.agentsPerOwnerCeiling` defaults to 20. The lowest household ids become
   eligible first. New agents go to the eligible owner with the fewest agents. An existing agent keeps its owner and its
   deposit. Counts only rise.
-- Agent output is the same progress times 4 percent of the wage. The 4.2 percent cap still applies to the ask after
-  payment friction.
+- Agent counts follow the adoption curve. Pricing and the old 4.2 percent wage-share cap are superseded by
+  [ADR 0027](0027-agent-real-cost.md).
 - `ai.ownershipConcentration` only steepens profit shares. It no longer sets the owner count. The autonomy slider is
   removed.
 - The adoption midpoint defaults to year 10, with a minimum of 1. Preset midpoints are none 10, modest 10, substantial 5,
@@ -34,5 +34,5 @@ Agent output was a flat 4 percent of the wage from the first month.
 ## Consequences
 
 A default run can hold on the order of 19,000 agents once the curve saturates.
-Aggregate agent activity grows through that count. The price of one agent's compute unit still levels off at 4 percent
-of the wage. `docs/model.md` and `docs/PLAN.md` follow this ADR.
+Aggregate agent activity grows through that count. Agent compute pricing now follows [ADR 0027](0027-agent-real-cost.md).
+`docs/model.md` and `docs/PLAN.md` follow this ADR.

@@ -814,10 +814,10 @@ Acceptance:
 
 Goal: the price of agent compute can rise when agents crowd firms.
 
-1. `agent.marketDepth` defaults to 0. At 0 the ask is adoption progress times 4 percent of the wage, marked up by
+1. `agent.marketDepth` defaults to 0. At 0 the ask is the real unit cost scaled by the price level and marked up by
    payment friction.
-2. Above 0 the ask is multiplied by one plus depth times agents per firm. Firms still refuse an ask at or above 4.2
-   percent of the wage.
+2. Above 0 the ask is multiplied by one plus depth times agents per firm. Takeup falls smoothly as the real ask rises
+   relative to the wage; there is no hard wage-share cutoff. See [ADR 0027](adr/0027-agent-real-cost.md).
 
 Acceptance:
 

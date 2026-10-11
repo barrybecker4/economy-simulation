@@ -61,10 +61,6 @@ export const MONTHLY_RENT_RATE = 0.007;
 export const CONSUMER_LOAN_REPAY = 0.05;
 /** Months of missed full mortgage payments before foreclosure. */
 export const MORTGAGE_ARREARS_MONTHS = 3;
-/** Agent compute price as a share of the wage, before payment friction. */
-export const AI_SERVICE_WAGE_SHARE = 0.04;
-/** Agents do not sell once price times friction reaches this share of the wage. */
-export const AI_SERVICE_PRICE_CAP = 0.042;
 /** Share of the wage an agent keeps for compute after tax. */
 export const AI_RETAINED_WAGE_SHARE = 0.01;
 /** Share of a below-hurdle capital gap that is still installed. */

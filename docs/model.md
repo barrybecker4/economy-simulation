@@ -521,26 +521,41 @@ overflows, the weights are scored against the highest skill. The ordering stays 
 
 ## AI agents
 
-Owner share, agents per owner, and agent output follow the same adoption curve as the automatable share. The curve's
-progress is zero when the start and end automatable shares are equal. Otherwise it is the logistic set by the adoption
-midpoint and steepness. Owner share is that progress times `ai.ownerShareCeiling`. Agents per owner is that progress
-times `ai.agentsPerOwnerCeiling`. The lowest household ids become eligible first. New agents go to eligible owners who
-hold the fewest agents. An existing agent keeps its owner and its deposit. Agent output is that progress times 4 percent
-of the wage: the price of one compute unit. The defaults level off at an owner share of 0.95 and 20 agents per owner.
-See [ADR 0006](adr/0006-adoption-curve-agents.md).
+Owner share and agents per owner follow the same adoption curve as the automatable share. The curve's progress is zero
+when the start and end automatable shares are equal. Otherwise it is the logistic set by the adoption midpoint and
+steepness. Owner share is that progress times `ai.ownerShareCeiling`. Agents per owner is that progress times
+`ai.agentsPerOwnerCeiling`. The lowest household ids become eligible first. New agents go to eligible owners who hold
+the fewest agents. An existing agent keeps its owner and its deposit. The defaults level off at an owner share of 0.95
+and 20 agents per owner. See [ADR 0006](adr/0006-adoption-curve-agents.md) and
+[ADR 0027](adr/0027-agent-real-cost.md).
 
-An agent has an owning household, a deposit in the regime's unit, an income, and a smoothed income. It sells one unit of
-compute to a firm when its ask is below 4.2 percent of the wage. The ask is adoption progress times 4 percent of the
-wage, marked up by payment friction. `agent.marketDepth` multiplies that ask by one plus depth times agents per firm. At
-depth 0 the multiplier is one. Friction is `ai.paymentFrictionFiat` in the fiat regime and `ai.paymentFrictionBitcoin`
-otherwise. The fee is paid into bank equity. The purchase also delivers one unit of compute to that firm. Next month the
-firm’s capacity is multiplied by `1 + ai.computeProductivity × units`. At productivity 0 the factor is 1, so the
-purchase does not change output. The agent then shops with the household budget rule at mean time preference plus the
-common inflation gap addend, reserving enough deposit to pay income tax. It pays `tax.incomeRate` on its income. After
-tax it keeps 1 percent of the wage for compute and sweeps the residual to its owner. Agent purchases count in goods
-demand and in the AI transaction share. Household well-being, income, and wealth use households only. When the
-owner-share ceiling or the agents-per-owner ceiling is zero, no agents are created and the rest of the economy is
-unchanged.
+An agent has an owning household, a deposit in the regime's unit, an income, and a smoothed income. The real cost of one
+compute unit starts at `agent.initialCostShare` times the opening wage and falls by half every
+`agent.costHalvingMonths` months. From `agent.energyStepMonth` onward, that cost is multiplied by
+`1 − agent.energyStepSize`. Size 0 leaves the exponential path alone (None and Modest). Substantial, High, and Extreme
+set size 0.5, 0.75, and 0.9 at months 96, 72, and 48. This cost path is separate from `ai.computeCostDeclineRate`, which
+only gates task adoption in the AI productivity block.
+
+The nominal ask is that real cost scaled by the current price level over the opening price level, marked up by payment
+friction, then by `1 + agent.marketDepth × agents / firms` when depth is above 0. Friction is `ai.paymentFrictionFiat`
+in the fiat regime and `ai.paymentFrictionBitcoin` otherwise. The fee is paid into bank equity. On a one-cent fiat bill,
+a friction of 5 percent or more takes that cent as the fee so agents keep nothing to spend. Firms buy a smooth share of
+each agent's unit:
+`1 / (1 + (ask / wage / agent.valueWageShare) ^ agent.demandElasticity)`.
+That relative price is real (ask over wage). There is no hard wage-share cutoff. A fiat bill that would round below one
+cent while takeup is still positive clears at one cent so cheaper compute does not shut trade off. A firm that cannot
+pay skips that agent.
+
+Next month the buying firm’s capacity is multiplied by
+`1 + ceiling × (1 − exp(−slope × units / ceiling))`, where the month-zero slope is `ai.computeProductivity`, the slope
+grows by `agent.capabilityGrowth` doublings per year, and `ceiling` is `agent.capabilityCeiling`. At productivity 0, or
+with no units, or with ceiling 0, the factor is 1. The default ceiling of 1 can at most double a firm.
+
+The agent then shops with the household budget rule at mean time preference plus the common inflation gap addend,
+reserving enough deposit to pay income tax. It pays `tax.incomeRate` on its income. After tax it keeps 1 percent of the
+wage for compute and sweeps the residual to its owner. Agent purchases count in goods demand and in the AI transaction
+share. Household well-being, income, and wealth use households only. When the owner-share ceiling or the
+agents-per-owner ceiling is zero, no agents are created and the rest of the economy is unchanged.
 
 ## Shocks
 
