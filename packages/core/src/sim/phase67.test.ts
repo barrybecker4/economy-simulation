@@ -11,7 +11,7 @@ import type { Economy } from './economy.js';
 import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
-import { FAILURE_TICKS } from './rules.js';
+import { FAILURE_TICKS, MISSED_PAYMENT_TICKS } from './rules.js';
 import { simulate, type ForcedShock } from './simulate.js';
 import { ensureOpen } from './stocks.js';
 import type { Firm } from './types.js';
@@ -66,6 +66,8 @@ describe('phase 67 zombie support in a crisis', () => {
     const workers = [...firm.workers];
     const capital = firm.capital;
     firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     economy.zombieBudget = 0;
     bookkeep(economy);
     expect(firm.loan).toBe(0);
@@ -76,6 +78,34 @@ describe('phase 67 zombie support in a crisis', () => {
     expect(workers.length + capital).toBeGreaterThan(0);
   });
 
+  it('keeps a negative-equity firm that still pays its wages and interest', () => {
+    const { economy, firm } = insolventFirm({ 'centralBank.zombieSupport': 0 });
+    const loan = firm.loan;
+    const capital = firm.capital;
+    firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = false;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
+    economy.zombieBudget = 0;
+    bookkeep(economy);
+    expect(firm.loan).toBe(loan);
+    expect(firm.capital).toBe(capital);
+    expect(firm.negTicks).toBe(FAILURE_TICKS);
+    expect(economy.defaultsThisTick).toBe(0);
+  });
+
+  it('keeps a negative-equity firm after a single missed payment month', () => {
+    const { economy, firm } = insolventFirm({ 'centralBank.zombieSupport': 0 });
+    const loan = firm.loan;
+    firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = 0;
+    economy.zombieBudget = 0;
+    bookkeep(economy);
+    expect(firm.loan).toBe(loan);
+    expect(firm.missTicks).toBe(1);
+    expect(firm.missedPayment).toBe(false);
+  });
+
   it('spares a firm when the budget covers the shortfall', () => {
     const { economy, firm } = insolventFirm({ 'centralBank.zombieSupport': 1 });
     const loan = firm.loan;
@@ -84,6 +114,8 @@ describe('phase 67 zombie support in a crisis', () => {
     const shortfall = -firmEquity(economy, firm);
     expect(shortfall).toBeGreaterThan(0);
     firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     economy.zombieBudget = shortfall;
     bookkeep(economy);
     expect(firm.loan).toBe(loan);
@@ -98,6 +130,8 @@ describe('phase 67 zombie support in a crisis', () => {
     const workers = [...firm.workers];
     const shortfall = -firmEquity(economy, firm);
     firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     economy.zombieBudget = Math.max(1, Math.floor(shortfall / 2));
     bookkeep(economy);
     expect(firm.loan).toBe(0);
@@ -111,11 +145,15 @@ describe('phase 67 zombie support in a crisis', () => {
     const shortfall = -firmEquity(economy, firm);
     const ledger = openLedger(economy);
     firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     economy.zombieBudget = shortfall;
     bookkeep(economy, ledger);
     expect(firm.negTicks).toBe(FAILURE_TICKS);
     expect(firm.loan).toBeGreaterThan(0);
     economy.zombieBudget = 0;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     bookkeep(economy, ledger);
     expect(firm.loan).toBe(0);
     expect(firm.workers).toEqual(workers);
@@ -134,6 +172,8 @@ describe('phase 67 zombie support in a crisis', () => {
     onCentralBank(economy);
     expect(economy.zombieBudget).toBe(0);
     firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     bookkeep(economy);
     expect(firm.loan).toBe(0);
     expect(firm.workers).toEqual(workers);

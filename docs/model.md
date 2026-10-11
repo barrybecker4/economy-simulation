@@ -301,8 +301,11 @@ installing toward that desired stock. When `firm.investmentHurdle` is on, a firm
 productivity growth plus a quarter of the markup clears the real return on money (deposit rate minus inflation) plus
 `firm.hurdlePremium`. Otherwise it installs a quarter of the gap as a retained profit-sharing claim and records the rest
 as profit-sharing finance. The measured profit-sharing share is that finance over loan-path plus profit-sharing finance.
-When the hurdle is off, the share stays the deflation-penalty formula. A firm whose equity (deposits plus capital at the
-posted price, minus loans) stays negative for 6 months is replaced. Its loan is written off against bank equity. The
+When the hurdle is off, the share stays the deflation-penalty formula. A firm fails only when it is insolvent on both
+tests: its equity (deposits plus capital at the posted price, minus loans) has been negative for at least 6 months, and
+in the current month it could not pay its full wage bill or its loan interest from its own cash. Equity alone is a mark:
+firms pay out their cash every month and hold near-identical leverage, so a fall in the goods price level pushes all of
+them below zero together while they still pay their way. A failing firm is replaced. Its loan is written off against bank equity. The
 reset firm keeps its current workers; later labor steps still shed under the monthly shed cap. Under fiat,
 `centralBank.zombieSupport` (default 0) may spare that replacement when crisis stimulus is active: each month the
 notional budget is the crisis-stimulus share of the positive money-growth injection times the slider, and a firm is

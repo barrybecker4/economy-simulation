@@ -209,6 +209,9 @@ function repayDeflatingLoan(economy: Economy, firm: Firm): void {
 function payInterest(economy: Economy, firm: Firm, bank: Bank | undefined): number {
   const rawInterest = (firm.loan * (economy.policyRate + LOAN_SPREAD)) / 12;
   const interest = moneyAmount(economy, rawInterest);
+  if (interest > 0 && firm.deposit < interest) {
+    firm.missedPayment = true;
+  }
   if (interest <= 0 || firm.deposit < interest || !bank || bank.failed) {
     return 0;
   }

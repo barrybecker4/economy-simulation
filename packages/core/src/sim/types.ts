@@ -53,6 +53,13 @@ export interface Firm {
   /** Smoothed unit sales used when demand sets output or firms set hiring. */
   expectedSales: number;
   negTicks: number;
+  /**
+   * True when the firm could not meet this month's wage bill or loan interest
+   * in full from its own cash. Cleared at bookkeeping.
+   */
+  missedPayment: boolean;
+  /** Consecutive months with a missed wage or interest payment. */
+  missTicks: number;
 }
 
 export interface Agent {

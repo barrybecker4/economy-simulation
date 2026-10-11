@@ -1,5 +1,5 @@
 import type { TickContext } from '../engine/engine.js';
-import { FAILURE_TICKS, INITIAL_WAGE, SHOCK_PHASE_MONTHS } from './rules.js';
+import { FAILURE_TICKS, INITIAL_WAGE, MISSED_PAYMENT_TICKS, SHOCK_PHASE_MONTHS } from './rules.js';
 import type { Economy } from './economy.js';
 import type { Firm } from './types.js';
 import { totalLoans } from './banking.js';
@@ -16,7 +16,14 @@ export function onBookkeeping(economy: Economy, ctx: TickContext): void {
   for (const firm of economy.firms) {
     const equity = firmEquity(economy, firm);
     firm.negTicks = equity < 0 ? firm.negTicks + 1 : 0;
-    if (firm.negTicks >= FAILURE_TICKS) {
+    firm.missTicks = firm.missedPayment ? firm.missTicks + 1 : 0;
+    firm.missedPayment = false;
+    // Fail only on balance-sheet AND cash-flow insolvency. Equity marks capital
+    // at the firm's own goods price, and nearly identical firms all cross zero
+    // together when the price level falls; a firm that still pays its wages and
+    // interest is not bankrupt, and neither is one that misses a single month.
+    const failing = firm.negTicks >= FAILURE_TICKS && firm.missTicks >= MISSED_PAYMENT_TICKS;
+    if (failing) {
       const shortfall = Math.max(0, -equity);
       if (shortfall > 0 && economy.zombieBudget >= shortfall) {
         economy.zombieBudget -= shortfall;
@@ -60,6 +67,8 @@ function replaceFirm(economy: Economy, firm: Firm): void {
   firm.inventory = 1;
   firm.price = economy.priceLevel;
   firm.negTicks = 0;
+  firm.missedPayment = false;
+  firm.missTicks = 0;
   firm.productivity = 1;
 }
 
