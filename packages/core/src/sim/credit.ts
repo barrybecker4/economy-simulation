@@ -102,10 +102,7 @@ export function onCredit(economy: Economy): void {
   if (economy.params.endogenousWeight > 0) {
     refreshCreditStress(economy);
     repayStressedLoans(economy);
-    // Draw endogenous credit on a staggered schedule: each firm borrows on its
-    // own anniversary (firm id % 12), spreading credit across 12 months instead
-    // of all firms borrowing together. This prevents synchronized firm failures.
-    if (economy.tick > 0) {
+    if (economy.tick > 0 && economy.tick % 12 === 0) {
       drawEndogenousCredit(economy);
     }
   }
@@ -175,23 +172,15 @@ function drawEndogenousCredit(economy: Economy): void {
   if (wanted <= 0 || economy.firms.length === 0) {
     return;
   }
-  // Share is the total annual borrowing divided by 12 (spread over a year)
-  const monthlyShare = wanted / 12;
-  // Each firm borrows in the month when (tick % 12) === (firm.id % 12)
-  // This staggers borrowing across 12 months instead of all at once
-  const monthInCycle = economy.tick % 12;
+  const share = wanted / economy.firms.length;
   for (const firm of economy.firms) {
-    const firmAnniversary = firm.id % 12;
-    if (firmAnniversary !== monthInCycle) {
-      continue;
-    }
     const bank = economy.banks[firm.bank];
     if (!bank || bank.failed) {
       continue;
     }
     const room = bankCreditRoom(economy, firm.bank);
     const borrowed = Math.min(
-      moneyAmount(economy, monthlyShare),
+      moneyAmount(economy, share),
       Math.max(0, Math.round(room)),
       loanHeadroom(firm),
     );
