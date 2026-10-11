@@ -16,7 +16,13 @@ export function onBookkeeping(economy: Economy, ctx: TickContext): void {
   for (const firm of economy.firms) {
     const equity = firmEquity(economy, firm);
     firm.negTicks = equity < 0 ? firm.negTicks + 1 : 0;
-    if (firm.negTicks >= FAILURE_TICKS) {
+    // Stagger the insolvency grace period: FAILURE_TICKS ± 2 months based on firm ID.
+    // This prevents all firms from hitting the limit simultaneously when prices
+    // fall together. Distribute firms across a 5-tick range (4, 5, 6, 7, 8 months)
+    // based on firm.id % 5.
+    const offset = (firm.id % 5) - 2; // Maps to -2, -1, 0, 1, 2
+    const firmGracePeriod = FAILURE_TICKS + offset;
+    if (firm.negTicks >= firmGracePeriod) {
       const shortfall = Math.max(0, -equity);
       if (shortfall > 0 && economy.zombieBudget >= shortfall) {
         economy.zombieBudget -= shortfall;
