@@ -1,8 +1,14 @@
 import { bondNumber } from './banking.js';
 import { adjustBankEquity } from './capital-identity.js';
-import { creditBitcoin, creditBitcoinLoan, debitBitcoin } from './dual-currency.js';
+import {
+  creditBitcoin,
+  creditBitcoinLoan,
+  debitBitcoin,
+  fundFromBitcoin,
+} from './dual-currency.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
+import { fundCoinsFromFiat } from './hybrid-money.js';
 import { currencyFor } from './hybrid-settle.js';
 import type { Bank, Firm, Household } from './types.js';
 
@@ -54,13 +60,65 @@ export function setConsumerLoan(household: Household, amount: number): void {
   household.consumerLoan = amount;
 }
 
-export function repayFirmLoan(firm: Firm, amount: number, economy?: Economy): void {
-  if (economy && economy.params.regime === 'hybrid' && firm.bitcoinLoan > 0) {
-    repayBitcoinFirmLoan(economy, firm, amount);
-    return;
+/** Repay firm debt from the till it was issued in. Returns the value actually collected. */
+export function repayFirmLoan(firm: Firm, amount: number, economy?: Economy): number {
+  if (!(amount > 0)) {
+    return 0;
+  }
+  if (economy && economy.params.regime === 'hybrid') {
+    return repayHybridFirmLoan(economy, firm, amount);
   }
   firm.loan -= amount;
   firm.deposit -= amount;
+  return amount;
+}
+
+function repayHybridFirmLoan(economy: Economy, firm: Firm, amount: number): number {
+  let left = amount;
+  let paid = 0;
+  const fiatFromTill = Math.min(left, Math.max(0, firm.loan), Math.max(0, firm.deposit));
+  if (fiatFromTill > 0) {
+    firm.loan -= fiatFromTill;
+    firm.deposit -= fiatFromTill;
+    left -= fiatFromTill;
+    paid += fiatFromTill;
+  }
+  const coinFromTill = repayBitcoinFirmLoan(economy, firm, left);
+  left -= coinFromTill;
+  paid += coinFromTill;
+  if (left > 0 && firm.loan > 0) {
+    fundFromBitcoin(economy, firm, Math.min(left, firm.loan));
+    const extra = Math.min(left, firm.loan, Math.max(0, firm.deposit));
+    if (extra > 0) {
+      firm.loan -= extra;
+      firm.deposit -= extra;
+      left -= extra;
+      paid += extra;
+    }
+  }
+  if (left > 0 && firm.bitcoinLoan > 0) {
+    const price = economy.bitcoinPrice;
+    if (price > 0) {
+      fundCoinsFromFiat(economy, firm, Math.min(left, firm.bitcoinLoan * price));
+      paid += repayBitcoinFirmLoan(economy, firm, left);
+    }
+  }
+  return paid;
+}
+
+function repayBitcoinFirmLoan(economy: Economy, firm: Firm, amount: number): number {
+  const price = economy.bitcoinPrice;
+  if (!(price > 0) || !(amount > 0) || firm.bitcoinLoan <= 0) {
+    return 0;
+  }
+  const units = Math.min(firm.bitcoinLoan, Math.max(0, firm.bitcoin), amount / price);
+  if (!(units > 0)) {
+    return 0;
+  }
+  firm.bitcoinLoan -= units;
+  economy.bitcoinLoanCarried -= units * price;
+  debitBitcoin(economy, firm, units);
+  return units * price;
 }
 
 export function drawFirmLoan(firm: Firm, amount: number, economy?: Economy): void {
@@ -82,19 +140,6 @@ function drawBitcoinFirmLoan(economy: Economy, firm: Firm, amount: number): void
   const units = amount / price;
   creditBitcoinLoan(economy, firm, units);
   creditBitcoin(economy, firm, units);
-}
-
-function repayBitcoinFirmLoan(economy: Economy, firm: Firm, amount: number): void {
-  const price = economy.bitcoinPrice;
-  if (!(price > 0) || firm.bitcoinLoan <= 0) {
-    firm.loan -= amount;
-    firm.deposit -= amount;
-    return;
-  }
-  const units = Math.min(firm.bitcoinLoan, amount / price);
-  firm.bitcoinLoan -= units;
-  economy.bitcoinLoanCarried -= units * price;
-  debitBitcoin(economy, firm, units);
 }
 
 /** Coupon leaves the treasury and is booked as bank equity. */
@@ -152,26 +197,35 @@ export function drawMortgage(household: Household, economy: Economy, principal: 
   creditFirms(economy, principal);
 }
 
-export function repayMortgage(household: Household, amount: number, economy?: Economy): void {
-  if (economy && economy.params.regime === 'hybrid' && household.bitcoinMortgage > 0) {
-    const price = economy.bitcoinPrice;
-    if (price > 0) {
-      const units = Math.min(household.bitcoinMortgage, amount / price);
-      household.bitcoinMortgage -= units;
-      economy.bitcoinLoanCarried -= units * price;
-      debitBitcoin(economy, household, units);
-      return;
-    }
+/** Repay fiat mortgage principal from the fiat deposit. Coin principal uses repayBitcoinMortgage. */
+export function repayMortgage(household: Household, amount: number): void {
+  if (!(amount > 0) || household.mortgage <= 0) {
+    return;
   }
   household.deposit -= amount;
   household.mortgage -= amount;
 }
 
-export function drawConsumerLoan(
+/** Repay a coin mortgage from bitcoin already held. Returns the value collected. */
+export function repayBitcoinMortgage(
+  economy: Economy,
   household: Household,
   amount: number,
-  economy?: Economy,
-): void {
+): number {
+  return repayCoinStock(
+    economy,
+    amount,
+    household.bitcoin,
+    household.bitcoinMortgage,
+    (units, price) => {
+      household.bitcoinMortgage -= units;
+      economy.bitcoinLoanCarried -= units * price;
+      debitBitcoin(economy, household, units);
+    },
+  );
+}
+
+export function drawConsumerLoan(household: Household, amount: number, economy?: Economy): void {
   if (economy && economy.params.regime === 'hybrid' && currencyFor(household) === 'bitcoin') {
     const price = economy.bitcoinPrice;
     if (price > 0) {
@@ -186,23 +240,51 @@ export function drawConsumerLoan(
   household.deposit += amount;
 }
 
-export function repayConsumerLoan(
-  household: Household,
-  amount: number,
-  economy?: Economy,
-): void {
-  if (economy && economy.params.regime === 'hybrid' && household.bitcoinConsumer > 0) {
-    const price = economy.bitcoinPrice;
-    if (price > 0) {
-      const units = Math.min(household.bitcoinConsumer, amount / price);
-      household.bitcoinConsumer -= units;
-      economy.bitcoinLoanCarried -= units * price;
-      debitBitcoin(economy, household, units);
-      return;
-    }
+/** Repay a fiat consumer loan from the fiat deposit. Coin principal uses repayBitcoinConsumer. */
+export function repayConsumerLoan(household: Household, amount: number): void {
+  if (!(amount > 0) || household.consumerLoan <= 0) {
+    return;
   }
   household.deposit -= amount;
   household.consumerLoan -= amount;
+}
+
+/** Repay a coin consumer loan from bitcoin already held. Returns the value collected. */
+export function repayBitcoinConsumer(
+  economy: Economy,
+  household: Household,
+  amount: number,
+): number {
+  return repayCoinStock(
+    economy,
+    amount,
+    household.bitcoin,
+    household.bitcoinConsumer,
+    (units, price) => {
+      household.bitcoinConsumer -= units;
+      economy.bitcoinLoanCarried -= units * price;
+      debitBitcoin(economy, household, units);
+    },
+  );
+}
+
+function repayCoinStock(
+  economy: Economy,
+  amount: number,
+  held: number,
+  owed: number,
+  apply: (units: number, price: number) => void,
+): number {
+  const price = economy.bitcoinPrice;
+  if (!(price > 0) || !(amount > 0) || owed <= 0 || held <= 0) {
+    return 0;
+  }
+  const units = Math.min(owed, held, amount / price);
+  if (!(units > 0)) {
+    return 0;
+  }
+  apply(units, price);
+  return units * price;
 }
 
 /** Credit firm receipts in bitcoin when a hybrid mortgage is coin-denominated. */

@@ -11,7 +11,7 @@ import {
   debitBitcoin,
 } from './dual-currency.js';
 import type { Economy } from './economy.js';
-import { moneyAmount } from './helpers.js';
+import { amountWithin, moneyAmount } from './helpers.js';
 import { moneyScores, nextMoneyShares } from './monies.js';
 import { supplyShockPriceCents } from './supply-shock-price.js';
 import type { DepositAccount } from './money.js';
@@ -146,7 +146,7 @@ export function swapAtResidual(
       economy.exchangeBitcoin * price,
       Math.max(0, bank.reserves),
     );
-    const take = moneyAmount(economy, afford);
+    const take = amountWithin(economy, afford);
     if (!(take > 0)) {
       return;
     }
@@ -158,7 +158,7 @@ export function swapAtResidual(
     return;
   }
   const sellValue = Math.min(-value, account.bitcoin * price);
-  const take = moneyAmount(economy, sellValue);
+  const take = amountWithin(economy, sellValue);
   if (!(take > 0)) {
     return;
   }
@@ -167,6 +167,37 @@ export function swapAtResidual(
   account.deposit += take;
   bank.reserves += take;
   economy.exchangeBitcoin += units;
+}
+
+/** Buy coins with fiat until `account` can cover `value`, or the fiat till runs out. */
+export function fundCoinsFromFiat(
+  economy: Economy,
+  account: DepositAccount & { bitcoin: number },
+  value: number,
+): void {
+  const price = economy.bitcoinPrice;
+  if (!(price > 0) || !(value > 0)) {
+    return;
+  }
+  const have = Math.max(0, account.bitcoin) * price;
+  if (have + 1e-9 >= value) {
+    return;
+  }
+  swapAtResidual(economy, account, value - have);
+}
+
+/** Sell coins for fiat. Returns the fiat actually credited, which can be below `value`. */
+export function raiseFiatFromCoins(
+  economy: Economy,
+  account: DepositAccount & { bitcoin: number },
+  value: number,
+): number {
+  if (!(value > 0)) {
+    return 0;
+  }
+  const before = account.deposit;
+  swapAtResidual(economy, account, -value);
+  return Math.max(0, account.deposit - before);
 }
 
 export function payCurrencyOf(actor: { payCurrency?: PayCurrency }): PayCurrency {

@@ -122,6 +122,21 @@ export function moneyAmount(economy: Economy, raw: number): number {
   return economy.params.unit === 'cent' ? Math.round(raw) : raw;
 }
 
+/**
+ * Round to the money unit without exceeding `cap`.
+ * Cent caps are floored first so a half-cent cannot round into an extra cent.
+ */
+export function amountWithin(economy: Economy, cap: number): number {
+  if (!(cap > 0)) {
+    return 0;
+  }
+  const limit = economy.params.unit === 'cent' ? Math.floor(cap) : cap;
+  if (!(limit > 0)) {
+    return 0;
+  }
+  return Math.min(limit, moneyAmount(economy, limit));
+}
+
 /** Cash an account can spend without overdrawing integer cents. */
 export function spendableDeposit(economy: Economy, deposit: number): number {
   if (deposit <= 0) {

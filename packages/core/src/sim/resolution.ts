@@ -117,10 +117,11 @@ function bailIn(economy: Economy, bank: Bank): void {
       if (!account || account.deposit <= 0 || left <= 0) {
         continue;
       }
-      const cut =
+      const proportional =
         index === accounts.length - 1
-          ? Math.min(account.deposit, left)
+          ? left
           : moneyAmount(economy, Math.min(account.deposit, (need * account.deposit) / deposits));
+      const cut = Math.max(0, Math.min(account.deposit, left, proportional));
       account.deposit -= cut;
       adjustBankEquity(bank, economy, cut);
       left -= cut;

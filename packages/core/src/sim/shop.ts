@@ -1,5 +1,5 @@
 import type { Economy } from './economy.js';
-import { creditCurrency, currencyFor } from './hybrid-settle.js';
+import { currencyFor, transferCurrency } from './hybrid-settle.js';
 import { creditDeposit } from './money.js';
 import type { Firm, Household, PayCurrency } from './types.js';
 
@@ -11,12 +11,14 @@ export interface ShopResult {
 export interface ShopPayment {
   economy: Economy;
   currency: PayCurrency;
+  buyer: { deposit: number; bitcoin: number };
 }
 
 /**
  * Walk `sampleSize` firms from `start` and buy while budget remains.
- * Credits the seller's deposit, reduces inventory, and records the sale.
- * When `payment` is set, the seller is credited in that currency.
+ * Credits the seller, reduces inventory, and records the sale.
+ * When `payment` is set, the buyer pays the seller in that currency and the
+ * sale stops at what the buyer can actually hand over.
  */
 export function buyFromFirms(
   firms: readonly Firm[],
@@ -41,16 +43,20 @@ export function buyFromFirms(
     if (bill <= 0) {
       continue;
     }
-    const taken = bill / seller.price;
-    if (payment) {
-      creditCurrency(payment.economy, seller, bill, payment.currency);
-    } else {
-      creditDeposit(seller, bill);
+    const paid = payment
+      ? transferCurrency(payment.economy, payment.buyer, seller, bill, payment.currency)
+      : bill;
+    if (!(paid > 0)) {
+      continue;
     }
+    if (!payment) {
+      creditDeposit(seller, paid);
+    }
+    const taken = paid / seller.price;
     seller.inventory -= taken;
     seller.sales += taken;
-    left -= bill;
-    spent += bill;
+    left -= paid;
+    spent += paid;
     bought += taken;
   }
   return { spent, bought };

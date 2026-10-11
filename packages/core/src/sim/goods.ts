@@ -3,7 +3,6 @@ import { firmCapacity } from './capacity.js';
 import type { Economy } from './economy.js';
 import { expectedInflation, normalInflation, pay, priceTrend } from './helpers.js';
 import { payFromCash, spendableCash } from './dual-currency.js';
-import { debitCurrency } from './hybrid-settle.js';
 import { inventoryPressure, monthlyPriceMove } from './pricing.js';
 import { rationScale } from './rationing.js';
 import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
@@ -72,19 +71,15 @@ function shopHouseholds(economy: Economy, market: GoodsMarket): void {
     const start =
       economy.firms.length > 0 ? plan.household.search.uniformInt(0, economy.firms.length - 1) : 0;
     const currency = shopCurrency(economy, plan.household);
+    const hybrid = economy.params.regime === 'hybrid';
     const { spent, bought } = buyFromFirms(
       economy.firms,
       left,
       start,
       economy.params.sampleSize,
-      economy.params.regime === 'hybrid'
-        ? { economy, currency }
-        : undefined,
+      hybrid ? { economy, currency, buyer: plan.household } : undefined,
     );
-    if (economy.params.regime === 'hybrid' && currency === 'bitcoin') {
-      // Debit the buyer's bitcoin till; sellers were already credited in bitcoin.
-      debitCurrency(economy, plan.household, spent, 'bitcoin');
-    } else {
+    if (!hybrid) {
       payFromCash(economy, plan.household, spent, plan.reserved);
     }
     plan.household.consumption = spent;
