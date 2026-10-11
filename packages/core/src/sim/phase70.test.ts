@@ -18,9 +18,12 @@ const monetaryPreset = JSON.parse(readFileSync(presetPath, 'utf8')).sliders as R
   number | string
 >;
 
+/** Phase 70 pins pure demand-led thin opening so the injection drag stays dominant. */
 const monetary = {
   ...FEATURE_OFF,
   ...monetaryPreset,
+  'prices.trendWeight': 0,
+  'household.openingDepositMonths': 12,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,

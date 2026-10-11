@@ -188,4 +188,8 @@
     border: 1px solid #a8a29e;
     color: inherit;
   }
+  .secondary button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 </style>

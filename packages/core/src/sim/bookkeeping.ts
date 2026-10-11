@@ -4,12 +4,17 @@ import type { Economy } from './economy.js';
 import type { Firm } from './types.js';
 import { totalLoans } from './banking.js';
 import { markBitcoinToMarket } from './dual-currency.js';
+import { syncHybridCustody } from './hybrid-money.js';
 import { chargeEquityForDefault, resetFailedFirmAccounts } from './money.js';
 import { resolveInsolventBanks } from './resolution.js';
 import { postStocks } from './stocks.js';
 
 export function onBookkeeping(economy: Economy, ctx: TickContext): void {
-  markBitcoinToMarket(economy);
+  if (economy.params.regime === 'hybrid') {
+    syncHybridCustody(economy);
+  } else {
+    markBitcoinToMarket(economy);
+  }
   postStocks(economy, ctx.ledger);
   // Catch losses booked after the pre-credit pass (for example write-offs).
   resolveInsolventBanks(economy);
@@ -55,11 +60,20 @@ export function firmEquity(economy: Economy, firm: Firm): number {
 
 function replaceFirm(economy: Economy, firm: Firm): void {
   const bank = economy.banks[firm.bank];
-  const bitcoinDebt = firm.bitcoinLoan * economy.bitcoinPrice;
-  economy.bitcoinLoanCarried -= bitcoinDebt;
-  firm.bitcoinLoan = 0;
-  economy.defaultsThisTick += firm.loan + bitcoinDebt;
-  chargeEquityForDefault(bank, economy, firm.loan + bitcoinDebt);
+  const price = economy.bitcoinPrice;
+  const bitcoinDebt = firm.bitcoinLoan * price;
+  // Hybrid custody is a plug: bitcoinReserves = coinDeposits − coinLoans.
+  // Writing off a coin loan raises that plug when custody is synced, so charging
+  // equity for the coin leg would double-count the loss and open the books.
+  if (bitcoinDebt > 0) {
+    economy.bitcoinLoanCarried -= bitcoinDebt;
+    firm.bitcoinLoan = 0;
+  }
+  const fiatLoss = firm.loan;
+  economy.defaultsThisTick += fiatLoss + bitcoinDebt;
+  if (fiatLoss > 0) {
+    chargeEquityForDefault(bank, economy, fiatLoss);
+  }
   // Keep the current workforce. Clearing them here made unemployment jump by
   // the whole firm for one month before the next labor step could rehire.
   resetFailedFirmAccounts(firm, bank, economy, INITIAL_WAGE);
@@ -70,6 +84,9 @@ function replaceFirm(economy: Economy, firm: Firm): void {
   firm.missedPayment = false;
   firm.missTicks = 0;
   firm.productivity = 1;
+  if (economy.params.regime === 'hybrid' && bitcoinDebt > 0) {
+    syncHybridCustody(economy);
+  }
 }
 
 function trackCreditCycle(economy: Economy): void {

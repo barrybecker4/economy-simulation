@@ -1,7 +1,32 @@
 import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
 import { spendableDeposit } from './helpers.js';
-import type { DepositAccount } from './money.js';
+import type { DepositAccount } from './deposit-account.js';
+
+/** Sell coins to the hybrid residual and credit matching bank reserves. */
+function sellCoinsForFiat(
+  economy: Economy,
+  account: DepositAccount & BitcoinAccount,
+  value: number,
+): void {
+  if (!(value > 0) || economy.params.regime !== 'hybrid') {
+    return;
+  }
+  const price = economy.bitcoinPrice;
+  const bank = economy.banks[0];
+  if (!(price > 0) || account.bitcoin <= 0 || !bank) {
+    return;
+  }
+  const take = Math.min(value, account.bitcoin * price);
+  if (!(take > 0)) {
+    return;
+  }
+  const units = take / price;
+  debitBitcoin(economy, account, units);
+  account.deposit += take;
+  bank.reserves += take;
+  economy.exchangeBitcoin += units;
+}
 
 /** Household, firm, agent, or treasury bitcoin cash balance. */
 export interface BitcoinAccount {
@@ -101,7 +126,9 @@ export function availableCash(economy: Economy, account: DepositAccount & Bitcoi
 
 /**
  * Pay `amount` from fiat above `reserved`, then from bitcoin.
- * Bitcoin spent is valued at the current price and leaves the carried stock.
+ * Under hybrid, bitcoin is sold to the exchange residual for fiat first so
+ * custody assets stay matched. During a transition window, bitcoin spent is
+ * valued at the current price and leaves the carried stock.
  */
 export function payFromCash(
   economy: Economy,
@@ -110,6 +137,15 @@ export function payFromCash(
   reserved: number,
 ): void {
   if (!(amount > 0)) {
+    return;
+  }
+  if (economy.params.regime === 'hybrid') {
+    const fiatFree = Math.max(0, account.deposit - reserved);
+    const short = amount - fiatFree;
+    if (short > 0) {
+      sellCoinsForFiat(economy, account, short);
+    }
+    account.deposit -= amount;
     return;
   }
   const price = economy.bitcoinPrice;
@@ -139,9 +175,16 @@ export function fundFromBitcoin(
   account: DepositAccount & BitcoinAccount,
   amount: number,
 ): void {
-  const price = economy.bitcoinPrice;
   const short = amount - Math.max(0, account.deposit);
-  if (!(short > 0) || account.bitcoin <= 0 || !(price > 0)) {
+  if (!(short > 0) || account.bitcoin <= 0) {
+    return;
+  }
+  if (economy.params.regime === 'hybrid') {
+    sellCoinsForFiat(economy, account, short);
+    return;
+  }
+  const price = economy.bitcoinPrice;
+  if (!(price > 0)) {
     return;
   }
   const take = Math.min(short, account.bitcoin * price);

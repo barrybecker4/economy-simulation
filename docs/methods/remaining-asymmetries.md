@@ -30,12 +30,18 @@ Endogenous opening tenure remains deferred.
 
 ## Hybrid versus bitcoin
 
-With no bank failure and choice speed 0, hybrid matches bitcoin except that
-hybrid can inject capital as lender of last resort when equity goes negative.
-That injection creates base money. Hybrid is not hard money plus a backstop; it
-is a money-creating LOLR. If that injection leaves equity negative, hybrid uses
-the same merge or bail-in as the other regimes, and the treasury deposit at bank
-0 is included.
+Hybrid is no longer a satoshi twin of bitcoin with a lender of last resort. It
+clears goods in cents with a separate bitcoin till at an exogenous BTC/USD path
+([ADR 0028](../adr/0028-hybrid-currency-choice.md)). Fiat printing and the
+Taylor rule run on fiat deposits. Coin credit stays savings-constrained. The
+LOLR still injects reserves when equity is negative. With choice speed 0 and no
+bank failure, hybrid still differs from bitcoin because of the cent numeraire,
+the rising exogenous bitcoin price, and fiat money growth. If LOLR support
+leaves equity negative, hybrid uses the same merge or bail-in as the other
+regimes, and the treasury deposit at bank 0 is included. AI compute sales follow
+the firm’s hybrid pay currency (fiat or bitcoin till); earlier fiat-only checks
+went dark once firms held mostly coin, so prior “agent market shut / output
+halved at the tipping point” findings should be re-run.
 
 ## Fiat-only reserve interest and deposit subsidy
 
@@ -89,6 +95,10 @@ and inventory, not from the stabilizer.
 
 ## Registry versus app defaults
 
-The registry keeps `prices.trendWeight` at 1 so older phases stay money-irrelevant
-under S0. The web app and `scenarios/presets/monetary.json` open with trend weight
-0 so money can move prices. Document both when reporting experiments.
+The registry default `prices.trendWeight` is 1 so opening prices follow the regime
+path and early well-being does not spike with excess demand. Older phase fixtures
+also pin trend weight to 1 via `FEATURE_OFF` (money-irrelevant under S0).
+`scenarios/presets/monetary.json` uses trend weight 0.35 and 30 opening-deposit
+months so money can still move prices while keeping the opening well-being path
+calmer than a pure demand-led thin opening. Document both when reporting
+experiments.

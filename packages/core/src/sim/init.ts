@@ -1,5 +1,5 @@
 import { Rng } from '../rng/rng.js';
-import { totalDeposits } from './banking.js';
+import { fiatDepositStock, totalDeposits } from './banking.js';
 import type { Economy } from './economy.js';
 import { employ, priceTrend } from './helpers.js';
 import { redistributeToUnemployed } from './income.js';
@@ -7,6 +7,7 @@ import { capitalizeBanks } from './bank-books.js';
 import { seedOpeningTenure } from './opening-tenure.js';
 import type { Parameters } from './parameters.js';
 import { NATURAL_UNEMPLOYMENT } from './rules.js';
+import { seedHybridCash } from './hybrid-money.js';
 import {
   blankEconomy,
   normalizeSkills,
@@ -35,8 +36,10 @@ export function createEconomy(
   redistributeToUnemployed(economy);
   rememberOpeningIncome(economy, initialOutput);
   seedOpeningTenure(economy);
+  seedHybridCash(economy);
   capitalizeBanks(economy);
-  economy.openingDeposits = totalDeposits(economy);
+  economy.openingDeposits =
+    params.regime === 'hybrid' ? fiatDepositStock(economy) : totalDeposits(economy);
   return economy;
 }
 

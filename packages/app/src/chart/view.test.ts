@@ -26,10 +26,10 @@ function bands(mid: number[]): Record<string, PercentileBand> {
 }
 
 describe('moneyUnit', () => {
-  it('uses cents for fiat and satoshis for bitcoin and hybrid', () => {
+  it('uses cents for fiat and hybrid, satoshis for bitcoin', () => {
     expect(moneyUnit('fiat')).toBe('cents');
     expect(moneyUnit('bitcoin')).toBe('satoshis');
-    expect(moneyUnit('hybrid')).toBe('satoshis');
+    expect(moneyUnit('hybrid')).toBe('cents');
     expect(() => moneyUnit('gold')).toThrow(/Unknown regime gold/);
   });
 });
@@ -92,7 +92,7 @@ describe('chartViews', () => {
   });
 
   it('draws band medians and a CPI percentile chart', () => {
-    const views = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'hybrid');
+    const views = chartViews({ kind: 'band', ticks, series: {}, bands: bands([3, 4]) }, 'bitcoin');
     expect(views[0]?.lines[0]?.values).toEqual([3, 4]);
     const pricesAt = views.findIndex((view) => view.key === 'prices');
     expect(views[pricesAt + 1]?.key).toBe('cpi-band');
@@ -256,7 +256,7 @@ describe('chartViews', () => {
   it('keeps a small fiat series in cents on the left when the scenario is satoshis', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([100, 500]) };
     const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
-    const views = chartViews(variant, 'hybrid', {
+    const views = chartViews(variant, 'bitcoin', {
       result: baseline,
       regime: 'fiat',
       transitionLength: 0,

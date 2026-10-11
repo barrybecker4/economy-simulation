@@ -85,15 +85,27 @@ credit, government, central bank, bookkeeping, welfare. The bookkeeping step rec
 audit. The result's audit is taken again after the tick. A caller of the scheduler can leave a step empty. The economy
 fills every step.
 
-The ledger unit follows `regime.type`: fiat uses cents; bitcoin and hybrid use satoshis. That control is only the
+The ledger unit follows `regime.type`: fiat and hybrid use cents; bitcoin uses satoshis. That control is only the
 opening monetary rule. It does not rewrite other sliders. `money.choiceSpeed` (default 0) moves the shares of fiat,
 bitcoin, stablecoins, and CBDC toward the mix implied by legal tender, trust, friction, and real return. Bitcoin’s
 opening share is fixed at 0.4 percent, about $2 trillion of bitcoin against about $500 trillion of global assets.
 Stablecoins and CBDC open at their start sliders. New bitcoin follows the halving schedule from a month-0 start in
 October 2026: the reward is 3.125 BTC, about 95.7 percent of the 21 million cap is already mined, and the reward halves
-every 48 months. At speed 0 the shares stay put. Above 0 the shares and exchange rates move; the policy-rate rule,
-fiat money growth, reserve accommodation, and the hybrid lender of last resort still follow `regime.type`. Bitcoin’s
-rate also moves with that month’s issuance relative to coins already outstanding.
+every 48 months. At speed 0 the shares stay put. Above 0 the shares and exchange rates move under fiat and bitcoin;
+hybrid uses a different path below. The policy-rate rule, fiat money growth, reserve accommodation, and the hybrid
+lender of last resort still follow `regime.type`. Under fiat and bitcoin, Bitcoin’s recorded rate also moves with that
+month’s issuance relative to coins already outstanding when `bitcoin.marketPriceWeight` is positive.
+
+Hybrid is a two-money economy at an exogenous BTC/USD path. See [ADR 0028](adr/0028-hybrid-currency-choice.md). Goods
+clear in cents. Households, firms, agents, and the treasury hold a fiat deposit and a bitcoin till. Opening cash splits
+by the opening bitcoin share; stablecoin and CBDC opening shares stay in fiat. Each month the bitcoin price is the
+supply-shock model path in cents per bitcoin (month 0 is October 2026, 300 months of recurrence, then trailing log-growth
+extrapolation). Household demand does not move that rate. `money.choiceSpeed` swaps tills at an outside exchange
+residual. Bank books hold bitcoin reserves equal to net coin liabilities so a price move does not hit equity. Fiat money
+growth and reserve accommodation run against fiat deposits only. The Taylor rule sets the fiat policy rate. Wages,
+goods, AI compute sales, and new debts can clear in each actor’s pay currency; debt service stays in the currency of
+issue. Pay currency sticks until the other money’s score leads by more than the digital-friction band, so a near-tie of
+trust and legal tender does not flip every month. Chart shares are marked fiat and bitcoin values.
 
 ## Metrics
 
@@ -199,7 +211,7 @@ worker's skill.
 
 ## Goods and relative prices
 
-Opening household deposits are `household.openingDepositMonths` (default 18) times the base wage, scaled by skill
+Opening household deposits are `household.openingDepositMonths` (default 30) times the base wage, scaled by skill
 squared.
 
 There is one consumption good. A household's budget is a smoothed income, times a marginal propensity of
@@ -427,7 +439,7 @@ draws only reserves above the reserve requirement. Reserve-backed channels still
 cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md),
 [ADR 0021](adr/0021-rate-cap-and-real-channels.md), and
 [ADR 0024](adr/0024-asset-purchase-reserves-once.md). When
-`prices.trendWeight` is below 1 (default 0.75) and opening deposits are shorter than half the 48-month spending buffer,
+`prices.trendWeight` is below 1 (registry default 1 leaves the blend off) and opening deposits are shorter than half the 48-month spending buffer,
 each household's share of pro-rata new money is added to smoothed income in proportion to how far the deposit sits under
 the buffer. `centralBank.spendNewMoney` (default 0.5) forces that blend even with thick opening deposits, and it is the
 only blend applied to loan, bond, and treasury receipts. A trend weight of 1 leaves the blend off. Bitcoin and hybrid
@@ -454,20 +466,22 @@ agents. Labor share is the wage bill over nominal GDP.
 
 Fiat keeps the central-bank rule above. The posted-price trend follows the inflation target, and the bank creates
 reserves when the reserve requirement binds. Wages negotiate toward the agreed wage from prices and productivity, so they
-follow inflation only as prices move. Bitcoin and hybrid use satoshis, including fractions. Their price trend is minus
-baseline productivity, because base money does not grow. The loan rate moves toward the gap between loans and
-savings. Savings are 25 percent of household deposits under maturity-matched lending and 10 percent under full reserve.
-New bitcoin credit cannot exceed the unused savings. The government still finances a shortfall by selling bonds to
-banks, not by central-bank money. A hybrid central bank does not target inflation. If a bank's equity is negative it
-injects enough reserves and vault cash to make that equity positive. That is the only base-money growth in the hybrid
-regime. When `bank.resolution` is `merge`, an insolvent bank that is still negative after hybrid lender-of-last-resort
-support transfers deposits and loans to a surviving bank, or bails in every depositor at a sole bank, including the
-treasury balance at bank 0, until equity meets the capital target. A bank already at that target is left alone, so
-one loss does not bail depositors in every month. See
-[ADR 0009](adr/0009-bank-resolution.md). At `off`, a failed bank only stops lending. Expected deflation is `max(0, −inflation)`. `deflation.sensitivity` times that rate, capped at 0.9, repays
-loans, cuts housing demand, and raises the recorded shares of profit-sharing and non-mortgage housing when those shares
-are still formula-based. The penalty is zero when sensitivity is zero or inflation is positive, so the fiat path is
-unchanged.
+follow inflation only as prices move. Bitcoin uses satoshis, including fractions. Its price trend is minus baseline
+productivity, because base money does not grow. The loan rate moves toward the gap between loans and savings. Savings
+are 25 percent of household deposits under maturity-matched lending and 10 percent under full reserve. New bitcoin credit
+cannot exceed the unused savings. The government still finances a shortfall by selling bonds to banks, not by
+central-bank money. Hybrid clears in cents with a separate bitcoin till at the exogenous supply-shock price
+([ADR 0028](adr/0028-hybrid-currency-choice.md)). Fiat printing, reserve accommodation, and the Taylor rule run on the
+fiat side. Coin credit stays savings-constrained. Goods price trend under hybrid follows minus baseline productivity,
+matching the hard-money goods path beside the rising BTC/USD rate. If a bank's equity is negative the hybrid central
+bank injects enough reserves and vault cash to make that equity positive. When `bank.resolution` is `merge`, an
+insolvent bank that is still negative after hybrid lender-of-last-resort support transfers deposits and loans to a
+surviving bank, or bails in every depositor at a sole bank, including the treasury balance at bank 0, until equity meets
+the capital target. A bank already at that target is left alone, so one loss does not bail depositors in every month. See
+[ADR 0009](adr/0009-bank-resolution.md). At `off`, a failed bank only stops lending. Expected deflation is
+`max(0, −inflation)`. `deflation.sensitivity` times that rate, capped at 0.9, repays loans, cuts housing demand, and
+raises the recorded shares of profit-sharing and non-mortgage housing when those shares are still formula-based. The
+penalty is zero when sensitivity is zero or inflation is positive, so the fiat path is unchanged.
 
 When `transition.lengthMonths` is positive, the run starts on fiat rules with satoshi balances. With
 `transition.gradualWeight` at 0, the last transition month writes off `transition.debtHaircut` of firm and household
@@ -549,7 +563,8 @@ each agent's unit:
 `1 / (1 + (ask / wage / agent.valueWageShare) ^ agent.demandElasticity)`.
 That relative price is real (ask over wage). There is no hard wage-share cutoff. A fiat bill that would round below one
 cent while takeup is still positive clears at one cent so cheaper compute does not shut trade off. A firm that cannot
-pay skips that agent.
+pay skips that agent. Under hybrid, affordability and settlement use the firm’s pay currency (fiat deposit or bitcoin
+till), matching wages and goods.
 
 Next month the buying firm’s capacity is multiplied by
 `1 + ceiling × (1 − exp(−slope × units / ceiling))`, where the month-zero slope is `ai.computeProductivity`, the slope

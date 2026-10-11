@@ -194,6 +194,12 @@ function foldBitcoinBalances(economy: Economy): void {
         household.bitcoinMortgage = 0;
       },
     );
+    // Foreclosure during the window can leave coin debt on a renter; folding
+    // that principal back must restore mortgage tenure so a later origination
+    // does not overwrite the balance.
+    if (household.mortgage > 0 && household.tenure !== 'mortgage' && household.tenure !== 'owned') {
+      household.tenure = 'mortgage';
+    }
     foldBitcoinLoan(
       economy,
       household.bitcoinConsumer,

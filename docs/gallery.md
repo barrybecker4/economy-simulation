@@ -30,5 +30,6 @@ pnpm sim compare --scenario scenarios/presets/neutral.json --seed 1 --left fiat 
 
 The browser places a Scenario select above the parameter groups for the six named worlds, then each category preset at
 the top of its collapsible group (central bank, public finance, credit, AI bullishness), with the regime control on the
-monetary-regime group. Chart groups start with only Welfare open; the rest stay collapsed until opened. Pin a run as
-the baseline, then run a scenario to overlay both on the charts.
+monetary-regime group. Chart groups start with only Welfare open; the rest stay collapsed until opened. Expand all opens
+every group, and Collapse all closes them again. Pin a run as the baseline, then run a scenario to overlay both on the
+charts.

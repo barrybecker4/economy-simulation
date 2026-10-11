@@ -46,10 +46,10 @@ export interface ChartView {
 }
 
 export function moneyUnit(regime: string): string {
-  if (regime === 'fiat') {
+  if (regime === 'fiat' || regime === 'hybrid') {
     return 'cents';
   }
-  if (regime === 'bitcoin' || regime === 'hybrid') {
+  if (regime === 'bitcoin') {
     return 'satoshis';
   }
   throw new Error(`Unknown regime ${regime}`);

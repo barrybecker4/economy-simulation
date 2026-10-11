@@ -56,8 +56,9 @@ export function productionCapacity(input: {
 
 /**
  * Capacity multiplier from compute bought last month.
- * With a finite ceiling, gains saturate at 1 + ceiling. Without a ceiling
- * (or with a non-positive one), the factor is linear: 1 + slope × units.
+ * With a positive finite ceiling, gains saturate at 1 + ceiling.
+ * An explicit non-positive ceiling disables the boost (factor 1).
+ * Omitted ceiling means unbounded linear: 1 + slope × units.
  */
 export function computeCapacityFactor(
   units: number,
@@ -67,7 +68,10 @@ export function computeCapacityFactor(
   if (productivity <= 0 || units <= 0) {
     return 1;
   }
-  if (ceiling !== undefined && ceiling > 0 && Number.isFinite(ceiling)) {
+  if (ceiling !== undefined) {
+    if (!(ceiling > 0) || !Number.isFinite(ceiling)) {
+      return 1;
+    }
     return saturatingCapacityFactor(units, productivity, ceiling);
   }
   return 1 + productivity * units;

@@ -163,6 +163,7 @@ function addHousehold(economy: Economy): void {
     timePref,
     deposit: 0,
     bitcoin: 0,
+    payCurrency: 'fiat',
     employer: -1,
     income: 0,
     consumption: 0,

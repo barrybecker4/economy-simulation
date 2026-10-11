@@ -1,11 +1,12 @@
 import type { MoneyUnit } from '../money/amount.js';
 
-/** Maps the regime slider onto a ledger unit. Regime behavior arrives in a later phase. */
+/** Maps the regime slider onto a ledger unit. */
 export function unitForRegime(regime: string): MoneyUnit {
-  if (regime === 'fiat') {
+  if (regime === 'fiat' || regime === 'hybrid') {
+    // Hybrid clears goods in cents with a separate bitcoin till.
     return 'cent';
   }
-  if (regime === 'bitcoin' || regime === 'hybrid') {
+  if (regime === 'bitcoin') {
     return 'satoshi';
   }
   throw new Error(`Unknown regime.type ${regime}`);

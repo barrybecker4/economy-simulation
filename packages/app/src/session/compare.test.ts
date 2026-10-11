@@ -153,6 +153,45 @@ function posted(session: ComparisonSession, result: RunSuccess): ComparisonSessi
   return noteResult(notePosted(prepared.session), result);
 }
 
+describe('canPinBaseline', () => {
+  it('is false before any run', () => {
+    const session = openComparisonSession({
+      seed: 1,
+      ticks: 24,
+      regime: 'fiat',
+      overrides: {},
+    });
+    expect(canPinBaseline(session)).toBe(false);
+  });
+
+  it('is false when live settings differ from the charts', () => {
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: {},
+      }),
+      finishedRun(),
+    );
+    session = editSlider(session, getSlider('government.ubiShare'), '0.4');
+    expect(canPinBaseline(session)).toBe(false);
+  });
+
+  it('is true after a completed run with matching settings', () => {
+    const session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: {},
+      }),
+      finishedRun(),
+    );
+    expect(canPinBaseline(session)).toBe(true);
+  });
+});
+
 describe('comparison session', () => {
   it('pins the shown run and snaps frame sliders to that baseline', () => {
     const result = finishedRun();
@@ -178,7 +217,7 @@ describe('comparison session', () => {
       sliderValue(getSlider('scale.households'), update.session.regime, update.session.overrides),
     ).toBe(500);
     expect(update.session.overrides['government.ubiShare']).toBe(0.4);
-    expect(canPinBaseline(update.session)).toBe(true);
+    expect(canPinBaseline(update.session)).toBe(false);
     expect(canPromoteBaseline(update.session)).toBe(false);
   });
 

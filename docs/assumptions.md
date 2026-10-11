@@ -792,11 +792,11 @@ Registry version: 14.
 - Label: Opening deposit months
 - Group: behavior
 - Unit: months
-- Default: 18
+- Default: 30
 - Range: 6 to 60
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. The default of 18 is about a year and a half of income. Lower values raise velocity. At 36 deposits are about three years of income and velocity is low.
+- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. The default of 30 sits above the thin-opening threshold (24 months) used when blending new fiat into smoothed income, so early consumption and well-being open without a sharp spending pulse. Lower values raise velocity and can spike spending in the first months. At 36 deposits are about three years of income and velocity is low.
 
 ## household.realReturnSensitivity
 
@@ -1016,7 +1016,7 @@ Registry version: 14.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Bitcoin issuance follows the halving schedule and is not a slider. At 0 the shares stay at that opening mix. Above 0 the shares and exchange rates move; the regime control still selects the policy-rate rule, fiat money growth, reserve accommodation, and the hybrid lender of last resort. The default of 0 keeps currency adoption off so regime comparisons are not blended.
+- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Under hybrid, speed above 0 swaps fiat and bitcoin tills at an outside residual and sets pay currency from those scores; the BTC/USD rate stays on the exogenous supply-shock path. Under fiat and bitcoin, speed above 0 moves chart shares and the toy exchange rates only. At 0 the opening mix stays put. The default of 0 keeps currency adoption off so regime comparisons are not blended.
 
 ## money.fiatLegalTender
 
@@ -1067,11 +1067,11 @@ Registry version: 14.
 - Label: Price trend weight
 - Group: behavior
 - Unit: share
-- Default: 0.75
+- Default: 1
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. The default of 0.75 keeps most of the regime path and lets demand move a quarter of the growth. At 1 the fiat inflation target or bitcoin productivity trend writes the path alone. At 0 prices move only with excess demand.
+- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. The default of 1 follows the regime path alone so opening consumption and well-being do not spike with excess demand. The monetary preset lowers this so money can move prices. At 0 prices move only with excess demand.
 
 ## production.alpha
 
@@ -1126,7 +1126,7 @@ Registry version: 14.
 - Options: fiat, bitcoin, hybrid
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Rule set for base money, interest, and government finance. Fiat prices trend toward the inflation target, the central bank sets the policy rate from inflation and unemployment, and it creates reserves when the reserve requirement binds. Money is integer cents. Bitcoin does not grow the money stock with the economy, so the price trend is minus productivity growth. New loans cannot exceed unused savings, and a government budget shortfall is financed by bonds rather than new central-bank money. Money is satoshis, including fractions of a satoshi. Hybrid uses that same unit and price trend, and it does not target inflation. If a bank equity balance goes negative, the hybrid central bank injects enough reserves and vault cash to make that equity positive. That injection is the only base-money growth in the hybrid regime.
+- Description: Rule set for base money, interest, and government finance. Fiat prices trend toward the inflation target, the central bank sets the policy rate from inflation and unemployment, and it creates reserves when the reserve requirement binds. Money is integer cents. Bitcoin does not grow the money stock with the economy, so the price trend is minus productivity growth. New loans cannot exceed unused savings, and a government budget shortfall is financed by bonds rather than new central-bank money. Money is satoshis, including fractions of a satoshi. Hybrid clears goods in cents with a separate bitcoin till at an exogenous BTC/USD path. Fiat printing and the Taylor rule run on fiat deposits; coin credit stays savings-constrained. If a bank equity balance goes negative, the hybrid central bank injects enough reserves and vault cash to make that equity positive.
 
 ## scale.banks
 

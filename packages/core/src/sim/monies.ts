@@ -10,7 +10,8 @@ export interface MoneyShares {
   cbdc: number;
 }
 
-const DIGITAL_FRICTION = 0.02;
+/** Bitcoin money-choice score penalty; also the pay-currency hysteresis band. */
+export const DIGITAL_FRICTION = 0.02;
 const STABLECOIN_TRUST = 0.45;
 const CBDC_TRUST = 0.7;
 
@@ -83,6 +84,10 @@ export function nextExchangeRate(price: number, share: number, issuance: number)
 }
 
 export function updateMoneyChoice(economy: Economy): void {
+  // Hybrid uses the exogenous supply-shock path and updateHybridMoney instead.
+  if (economy.params.regime === 'hybrid') {
+    return;
+  }
   if (economy.params.choiceSpeed > 0) {
     const realReturn =
       economy.depositRate - economy.moneyShares.bitcoin * economy.params.prodGrowth;

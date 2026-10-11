@@ -1,12 +1,14 @@
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
-import { payFromCash, spendableCash } from './dual-currency.js';
+import { availableCash, payFromCash, spendableCash } from './dual-currency.js';
+import { swapAtResidual } from './hybrid-money.js';
+import { currencyFor, transferCurrency } from './hybrid-settle.js';
 import { collectBankFee, creditDeposit, debitDeposit } from './money.js';
 import { agentTakeup, quotedServicePrice, realUnitCost } from './agent-cost.js';
 import { INITIAL_WAGE } from './rules.js';
 import { buyFromFirms } from './shop.js';
 import { goodsBudget, goodsSpendingShare } from './spending.js';
-import type { Agent } from './types.js';
+import type { Agent, Bank, Firm, PayCurrency } from './types.js';
 
 export interface GoodsMarket {
   floorShare: number;
@@ -130,10 +132,16 @@ function sellCompute(
   if (bill <= 0 && continuous > 0 && economy.params.unit === 'cent') {
     bill = 1;
   }
-  if (bill <= 0 || firm.deposit < bill) {
+  if (!(bill > 0) || !firmCanPay(economy, firm, bill)) {
     agent.income = 0;
     return;
   }
+  if (economy.params.regime === 'hybrid') {
+    sellComputeHybrid(economy, agent, firm, bank, bill, takeup, friction);
+    return;
+  }
+  // Fiat and bitcoin: credit bill − fee in one step so satoshi floats match the
+  // pinned cross-engine path (credit-then-debit is not bit-identical).
   let fee = moneyAmount(economy, bill * friction);
   // One-cent sales round a modest fee to zero. When friction is material, keep a
   // one-cent fee so higher friction still leaves agents with less to spend (H4).
@@ -149,6 +157,67 @@ function sellCompute(
     economy.agentFees += fee;
   }
   economy.agentVolume += bill;
+}
+
+/** Hybrid compute sale: settle in the firm's pay currency, fee via fiat equity. */
+function sellComputeHybrid(
+  economy: Economy,
+  agent: Agent,
+  firm: Firm,
+  bank: Bank,
+  bill: number,
+  takeup: number,
+  friction: number,
+): void {
+  const currency = currencyFor(firm);
+  const paid = transferCurrency(economy, firm, agent, bill, currency);
+  if (!(paid > 0)) {
+    agent.income = 0;
+    return;
+  }
+  let fee = moneyAmount(economy, paid * friction);
+  if (fee <= 0 && friction >= 0.05 && paid > 0 && economy.params.unit === 'cent') {
+    fee = Math.min(paid, 1);
+  }
+  const taken = takeHybridComputeFee(economy, agent, bank, fee, currency);
+  firm.computeReady += takeup;
+  agent.income = paid - taken;
+  economy.agentVolume += paid;
+}
+
+/**
+ * Collect payment friction into bank equity from the agent's receipt.
+ * Bitcoin pay sells the fee into fiat first so custody assets and equity move
+ * together instead of opening a cent gap.
+ */
+function takeHybridComputeFee(
+  economy: Economy,
+  agent: Agent,
+  bank: Bank,
+  fee: number,
+  currency: PayCurrency,
+): number {
+  if (!(fee > 0)) {
+    return 0;
+  }
+  if (currency === 'bitcoin') {
+    swapAtResidual(economy, agent, -fee);
+  }
+  const taken = Math.min(fee, Math.max(0, agent.deposit));
+  if (!(taken > 0)) {
+    return 0;
+  }
+  debitDeposit(agent, taken);
+  collectBankFee(bank, economy, taken);
+  economy.agentFees += taken;
+  return taken;
+}
+
+function firmCanPay(economy: Economy, firm: Firm, bill: number): boolean {
+  if (economy.params.regime === 'hybrid') {
+    return availableCash(economy, firm) >= bill;
+  }
+  return firm.deposit >= bill;
 }
 
 function spendingShare(economy: Economy, timePref: number, inflationGap: number): number {

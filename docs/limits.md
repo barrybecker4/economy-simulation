@@ -5,12 +5,13 @@ beverages, housing, energy, apparel, transportation, medical care, education, re
 accounting split. Households do not shop in separate markets, and a category's productivity slider does not change how
 many goods are made.
 
-There is no international trade and no second goods price. Fiat, bitcoin, and hybrid are alternative units for the
-same economy, not countries trading with each other. A positive `transition.lengthMonths` changes one closed economy
-from fiat rules into bitcoin. With `transition.gradualWeight` at 0 that change is a rebase on the last month. With a
-positive weight, deposits and debts convert into a bitcoin balance month by month and goods can be paid from either
-balance. The run keeps satoshi balances from the first month so the ledger unit does not change mid-run. It is not a
-model of the United States converting.
+There is no international trade and no second goods price. Fiat and bitcoin are alternative units for the same economy,
+not countries trading with each other. Hybrid is one goods market with two monies (fiat cents and a bitcoin till) at an
+exogenous BTC/USD path; an outside exchange residual absorbs swaps. It is still not a second country. A positive
+`transition.lengthMonths` changes one closed economy from fiat rules into bitcoin. With `transition.gradualWeight` at 0
+that change is a rebase on the last month. With a positive weight, deposits and debts convert into a bitcoin balance
+month by month and goods can be paid from either balance. The run keeps satoshi balances from the first month so the
+ledger unit does not change mid-run. It is not a model of the United States converting.
 
 There is no trade in firm shares. When `equity.marketOn` is on, the default, household wealth includes a claim on firm
 capital split by the same skill weights as profits. Those claims are not traded and do not move deposits. When the
@@ -70,13 +71,17 @@ deposits sit further under the buffer. Apparel and electronics productivity sit 
 prices fall relative to the CPI, while housing supply growth sits under population growth and that category can rise.
 `scenarios/baseline.json` stays empty for CLI regression.
 
-Money choice does not pick the unit the economy clears in. `money.choiceSpeed` defaults to 0. Above 0, the shares of
-fiat, bitcoin, stablecoin, and CBDC move on the currency-share chart and write the bitcoin, stablecoin, and CBDC
-exchange rates. Only the bitcoin rate is read again, by goods, wealth, and the transition. Stablecoin and CBDC rates
-are stored and scaled on a redenomination, and nothing else reads them. The bitcoin rate also moves with issuance and
-trust when `bitcoin.marketPriceWeight` is positive (the default is 0.4), using the bitcoin share, including when
-choice speed is 0. No goods, labor, credit, tax, or regime rule reads the shares. Hybrid is still one unit with a
-lender of last resort, not a basket that spends in the shares the chart shows.
+Under fiat and bitcoin, money choice does not pick the unit the economy clears in. `money.choiceSpeed` defaults to 0.
+Above 0, the shares of fiat, bitcoin, stablecoin, and CBDC move on the currency-share chart and write the bitcoin,
+stablecoin, and CBDC exchange rates. Only the bitcoin rate is read again, by goods, wealth, and the transition.
+Stablecoin and CBDC rates are stored and scaled on a redenomination, and nothing else reads them. The bitcoin rate also
+moves with issuance and trust when `bitcoin.marketPriceWeight` is positive (the default is 0.4), using the bitcoin share,
+including when choice speed is 0. No goods, labor, credit, tax, or regime rule reads the shares under those regimes.
+
+Under hybrid, money choice and pay-currency scores do move tills, wages, goods settlement, and new debts
+([ADR 0028](adr/0028-hybrid-currency-choice.md)). The BTC/USD rate is the supply-shock path taken as given; this
+economy’s buying does not feed it. Fiat printing still runs on fiat deposits. Stablecoin and CBDC are not separate
+tills.
 
 Development runs use 4,000 households, 200 firms, and 4 banks. The phase 2 test allows 45 seconds for 600 ticks. Sweeps
 in the CLI run in this process at a small scale, 40 households. A 50-seed development sweep is a manual command, not

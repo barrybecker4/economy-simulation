@@ -63,6 +63,8 @@ describe('nominal redenomination', () => {
         publicFinance: 'ai-dividend',
         aiBullishness: 'extreme',
       }),
+      // Demand-led enough that extreme AI still crosses the redenomination ceiling.
+      'prices.trendWeight': 0.75,
       'regime.type': 'fiat',
       'scale.households': 200,
       'scale.firms': 10,

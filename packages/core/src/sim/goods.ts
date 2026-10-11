@@ -6,7 +6,7 @@ import { payFromCash, spendableCash } from './dual-currency.js';
 import { inventoryPressure, monthlyPriceMove } from './pricing.js';
 import { rationScale } from './rationing.js';
 import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
-import { buyFromFirms } from './shop.js';
+import { buyFromFirms, shopCurrency } from './shop.js';
 import { goodsBudget, goodsSpendingShare, subsistenceShare } from './spending.js';
 import { clamp, shuffleInPlace } from './stats.js';
 import type { Firm, Household } from './types.js';
@@ -70,8 +70,18 @@ function shopHouseholds(economy: Economy, market: GoodsMarket): void {
     const left = Math.max(0, Math.round(plan.spendable * scale));
     const start =
       economy.firms.length > 0 ? plan.household.search.uniformInt(0, economy.firms.length - 1) : 0;
-    const { spent, bought } = buyFromFirms(economy.firms, left, start, economy.params.sampleSize);
-    payFromCash(economy, plan.household, spent, plan.reserved);
+    const currency = shopCurrency(economy, plan.household);
+    const hybrid = economy.params.regime === 'hybrid';
+    const { spent, bought } = buyFromFirms(
+      economy.firms,
+      left,
+      start,
+      economy.params.sampleSize,
+      hybrid ? { economy, currency, buyer: plan.household } : undefined,
+    );
+    if (!hybrid) {
+      payFromCash(economy, plan.household, spent, plan.reserved);
+    }
     plan.household.consumption = spent;
     plan.household.realConsumption = bought;
     economy.consumptionSpend += spent;

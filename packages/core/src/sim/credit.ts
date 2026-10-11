@@ -9,6 +9,7 @@ import {
 import { repayChannelLoans } from './central-bank.js';
 import { payHouseholdDepositInterest } from './deposit-interest.js';
 import { rateTransmissionFactor } from './contracts.js';
+import { fundCoinsFromFiat, raiseFiatFromCoins } from './hybrid-money.js';
 import { drawFirmLoan, payFirmInterest, releaseBankEquity, repayFirmLoan } from './money.js';
 import { resolveInsolventBanks } from './resolution.js';
 import {
@@ -153,8 +154,7 @@ function repayStressedLoans(economy: Economy): void {
     if (repay <= 0) {
       continue;
     }
-    repayFirmLoan(firm, repay);
-    economy.loanRepaid += repay;
+    economy.loanRepaid += repayFirmLoan(firm, repay, economy);
   }
 }
 
@@ -187,13 +187,17 @@ function drawEndogenousCredit(economy: Economy): void {
     if (borrowed <= 0) {
       continue;
     }
-    drawFirmLoan(firm, borrowed);
+    drawFirmLoan(firm, borrowed, economy);
     economy.newBorrowing += borrowed;
   }
 }
 
 function repayDeflatingLoan(economy: Economy, firm: Firm): void {
   const penalty = deflationPenalty(economy);
+  if (economy.params.regime === 'hybrid') {
+    repayDeflatingHybridLoan(economy, firm, penalty);
+    return;
+  }
   if (penalty <= 0 || firm.loan <= 0 || firm.deposit <= 0) {
     return;
   }
@@ -202,22 +206,85 @@ function repayDeflatingLoan(economy: Economy, firm: Firm): void {
   if (repay <= 0) {
     return;
   }
-  repayFirmLoan(firm, repay);
-  economy.loanRepaid += repay;
+  economy.loanRepaid += repayFirmLoan(firm, repay);
+}
+
+/** Hybrid may repay coin-denominated loans from either till. */
+function repayDeflatingHybridLoan(economy: Economy, firm: Firm, penalty: number): void {
+  if (penalty <= 0) {
+    return;
+  }
+  const price = economy.bitcoinPrice;
+  const outstanding = firm.loan + firm.bitcoinLoan * price;
+  if (!(outstanding > 0)) {
+    return;
+  }
+  const available = firm.deposit + firm.bitcoin * price;
+  if (!(available > 0)) {
+    return;
+  }
+  const rawRepay = outstanding * penalty * DEFLATION_REPAY_RATE;
+  const repay = Math.min(outstanding, available, moneyAmount(economy, rawRepay));
+  if (repay <= 0) {
+    return;
+  }
+  economy.loanRepaid += repayFirmLoan(firm, repay, economy);
 }
 
 function payInterest(economy: Economy, firm: Firm, bank: Bank | undefined): number {
-  const rawInterest = (firm.loan * (economy.policyRate + LOAN_SPREAD)) / 12;
-  const interest = moneyAmount(economy, rawInterest);
-  if (interest > 0 && firm.deposit < interest) {
+  const rate = economy.policyRate + LOAN_SPREAD;
+  let paid = 0;
+  const fiatInterest = moneyAmount(economy, (firm.loan * rate) / 12);
+  if (fiatInterest > 0 && firm.deposit < fiatInterest) {
     firm.missedPayment = true;
   }
-  if (interest <= 0 || firm.deposit < interest || !bank || bank.failed) {
+  if (fiatInterest > 0 && firm.deposit >= fiatInterest && bank && !bank.failed) {
+    payFirmInterest(firm, bank, economy, fiatInterest);
+    economy.interestPaid += fiatInterest;
+    paid += fiatInterest;
+  }
+  if (economy.params.regime === 'hybrid') {
+    paid += payCoinLoanInterest(economy, firm, bank, rate);
+  }
+  return paid;
+}
+
+/** Coin-loan coupon is collected in bitcoin, then booked as fiat bank equity. */
+function payCoinLoanInterest(
+  economy: Economy,
+  firm: Firm,
+  bank: Bank | undefined,
+  rate: number,
+): number {
+  const price = economy.bitcoinPrice;
+  if (!(price > 0) || firm.bitcoinLoan <= 0) {
     return 0;
   }
-  payFirmInterest(firm, bank, economy, interest);
-  economy.interestPaid += interest;
-  return interest;
+  const interest = moneyAmount(economy, (firm.bitcoinLoan * price * rate) / 12);
+  if (!(interest > 0)) {
+    return 0;
+  }
+  if (!bank || bank.failed) {
+    firm.missedPayment = true;
+    return 0;
+  }
+  fundCoinsFromFiat(economy, firm, interest);
+  const payable = Math.min(interest, Math.max(0, firm.bitcoin) * price);
+  if (payable + 1e-9 < interest) {
+    firm.missedPayment = true;
+  }
+  if (!(payable > 0)) {
+    return 0;
+  }
+  const raised = raiseFiatFromCoins(economy, firm, payable);
+  const take = Math.min(payable, raised);
+  if (!(take > 0)) {
+    firm.missedPayment = true;
+    return 0;
+  }
+  payFirmInterest(firm, bank, economy, take);
+  economy.interestPaid += take;
+  return take;
 }
 
 function invest(
@@ -274,7 +341,7 @@ function drawExpansionLoan(economy: Economy, firm: Firm, gap: number): void {
   if (borrowed <= 0) {
     return;
   }
-  drawFirmLoan(firm, borrowed);
+  drawFirmLoan(firm, borrowed, economy);
   economy.newBorrowing += borrowed;
 }
 

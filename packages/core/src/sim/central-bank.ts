@@ -3,6 +3,7 @@ import {
   addBonds,
   bankCreditRoom,
   bondNumber,
+  fiatDepositStock,
   savingsStock,
   totalDeposits,
   totalLoans,
@@ -17,6 +18,7 @@ import {
   outputGap,
   unemploymentRate,
 } from './helpers.js';
+import { updateHybridMoney } from './hybrid-money.js';
 import { updateMoneyChoice } from './monies.js';
 import {
   addReserves,
@@ -73,6 +75,15 @@ export function onCentralBank(economy: Economy): void {
   economy.zombieBudget = 0;
   economy.fiatInjectionFlow = 0;
   economy.reserveAccommodationFlow = 0;
+  if (economy.params.regime === 'hybrid') {
+    // Exogenous BTC/USD path, optional till swaps, custody mark. No equity seating.
+    updateHybridMoney(economy);
+    setFiatPolicy(economy);
+    growFiatMoney(economy);
+    accommodateReserves(economy);
+    supportInsolventBanks(economy);
+    return;
+  }
   // Currency shares may move with choiceSpeed; the policy rule follows the regime.
   updateMoneyChoice(economy);
   // After money choice updates the bitcoin price, remark deposits and loans to market
@@ -85,9 +96,6 @@ export function onCentralBank(economy: Economy): void {
     accommodateReserves(economy);
   } else {
     setMarketRate(economy);
-    if (economy.params.regime === 'hybrid') {
-      supportInsolventBanks(economy);
-    }
   }
 }
 
@@ -98,7 +106,10 @@ export function onCentralBank(economy: Economy): void {
  * sector, and only up to the balances that exist.
  */
 export function growFiatMoney(economy: Economy): void {
-  if (economy.params.regime !== 'fiat' || economy.params.moneyGrowth <= 0) {
+  if (
+    (economy.params.regime !== 'fiat' && economy.params.regime !== 'hybrid') ||
+    economy.params.moneyGrowth <= 0
+  ) {
     return;
   }
   const trailing = inflation(economy);
@@ -112,13 +123,17 @@ export function growFiatMoney(economy: Economy): void {
   const lagged = laggedStimulusPressure(economy);
   // Hard stop at the money cap. Full strength until fade start, then linear
   // fade so secular growth does not eat stimulus headroom before it can act.
+  // Hybrid grows against fiat deposits only so a bitcoin price jump does not
+  // scale the injection.
+  const depositBase =
+    economy.params.regime === 'hybrid' ? fiatDepositStock(economy) : totalDeposits(economy);
   const moneyMultiple =
-    economy.openingDeposits > 0 ? totalDeposits(economy) / economy.openingDeposits : 1;
+    economy.openingDeposits > 0 ? depositBase / economy.openingDeposits : 1;
   const stimulusEffective = lagged > 0 ? stimulusMoneyFade(moneyMultiple) : 1;
   const stimulusAnnual = economy.params.stimulus * lagged * stimulusEffective;
   const annual = secular + stimulusAnnual;
   const monthly = annual / 12;
-  const deposits = totalDeposits(economy);
+  const deposits = depositBase;
   if (deposits <= 0) {
     return;
   }
@@ -580,7 +595,9 @@ function publishRate(economy: Economy, raw: number): void {
 }
 
 function accommodateReserves(economy: Economy): void {
-  const required = Math.round(economy.params.reserveRequirement * totalDeposits(economy));
+  const depositBase =
+    economy.params.regime === 'hybrid' ? fiatDepositStock(economy) : totalDeposits(economy);
+  const required = Math.round(economy.params.reserveRequirement * depositBase);
   // Reserve interest already added reserves this tick. Ignore that slice so the
   // requirement still tops up the same lending gap as before the interest credit.
   const reserves =
