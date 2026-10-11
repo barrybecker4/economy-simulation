@@ -53,8 +53,6 @@ export interface Firm {
   /** Smoothed unit sales used when demand sets output or firms set hiring. */
   expectedSales: number;
   negTicks: number;
-  /** Tick when this firm was created or replaced. Used for anniversary-based credit draws. */
-  createdAt: number;
 }
 
 export interface Agent {
