@@ -393,14 +393,19 @@ function shouldForeclose(economy: Economy, household: Household): boolean {
 }
 
 function forecloseMortgage(economy: Economy, household: Household): void {
-  // Gradual transition keeps a coin slice on bitcoinMortgage. Write off both
-  // legs so finishTransition cannot fold coin debt back onto a renter.
+  // Gradual transition and hybrid coin mortgages keep a slice on bitcoinMortgage.
+  // Write off both legs so debt cannot linger on a renter. Under hybrid, only the
+  // fiat leg charges equity: the custody plug absorbs the coin leg on sync.
   const price = economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 0;
   const coinLoss = household.bitcoinMortgage * price;
-  const loss = household.mortgage + coinLoss;
-  if (loss > 0) {
-    chargeEquityForDefault(economy.banks[household.bank], economy, loss);
-    economy.defaultsThisTick += loss;
+  const fiatLoss = household.mortgage;
+  const hybrid = economy.params.regime === 'hybrid';
+  const equityLoss = hybrid ? fiatLoss : fiatLoss + coinLoss;
+  if (equityLoss > 0) {
+    chargeEquityForDefault(economy.banks[household.bank], economy, equityLoss);
+  }
+  if (fiatLoss + coinLoss > 0) {
+    economy.defaultsThisTick += fiatLoss + coinLoss;
   }
   if (coinLoss > 0) {
     economy.bitcoinLoanCarried -= coinLoss;

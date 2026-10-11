@@ -22,8 +22,9 @@ taken as given.
 - Opening cash splits by the opening bitcoin share. Stablecoin and CBDC opening shares stay in the fiat till. Chart
   shares are marked fiat and bitcoin values.
 - Swaps go through an outside exchange residual. Bank books hold `bitcoinReserves` equal to net coin liabilities at the
-  current price so a price move does not hit equity. Fiat money growth and reserve accommodation run against fiat
-  deposits only. The Taylor rule sets the fiat policy rate. The hybrid lender of last resort still runs.
+  current price so a price move does not hit equity. Writing off a coin loan therefore raises that custody plug on the
+  next sync; only the fiat leg of a default charges bank equity. Fiat money growth and reserve accommodation run against
+  fiat deposits only. The Taylor rule sets the fiat policy rate. The hybrid lender of last resort still runs.
 - Households and firms choose a pay currency from money scores. Wages, goods, and new debts can clear in that currency.
   Service stays in the currency of issue.
 
