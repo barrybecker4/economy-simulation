@@ -116,6 +116,14 @@
       ? null
       : monthCensus(bundle.baseline.result, monthIndex, bundle.baseline),
   );
+  const visibleChartGroups = $derived(
+    flows && census
+      ? [...outcomeGroups.map((block) => block.group), 'This month']
+      : outcomeGroups.map((block) => block.group),
+  );
+  const allChartsOpen = $derived(
+    visibleChartGroups.length > 0 && visibleChartGroups.every((group) => isChartGroupOpen(group)),
+  );
   const diffs = $derived(comparisonDiffs(session, sliders));
   const canPin = $derived(canPinBaseline(session));
   const canPromote = $derived(canPromoteBaseline(session));
@@ -281,6 +289,14 @@
     openChartGroups = { ...openChartGroups, [group]: next };
   }
 
+  function setAllChartGroups(open: boolean): void {
+    const next: Record<string, boolean> = { ...openChartGroups };
+    for (const group of visibleChartGroups) {
+      next[group] = open;
+    }
+    openChartGroups = next;
+  }
+
   function groupedChartViews(list: readonly ChartView[]): { group: string; charts: ChartView[] }[] {
     const groups: { group: string; charts: ChartView[] }[] = [];
     for (const chart of list) {
@@ -352,6 +368,11 @@
       {/if}
 
       {#if result}
+        <div class="chart-tools">
+          <button type="button" onclick={() => setAllChartGroups(!allChartsOpen)}>
+            {allChartsOpen ? 'Collapse all' : 'Expand all'}
+          </button>
+        </div>
         {#each outcomeGroups as block (block.group)}
           <details
             class="chart-group"
@@ -519,6 +540,23 @@
   .empty {
     color: #57534e;
     margin: 0.25rem 0 0;
+  }
+  .chart-tools {
+    background: #f7f4ef;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 0.35rem;
+    padding: 0.15rem 0 0.35rem;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .chart-tools button {
+    background: transparent;
+    border: 1px solid #a8a29e;
+    color: inherit;
+    font: inherit;
+    padding: 0.4rem 0.8rem;
   }
   .chart-group {
     border-bottom: 1px solid #ddd;
