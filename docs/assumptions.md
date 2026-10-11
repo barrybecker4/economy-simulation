@@ -1016,10 +1016,7 @@ Registry version: 14.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. 
-  Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. 
-  Under hybrid, speed above 0 swaps fiat and bitcoin tills at an outside residual and sets pay currency from those scores; 
-  the BTC/USD rate stays on the exogenous supply-shock path. Under fiat and bitcoin, speed above 0 moves chart shares and the toy exchange rates only. At 0 the opening mix stays put. The default of 0 keeps currency adoption off so regime comparisons are not blended.
+- Description: How fast currency shares move toward the monies people prefer. Bitcoin starts at its current weight in global assets, about 0.4 percent. Stablecoins and CBDC start from their opening sliders, and fiat is the rest. Each month the shares step toward the mix implied by legal tender, trust, payment friction, and the real return. Under hybrid, speed above 0 swaps fiat and bitcoin tills at an outside residual and sets pay currency from those scores; the BTC/USD rate stays on the exogenous supply-shock path. Under fiat and bitcoin, speed above 0 moves chart shares and the toy exchange rates only. At 0 the opening mix stays put. The default of 0 keeps currency adoption off so regime comparisons are not blended.
 
 ## money.fiatLegalTender
 

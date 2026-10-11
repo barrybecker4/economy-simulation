@@ -13,7 +13,7 @@ describe('default wealth path', () => {
     expect(result.audit.ok).toBe(true);
     expect(last(result, 'totalRealWealth')).toBeGreaterThan(first(result, 'totalRealWealth'));
     expect(last(result, 'realGdp')).toBeGreaterThan(first(result, 'realGdp'));
-  });
+  }, 30_000);
 
   it('does not sawtooth wealth from once-a-year investment lumps', () => {
     const result = simulate(

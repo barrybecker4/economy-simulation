@@ -144,6 +144,10 @@ export function drawMortgage(household: Household, economy: Economy, principal: 
       return;
     }
   }
+  // New purchase replaces any stray principal left after a tenure mismatch.
+  if (household.mortgage > 0) {
+    chargeEquityForDefault(economy.banks[household.bank], economy, household.mortgage);
+  }
   household.mortgage = principal;
   creditFirms(economy, principal);
 }

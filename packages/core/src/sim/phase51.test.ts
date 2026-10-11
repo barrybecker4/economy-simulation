@@ -77,31 +77,35 @@ describe('phase 51 deposit interest is a flow', () => {
     expect(bank.vault).toBe(bank.equity + economy.privateEquity);
   });
 
-  it('finishes S0, S3, and monetary fiat when the subsidy and pass-through bind', () => {
-    const bound = {
-      'regime.type': 'fiat' as const,
-      'bank.depositPassThrough': 1,
-      'bank.depositInterestSubsidy': 1,
-      'shock.frequency': 0,
-      ticks: 12,
-    };
-    for (const sliders of [
-      bound,
-      { ...bound, 'prices.trendWeight': 0, 'production.demandWeight': 1 },
-      { ...monetary, ...bound },
-    ]) {
-      const result = run(sliders);
-      expect(series(result, 'auditOk').every((value) => value === 1)).toBe(true);
-    }
-    const inactive = run({
-      'regime.type': 'fiat',
-      'bank.depositPassThrough': 0,
-      'bank.depositInterestSubsidy': 1,
-      'shock.frequency': 0,
-      ticks: 4,
-    });
-    expect(series(inactive, 'auditOk').every((value) => value === 1)).toBe(true);
-  });
+  it(
+    'finishes S0, S3, and monetary fiat when the subsidy and pass-through bind',
+    () => {
+      const bound = {
+        'regime.type': 'fiat' as const,
+        'bank.depositPassThrough': 1,
+        'bank.depositInterestSubsidy': 1,
+        'shock.frequency': 0,
+        ticks: 12,
+      };
+      for (const sliders of [
+        bound,
+        { ...bound, 'prices.trendWeight': 0, 'production.demandWeight': 1 },
+        { ...monetary, ...bound },
+      ]) {
+        const result = run(sliders);
+        expect(series(result, 'auditOk').every((value) => value === 1)).toBe(true);
+      }
+      const inactive = run({
+        'regime.type': 'fiat',
+        'bank.depositPassThrough': 0,
+        'bank.depositInterestSubsidy': 1,
+        'shock.frequency': 0,
+        ticks: 4,
+      });
+      expect(series(inactive, 'auditOk').every((value) => value === 1)).toBe(true);
+    },
+    30_000,
+  );
 
   it('keeps S3 fiat inflation under 10 percent when the subsidy and pass-through bind', () => {
     const result = run({

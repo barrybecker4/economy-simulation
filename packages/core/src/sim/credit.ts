@@ -194,16 +194,33 @@ function drawEndogenousCredit(economy: Economy): void {
 
 function repayDeflatingLoan(economy: Economy, firm: Firm): void {
   const penalty = deflationPenalty(economy);
+  if (economy.params.regime === 'hybrid') {
+    repayDeflatingHybridLoan(economy, firm, penalty);
+    return;
+  }
+  if (penalty <= 0 || firm.loan <= 0 || firm.deposit <= 0) {
+    return;
+  }
+  const rawRepay = firm.loan * penalty * DEFLATION_REPAY_RATE;
+  const repay = Math.min(firm.loan, firm.deposit, moneyAmount(economy, rawRepay));
+  if (repay <= 0) {
+    return;
+  }
+  repayFirmLoan(firm, repay);
+  economy.loanRepaid += repay;
+}
+
+/** Hybrid may repay coin-denominated loans from either till. */
+function repayDeflatingHybridLoan(economy: Economy, firm: Firm, penalty: number): void {
   if (penalty <= 0) {
     return;
   }
-  const fiatLoan = firm.loan;
-  const coinLoanValue = firm.bitcoinLoan * economy.bitcoinPrice;
-  const outstanding = fiatLoan + coinLoanValue;
+  const price = economy.bitcoinPrice;
+  const outstanding = firm.loan + firm.bitcoinLoan * price;
   if (!(outstanding > 0)) {
     return;
   }
-  const available = firm.deposit + firm.bitcoin * economy.bitcoinPrice;
+  const available = firm.deposit + firm.bitcoin * price;
   if (!(available > 0)) {
     return;
   }

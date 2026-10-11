@@ -277,6 +277,60 @@ function maybeBorrowConsumer(
 }
 
 function serviceDebts(economy: Economy, household: Household): void {
+  if (economy.params.regime === 'hybrid') {
+    serviceHybridDebts(economy, household);
+    return;
+  }
+  if (household.mortgage > 0 && household.mortgagePayment > 0) {
+    const due = Math.min(household.mortgage, household.mortgagePayment);
+    fundFromBitcoin(economy, household, due);
+    const pay = Math.min(due, household.deposit);
+    const interestDue = Math.min(
+      due,
+      moneyAmount(economy, (household.mortgage * (economy.policyRate + LOAN_SPREAD)) / 12),
+    );
+    const interest = Math.min(pay, interestDue);
+    const principal = pay - interest;
+    const bank = economy.banks[household.bank];
+    if (interest > 0 && bank) {
+      payMortgageInterest(household, bank, economy, interest);
+      economy.mortgageInterest.set(
+        bank.id,
+        (economy.mortgageInterest.get(bank.id) ?? 0) + interest,
+      );
+    }
+    if (principal > 0) {
+      repayMortgage(household, principal);
+      economy.loanRepaid += principal;
+    }
+    if (pay + 1e-9 >= due) {
+      household.mortgageArrears = 0;
+    } else {
+      household.mortgageArrears += 1;
+    }
+    if (household.mortgage <= 0) {
+      setMortgage(household, 0);
+      household.mortgagePayment = 0;
+      household.mortgageArrears = 0;
+      household.mortgageIndexed = false;
+      household.tenure = 'owned';
+    } else if (shouldForeclose(economy, household)) {
+      forecloseMortgage(economy, household);
+    }
+  }
+  if (household.consumerLoan > 0) {
+    const cap = moneyAmount(economy, household.consumerLoan * CONSUMER_LOAN_REPAY);
+    fundFromBitcoin(economy, household, Math.min(household.consumerLoan, cap));
+    const pay = Math.min(household.consumerLoan, household.deposit, cap);
+    if (pay > 0) {
+      repayConsumerLoan(household, pay);
+      economy.loanRepaid += pay;
+    }
+  }
+}
+
+/** Hybrid services each debt in the currency it was issued in. */
+function serviceHybridDebts(economy: Economy, household: Household): void {
   const price = economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 0;
   const mortgageValue = household.mortgage + household.bitcoinMortgage * price;
   if (mortgageValue > 0 && household.mortgagePayment > 0) {
@@ -339,10 +393,18 @@ function shouldForeclose(economy: Economy, household: Household): boolean {
 }
 
 function forecloseMortgage(economy: Economy, household: Household): void {
-  const loss = household.mortgage;
+  // Gradual transition keeps a coin slice on bitcoinMortgage. Write off both
+  // legs so finishTransition cannot fold coin debt back onto a renter.
+  const price = economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 0;
+  const coinLoss = household.bitcoinMortgage * price;
+  const loss = household.mortgage + coinLoss;
   if (loss > 0) {
     chargeEquityForDefault(economy.banks[household.bank], economy, loss);
     economy.defaultsThisTick += loss;
+  }
+  if (coinLoss > 0) {
+    economy.bitcoinLoanCarried -= coinLoss;
+    household.bitcoinMortgage = 0;
   }
   setMortgage(household, 0);
   household.mortgagePayment = 0;
