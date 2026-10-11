@@ -133,9 +133,8 @@ rate after the labor market has moved on.
 _Avoid_: policy lag, recognition lag
 
 **Zombie support**:
-Share of each month's fiat crisis-stimulus injection that may spare negative-equity firms from the equity-based failure
-hazard. The budget is a cap on skipped replacements, not a cash transfer. The hazard increases with the depth and 
-duration of negative equity.
+Share of each month's fiat crisis-stimulus injection that may spare negative-equity firms from the six-month replacement
+rule. The budget is a cap on skipped replacements, not a cash transfer.
 _Avoid_: bailout, forbearance
 
 ## Events

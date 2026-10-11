@@ -268,11 +268,9 @@ outstanding mortgage when tenure switches to owned.
 
 When `credit.endogenousWeight` is above zero (default 0.5), stress rises with loan losses and with loans above
 `credit.leverageStart` times household deposits (default 0.85), and decays otherwise. While stress is low, lending room
-is wider by `1 + 4 × weight`, and firms borrow on their creation anniversary (12 months after creation or replacement). 
-Each firm borrows that weight times 12 percent of household deposits divided by the number of firms, once per year, 
-inside the wider room and not above the firm's capital value. This staggers credit draws across 12 months instead of all 
-firms borrowing simultaneously. Expansion loans that fund new capital are outside that cap. Above a small stress limit, 
-that borrowing stops, lending room shrinks, and firms repay.
+is wider by `1 + 4 × weight`, and from the first anniversary firms borrow that weight times 12 percent of household
+deposits once a year, inside the wider room and not above the firm's capital value. Expansion loans that fund new
+capital are outside that cap. Above a small stress limit, that borrowing stops, lending room shrinks, and firms repay.
 At weight 0 none of this runs. Interest is the policy rate plus 2 percent, charged monthly when the firm can pay. The
 payment raises bank equity and lowers the private-equity residual. Household deposit interest is paid next from this
 tick's borrower interest and, under fiat, from reserve interest and an optional subsidy inside the money-growth budget,
@@ -303,12 +301,9 @@ installing toward that desired stock. When `firm.investmentHurdle` is on, a firm
 productivity growth plus a quarter of the markup clears the real return on money (deposit rate minus inflation) plus
 `firm.hurdlePremium`. Otherwise it installs a quarter of the gap as a retained profit-sharing claim and records the rest
 as profit-sharing finance. The measured profit-sharing share is that finance over loan-path plus profit-sharing finance.
-When the hurdle is off, the share stays the deflation-penalty formula. A firm is replaced when it cannot meet its 
-obligations (monthly wages or debt service) or, if equity (deposits plus capital at the posted price, minus loans) is 
-negative, through a monthly failure hazard that rises with the depth and duration of negative equity. The hazard is 
-half the depth-based rate for the first 6 months, then increases 10 percentage points per month thereafter. Firms that 
-recover positive equity survive. Its loan is written off against bank equity. The reset firm keeps its current workers; 
-later labor steps still shed under the monthly shed cap. Under fiat,
+When the hurdle is off, the share stays the deflation-penalty formula. A firm whose equity (deposits plus capital at the
+posted price, minus loans) stays negative for 6 months is replaced. Its loan is written off against bank equity. The
+reset firm keeps its current workers; later labor steps still shed under the monthly shed cap. Under fiat,
 `centralBank.zombieSupport` (default 0) may spare that replacement when crisis stimulus is active: each month the
 notional budget is the crisis-stimulus share of the positive money-growth injection times the slider, and a firm is
 spared in id order when the remaining budget covers its equity shortfall. The failure clock is not reset. The budget is

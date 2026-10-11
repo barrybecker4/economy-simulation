@@ -16,20 +16,13 @@ export function onBookkeeping(economy: Economy, ctx: TickContext): void {
   for (const firm of economy.firms) {
     const equity = firmEquity(economy, firm);
     firm.negTicks = equity < 0 ? firm.negTicks + 1 : 0;
-    
-    // Probabilistic failure based on duration of negative equity
-    // Uses a randomized threshold around FAILURE_TICKS to prevent synchronization
-    if (firm.negTicks > 0) {
-      // Randomized failure threshold: FAILURE_TICKS ± 2 months
-      // This spreads failures over 4-5 months instead of all at month 6
-      const threshold = FAILURE_TICKS + Math.floor((ctx.rng.uniform() - 0.5) * 4);
-      if (firm.negTicks >= Math.max(1, threshold)) {
-        const shortfall = Math.max(0, -equity);
-        if (shortfall > 0 && economy.zombieBudget >= shortfall) {
-          economy.zombieBudget -= shortfall;
-        } else {
-          replaceFirm(economy, firm);
-        }
+    // Use the standard FAILURE_TICKS threshold for all firms
+    if (firm.negTicks >= FAILURE_TICKS) {
+      const shortfall = Math.max(0, -equity);
+      if (shortfall > 0 && economy.zombieBudget >= shortfall) {
+        economy.zombieBudget -= shortfall;
+      } else {
+        replaceFirm(economy, firm);
       }
     }
   }

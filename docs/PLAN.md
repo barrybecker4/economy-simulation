@@ -1162,10 +1162,8 @@ fiat subsidy does not break the vault identity.
 2. That reserve interest is subtracted from the same tick's fiat money-growth injection.
 3. `bank.depositInterestSubsidy` still tops up a shortfall under fiat. The credit lowers private equity by the same
    amount and does not raise vault.
-4. Anniversary firm draws occur 12 months after creation or replacement, staggering credit across the year. Each firm
-   borrows its per-firm share (endogenous weight × 12% of household deposits / number of firms) once per year. The draw
-   cannot push a loan above the firm's capital value. Expansion loans that fund new capital stay outside that cap, so
-   living banks do not lever every firm into replacement.
+4. The anniversary firm draw cannot push a loan above the firm's capital value. Expansion loans that fund new capital
+   stay outside that cap, so living banks do not lever every firm into replacement.
 
 Acceptance:
 
@@ -1189,8 +1187,7 @@ Acceptance:
 - Treasury and household deposits fall by the same share.
 - One forced insolvency does not repeat on the next calm tick.
 - A calm monetary run does not record on the order of 82 or 228 failures, and new borrowing is still positive after
-  month 12. Firms borrow on their creation anniversary (12 months after creation or replacement), staggering credit
-  draws across the year.
+  month 12.
 - Bitcoin bail-in does not destroy broad money beyond the credit losses already present with resolution off.
 
 ### Phase 53: Treasury surplus is spent next month
