@@ -3,7 +3,9 @@
  * Fiat deposits are cents. Bitcoin units clear at supplyShockPriceCents.
  */
 
+import { centIdentityGap } from './banking.js';
 import { BITCOIN_OPENING_SHARE } from './bitcoin-supply.js';
+import { adjustBankEquity } from './capital-identity.js';
 import {
   bitcoinDepositUnits,
   bitcoinLoanUnits,
@@ -12,7 +14,7 @@ import {
 } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import { amountWithin, moneyAmount } from './helpers.js';
-import { moneyScores, nextMoneyShares } from './monies.js';
+import { DIGITAL_FRICTION, moneyScores, nextMoneyShares } from './monies.js';
 import { supplyShockPriceCents } from './supply-shock-price.js';
 import type { DepositAccount } from './deposit-account.js';
 import type { Agent, Firm, Household } from './types.js';
@@ -72,6 +74,7 @@ export function updateHybridMoney(economy: Economy): void {
   }
   assignPayCurrencies(economy);
   syncHybridCustody(economy);
+  seatHybridCentDust(economy);
   syncHybridMoneyShares(economy);
 }
 
@@ -266,21 +269,61 @@ function rebalanceTreasury(economy: Economy, targetShare: number, speed: number)
   swapAtResidual(economy, govAccount(economy), (desired - current) * speed);
 }
 
-function assignPayCurrencies(economy: Economy): void {
+/**
+ * Assign one economy-wide pay currency from money scores.
+ * Near a score tie, keep the current currency until the other side leads by
+ * DIGITAL_FRICTION so small real-return wiggles do not flip every tick.
+ */
+export function assignPayCurrencies(economy: Economy): void {
   const realReturn = economy.depositRate - economy.moneyShares.bitcoin * economy.params.prodGrowth;
   const scores = moneyScores({
     fiatLegal: economy.params.fiatLegalTender,
     bitcoinTrust: economy.params.bitcoinTrust,
     realReturn,
   });
-  const preferBitcoin = scores[1] > scores[0];
-  const currency: PayCurrency = preferBitcoin ? 'bitcoin' : 'fiat';
+  const currency = nextPayCurrency(currentPayCurrency(economy), scores[0], scores[1]);
   for (const household of economy.households) {
     household.payCurrency = currency;
   }
   for (const firm of economy.firms) {
     firm.payCurrency = currency;
   }
+}
+
+/** Next pay currency given current stickiness and the two money scores. */
+export function nextPayCurrency(
+  current: PayCurrency | undefined,
+  fiatScore: number,
+  bitcoinScore: number,
+): PayCurrency {
+  if (current === undefined) {
+    return bitcoinScore > fiatScore ? 'bitcoin' : 'fiat';
+  }
+  if (current === 'fiat') {
+    return bitcoinScore > fiatScore + DIGITAL_FRICTION ? 'bitcoin' : 'fiat';
+  }
+  return fiatScore > bitcoinScore + DIGITAL_FRICTION ? 'fiat' : 'bitcoin';
+}
+
+function currentPayCurrency(economy: Economy): PayCurrency | undefined {
+  const firm = economy.firms[0];
+  if (firm) {
+    return firm.payCurrency;
+  }
+  const household = economy.households[0];
+  return household?.payCurrency;
+}
+
+/**
+ * Seat at most two cents of hybrid swap/custody rounding on bank equity so
+ * postCentStocks does not throw on a ±2 gap from amountWithin floors.
+ */
+function seatHybridCentDust(economy: Economy): void {
+  const gap = centIdentityGap(economy);
+  if (gap === 0n || gap > 2n || gap < -2n) {
+    return;
+  }
+  adjustBankEquity(economy.banks[0], economy, Number(gap));
 }
 
 function fiatDepositStock(economy: Economy): number {

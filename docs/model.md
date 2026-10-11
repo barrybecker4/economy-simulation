@@ -103,8 +103,9 @@ supply-shock model path in cents per bitcoin (month 0 is October 2026, 300 month
 extrapolation). Household demand does not move that rate. `money.choiceSpeed` swaps tills at an outside exchange
 residual. Bank books hold bitcoin reserves equal to net coin liabilities so a price move does not hit equity. Fiat money
 growth and reserve accommodation run against fiat deposits only. The Taylor rule sets the fiat policy rate. Wages,
-goods, and new debts can clear in each actor’s pay currency; service stays in the currency of issue. Chart shares are
-marked fiat and bitcoin values.
+goods, AI compute sales, and new debts can clear in each actor’s pay currency; debt service stays in the currency of
+issue. Pay currency sticks until the other money’s score leads by more than the digital-friction band, so a near-tie of
+trust and legal tender does not flip every month. Chart shares are marked fiat and bitcoin values.
 
 ## Metrics
 
@@ -560,7 +561,8 @@ each agent's unit:
 `1 / (1 + (ask / wage / agent.valueWageShare) ^ agent.demandElasticity)`.
 That relative price is real (ask over wage). There is no hard wage-share cutoff. A fiat bill that would round below one
 cent while takeup is still positive clears at one cent so cheaper compute does not shut trade off. A firm that cannot
-pay skips that agent.
+pay skips that agent. Under hybrid, affordability and settlement use the firm’s pay currency (fiat deposit or bitcoin
+till), matching wages and goods.
 
 Next month the buying firm’s capacity is multiplied by
 `1 + ceiling × (1 − exp(−slope × units / ceiling))`, where the month-zero slope is `ai.computeProductivity`, the slope

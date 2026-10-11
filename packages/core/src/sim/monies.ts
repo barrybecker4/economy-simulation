@@ -10,7 +10,8 @@ export interface MoneyShares {
   cbdc: number;
 }
 
-const DIGITAL_FRICTION = 0.02;
+/** Bitcoin money-choice score penalty; also the pay-currency hysteresis band. */
+export const DIGITAL_FRICTION = 0.02;
 const STABLECOIN_TRUST = 0.45;
 const CBDC_TRUST = 0.7;
 

@@ -66,6 +66,46 @@ describe('hybrid custody write-offs', () => {
     );
     expect(result.audit.ok).toBe(true);
   }, 60_000);
+
+  it('keeps bank books closed when trust equals legal tender at choice speed 1', () => {
+    const monetary = {
+      'prices.trendWeight': 0,
+      'production.demandWeight': 1,
+      'bank.depositPassThrough': 1,
+      'expectations.anchorWeight': 0.5,
+      'housing.tenureChoice': 'on',
+      'credit.endogenousWeight': 1,
+      'credit.leverageStart': 1,
+      'credit.householdMortgageShare': 0.25,
+      'housing.mortgageLtv': 0.95,
+      'bank.capitalRatio': 0.04,
+      'bank.resolution': 'merge',
+      'household.openingDepositMonths': 12,
+      'household.skillSigma': 1.1,
+      'labor.firmLevelHiring': 'on',
+    } as const;
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const result = simulate(
+        loadScenario({
+          name: `hybrid-tied-scores-${seed}`,
+          seed,
+          ticks: 240,
+          sliders: {
+            ...monetary,
+            'scale.households': 500,
+            'scale.firms': 50,
+            'scale.banks': 3,
+            'shock.frequency': 0,
+            'regime.type': 'hybrid',
+            'money.choiceSpeed': 1,
+            'money.bitcoinTrust': 1,
+            'money.fiatLegalTender': 1,
+          },
+        }),
+      );
+      expect(result.audit.ok, `seed ${seed}`).toBe(true);
+    }
+  }, 600_000);
 });
 
 function openedHybrid(): Economy {

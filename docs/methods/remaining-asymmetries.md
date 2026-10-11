@@ -38,7 +38,10 @@ LOLR still injects reserves when equity is negative. With choice speed 0 and no
 bank failure, hybrid still differs from bitcoin because of the cent numeraire,
 the rising exogenous bitcoin price, and fiat money growth. If LOLR support
 leaves equity negative, hybrid uses the same merge or bail-in as the other
-regimes, and the treasury deposit at bank 0 is included.
+regimes, and the treasury deposit at bank 0 is included. AI compute sales follow
+the firm’s hybrid pay currency (fiat or bitcoin till); earlier fiat-only checks
+went dark once firms held mostly coin, so prior “agent market shut / output
+halved at the tipping point” findings should be re-run.
 
 ## Fiat-only reserve interest and deposit subsidy
 
