@@ -7,7 +7,6 @@ import { creditBitcoin, debitBitcoin } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import { amountWithin, moneyAmount } from './helpers.js';
 import { fundFiatFromCoins, payCurrencyOf, swapAtResidual } from './hybrid-money.js';
-import { creditDeposit, debitDeposit } from './money.js';
 import type { DepositAccount } from './money.js';
 import type { PayCurrency } from './types.js';
 
@@ -25,12 +24,12 @@ export function creditCurrency(
     return;
   }
   if (currency === 'fiat' || economy.params.regime !== 'hybrid') {
-    creditDeposit(account, take);
+    account.deposit += take;
     return;
   }
   const price = economy.bitcoinPrice;
   if (!(price > 0)) {
-    creditDeposit(account, take);
+    account.deposit += take;
     return;
   }
   creditBitcoin(economy, account, take / price);
@@ -74,7 +73,7 @@ function debitFiat(economy: Economy, account: CashAccount, take: number): number
   fundFiatFromCoins(economy, account, take);
   const paid = Math.min(take, Math.max(0, account.deposit));
   if (paid > 0) {
-    debitDeposit(account, paid);
+    account.deposit -= paid;
   }
   return paid;
 }
