@@ -6,6 +6,7 @@ import {
   chargeEquityForDefault,
   drawConsumerLoan,
   drawMortgage,
+  hasMortgageDebt,
   payCashForHome,
   payMortgageInterest,
   repayBitcoinConsumer,
@@ -174,8 +175,13 @@ export function onContractChoice(economy: Economy): void {
       owned: ownedBurden,
     });
 
+    // A payoff clears the fiat leg only, so wait until a converted bitcoin leg
+    // has folded back into the mortgage.
     const considerPrepay =
-      inflation < 0 && household.tenure === 'mortgage' && household.mortgage > 0;
+      inflation < 0 &&
+      household.tenure === 'mortgage' &&
+      household.mortgage > 0 &&
+      household.bitcoinMortgage <= 0;
     const adjusting = household.search.uniform() < economy.params.housingAdjustment;
     if (considerPrepay && (choice === 'rent' || choice === 'owned')) {
       fundFromBitcoin(economy, household, household.mortgage);
@@ -200,7 +206,7 @@ export function onContractChoice(economy: Economy): void {
     if (household.tenure !== choice) {
       economy.tenureChanges += 1;
     }
-    if (choice === 'owned' && household.tenure === 'mortgage' && household.mortgage <= 0) {
+    if (choice === 'owned' && household.tenure === 'mortgage' && !hasMortgageDebt(household)) {
       household.mortgagePayment = 0;
       household.mortgageIndexed = false;
       household.tenure = 'owned';
@@ -246,7 +252,11 @@ export function onContractChoice(economy: Economy): void {
       } else {
         household.tenure = 'rent';
       }
-    } else if (choice === 'rent' && household.tenure === 'mortgage' && household.mortgage <= 0) {
+    } else if (
+      choice === 'rent' &&
+      household.tenure === 'mortgage' &&
+      !hasMortgageDebt(household)
+    ) {
       household.tenure = 'rent';
       household.mortgagePayment = 0;
       household.mortgageIndexed = false;
@@ -313,10 +323,14 @@ function serviceDebts(economy: Economy, household: Household): void {
     }
     if (household.mortgage <= 0) {
       setMortgage(household, 0);
-      household.mortgagePayment = 0;
-      household.mortgageArrears = 0;
-      household.mortgageIndexed = false;
-      household.tenure = 'owned';
+      // A converted bitcoin leg is still owed: keep the tenure and the payment
+      // so the folded balance is serviced after the transition.
+      if (!hasMortgageDebt(household)) {
+        household.mortgagePayment = 0;
+        household.mortgageArrears = 0;
+        household.mortgageIndexed = false;
+        household.tenure = 'owned';
+      }
     } else if (shouldForeclose(economy, household)) {
       forecloseMortgage(economy, household);
     }
@@ -464,9 +478,11 @@ function shouldForeclose(economy: Economy, household: Household): boolean {
 }
 
 function forecloseMortgage(economy: Economy, household: Household): void {
-  // Gradual transition and hybrid coin mortgages keep a slice on bitcoinMortgage.
-  // Write off both legs so debt cannot linger on a renter. Under hybrid, only the
-  // fiat leg charges equity: the custody plug absorbs the coin leg on sync.
+  // Foreclosure ends the whole claim, including a leg converted to bitcoin
+  // during a gradual transition. Gradual transition and hybrid coin mortgages
+  // keep a slice on bitcoinMortgage. Write off both legs so debt cannot linger
+  // on a renter. Under hybrid, only the fiat leg charges equity: the custody
+  // plug absorbs the coin leg on sync.
   const price = economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 0;
   const coinLoss = household.bitcoinMortgage * price;
   const fiatLoss = household.mortgage;

@@ -53,6 +53,15 @@ export function setMortgage(household: Household, amount: number): void {
   household.mortgage = amount;
 }
 
+/**
+ * True while any part of the mortgage is still owed. During a gradual
+ * transition the claim has a fiat leg (`mortgage`) and a converted bitcoin leg
+ * (`bitcoinMortgage`) that folds back into `mortgage` when the transition ends.
+ */
+export function hasMortgageDebt(household: Household): boolean {
+  return household.mortgage > 0 || household.bitcoinMortgage > 0;
+}
+
 export function setConsumerLoan(household: Household, amount: number): void {
   household.consumerLoan = amount;
 }

@@ -50,7 +50,12 @@ describe('hybrid dual-currency books', () => {
     expect(choosyPrice).toEqual(calmPrice);
     expect(calmPrice[0]).toBe(supplyShockPriceCents(0));
     expect(calmPrice[12]).toBe(supplyShockPriceCents(12));
-    expect(calmPrice.at(-1)!).toBeGreaterThan(calmPrice[0]!);
+    const lastPrice = calmPrice.at(-1);
+    const firstPrice = calmPrice[0];
+    if (lastPrice === undefined || firstPrice === undefined) {
+      throw new Error('Missing price data');
+    }
+    expect(lastPrice).toBeGreaterThan(firstPrice);
   });
 
   it('does not rebalance coin quantities from money choice when speed is 0', () => {
@@ -71,10 +76,18 @@ describe('hybrid dual-currency books', () => {
       ticks: 12,
     });
     expect(quiet.audit.ok && choosy.audit.ok).toBe(true);
-    expect(series(choosy, 'bitcoinShare').at(-1)!).toBeGreaterThan(
-      series(quiet, 'bitcoinShare').at(-1)!,
-    );
-    expect(series(quiet, 'bitcoinPrice').at(-1)!).toBeGreaterThan(series(quiet, 'bitcoinPrice')[0]!);
+    const choosyBitcoinShare = series(choosy, 'bitcoinShare').at(-1);
+    const quietBitcoinShare = series(quiet, 'bitcoinShare').at(-1);
+    if (choosyBitcoinShare === undefined || quietBitcoinShare === undefined) {
+      throw new Error('Missing bitcoinShare data');
+    }
+    expect(choosyBitcoinShare).toBeGreaterThan(quietBitcoinShare);
+    const quietLastPrice = series(quiet, 'bitcoinPrice').at(-1);
+    const quietFirstPrice = series(quiet, 'bitcoinPrice')[0];
+    if (quietLastPrice === undefined || quietFirstPrice === undefined) {
+      throw new Error('Missing bitcoinPrice data');
+    }
+    expect(quietLastPrice).toBeGreaterThan(quietFirstPrice);
   });
 
   it('raises coin quantities when choice speed and bitcoin trust are high', () => {
@@ -93,9 +106,12 @@ describe('hybrid dual-currency books', () => {
       ticks: 24,
     });
     expect(quiet.audit.ok && trusted.audit.ok).toBe(true);
-    expect(series(trusted, 'bitcoinShare').at(-1)!).toBeGreaterThan(
-      series(quiet, 'bitcoinShare').at(-1)!,
-    );
+    const trustedBitcoinShare = series(trusted, 'bitcoinShare').at(-1);
+    const quietBitcoinShare = series(quiet, 'bitcoinShare').at(-1);
+    if (trustedBitcoinShare === undefined || quietBitcoinShare === undefined) {
+      throw new Error('Missing bitcoinShare data');
+    }
+    expect(trustedBitcoinShare).toBeGreaterThan(quietBitcoinShare);
   });
 
   it('leaves a fiat run bitcoin price path unchanged', () => {
