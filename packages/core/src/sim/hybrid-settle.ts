@@ -7,7 +7,7 @@ import { creditBitcoin, debitBitcoin } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import { amountWithin, moneyAmount } from './helpers.js';
 import { fundFiatFromCoins, payCurrencyOf, swapAtResidual } from './hybrid-money.js';
-import type { DepositAccount } from './money.js';
+import type { DepositAccount } from './deposit-account.js';
 import type { PayCurrency } from './types.js';
 
 type CashAccount = DepositAccount & { bitcoin: number; payCurrency?: PayCurrency };

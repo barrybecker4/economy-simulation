@@ -1,7 +1,7 @@
 import { adjustBankEquity } from './capital-identity.js';
 import type { Economy } from './economy.js';
 import { spendableDeposit } from './helpers.js';
-import type { DepositAccount } from './money.js';
+import type { DepositAccount } from './deposit-account.js';
 
 /** Sell coins to the hybrid residual and credit matching bank reserves. */
 function sellCoinsForFiat(

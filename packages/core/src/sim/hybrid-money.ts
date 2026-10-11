@@ -14,7 +14,7 @@ import type { Economy } from './economy.js';
 import { amountWithin, moneyAmount } from './helpers.js';
 import { moneyScores, nextMoneyShares } from './monies.js';
 import { supplyShockPriceCents } from './supply-shock-price.js';
-import type { DepositAccount } from './money.js';
+import type { DepositAccount } from './deposit-account.js';
 import type { Agent, Firm, Household } from './types.js';
 
 export type PayCurrency = 'fiat' | 'bitcoin';

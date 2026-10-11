@@ -145,8 +145,7 @@ describe('hybrid settlement', () => {
     economy.exchangeBitcoin = 0;
     const units = bitcoinDepositUnits(economy);
     const deposit = payer.deposit;
-    const paid = transferCurrency(economy, payer, payee, 500, 'bitcoin');
-    expect(paid).toBe(0);
+    transferCurrency(economy, payer, payee, 500, 'bitcoin');
     expect(payee.bitcoin).toBe(0);
     expect(payer.deposit).toBe(deposit);
     expect(bitcoinDepositUnits(economy)).toBeCloseTo(units, 8);

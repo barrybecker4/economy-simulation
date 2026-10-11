@@ -9,12 +9,10 @@ import {
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import { fundCoinsFromFiat, payCurrencyOf } from './hybrid-money.js';
+import type { DepositAccount } from './deposit-account.js';
 import type { Bank, Firm, Household } from './types.js';
 
-/** Household, firm, or agent cash balance. */
-export interface DepositAccount {
-  deposit: number;
-}
+export type { DepositAccount } from './deposit-account.js';
 
 export function creditDeposit(account: DepositAccount, amount: number): void {
   account.deposit += amount;
