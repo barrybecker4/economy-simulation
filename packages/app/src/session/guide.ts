@@ -1,4 +1,4 @@
-import type { ComparisonSession } from './compare.js';
+import { settingsDifferFromShown, type ComparisonSession } from './compare.js';
 
 export const GUIDE_STORAGE_KEY = 'economy-simulation.guide';
 
@@ -44,31 +44,3 @@ export function nextStep(session: ComparisonSession): string {
   return NEXT_READ;
 }
 
-function settingsDifferFromShown(session: ComparisonSession): boolean {
-  if (
-    session.seed !== session.shownSeed ||
-    session.ticks !== session.shownTicks ||
-    session.seeds !== session.shownSeeds ||
-    session.regime !== session.shownRegime
-  ) {
-    return true;
-  }
-  return !sameOverrides(session.overrides, session.shownOverrides);
-}
-
-function sameOverrides(
-  left: Readonly<Record<string, number | string>>,
-  right: Readonly<Record<string, number | string>>,
-): boolean {
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-  if (leftKeys.length !== rightKeys.length) {
-    return false;
-  }
-  for (const key of leftKeys) {
-    if (String(left[key]) !== String(right[key])) {
-      return false;
-    }
-  }
-  return true;
-}
