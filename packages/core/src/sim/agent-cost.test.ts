@@ -109,6 +109,8 @@ describe('agent real cost', () => {
     const large = computeCapacityFactor(100, 0.2, 1);
     expect(large).toBeLessThanOrEqual(1 + 1);
     expect(large).toBeGreaterThan(1.5);
+    expect(computeCapacityFactor(2, 0.5, 0)).toBe(1);
+    expect(computeCapacityFactor(100, 0.2, 0)).toBe(1);
   });
 
   it('keeps agent trade alive after the old wage-share cutoff while real cost falls', () => {
