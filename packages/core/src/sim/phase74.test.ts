@@ -9,7 +9,7 @@ import type { Economy } from './economy.js';
 import { FEATURE_OFF } from './feature-off.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
-import { FAILURE_TICKS } from './rules.js';
+import { FAILURE_TICKS, MISSED_PAYMENT_TICKS } from './rules.js';
 import { simulate, type ForcedShock } from './simulate.js';
 import { ensureOpen } from './stocks.js';
 
@@ -47,6 +47,8 @@ describe('phase 74 bond cap and replacement employment', () => {
     expect(firmEquity(economy, firm)).toBeLessThan(0);
     const workers = [...firm.workers];
     firm.negTicks = FAILURE_TICKS - 1;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS - 1;
     economy.zombieBudget = 0;
     const config = loadScenario({
       name: 'phase74',

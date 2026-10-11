@@ -23,6 +23,12 @@ export const MONTHLY_FIRM_SHED = 0.05;
 export const WEALTH_MPC = 0.02;
 /** Ticks of negative equity before a firm is replaced. */
 export const FAILURE_TICKS = 6;
+/**
+ * Consecutive months a negative-equity firm must miss part of its wage bill or
+ * loan interest before it is replaced. One bad month from a common demand shock
+ * is not enough.
+ */
+export const MISSED_PAYMENT_TICKS = 3;
 /** Loan rate above the policy rate. */
 export const LOAN_SPREAD = 0.02;
 /** Extra wage growth when the labor market is one point tighter than normal. */

@@ -65,6 +65,10 @@ function payFirm(firm: Firm, wagePaid: number[], economy: Economy): number {
   const claims = wageClaims(economy, firm);
   const available = availableCash(economy, firm);
   const paid = layWages(claims, available, wagePaid);
+  const owed = claims.reduce((sum, claim) => sum + claim.amount, 0);
+  if (paid < owed) {
+    firm.missedPayment = true;
+  }
   payFromCash(economy, firm, available, 0);
   return available - paid;
 }
