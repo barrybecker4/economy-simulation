@@ -43,4 +43,3 @@ export function nextStep(session: ComparisonSession): string {
   }
   return NEXT_READ;
 }
-

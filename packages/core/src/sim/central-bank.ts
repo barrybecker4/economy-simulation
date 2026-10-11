@@ -127,8 +127,7 @@ export function growFiatMoney(economy: Economy): void {
   // scale the injection.
   const depositBase =
     economy.params.regime === 'hybrid' ? fiatDepositStock(economy) : totalDeposits(economy);
-  const moneyMultiple =
-    economy.openingDeposits > 0 ? depositBase / economy.openingDeposits : 1;
+  const moneyMultiple = economy.openingDeposits > 0 ? depositBase / economy.openingDeposits : 1;
   const stimulusEffective = lagged > 0 ? stimulusMoneyFade(moneyMultiple) : 1;
   const stimulusAnnual = economy.params.stimulus * lagged * stimulusEffective;
   const annual = secular + stimulusAnnual;

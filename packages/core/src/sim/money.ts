@@ -199,8 +199,7 @@ export function drawMortgage(household: Household, economy: Economy, principal: 
   if (household.mortgage > 0) {
     chargeEquityForDefault(economy.banks[household.bank], economy, household.mortgage);
   }
-  // The new deposits below are matched by an equal rise in the loan book.
-  household.mortgage += principal;
+  household.mortgage = principal;
   creditFirms(economy, principal);
 }
 

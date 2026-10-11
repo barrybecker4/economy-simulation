@@ -31,7 +31,7 @@ describe('cross-engine series', () => {
       'housing.openingMortgageShareOfOwners': 0,
     });
     expect(result.audit.ok).toBe(true);
-    expect(checksum(result)).toBe('a57afcbd7aa166bd');
+    expect(checksum(result)).toBe('0a66ba4aaf605a87');
   });
 
   it('pins a gradual fiat-to-bitcoin transition for seed 1 through year 20', () => {

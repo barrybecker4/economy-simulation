@@ -23,7 +23,8 @@ describe('hybrid custody write-offs', () => {
     }
     const ledger = openLedger(economy);
     // Coin loan large enough that wiping capital leaves equity negative.
-    const units = (firm.deposit + firm.bitcoin * economy.bitcoinPrice + 1_000) / economy.bitcoinPrice;
+    const units =
+      (firm.deposit + firm.bitcoin * economy.bitcoinPrice + 1_000) / economy.bitcoinPrice;
     creditBitcoinLoan(economy, firm, units);
     syncHybridCustody(economy);
     expect(Math.abs(bankBalanceIdentity(economy))).toBeLessThan(1e-6);

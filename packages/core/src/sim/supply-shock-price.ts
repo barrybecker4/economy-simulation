@@ -167,7 +167,8 @@ function ensurePath(): PathCache {
   const usd = runModel(PARAMS);
   const start = usd[MODEL_MONTHS - EXTRAPOLATION_WINDOW] ?? PARAMS.startPrice;
   const end = usd[MODEL_MONTHS] ?? PARAMS.startPrice;
-  const meanLog = EXTRAPOLATION_WINDOW > 0 && start > 0 ? log(end / start) / EXTRAPOLATION_WINDOW : 0;
+  const meanLog =
+    EXTRAPOLATION_WINDOW > 0 && start > 0 ? log(end / start) / EXTRAPOLATION_WINDOW : 0;
   cache = { usd, meanLog, floor: PARAMS.miningCostFloor };
   return cache;
 }
@@ -351,18 +352,23 @@ function monthlyDemand(input: {
   const minerSales = input.dailyMining * 30 * (params.minerSellPct / 100);
   const coinsLost = input.liquid * (params.annualLossRate / 100 / 12);
   const elasticity = Math.max(0, params.priceSensitiveDemandElasticity);
-  const ma = input.priceMa52w !== undefined && input.priceMa52w > 0 ? input.priceMa52w : Math.max(1, params.startPrice);
-  const priceScale = elasticity === 0 ? 1 : Math.min(1, ma / Math.max(input.price, 1)) ** elasticity;
+  const ma =
+    input.priceMa52w !== undefined && input.priceMa52w > 0
+      ? input.priceMa52w
+      : Math.max(1, params.startPrice);
+  const priceScale =
+    elasticity === 0 ? 1 : Math.min(1, ma / Math.max(input.price, 1)) ** elasticity;
   const momentumBoost = Math.max(0, input.momentum);
   const maxBoost = Math.max(0, params.maxMomentumBoostPct) / 100;
-  const momentumScale = 1 + Math.min(maxBoost, momentumBoost * Math.max(0, params.momentumDemandBoost));
+  const momentumScale =
+    1 + Math.min(maxBoost, momentumBoost * Math.max(0, params.momentumDemandBoost));
   const demandScale = priceScale * momentumScale;
   const etfVol = monthlyVol(params.etfFlowVolatilityPct / 100);
   const etfNoise = clippedNormal(params.randomSeed + 17, input.monthIndex + 911, 3.5);
   const etfMult = Math.max(-2, 1 + etfNoise * etfVol);
   const stressMonths = etfStressMonths(input.totalMonths, params.etfStressRedemptionCount);
   const etfShock = stressMonths.includes(input.monthIndex)
-    ? input.etfBtc * Math.max(0, params.etfOutflowShockPct) / 100
+    ? (input.etfBtc * Math.max(0, params.etfOutflowShockPct)) / 100
     : 0;
   const strcRaw = (input.strcUsd * demandScale) / input.price;
   const otherRaw = (input.otherUsd * demandScale) / input.price;
@@ -433,8 +439,7 @@ function nextPrice(input: {
   const thin = Math.max(input.liquid / input.initLiq, 0.03);
   const elasticity = params.baseElasticity / thin;
   const float = Math.max(input.liquid, LIQUID_FLOOR);
-  const raw =
-    (input.netDemand / float) * elasticity + input.unmetDemandPremiumMonthly;
+  const raw = (input.netDemand / float) * elasticity + input.unmetDemandPremiumMonthly;
   const narrative = halvingNarrative(
     input.year,
     params.halvingNarrativeAmp,
@@ -443,7 +448,11 @@ function nextPrice(input: {
   const maxGain = params.maxMonthlyPctGain / 100;
   let change = Math.max(-0.2, Math.min(raw, maxGain)) + narrative;
   const vol = monthlyVol(params.initialAnnualVolatility / 100);
-  const fade = volatilityFade(params.volatilityReduction / 100, input.monthIndex, input.totalMonths);
+  const fade = volatilityFade(
+    params.volatilityReduction / 100,
+    input.monthIndex,
+    input.totalMonths,
+  );
   change += clippedNormal(params.randomSeed, input.monthIndex, 2.5) * vol * fade;
   change = Math.max(-0.6, Math.min(change, maxGain));
   return Math.max(input.price * (1 + change), params.miningCostFloor);
@@ -462,8 +471,8 @@ function flowToLongTerm(
   let liq = liquid;
   let young = youngLth;
   let ancient = ancientBtc;
-  let toYoung = flowYoung > 0 ? (flowYoung / 100) * liq / 12 : 0;
-  let toAncient = flowAncient > 0 ? (flowAncient / 100) * liq / 12 : 0;
+  let toYoung = flowYoung > 0 ? ((flowYoung / 100) * liq) / 12 : 0;
+  let toAncient = flowAncient > 0 ? ((flowAncient / 100) * liq) / 12 : 0;
   const spare = Math.max(0, liq - LIQUID_FLOOR);
   const total = toYoung + toAncient;
   if (total > spare && total > 0) {
@@ -475,12 +484,12 @@ function flowToLongTerm(
   young += toYoung;
   ancient += toAncient;
   if (flowYoung < 0) {
-    const back = Math.min(young, (Math.abs(flowYoung) / 100) * young / 12);
+    const back = Math.min(young, ((Math.abs(flowYoung) / 100) * young) / 12);
     young -= back;
     liq += back;
   }
   if (flowAncient < 0) {
-    const back = Math.min(ancient, (Math.abs(flowAncient) / 100) * ancient / 12);
+    const back = Math.min(ancient, ((Math.abs(flowAncient) / 100) * ancient) / 12);
     ancient -= back;
     liq += back;
   }
@@ -592,7 +601,7 @@ function halvingNarrative(year: number, amp: number, decay: number): number {
   const fade = decay == null || !Number.isFinite(decay) ? 1 : Math.max(0, Math.min(1, decay));
   const since = year - HALVING_YEAR;
   const epochs = since >= 0 ? Math.floor(since / 4) : 0;
-  const phase = (((since % 4) + 4) % 4) / 4 * 2 * Math.PI;
+  const phase = ((((since % 4) + 4) % 4) / 4) * 2 * Math.PI;
   const wave = sin(phase);
   const up = Math.max(0, wave);
   const down = Math.max(0, -wave);

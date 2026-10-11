@@ -79,7 +79,7 @@ describe('gradual transition mortgage legs', () => {
     60000,
   );
 
-  it('adds a new mortgage to the loan book instead of replacing a balance', () => {
+  it('writes off a stray principal to equity when a new mortgage is drawn', () => {
     const config = gradualConfig(1);
     const economy = createEconomy(loadParameters(config), config.seed, null);
     const household = economy.households.find((candidate) => candidate.mortgage > 0);
@@ -89,8 +89,11 @@ describe('gradual transition mortgage legs', () => {
     const before = bankBalanceIdentity(economy);
     const prior = household.mortgage;
     expect(prior).toBeGreaterThan(0);
+    const bank = economy.banks[household.bank];
+    const equityBefore = bank?.equity ?? 0;
     drawMortgage(household, economy, 100);
-    expect(household.mortgage).toBe(prior + 100);
+    expect(household.mortgage).toBe(100);
+    expect(bank?.equity ?? 0).toBeCloseTo(equityBefore - prior, 6);
     expect(bankBalanceIdentity(economy)).toBeCloseTo(before, 6);
   });
 });
