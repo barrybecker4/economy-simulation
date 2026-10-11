@@ -211,7 +211,7 @@ worker's skill.
 
 ## Goods and relative prices
 
-Opening household deposits are `household.openingDepositMonths` (default 18) times the base wage, scaled by skill
+Opening household deposits are `household.openingDepositMonths` (default 30) times the base wage, scaled by skill
 squared.
 
 There is one consumption good. A household's budget is a smoothed income, times a marginal propensity of
@@ -439,7 +439,7 @@ draws only reserves above the reserve requirement. Reserve-backed channels still
 cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injection-channel.md),
 [ADR 0021](adr/0021-rate-cap-and-real-channels.md), and
 [ADR 0024](adr/0024-asset-purchase-reserves-once.md). When
-`prices.trendWeight` is below 1 (default 0.75) and opening deposits are shorter than half the 48-month spending buffer,
+`prices.trendWeight` is below 1 (registry default 1 leaves the blend off) and opening deposits are shorter than half the 48-month spending buffer,
 each household's share of pro-rata new money is added to smoothed income in proportion to how far the deposit sits under
 the buffer. `centralBank.spendNewMoney` (default 0.5) forces that blend even with thick opening deposits, and it is the
 only blend applied to loan, bond, and treasury receipts. A trend weight of 1 leaves the blend off. Bitcoin and hybrid

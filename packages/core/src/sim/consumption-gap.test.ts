@@ -23,9 +23,16 @@ const monetaryPreset = JSON.parse(readFileSync(presetPath, 'utf8')).sliders as R
   number | string
 >;
 
+/** Thin opening and pure demand-led prices keep tenure as the consumption drag. */
+const demandLed = {
+  'prices.trendWeight': 0,
+  'household.openingDepositMonths': 12,
+} as const;
+
 const shared = {
   ...FEATURE_OFF,
   ...monetaryPreset,
+  ...demandLed,
   'scale.households': 40,
   'scale.firms': 4,
   'scale.banks': 1,
@@ -72,6 +79,7 @@ describe('consumption gap round-7 defaults', () => {
           sliders: {
             ...FEATURE_OFF,
             ...monetaryPreset,
+            ...demandLed,
             'scale.households': 40,
             'scale.firms': 4,
             'scale.banks': 1,

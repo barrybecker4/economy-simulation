@@ -792,11 +792,11 @@ Registry version: 14.
 - Label: Opening deposit months
 - Group: behavior
 - Unit: months
-- Default: 18
+- Default: 30
 - Range: 6 to 60
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. The default of 18 is about a year and a half of income. Lower values raise velocity. At 36 deposits are about three years of income and velocity is low.
+- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. The default of 30 sits above the thin-opening threshold (24 months) used when blending new fiat into smoothed income, so early consumption and well-being open without a sharp spending pulse. Lower values raise velocity and can spike spending in the first months. At 36 deposits are about three years of income and velocity is low.
 
 ## household.realReturnSensitivity
 
@@ -1067,11 +1067,11 @@ Registry version: 14.
 - Label: Price trend weight
 - Group: behavior
 - Unit: share
-- Default: 0.75
+- Default: 1
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. The default of 0.75 keeps most of the regime path and lets demand move a quarter of the growth. At 1 the fiat inflation target or bitcoin productivity trend writes the path alone. At 0 prices move only with excess demand.
+- Description: Share of monthly price growth that follows the regime price trend. The rest follows excess demand: desired goods spending this month relative to nominal capacity, minus one. Monthly growth is this weight times the trend plus one minus this weight times excess demand, plus the small cost nudge and shock tilt, then capped. The default of 1 follows the regime path alone so opening consumption and well-being do not spike with excess demand. The monetary preset lowers this so money can move prices. At 0 prices move only with excess demand.
 
 ## production.alpha
 

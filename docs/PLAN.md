@@ -892,13 +892,16 @@ Acceptance:
 
 Goal: the web app opens on settings where spending can move prices and output.
 
-1. `scenarios/presets/monetary.json` sets trend weight 0, demand weight 1, deposit pass-through 1, anchor weight 0.5,
+1. `scenarios/presets/monetary.json` sets trend weight 0.35, demand weight 1, deposit pass-through 1, anchor weight 0.5,
    tenure choice on, `money.choiceSpeed` 0, and `labor.firmLevelHiring` on. Money growth stays at its default of 1.
    Firm-level hiring keeps an aggregate employment floor so demand-led bitcoin runs do not shed into mass unemployment.
-2. The app’s default page overrides match that preset. 3. The preset's 12-month opening deposits sit under the spending
-   buffer, so with trend weight 0 the new money would otherwise sit idle and pull every category price down. That new
-   money is blended into smoothed income and spent. Energy, medical care, and education then rise over a decade, and
-   apparel and electronics fall, while the money stock rises.
+   Trend weight 0.35 keeps most of the path demand-led while anchoring opening prices enough that early well-being does
+   not spike and drop. Phase tests that need pure demand-led prices still pin `prices.trendWeight` to 0 locally.
+2. The app opens on registry defaults (opening deposits 30 months, trend weight 1) so the Custom page does not show an
+   opening well-being blip. 3. The preset's 30-month opening deposits sit above the thin-opening threshold, so automatic
+   idle-money blending stays off when `spendNewMoney` is 0; `centralBank.spendNewMoney` still spends a share of new
+   money into demand. Energy, medical care, and education then rise over a decade, and apparel and electronics fall,
+   while the money stock rises.
 
 Acceptance:
 
@@ -1030,8 +1033,8 @@ Acceptance:
 
 Goal: demand-led prices can chase the inflation target without hoarding every new dollar.
 
-1. Document that the registry default `prices.trendWeight` is 1 (money-irrelevant) while the app and monetary preset
-   use 0.
+1. Document that the registry default `prices.trendWeight` is 1 (money-irrelevant opening path) while the monetary
+   preset uses 0.35 so money can still move prices, and older fixtures also pin trend weight to 1 via `FEATURE_OFF`.
 2. `centralBank.spendNewMoney` (default 0) blends a share of new fiat into smoothed income when trend weight is below 1,
    even with thick opening deposits.
 3. Recheck fiat inflation near target on the monetary preset with shocks off.

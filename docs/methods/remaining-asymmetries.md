@@ -95,6 +95,10 @@ and inventory, not from the stabilizer.
 
 ## Registry versus app defaults
 
-The registry keeps `prices.trendWeight` at 1 so older phases stay money-irrelevant
-under S0. The web app and `scenarios/presets/monetary.json` open with trend weight
-0 so money can move prices. Document both when reporting experiments.
+The registry default `prices.trendWeight` is 1 so opening prices follow the regime
+path and early well-being does not spike with excess demand. Older phase fixtures
+also pin trend weight to 1 via `FEATURE_OFF` (money-irrelevant under S0).
+`scenarios/presets/monetary.json` uses trend weight 0.35 and 30 opening-deposit
+months so money can still move prices while keeping the opening well-being path
+calmer than a pure demand-led thin opening. Document both when reporting
+experiments.

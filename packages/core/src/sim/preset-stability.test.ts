@@ -104,6 +104,9 @@ describe('preset stability fixes', () => {
     const shared = {
       ...FEATURE_OFF,
       ...monetaryPreset,
+      // Pure demand-led thin opening so stimulus still moves the unemployment peak.
+      'prices.trendWeight': 0,
+      'household.openingDepositMonths': 12,
       'scale.households': 40,
       'scale.firms': 4,
       'scale.banks': 1,
