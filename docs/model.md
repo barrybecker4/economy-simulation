@@ -477,7 +477,9 @@ government bonds, and switches the active regime to bitcoin. See
 `weight / months remaining` of every deposit, and the same fraction of firm loans, mortgages, and consumer loans, into
 bitcoin units at the current bitcoin price. The haircut writes off that share of the slice being converted. Both
 balances stay in use through a 12-month window, and goods can be paid from either. The regime still flips at the end
-of the window, when the bitcoin units are folded back into the single balance. See
+of the window, when the bitcoin units are folded back into the single balance. A mortgage is one claim across both
+legs: foreclosure writes off the converted bitcoin leg with the fiat leg, and a household whose fiat leg is paid off
+keeps its mortgage tenure and payment until the bitcoin leg has folded back. See
 [ADR 0014](adr/0014-dual-currency-window.md). When `transition.realMortgage` is `on`, mortgages that still have a
 positive principal after that fold are stamped as a real claim: afterward the principal and payment scale with the
 price level so the real payment stays at its rebase value. Each month the capital-ratio share of the principal change

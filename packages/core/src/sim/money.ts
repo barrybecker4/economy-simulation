@@ -48,6 +48,15 @@ export function setMortgage(household: Household, amount: number): void {
   household.mortgage = amount;
 }
 
+/**
+ * True while any part of the mortgage is still owed. During a gradual
+ * transition the claim has a fiat leg (`mortgage`) and a converted bitcoin leg
+ * (`bitcoinMortgage`) that folds back into `mortgage` when the transition ends.
+ */
+export function hasMortgageDebt(household: Household): boolean {
+  return household.mortgage > 0 || household.bitcoinMortgage > 0;
+}
+
 export function setConsumerLoan(household: Household, amount: number): void {
   household.consumerLoan = amount;
 }
@@ -89,7 +98,8 @@ export function payFirmInterest(firm: Firm, bank: Bank, economy: Economy, intere
  * The buyer does not keep it. The down payment is transferred separately.
  */
 export function drawMortgage(household: Household, economy: Economy, principal: number): void {
-  household.mortgage = principal;
+  // The new deposits below are matched by an equal rise in the loan book.
+  household.mortgage += principal;
   // In Bitcoin/hybrid regimes, automatically index new mortgages to the price
   // level, similar to HOLC loans during the Great Depression. This prevents
   // debt-deflation spirals where nominal payments become unpayable as prices fall.

@@ -42,7 +42,7 @@ describe('cross-engine series', () => {
       'transition.gradualWeight': 1,
     });
     expect(result.audit.ok).toBe(true);
-    expect(checksum(result)).toBe('8457bd84a5144c7a');
+    expect(checksum(result)).toBe('5e686ea4d9d22c8f');
   });
 });
 

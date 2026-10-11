@@ -43,9 +43,12 @@ describe('phase 55 mortgage settlement', () => {
       1,
       null,
     );
-    const buyer = economy.households[0];
+    // Originations only reach households without mortgage debt, so settle on one.
+    const buyer = economy.households.find(
+      (household) => household.tenure !== 'mortgage' && household.mortgage === 0,
+    );
     if (!buyer) {
-      throw new Error('Missing household');
+      throw new Error('Missing household without a mortgage');
     }
     const price = 10_000;
     const down = 2_000;
