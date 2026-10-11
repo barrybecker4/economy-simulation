@@ -8,8 +8,7 @@ import {
 } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
-import { fundCoinsFromFiat } from './hybrid-money.js';
-import { currencyFor } from './hybrid-settle.js';
+import { fundCoinsFromFiat, payCurrencyOf } from './hybrid-money.js';
 import type { Bank, Firm, Household } from './types.js';
 
 /** Household, firm, or agent cash balance. */
@@ -122,7 +121,7 @@ function repayBitcoinFirmLoan(economy: Economy, firm: Firm, amount: number): num
 }
 
 export function drawFirmLoan(firm: Firm, amount: number, economy?: Economy): void {
-  if (economy && economy.params.regime === 'hybrid' && currencyFor(firm) === 'bitcoin') {
+  if (economy && economy.params.regime === 'hybrid' && payCurrencyOf(firm) === 'bitcoin') {
     drawBitcoinFirmLoan(economy, firm, amount);
     return;
   }
@@ -179,7 +178,7 @@ export function drawMortgage(household: Household, economy: Economy, principal: 
       economy.realMortgagePrice = economy.priceLevel;
     }
   }
-  if (economy.params.regime === 'hybrid' && currencyFor(household) === 'bitcoin') {
+  if (economy.params.regime === 'hybrid' && payCurrencyOf(household) === 'bitcoin') {
     const price = economy.bitcoinPrice;
     if (price > 0) {
       const units = principal / price;
@@ -226,7 +225,7 @@ export function repayBitcoinMortgage(
 }
 
 export function drawConsumerLoan(household: Household, amount: number, economy?: Economy): void {
-  if (economy && economy.params.regime === 'hybrid' && currencyFor(household) === 'bitcoin') {
+  if (economy && economy.params.regime === 'hybrid' && payCurrencyOf(household) === 'bitcoin') {
     const price = economy.bitcoinPrice;
     if (price > 0) {
       const units = amount / price;
