@@ -175,14 +175,17 @@ function drawEndogenousCredit(economy: Economy): void {
   if (wanted <= 0 || economy.firms.length === 0) {
     return;
   }
-  // Share is the total annual borrowing divided by 12 (spread over a year)
-  const monthlyShare = wanted / 12;
-  // Each firm borrows in the month when (tick % 12) === (firm.id % 12)
-  // This staggers borrowing across 12 months instead of all at once
-  const monthInCycle = economy.tick % 12;
+  // Per-firm annual borrowing amount (same as master)
+  const perFirmAnnual = wanted / economy.firms.length;
+  // Each firm borrows on its anniversary: 12 months after creation
   for (const firm of economy.firms) {
-    const firmAnniversary = firm.id % 12;
-    if (firmAnniversary !== monthInCycle) {
+    const monthsSinceCreation = economy.tick - firm.createdAt;
+    // Skip if not yet at first anniversary (must wait 12 months after creation)
+    if (monthsSinceCreation < 12) {
+      continue;
+    }
+    // Borrow on anniversaries: months 12, 24, 36, etc. after creation
+    if (monthsSinceCreation % 12 !== 0) {
       continue;
     }
     const bank = economy.banks[firm.bank];
@@ -191,7 +194,7 @@ function drawEndogenousCredit(economy: Economy): void {
     }
     const room = bankCreditRoom(economy, firm.bank);
     const borrowed = Math.min(
-      moneyAmount(economy, monthlyShare),
+      moneyAmount(economy, perFirmAnnual),
       Math.max(0, Math.round(room)),
       loanHeadroom(firm),
     );

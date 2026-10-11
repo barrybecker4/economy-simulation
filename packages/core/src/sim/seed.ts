@@ -201,6 +201,7 @@ function seedFirms(economy: Economy, init: Rng): void {
       sales: 0,
       expectedSales: 0,
       negTicks: 0,
+      createdAt: 0,
     });
   }
 }
