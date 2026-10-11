@@ -72,7 +72,9 @@ export function bankBalanceIdentity(economy: Economy): number {
   const bonds = sumBank(economy, (bank) => bank.bonds + Number(bank.bondsOver));
   const vault = sumBank(economy, (bank) => bank.vault);
   const equity = sumBank(economy, (bank) => bank.equity);
-  return loans + reserves + bonds + vault - deposits - equity;
+  // Hybrid custody cancels marked coin deposits and loans so price moves do not
+  // hit equity. Outside hybrid bitcoinReserves is 0.
+  return loans + reserves + bonds + vault + economy.bitcoinReserves - deposits - equity;
 }
 
 type StockLine = { accountId: string; side: EntrySide; amount: bigint | number };
@@ -257,7 +259,7 @@ function assertBankBalance(
   vault: number,
   equity: number,
 ): void {
-  const assets = loans + reserves + bonds + vault;
+  const assets = loans + reserves + bonds + vault + economy.bitcoinReserves;
   const claims = deposits + equity;
   const gap = assets - claims;
   if (withinUnitTolerance(unit, gap, Math.max(1, Math.abs(deposits), Math.abs(loans)))) {

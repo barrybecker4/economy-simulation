@@ -1611,6 +1611,24 @@ Acceptance:
 - A replaced firm keeps its worker list and household employer links.
 - A monetary fiat demand shock does not jump unemployment by 20 points or more in one month.
 
+### Phase 76: Hybrid currency choice at a given BTC/USD path
+
+Goal: hybrid is a two-money economy where households and firms hold, earn, spend, and borrow in fiat or bitcoin, fiat
+printing still runs, and the BTC/USD rate is the supply-shock path taken as given.
+
+1. Port the supply-shock monthly recurrence as a deterministic 25-year path; extrapolate with trailing log growth past
+   month 300. Hybrid reads it; fiat and bitcoin do not.
+2. Hybrid clears in cents with per-actor bitcoin tills, an exchange residual, and bitcoin reserves on the bank books.
+3. Wages, goods, and new debts can clear in each actor’s pay currency; service stays in the currency of issue.
+
+Acceptance:
+
+- Hybrid `bitcoinPrice` follows the supply-shock path; choice speed and market-price weight do not move it.
+- Opening hybrid balances match the opening bitcoin share; speed 0 does not rebalance from money scores.
+- A bitcoin wage, goods payment, and loan conserve the bank identity. Fiat money growth raises fiat deposits without
+  minting coins.
+- Calm bitcoin-regime runs still match the prior bitcoin path.
+
 ### Phase 75: Scenario world presets
 
 Goal: name six comparable worlds from the existing category selects, and add the public-finance stances they need.
@@ -1665,5 +1683,6 @@ tests on a fixed set of seeds. Each test states a tolerance. Failures report the
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
 - Mechanisms sketched in Phases 43–50 until those phases land: rate transmission beyond deposits, a gradual dual-currency
-  transition, a bitcoin market price separate from goods prices in satoshis, durable purchase timing, endogenous
-  productivity, life-cycle bequests, inequality and velocity calibration, and design-symmetry cleanup.
+  transition, a bitcoin market price separate from goods prices in satoshis (hybrid now uses an exogenous supply-shock
+  path; fiat/bitcoin chart rates stay on the Phase 45 channel), durable purchase timing, endogenous productivity,
+  life-cycle bequests, inequality and velocity calibration, and design-symmetry cleanup.

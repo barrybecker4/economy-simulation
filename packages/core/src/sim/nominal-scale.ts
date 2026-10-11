@@ -82,6 +82,7 @@ function divideNominal(economy: Economy): void {
   economy.openingDeposits = divideMoney(economy.openingDeposits);
   economy.bitcoinCarried = divideMoney(economy.bitcoinCarried);
   economy.bitcoinLoanCarried = divideMoney(economy.bitcoinLoanCarried);
+  economy.bitcoinReserves = divideMoney(economy.bitcoinReserves);
   economy.channelLoans = divideMoney(economy.channelLoans);
   economy.unmetGoodsDemand = divide(economy.unmetGoodsDemand);
   economy.demandBase = divide(economy.demandBase);

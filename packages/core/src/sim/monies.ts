@@ -83,6 +83,10 @@ export function nextExchangeRate(price: number, share: number, issuance: number)
 }
 
 export function updateMoneyChoice(economy: Economy): void {
+  // Hybrid uses the exogenous supply-shock path and updateHybridMoney instead.
+  if (economy.params.regime === 'hybrid') {
+    return;
+  }
   if (economy.params.choiceSpeed > 0) {
     const realReturn =
       economy.depositRate - economy.moneyShares.bitcoin * economy.params.prodGrowth;

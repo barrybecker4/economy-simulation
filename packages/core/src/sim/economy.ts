@@ -66,6 +66,13 @@ export interface Economy {
   bitcoinCarried: number;
   /** Ledger value of bitcoin loan units at the last mark. */
   bitcoinLoanCarried: number;
+  /**
+   * Hybrid custody asset: net coin liabilities at the current bitcoin price.
+   * Outside hybrid this stays 0.
+   */
+  bitcoinReserves: number;
+  /** Outside bitcoin inventory for hybrid currency swaps. Not a bank liability. */
+  exchangeBitcoin: number;
   tick: number;
   demandBase: number;
   desiredSpend: number;

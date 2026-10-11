@@ -4,12 +4,17 @@ import type { Economy } from './economy.js';
 import type { Firm } from './types.js';
 import { totalLoans } from './banking.js';
 import { markBitcoinToMarket } from './dual-currency.js';
+import { syncHybridCustody } from './hybrid-money.js';
 import { chargeEquityForDefault, resetFailedFirmAccounts } from './money.js';
 import { resolveInsolventBanks } from './resolution.js';
 import { postStocks } from './stocks.js';
 
 export function onBookkeeping(economy: Economy, ctx: TickContext): void {
-  markBitcoinToMarket(economy);
+  if (economy.params.regime === 'hybrid') {
+    syncHybridCustody(economy);
+  } else {
+    markBitcoinToMarket(economy);
+  }
   postStocks(economy, ctx.ledger);
   // Catch losses booked after the pre-credit pass (for example write-offs).
   resolveInsolventBanks(economy);

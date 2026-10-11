@@ -30,12 +30,15 @@ Endogenous opening tenure remains deferred.
 
 ## Hybrid versus bitcoin
 
-With no bank failure and choice speed 0, hybrid matches bitcoin except that
-hybrid can inject capital as lender of last resort when equity goes negative.
-That injection creates base money. Hybrid is not hard money plus a backstop; it
-is a money-creating LOLR. If that injection leaves equity negative, hybrid uses
-the same merge or bail-in as the other regimes, and the treasury deposit at bank
-0 is included.
+Hybrid is no longer a satoshi twin of bitcoin with a lender of last resort. It
+clears goods in cents with a separate bitcoin till at an exogenous BTC/USD path
+([ADR 0028](../adr/0028-hybrid-currency-choice.md)). Fiat printing and the
+Taylor rule run on fiat deposits. Coin credit stays savings-constrained. The
+LOLR still injects reserves when equity is negative. With choice speed 0 and no
+bank failure, hybrid still differs from bitcoin because of the cent numeraire,
+the rising exogenous bitcoin price, and fiat money growth. If LOLR support
+leaves equity negative, hybrid uses the same merge or bail-in as the other
+regimes, and the treasury deposit at bank 0 is included.
 
 ## Fiat-only reserve interest and deposit subsidy
 

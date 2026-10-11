@@ -178,7 +178,7 @@ export function onContractChoice(economy: Economy): void {
       fundFromBitcoin(economy, household, household.mortgage);
       if (household.deposit >= household.mortgage) {
         const payoff = household.mortgage;
-        repayMortgage(household, payoff);
+        repayMortgage(household, payoff, economy);
         economy.loanRepaid += payoff;
         household.mortgagePayment = 0;
         household.mortgageArrears = 0;
@@ -270,20 +270,22 @@ function maybeBorrowConsumer(
   const room = bankCreditRoom(economy, household.bank);
   const borrowed = moneyAmount(economy, Math.min(headroom, Math.max(0, room)) * borrowFactor);
   if (borrowed > 0) {
-    drawConsumerLoan(household, borrowed);
+    drawConsumerLoan(household, borrowed, economy);
     economy.newConsumerBorrowing += borrowed;
     economy.newBorrowing += borrowed;
   }
 }
 
 function serviceDebts(economy: Economy, household: Household): void {
-  if (household.mortgage > 0 && household.mortgagePayment > 0) {
-    const due = Math.min(household.mortgage, household.mortgagePayment);
+  const price = economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 0;
+  const mortgageValue = household.mortgage + household.bitcoinMortgage * price;
+  if (mortgageValue > 0 && household.mortgagePayment > 0) {
+    const due = Math.min(mortgageValue, household.mortgagePayment);
     fundFromBitcoin(economy, household, due);
-    const pay = Math.min(due, household.deposit);
+    const pay = Math.min(due, household.deposit + household.bitcoin * price);
     const interestDue = Math.min(
       due,
-      moneyAmount(economy, (household.mortgage * (economy.policyRate + LOAN_SPREAD)) / 12),
+      moneyAmount(economy, (mortgageValue * (economy.policyRate + LOAN_SPREAD)) / 12),
     );
     const interest = Math.min(pay, interestDue);
     const principal = pay - interest;
@@ -296,7 +298,7 @@ function serviceDebts(economy: Economy, household: Household): void {
       );
     }
     if (principal > 0) {
-      repayMortgage(household, principal);
+      repayMortgage(household, principal, economy);
       economy.loanRepaid += principal;
     }
     if (pay + 1e-9 >= due) {
@@ -304,8 +306,10 @@ function serviceDebts(economy: Economy, household: Household): void {
     } else {
       household.mortgageArrears += 1;
     }
-    if (household.mortgage <= 0) {
+    const remaining = household.mortgage + household.bitcoinMortgage * price;
+    if (remaining <= 0) {
       setMortgage(household, 0);
+      household.bitcoinMortgage = 0;
       household.mortgagePayment = 0;
       household.mortgageArrears = 0;
       household.mortgageIndexed = false;
@@ -314,12 +318,13 @@ function serviceDebts(economy: Economy, household: Household): void {
       forecloseMortgage(economy, household);
     }
   }
-  if (household.consumerLoan > 0) {
-    const cap = moneyAmount(economy, household.consumerLoan * CONSUMER_LOAN_REPAY);
-    fundFromBitcoin(economy, household, Math.min(household.consumerLoan, cap));
-    const pay = Math.min(household.consumerLoan, household.deposit, cap);
+  const consumerValue = household.consumerLoan + household.bitcoinConsumer * price;
+  if (consumerValue > 0) {
+    const cap = moneyAmount(economy, consumerValue * CONSUMER_LOAN_REPAY);
+    fundFromBitcoin(economy, household, Math.min(consumerValue, cap));
+    const pay = Math.min(consumerValue, household.deposit + household.bitcoin * price, cap);
     if (pay > 0) {
-      repayConsumerLoan(household, pay);
+      repayConsumerLoan(household, pay, economy);
       economy.loanRepaid += pay;
     }
   }

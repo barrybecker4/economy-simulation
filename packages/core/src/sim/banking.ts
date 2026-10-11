@@ -12,6 +12,21 @@ export interface CentAggregates {
   equity: bigint;
 }
 
+/** Fiat deposit stock only. Hybrid money growth and reserve requirements use this. */
+export function fiatDepositStock(economy: Economy): number {
+  let total = economy.govDeposits;
+  for (const household of economy.households) {
+    total += household.deposit;
+  }
+  for (const firm of economy.firms) {
+    total += firm.deposit;
+  }
+  for (const agent of economy.agents) {
+    total += agent.deposit;
+  }
+  return total;
+}
+
 /** Fiat deposit stock and the ledger value of bitcoin deposit units. */
 export function moneyBalances(economy: Economy): { fiat: number; bitcoin: number } {
   return {
@@ -75,17 +90,7 @@ export function bondNumber(bank: Economy['banks'][number]): number {
 }
 
 function fiatDeposits(economy: Economy): number {
-  let total = economy.govDeposits;
-  for (const household of economy.households) {
-    total += household.deposit;
-  }
-  for (const firm of economy.firms) {
-    total += firm.deposit;
-  }
-  for (const agent of economy.agents) {
-    total += agent.deposit;
-  }
-  return total;
+  return fiatDepositStock(economy);
 }
 
 function* assetParts(economy: Economy): Iterable<number> {
@@ -95,6 +100,7 @@ function* assetParts(economy: Economy): Iterable<number> {
     yield bank.vault;
     yield bank.bonds;
   }
+  yield economy.bitcoinReserves;
 }
 
 function* claimParts(economy: Economy): Iterable<number> {

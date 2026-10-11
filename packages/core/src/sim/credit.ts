@@ -153,7 +153,7 @@ function repayStressedLoans(economy: Economy): void {
     if (repay <= 0) {
       continue;
     }
-    repayFirmLoan(firm, repay);
+    repayFirmLoan(firm, repay, economy);
     economy.loanRepaid += repay;
   }
 }
@@ -187,22 +187,32 @@ function drawEndogenousCredit(economy: Economy): void {
     if (borrowed <= 0) {
       continue;
     }
-    drawFirmLoan(firm, borrowed);
+    drawFirmLoan(firm, borrowed, economy);
     economy.newBorrowing += borrowed;
   }
 }
 
 function repayDeflatingLoan(economy: Economy, firm: Firm): void {
   const penalty = deflationPenalty(economy);
-  if (penalty <= 0 || firm.loan <= 0 || firm.deposit <= 0) {
+  if (penalty <= 0) {
     return;
   }
-  const rawRepay = firm.loan * penalty * DEFLATION_REPAY_RATE;
-  const repay = Math.min(firm.loan, firm.deposit, moneyAmount(economy, rawRepay));
+  const fiatLoan = firm.loan;
+  const coinLoanValue = firm.bitcoinLoan * economy.bitcoinPrice;
+  const outstanding = fiatLoan + coinLoanValue;
+  if (!(outstanding > 0)) {
+    return;
+  }
+  const available = firm.deposit + firm.bitcoin * economy.bitcoinPrice;
+  if (!(available > 0)) {
+    return;
+  }
+  const rawRepay = outstanding * penalty * DEFLATION_REPAY_RATE;
+  const repay = Math.min(outstanding, available, moneyAmount(economy, rawRepay));
   if (repay <= 0) {
     return;
   }
-  repayFirmLoan(firm, repay);
+  repayFirmLoan(firm, repay, economy);
   economy.loanRepaid += repay;
 }
 
@@ -274,7 +284,7 @@ function drawExpansionLoan(economy: Economy, firm: Firm, gap: number): void {
   if (borrowed <= 0) {
     return;
   }
-  drawFirmLoan(firm, borrowed);
+  drawFirmLoan(firm, borrowed, economy);
   economy.newBorrowing += borrowed;
 }
 

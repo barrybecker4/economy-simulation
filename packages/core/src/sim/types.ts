@@ -2,6 +2,8 @@ import type { Rng } from '../rng/rng.js';
 
 export type Tenure = 'rent' | 'mortgage' | 'owned' | 'none';
 
+export type PayCurrency = 'fiat' | 'bitcoin';
+
 export interface Household {
   id: number;
   bank: number;
@@ -10,6 +12,8 @@ export interface Household {
   deposit: number;
   /** Bitcoin units. The bank liability is these units times the bitcoin price. */
   bitcoin: number;
+  /** Hybrid wage and payment currency. Ignored outside hybrid. */
+  payCurrency: PayCurrency;
   employer: number;
   income: number;
   consumption: number;
@@ -42,6 +46,8 @@ export interface Firm {
   deposit: number;
   /** Bitcoin units. The bank liability is these units times the bitcoin price. */
   bitcoin: number;
+  /** Hybrid receipt currency. Ignored outside hybrid. */
+  payCurrency: PayCurrency;
   loan: number;
   /** Firm loan principal denominated in bitcoin units. */
   bitcoinLoan: number;

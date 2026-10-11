@@ -166,7 +166,9 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     regime,
     // Transition runs use satoshis from the start so the conversion can reassign
     // holdings without changing the ledger class mid-run.
-    unit: transitionLength > 0 || regime !== 'fiat' ? 'satoshi' : 'cent',
+    // Hybrid clears goods in cents with a separate bitcoin till. Bitcoin and a
+    // transition window still use satoshis as the single ledger unit.
+    unit: transitionLength > 0 || regime === 'bitcoin' ? 'satoshi' : 'cent',
     lendingModel: lendingModelOf(config),
     deflationSensitivity: slider(config, 'deflation.sensitivity'),
     autoStart: slider(config, 'ai.automatableShareStart'),

@@ -72,7 +72,8 @@ function economyWith() {
           'scale.firms': 4,
           'scale.banks': 1,
           'shock.frequency': 0,
-          'regime.type': 'hybrid',
+          // Transition-window helpers: destroy-and-carry seating, not hybrid custody.
+          'regime.type': 'bitcoin',
         },
       }),
     ),
