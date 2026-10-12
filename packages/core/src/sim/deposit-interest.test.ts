@@ -27,6 +27,20 @@ describe('deposit-interest funding', () => {
     expect(bank.equity).toBeCloseTo(equityBeforePay - economy.depositInterestPaid, 6);
   });
 
+  it('does not pay interest on reserves under bitcoin', () => {
+    const economy = economyWith({
+      'regime.type': 'bitcoin',
+      'bank.depositInterestSubsidy': 1,
+    });
+    const bank = requireBank(economy);
+    bank.equity = 0;
+    bank.failed = false;
+    bank.reserves = 1_000_000;
+    economy.policyRate = 0.05;
+    payHouseholdDepositInterest(economy, new Map([[0, 0]]));
+    expect(economy.reserveInterestPaid).toBe(0);
+  });
+
   it('records reserve creations so money growth can net them out', () => {
     const economy = economyWith({
       'regime.type': 'fiat',

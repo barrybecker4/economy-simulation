@@ -124,6 +124,9 @@ describe('phase 71 rate cap and real injection channels', () => {
     expect(Math.abs(uLoans - uDeposits)).toBeLessThan(0.08);
     expect(Math.abs(uSpending - uDeposits)).toBeLessThan(0.08);
     expect(peak(series(loans, 'interestRate'))).toBeLessThanOrEqual(MAX_POLICY_RATE + 0.01);
+    const spendingMoney = series(spending, 'moneySupply');
+    expect((spendingMoney.at(-1) ?? 0) / Math.max(spendingMoney[0] ?? 1, 1)).toBeLessThan(4);
+    expect(peak(series(spending, 'interestRate'))).toBeLessThanOrEqual(MAX_POLICY_RATE + 0.01);
   });
 });
 

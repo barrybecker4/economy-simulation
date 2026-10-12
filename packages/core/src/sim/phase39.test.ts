@@ -65,6 +65,32 @@ describe('phase 39 supply shock and firm-level hiring', () => {
     // must not collapse.
     expect(mean(series(adverse, 'unemployment').slice(12, 24))).toBeLessThan(0.2);
   });
+
+  it('raises unemployment with hiring off and zero wage rigidity after a negative productivity shock', () => {
+    const sliders = {
+      ...monetary,
+      'regime.type': 'fiat',
+      'labor.firmLevelHiring': 'off',
+      'wage.nominalRigidity': 0,
+    };
+    let raised = 0;
+    for (let seed = 1; seed <= 5; seed += 1) {
+      const calm = simulate(loadScenario({ name: 'phase39-rigid0', seed, ticks: 36, sliders }));
+      const adverse = simulate(loadScenario({ name: 'phase39-rigid0', seed, ticks: 36, sliders }), {
+        tick: 12,
+        kind: 'productivity',
+        size: -0.1,
+      });
+      expect(calm.audit.ok && adverse.audit.ok).toBe(true);
+      const calmWindow = mean(series(calm, 'unemployment').slice(12, 24));
+      const shockWindow = mean(series(adverse, 'unemployment').slice(12, 24));
+      expect(shockWindow).toBeLessThan(0.25);
+      if (shockWindow > calmWindow + 0.005) {
+        raised += 1;
+      }
+    }
+    expect(raised).toBeGreaterThanOrEqual(3);
+  });
 });
 
 function run(

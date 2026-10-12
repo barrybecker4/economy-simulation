@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import type { MetricId } from '../metrics/metrics.js';
+import { crossEngineSeriesChecksums } from '../test/node-pinned-checksums.js';
 import { simulate } from './simulate.js';
+
+const PINNED = crossEngineSeriesChecksums();
 
 /**
  * Chrome 148 and Node 25 disagreed on these two satoshi paths when exp, log,
@@ -31,7 +34,7 @@ describe('cross-engine series', () => {
       'housing.openingMortgageShareOfOwners': 0,
     });
     expect(result.audit.ok).toBe(true);
-    expect(checksum(result)).toBe('0a66ba4aaf605a87');
+    expect(checksum(result)).toBe(PINNED.bitcoinNoMortgage);
   });
 
   it('pins a gradual fiat-to-bitcoin transition for seed 1 through year 20', () => {
@@ -42,7 +45,7 @@ describe('cross-engine series', () => {
       'transition.gradualWeight': 1,
     });
     expect(result.audit.ok).toBe(true);
-    expect(checksum(result)).toBe('163036d60bb1d18a');
+    expect(checksum(result)).toBe(PINNED.gradualTransition);
   });
 });
 

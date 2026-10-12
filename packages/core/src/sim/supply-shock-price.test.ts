@@ -18,8 +18,8 @@ describe('supply-shock bitcoin price path', () => {
     const second = pricesThrough(SUPPLY_SHOCK_HORIZON_MONTHS);
     expect(second).toEqual(first);
     expect(first).toHaveLength(SUPPLY_SHOCK_HORIZON_MONTHS + 1);
-    // Golden hash is pinned on CI's Node 22. Host Math.sqrt in the volatility
-    // draw is not bit-identical across V8 versions; see ADR 0026.
+    // Golden hash is pinned on CI's Node version (.nvmrc). Host Math.sqrt in the
+    // volatility draw is not bit-identical across V8 versions; see ADR 0026.
     expect(createHash('sha256').update(first.join(',')).digest('hex')).toBe(
       'c43fa9147ff1f0b1dd54bd3b9f523e8e90da96a41f1c46127f8da1237dad8de3',
     );

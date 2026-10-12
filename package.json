@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "scripts": {
     "lint": "eslint .",
@@ -12,6 +12,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -b && pnpm --filter @economy-simulation/core run typecheck && pnpm --filter @economy-simulation/app run typecheck",
     "test": "vitest run",
+    "test:integration": "vitest run packages/core/src/sim/round10-scale.integration.test.ts",
     "assumptions:check": "vitest run packages/core/src/config/assumptions.test.ts",
     "check": "pnpm run lint && pnpm run format:check && pnpm run typecheck && pnpm run test && pnpm run assumptions:check",
     "sim": "tsc -b --pretty false && node packages/cli/dist/main.js"
