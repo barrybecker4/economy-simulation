@@ -106,7 +106,8 @@ A bank's capital stock on the liability side of its books.
 _Avoid_: capital buffer (when you mean the stock itself)
 
 **Deposit interest**:
-The coupon paid to household deposits from this tick's borrower interest, then fiat reserve interest and subsidy inside the money-growth budget.
+The coupon paid to household deposits from this tick's borrower interest, then fiat reserve interest and subsidy inside
+the money-growth budget.
 _Avoid_: savings rate, policy rate (those set the posted coupon; this is the payment)
 
 **Lender of last resort**:
@@ -114,7 +115,8 @@ Hybrid central-bank capital support for insolvent banks, run once per tick befor
 _Avoid_: bail-in, bank resolution (those happen after support if equity is still negative)
 
 **Carried bitcoin**:
-The ledger value of outstanding bitcoin units at the price they were acquired or last marked, so a price move can seat on bank equity.
+The ledger value of outstanding bitcoin units at the price they were acquired or last marked, so a price move can
+seat on bank equity.
 _Avoid_: bitcoin balance (that is the unit count; this is the value stock)
 
 **Fiat money growth**:

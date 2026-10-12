@@ -19,7 +19,8 @@ purchases invented bond claims.
 - `newLoans` books firm loans only up to unused bank credit room. Those loans retire on the ordinary interest and
   repayment path. A contraction still repays firm loans up to balances on hand.
 - `assetPurchase` buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the
-  retired bond seats on vault cash and the private-equity residual (see [ADR 0024](0024-asset-purchase-reserves-once.md)).
+  retired bond seats on vault cash and the private-equity residual (see [ADR
+  0024](0024-asset-purchase-reserves-once.md)).
   With no bonds, it places nothing.
 
 ## Consequences

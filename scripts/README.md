@@ -2,7 +2,8 @@
 
 ## Headline Suite
 
-The headline suite runs a 20-seed paired bitcoin-vs-fiat comparison across all major structures and presets, reporting median real consumption, unemployment, and real GDP.
+The headline suite runs a 20-seed paired bitcoin-vs-fiat comparison across all major structures and presets, reporting
+median real consumption, unemployment, and real GDP.
 
 ### Configuration
 

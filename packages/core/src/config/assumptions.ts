@@ -41,10 +41,30 @@ function sliderLines(slider: Slider): string[] {
   } else {
     lines.push(`- Options: ${slider.options.join(', ')}`);
   }
-  lines.push(
-    `- Status: ${slider.status}`,
-    `- Source: ${slider.source}`,
-    `- Description: ${slider.description}`,
-  );
+  lines.push(`- Status: ${slider.status}`, ...wrapBullet('Source', slider.source));
+  lines.push(...wrapBullet('Description', slider.description));
+  return lines;
+}
+
+/** Wrap a bullet so each line stays within the docs line length. */
+function wrapBullet(label: string, value: string): string[] {
+  const prefix = `- ${label}: `;
+  const hang = '  ';
+  const width = 120;
+  const lines: string[] = [];
+  let current = prefix;
+  for (const word of value.split(/\s+/)) {
+    if (word.length === 0) {
+      continue;
+    }
+    const candidate = current.endsWith(' ') ? `${current}${word}` : `${current} ${word}`;
+    if (candidate.length <= width || current === prefix || current === hang) {
+      current = candidate;
+      continue;
+    }
+    lines.push(current);
+    current = `${hang}${word}`;
+  }
+  lines.push(current);
   return lines;
 }

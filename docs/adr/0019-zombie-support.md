@@ -7,7 +7,8 @@ Accepted
 ## Context
 
 Fiat crisis stimulus grows broad money after a lag. Insolvent firms are still replaced after six months of negative
-equity once they also miss a wage or interest payment. Without a link between the two, a regime comparison cannot test whether propping up failed firms lengthens a
+equity once they also miss a wage or interest payment. Without a link between the two, a regime comparison cannot test
+whether propping up failed firms lengthens a
 fiat recovery relative to a bitcoin contraction that clears those firms.
 
 ## Decision

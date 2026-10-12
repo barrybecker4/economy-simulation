@@ -16,7 +16,8 @@ agents look permanently uneconomic even when real costs should have been falling
 - Real unit cost starts at `agent.initialCostShare` times the opening wage and halves every
   `agent.costHalvingMonths` months. An optional energy step multiplies cost by `1 − agent.energyStepSize` from
   `agent.energyStepMonth` onward. The registry default size is 0. Substantial, High, and Extreme set 0.5, 0.75, and 0.9.
-- The nominal ask is that real cost scaled by the price level over the opening price level, marked up by payment friction
+- The nominal ask is that real cost scaled by the price level over the opening price level, marked up
+  by payment friction
   and market depth. It is not tied to the current wage. The fee is paid into bank equity from the settled bill.
 - Firms buy a smooth share of each agent's unit from the real ask relative to the wage. There is no hard wage-share
   cutoff. A fiat bill that would round below one cent while takeup is positive clears at one cent.
@@ -27,6 +28,7 @@ agents look permanently uneconomic even when real costs should have been falling
 
 ## Consequences
 
-`docs/model.md`, `docs/limits.md`, `docs/PLAN.md`, and the AI-claims sliders follow this ADR. Agent-off runs (owner-share
+`docs/model.md`, `docs/limits.md`, `docs/PLAN.md`, and the AI-claims sliders follow this ADR.
+Agent-off runs (owner-share
 or agents-per-owner ceiling at zero, or a flat automatable share) stay on the prior path. Agent-on runs no longer boom
 and permanently shut off when crowding raises the ask.

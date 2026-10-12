@@ -85,7 +85,8 @@ consumption, real wealth, unemployment, debt service, and tenure shares, with th
 - **Rebate-off sensitivity.** S0–S3 gaps are reported with the default treasury buffer and with a buffer high enough
   that the rebate does not bind.
 - **Skill sigma.** Regime gaps on the monetary preset are also shown at `household.skillSigma` 0.5.
-- Design asymmetries that remain intentional are listed in [methods/remaining-asymmetries.md](methods/remaining-asymmetries.md).
+- Design asymmetries that remain intentional are listed in
+  [methods/remaining-asymmetries.md](methods/remaining-asymmetries.md).
 
 ## Monetary-preset deposit decomposition
 

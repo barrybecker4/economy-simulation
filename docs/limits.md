@@ -75,7 +75,8 @@ Under fiat and bitcoin, money choice does not pick the unit the economy clears i
 Above 0, the shares of fiat, bitcoin, stablecoin, and CBDC move on the currency-share chart and write the bitcoin,
 stablecoin, and CBDC exchange rates. Only the bitcoin rate is read again, by goods, wealth, and the transition.
 Stablecoin and CBDC rates are stored and scaled on a redenomination, and nothing else reads them. The bitcoin rate also
-moves with issuance and trust when `bitcoin.marketPriceWeight` is positive (the default is 0.4), using the bitcoin share,
+moves with issuance and trust when `bitcoin.marketPriceWeight` is positive (the default is 0.4),
+using the bitcoin share,
 including when choice speed is 0. No goods, labor, credit, tax, or regime rule reads the shares under those regimes.
 
 Under hybrid, money choice and pay-currency scores do move tills, wages, goods settlement, and new debts

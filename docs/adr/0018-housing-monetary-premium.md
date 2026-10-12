@@ -16,10 +16,12 @@ demand through the deflation penalty on the CPI line, but the tenure purchase pr
   leaves Phase 64 unchanged.
 - The hedge follows the regime price path (`normalInflation`), not trailing inflation. Hedge share is that path over the
   inflation target, clamped to [0, 1], and 0 when the target is 0.
-- The price multiple is `1 − premium × (1 − hedge)`. It multiplies the tenure purchase price, opening mortgage principal,
+- The price multiple is `1 − premium × (1 − hedge)`. It multiplies the tenure purchase price, opening
+  mortgage principal,
   rent and user-cost home price, and the unscaled CPI housing line. Market-clearing scarcity multiplies after it.
 - Fiat on its inflation target keeps the 48-month price. Bitcoin and hybrid shed the premium share immediately; there is
-  no month-by-month glide. A mid-run regime flip updates the multiple on the next tenure pass; existing mortgage balances
+  no month-by-month glide. A mid-run regime flip updates the multiple on the next tenure pass;
+  existing mortgage balances
   stay contractual.
 
 ## Consequences

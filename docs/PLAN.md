@@ -64,9 +64,11 @@ Layout:
 ## Time and scale
 
 - One tick is one month. A default run is 50 years (600 ticks). Both are configuration.
-- Development population: 4,000 households, 200 firms, 4 banks, about 20 households per firm. Release target: 10,000 households and 500 firms.
+- Development population: 4,000 households, 200 firms, 4 banks, about 20 households per firm. Release target: 10,000
+  households and 500 firms.
 - The agent count is a share of households, not a hard cap.
-- Performance, measured and adjusted as phases land: a development run of 600 ticks finishes in about 7 seconds in Node. A release-size run stays under 15 seconds.
+- Performance, measured and adjusted as phases land: a development run of 600 ticks finishes in about 7 seconds in Node.
+  A release-size run stays under 15 seconds.
 
 ## Domain model
 
@@ -75,14 +77,15 @@ Layout:
 A household is one human. An agent is an autonomous actor owned by one household. One household may own many agents, and
 many households own none.
 
-| Actor        | Role                                                                    | Main decisions                                                                      |
-| ------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Household    | Supplies labor, consumes, saves, borrows, owns firms, homes, and agents | Consumption, saving, borrowing, which job to accept, which housing contract to use  |
-| Firm         | Produces goods, employs households, rents or owns AI capacity           | Price, wage offers, hiring, investment, adoption of AI, profit-sharing versus loans |
-| Bank         | Accepts deposits and makes loans                                        | Lending volume and interest rate, subject to the regime                             |
-| Government   | Taxes, spends, and issues debt                                          | Spending, transfers, and borrowing                                                  |
-| Central bank | Fiat and hybrid regimes only                                            | Policy rate by rule, optional asset purchases, lender of last resort in the hybrid  |
-| Agent        | Sells compute and transacts on its own account                          | How to spend its compute budget                                                     |
+- **Household.** Supplies labor, consumes, saves, borrows, owns firms, homes, and agents. Decisions: consumption,
+  saving, borrowing, which job to accept, which housing contract to use.
+- **Firm.** Produces goods, employs households, rents or owns AI capacity. Decisions: price, wage offers, hiring,
+  investment, adoption of AI, profit-sharing versus loans.
+- **Bank.** Accepts deposits and makes loans. Decisions: lending volume and interest rate, subject to the regime.
+- **Government.** Taxes, spends, and issues debt. Decisions: spending, transfers, and borrowing.
+- **Central bank.** Fiat and hybrid regimes only. Decisions: policy rate by rule, optional asset purchases, lender of
+  last resort in the hybrid.
+- **Agent.** Sells compute and transacts on its own account. Decisions: how to spend its compute budget.
 
 ### Markets
 
@@ -114,13 +117,13 @@ These are starting rules. Mark each as sourced or as a guess when it is implemen
 
 ### The same variable changes role by regime
 
-| Variable           | Fiat                                               | Bitcoin standard                                                             |
-| ------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Base money supply  | Set by the central bank rule                       | Fixed by the protocol schedule                                               |
-| Interest rate      | Policy rule                                        | Output that clears loanable funds                                            |
-| Credit expansion   | Output, limited by reserve and capital rules       | Output, limited by willingness to lend saved funds, and reduced by deflation |
-| Price level        | Output                                             | Output, in fractional satoshis                                               |
-| Government deficit | Slider, financed by bonds the central bank may buy | Slider, financed only by taxes or market borrowing                           |
+- **Base money supply.** Fiat: set by the central bank rule. Bitcoin standard: fixed by the protocol schedule.
+- **Interest rate.** Fiat: policy rule. Bitcoin standard: output that clears loanable funds.
+- **Credit expansion.** Fiat: output, limited by reserve and capital rules. Bitcoin standard: output, limited by
+  willingness to lend saved funds, and reduced by deflation.
+- **Price level.** Fiat: output. Bitcoin standard: output, in fractional satoshis.
+- **Government deficit.** Fiat: slider, financed by bonds the central bank may buy. Bitcoin standard: slider, financed
+  only by taxes or market borrowing.
 
 ### Relative prices
 
@@ -249,17 +252,27 @@ Housing security enters well-being at a fixed weight of 0.5. It is not a slider.
 
 ### Hypotheses
 
-| Id  | Hypothesis                                                                                                                                                                | Sweep                                                                                                                             | Outputs                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| H1  | Under a fixed money supply, rapid AI productivity growth lowers the price level, and with rigid nominal wages this raises unemployment and debt burdens in the short run. | regime.type, ai.adoptionSteepness, wage.nominalRigidity                                                                           | Price level, unemployment, defaults, credit relative to GDP |
-| H2  | A central bank that targets inflation smooths the transition to AI-driven growth more than a fixed supply does.                                                           | regime.type, centralBank.inflationWeight, shock.size                                                                              | Output volatility, boom-bust amplitude                      |
-| H3  | AI adoption raises capital share or productivity per human, and ownership concentration changes the wealth Gini.                                                          | ai.ownershipConcentration, regime.type                                                                                            | Capital share, productivity per human, wealth Gini          |
-| H4  | Lower payment friction for AI agents increases their share of transactions.                                                                                               | ai.paymentFrictionFiat, ai.paymentFrictionBitcoin, regime.type                                                                    | AI transaction share, GDP growth                            |
-| H5  | Credit-driven booms are smaller when lending is limited to saved funds.                                                                                                   | bitcoin.lendingModel, bank.reserveRequirement, regime.type                                                                        | Credit relative to GDP, bank failures, boom-bust amplitude  |
-| H6  | A physical bottleneck limits how much AI raises growth, regardless of regime.                                                                                             | ai.physicalTaskShare, regime.type                                                                                                 | GDP growth, productivity per human                          |
-| H7  | Stronger deflation reduces credit, borrowing, and speculation, and raises profit-sharing and non-mortgage housing.                                                        | deflation.sensitivity, regime.type, productivity.baseGrowth                                                                       | Credit relative to GDP, property turnover, contract shares  |
-| H8  | Electronics get cheaper and housing gets more expensive inside either headline inflation path.                                                                            | goods.electronicsProductivity, goods.housingSupplyGrowth, regime.type                                                             | Relative prices, CPI                                        |
-| H10 | Fiat crisis stimulus that props up insolvent firms can leave a deeper bitcoin trough that recovers sooner and ends with higher real GDP.                                  | regime.type, centralBank.zombieSupport, credit shock size 0.3, wage.nominalRigidity 0.9, stimulus 1, stimulusLag 3, 60 households | Peak unemployment, months to recover, end real GDP          |
+- **H1.** Under a fixed money supply, rapid AI productivity growth lowers the price level, and with rigid nominal wages
+  this raises unemployment and debt burdens in the short run. Sweep: regime.type, ai.adoptionSteepness,
+  wage.nominalRigidity. Outputs: price level, unemployment, defaults, credit relative to GDP.
+- **H2.** A central bank that targets inflation smooths the transition to AI-driven growth more than a fixed supply
+  does. Sweep: regime.type, centralBank.inflationWeight, shock.size. Outputs: output volatility, boom-bust amplitude.
+- **H3.** AI adoption raises capital share or productivity per human, and ownership concentration changes the wealth
+  Gini. Sweep: ai.ownershipConcentration, regime.type. Outputs: capital share, productivity per human, wealth Gini.
+- **H4.** Lower payment friction for AI agents increases their share of transactions. Sweep: ai.paymentFrictionFiat,
+  ai.paymentFrictionBitcoin, regime.type. Outputs: AI transaction share, GDP growth.
+- **H5.** Credit-driven booms are smaller when lending is limited to saved funds. Sweep: bitcoin.lendingModel,
+  bank.reserveRequirement, regime.type. Outputs: credit relative to GDP, bank failures, boom-bust amplitude.
+- **H6.** A physical bottleneck limits how much AI raises growth, regardless of regime. Sweep: ai.physicalTaskShare,
+  regime.type. Outputs: GDP growth, productivity per human.
+- **H7.** Stronger deflation reduces credit, borrowing, and speculation, and raises profit-sharing and non-mortgage
+  housing. Sweep: deflation.sensitivity, regime.type, productivity.baseGrowth. Outputs: credit relative to GDP, property
+  turnover, contract shares.
+- **H8.** Electronics get cheaper and housing gets more expensive inside either headline inflation path. Sweep:
+  goods.electronicsProductivity, goods.housingSupplyGrowth, regime.type. Outputs: relative prices, CPI.
+- **H10.** Fiat crisis stimulus that props up insolvent firms can leave a deeper bitcoin trough that recovers sooner and
+  ends with higher real GDP. Sweep: regime.type, centralBank.zombieSupport, credit shock size 0.3, wage.nominalRigidity
+  0.9, stimulus 1, stimulusLag 3, 60 households. Outputs: peak unemployment, months to recover, end real GDP.
 
 ## Phases
 
@@ -766,7 +779,8 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to
+   0. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
    return, and exchange rates move with each digital share. The policy-rate rule still follows `regime.type`. Bitcoin
    issuance is the halving schedule, not a slider.
@@ -1261,11 +1275,13 @@ Acceptance:
 - At the same amount, only `newLoans` raises firm loans, only `assetPurchase` raises bonds, and a government-spending
   injection is spent on firms in that tick.
 - A `newLoans` contraction reduces firm deposits and firm loans.
-- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is 3. `spendNewMoney` on the default channel stays under 10 percent inflation.
+- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
+  3. `spendNewMoney` on the default channel stays under 10 percent inflation.
 
 ### Phase 57: Inflation after inside-money runoff
 
-Goal: calm fiat ends near the inflation target, and bitcoin does not destroy the deposit stock by treating mortgage interest as principal.
+Goal: calm fiat ends near the inflation target, and bitcoin does not destroy the deposit stock by treating mortgage
+interest as principal.
 
 1. A mortgage payment pays interest at the current loan rate into bank equity. Only the remainder reduces the principal.
 2. That interest counts as borrower interest, so it can be paid on deposits. `centralBank.spendNewMoney` stays off.
@@ -1273,14 +1289,19 @@ Goal: calm fiat ends near the inflation target, and bitcoin does not destroy the
 Acceptance:
 
 - The principal falls by less than the payment when the loan rate is positive, and bank equity rises by the interest.
-- Calm monetary fiat, with trend weight 0, ends the decade above the 2 percent target and under 5 percent. The index is the capacity-weighted average of posted prices, so a shortfall in output does not inflate it. Demand-led fiat stays within 2 points above the target.
-- Calm monetary bitcoin keeps broad money above half of its opening level. The old runoff repaid the whole coupon as principal and left money near 0.27×.
+- Calm monetary fiat, with trend weight 0, ends the decade above the 2 percent target and under 5 percent. The index is
+  the capacity-weighted average of posted prices, so a shortfall in output does not inflate it. Demand-led fiat stays
+  within 2 points above the target.
+- Calm monetary bitcoin keeps broad money above half of its opening level. The old runoff repaid the whole coupon as
+  principal and left money near 0.27×.
 - The channels still do not print the same price level.
-- With the default nominal rigidity, bitcoin inflation is still below minus productivity growth. Flexible wages reach that path, so the remainder is the labor market, not a missing money stock.
+- With the default nominal rigidity, bitcoin inflation is still below minus productivity growth. Flexible wages reach
+  that path, so the remainder is the labor market, not a missing money stock.
 
 ### Phase 58: Productivity shock through costs
 
-Goal: a productivity impulse changes hiring through the real-wage reference, not through a second multiplier on the quota.
+Goal: a productivity impulse changes hiring through the real-wage reference, not through a second
+multiplier on the quota.
 
 1. Neither hiring target is scaled by `clamp(1 + productivityImpulse, 0.5, 1.5)`.
 2. The reference real wage is the opening real wage times one plus the impulse. Default elasticity then cuts the quota
@@ -1295,7 +1316,8 @@ Acceptance:
 
 ### Phase 59: Sticky wages stay sticky
 
-Goal: remove the emergency flexibility override, and stop firm-level hiring from shedding the labor force when sales fall.
+Goal: remove the emergency flexibility override, and stop firm-level hiring from shedding the labor
+force when sales fall.
 
 1. `wage.emergencyFlex` is gone. Downward wage gaps stay scaled by the square of `1 − rigidity`.
 2. Firm-level hiring's aggregate target is the sales headcount clamped so it cannot rise above the cost quota or fall
@@ -1403,7 +1425,8 @@ can fall first.
    0.05. A value of 0 fails validation. High inflation can still slow or shrink the stock.
 2. `centralBank.stimulus` (default 1, minimum 0.05) times lagged contraction pressure adds to that annual rate.
    Pressure is `max(0, −demandImpulse, −creditImpulse)`. A productivity shock does not create pressure.
-3. `centralBank.stimulusLag` (default 6, minimum 1) is how many months before that extra growth starts and how many months
+3. `centralBank.stimulusLag` (default 6, minimum 1) is how many months before that extra growth starts
+   and how many months
    it continues after the contraction ends. Same-month stimulus is not allowed.
 4. The sum still uses the existing injection channel and nets reserve interest and the deposit subsidy. Bitcoin and
    hybrid ignore both new sliders. Unemployment does not trigger this injection.
@@ -1445,12 +1468,15 @@ Acceptance:
 Goal: a transition can restate inherited mortgages as a real claim so the satoshi payment scales with the price level
 and creditors keep today's real burden instead of a growing one under bitcoin deflation.
 
-1. `transition.realMortgage` defaults to `off`. Off leaves mortgages fixed in satoshis after the flip, matching Phase 65.
-2. On: at the end of the transition window, after any debt haircut and after bitcoin loan units fold back, every positive
+1. `transition.realMortgage` defaults to `off`. Off leaves mortgages fixed in satoshis after the
+   flip, matching Phase 65.
+2. On: at the end of the transition window, after any debt haircut and after bitcoin loan units fold
+   back, every positive
    household mortgage is stamped. From the next month, principal and payment multiply by this month's price level over
    the last stamped price. Scheduled amortization still reduces the balance. Mortgages originated after the flip stay
    nominal. Firm loans and consumer loans stay nominal.
-3. Each month the principal change `d` seats `bank.capitalRatio × d` on bank equity and the rest on deposits at that bank,
+3. Each month the principal change `d` seats `bank.capitalRatio × d` on bank equity and the rest on
+   deposits at that bank,
    pro rata. The mark is not a default. The ledger stays closed and the bank does not fail from the mark alone.
 
 Acceptance:
@@ -1487,7 +1513,8 @@ recover sooner, and finish with higher real GDP when that support is on.
 Acceptance:
 
 - Support 0 matches Phase 66 replacements and money path on a forced contraction.
-- A firm held negative for 6 months is replaced when support is 0, and kept with the same workers, loan, and capital when
+- A firm held negative for 6 months is replaced when support is 0, and kept with the same workers,
+  loan, and capital when
   the budget covers the shortfall. The ledger audit passes.
 - A budget smaller than the first firm's shortfall still replaces that firm.
 - After the lagged stimulus ends, a still-insolvent spared firm is replaced.
@@ -1504,7 +1531,8 @@ productivity impulse, while the wage bargain still responds to tightness.
    `0.4` times tightness. It does not include the productivity impulse.
 2. The hiring real-wage reference is `1 / (1 + firm.markup)` times economy-wide productivity. It omits tightness and the
    impulse. Capacity still multiplies by one plus the impulse.
-3. The hiring-impulse glide is removed. While the productivity impulse is negative, the hiring scale cannot rise above 1.
+3. The hiring-impulse glide is removed. While the productivity impulse is negative, the hiring scale
+   cannot rise above 1.
 
 Acceptance:
 
@@ -1520,7 +1548,8 @@ Acceptance:
 Goal: fiat crisis stimulus responds to the unemployment gap both ways, including endogenous slumps, and can be turned
 off.
 
-1. Each month records unemployment minus the natural rate. Gaps inside two points are treated as zero. `centralBank.stimulus`
+1. Each month records unemployment minus the natural rate. Gaps inside two points are treated as zero.
+   `centralBank.stimulus`
    times that gap from `stimulusLag` months ago adds to the annual fiat growth rate. A tight labor market withdraws
    through the same channel cap.
 2. `centralBank.stimulus` minimum is 0. Default stays 1.75. `centralBank.moneyGrowth` still cannot be 0.
@@ -1624,7 +1653,8 @@ printing still runs, and the BTC/USD rate is the supply-shock path taken as give
    month 300. Hybrid reads it; fiat and bitcoin do not.
 2. Hybrid clears in cents with per-actor bitcoin tills, an exchange residual, and bitcoin reserves on the bank books.
 3. Wages, goods, and new debts can clear in each actor’s pay currency; service stays in the currency of issue.
-4. The goods-price trend is the inflation target, the same path as fiat. The supply-shock path is the BTC/USD rate, not the CPI.
+4. The goods-price trend is the inflation target, the same path as fiat. The supply-shock path is the
+   BTC/USD rate, not the CPI.
 
 Acceptance:
 
@@ -1687,7 +1717,8 @@ tests on a fixed set of seeds. Each test states a tolerance. Failures report the
   investment hurdle is on.
 - AI agents whose goals differ from their owners.
 - Several countries or currency areas.
-- Mechanisms sketched in Phases 43–50 until those phases land: rate transmission beyond deposits, a gradual dual-currency
+- Mechanisms sketched in Phases 43–50 until those phases land: rate transmission beyond deposits, a
+  gradual dual-currency
   transition, a bitcoin market price separate from goods prices in satoshis (hybrid now uses an exogenous supply-shock
   path; fiat/bitcoin chart rates stay on the Phase 45 channel), durable purchase timing, endogenous productivity,
   life-cycle bequests, inequality and velocity calibration, and design-symmetry cleanup.
