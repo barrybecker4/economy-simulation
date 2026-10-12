@@ -14,7 +14,15 @@ import type { Firm } from './types.js';
 describe('hybrid agent compute sales', () => {
   it('lets a coin-funded firm buy compute when pay currency is bitcoin', () => {
     const economy = opened();
-    economy.agents.push({ id: 0, owner: 0, deposit: 0, bitcoin: 0, income: 0, smoothed: 0 });
+    economy.agents.push({
+      id: 0,
+      owner: 0,
+      deposit: 0,
+      bitcoin: 0,
+      income: 0,
+      smoothed: 0,
+      subagents: 1,
+    });
     const agent = economy.agents[0];
     const firm = economy.firms[0];
     if (!agent || !firm) {

@@ -35,11 +35,9 @@ describe('phase 12 household tenure and credit', () => {
     expect(series(baseline, 'householdGoodsSpend')).toEqual(series(tagged, 'householdGoodsSpend'));
   });
 
-  it('cuts mortgages and consumer credit under stronger deflation while keeping the floor', () => {
+  it('cuts mortgages under stronger bitcoin deflation while consumer credit stays off', () => {
     const fromRenters = {
       'housing.openingOwnerShare': 0,
-      // Keep down payments out of reach so consumer credit is not crowded by
-      // same-tick mortgage draws when comparing deflation sensitivity.
       'housing.mortgageLtv': 0.5,
     };
     const mild = run({
@@ -62,13 +60,12 @@ describe('phase 12 household tenure and credit', () => {
     expect(series(sharp, 'mortgageShare').at(-1) ?? 0).toBeLessThanOrEqual(
       series(mild, 'mortgageShare').at(-1) ?? 0,
     );
-    expect(mean(series(sharp, 'newConsumerBorrowing'))).toBeLessThan(
-      mean(series(mild, 'newConsumerBorrowing')),
-    );
+    expect(series(mild, 'newConsumerBorrowing').every((value) => value === 0)).toBe(true);
+    expect(series(sharp, 'newConsumerBorrowing').every((value) => value === 0)).toBe(true);
     expect(mean(series(sharp, 'householdGoodsSpend'))).toBeGreaterThan(0);
   });
 
-  it('keeps the ledger balanced with household loans in both units', () => {
+  it('issues no new consumer credit under bitcoin while fiat still can', () => {
     const fiat = run({ ...small, 'housing.tenureChoice': 'on', ticks: 36 });
     const bitcoin = run({
       ...small,
@@ -77,6 +74,8 @@ describe('phase 12 household tenure and credit', () => {
       ticks: 36,
     });
     expect(fiat.audit.ok && bitcoin.audit.ok).toBe(true);
+    expect(series(bitcoin, 'newConsumerBorrowing').every((value) => value === 0)).toBe(true);
+    expect(series(fiat, 'newConsumerBorrowing').some((value) => value > 0)).toBe(true);
     expect(series(fiat, 'auditOk').every((value) => value === 1)).toBe(true);
     expect(series(bitcoin, 'auditOk').every((value) => value === 1)).toBe(true);
   });

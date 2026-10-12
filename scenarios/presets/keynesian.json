@@ -2,8 +2,8 @@
   "name": "keynesian-leaning",
   "ticks": 600,
   "sliders": {
+    "centralBank.outputWeight": 1.2,
     "government.spendingShareOfGDP": 0.35,
-    "government.stabilizer": 1.5,
-    "centralBank.outputWeight": 1.2
+    "government.stabilizer": 1.5
   }
 }

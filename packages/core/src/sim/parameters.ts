@@ -52,6 +52,7 @@ export interface Parameters {
   computeDecline: number;
   physicalShare: number;
   bullishness: number;
+  laborReplacement: number;
   roboticsStartYear: number;
   roboticsRampYears: number;
   ownership: number;
@@ -68,6 +69,7 @@ export interface Parameters {
   agentDemandElasticity: number;
   agentCapabilityGrowth: number;
   agentCapabilityCeiling: number;
+  agentSubagentCeiling: number;
   ubiShare: number;
   treasuryBufferMonths: number;
   shockFrequency: number;
@@ -180,6 +182,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     computeDecline: slider(config, 'ai.computeCostDeclineRate'),
     physicalShare: slider(config, 'ai.physicalTaskShare'),
     bullishness: slider(config, 'ai.bullishness'),
+    laborReplacement: slider(config, 'ai.laborReplacement'),
     roboticsStartYear: slider(config, 'ai.roboticsStartYear'),
     roboticsRampYears: slider(config, 'ai.roboticsRampYears'),
     ownership: slider(config, 'ai.ownershipConcentration'),
@@ -196,6 +199,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     agentDemandElasticity: slider(config, 'agent.demandElasticity'),
     agentCapabilityGrowth: slider(config, 'agent.capabilityGrowth'),
     agentCapabilityCeiling: slider(config, 'agent.capabilityCeiling'),
+    agentSubagentCeiling: slider(config, 'agent.subagentCeiling'),
     ubiShare: slider(config, 'government.ubiShare'),
     treasuryBufferMonths: slider(config, 'government.treasuryBufferMonths'),
     shockFrequency: slider(config, 'shock.frequency'),

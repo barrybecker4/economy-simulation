@@ -241,6 +241,7 @@ guess. The full list is generated into `docs/assumptions.md`.
 | AI          | ai.computeCostDeclineRate (annual)     | 0.3             | 0 to 0.6                     |
 | AI          | ai.physicalTaskShare                   | 0.7             | 0 to 0.7                     |
 | AI          | ai.bullishness                         | 0.35            | 0 to 2                       |
+| AI          | ai.laborReplacement                    | 0               | 0 to 1                       |
 | AI          | ai.roboticsStartYear                   | 15              | 0 to 50                      |
 | AI          | ai.roboticsRampYears                   | 12              | 1 to 30                      |
 | AI          | ai.ownershipConcentration              | 0.8             | 0.1 to 0.99                  |
@@ -248,6 +249,8 @@ guess. The full list is generated into `docs/assumptions.md`.
 | AI          | ai.agentsPerOwnerCeiling               | 20              | 0 to 50                      |
 | AI          | ai.paymentFrictionFiat                 | 0.02            | 0 to 0.1                     |
 | AI          | ai.paymentFrictionBitcoin              | 0.005           | 0 to 0.1                     |
+| AI          | agent.capabilityCeiling                | 1               | 0 to 100                     |
+| AI          | agent.subagentCeiling                  | 1               | 1 to 1000                    |
 
 Housing security enters well-being at a fixed weight of 0.5. It is not a slider.
 
@@ -670,8 +673,10 @@ Goal: the size of the AI productivity gain is a slider, and mass robotics later 
 2. `ai.roboticsStartYear` defaults to 20 and `ai.roboticsRampYears` defaults to 16. From the start year the effective
    physical-task block falls in a straight line to zero. A start year at or past the last year of the run leaves the
    block intact.
-3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain does not drive unemployment to one. The
-   AI share of output and the household grant track `1 − 1 / AI factor`.
+3. Hiring follows displacement, `adopted × min(taskGain, 1)`, so unbounded gain raises capacity without driving
+   unemployment to one when `ai.laborReplacement` is 0. Labor replacement blends that weight with the residual
+   human-task share so Extreme can take the hiring target toward zero. The AI share of output and the household grant
+   track `1 − 1 / AI factor`. See [ADR 0029](adr/0029-labor-replacement-and-subagents.md).
 
 Acceptance:
 

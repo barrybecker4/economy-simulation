@@ -76,6 +76,11 @@ export interface Agent {
   bitcoin: number;
   income: number;
   smoothed: number;
+  /**
+   * Notional bots under this ledger account. Scales the compute bill and the
+   * capacity units sold; market depth still counts one row.
+   */
+  subagents: number;
 }
 
 export interface Bank {

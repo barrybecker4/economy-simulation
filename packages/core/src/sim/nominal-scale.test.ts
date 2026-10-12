@@ -70,7 +70,9 @@ describe('nominal redenomination', () => {
       'scale.firms': 10,
       'scale.banks': 1,
     };
-    const result = simulate(loadScenario({ name: 'dividend', seed: 1, ticks: 800, sliders }));
+    // Extreme AI seats raise real supply, so the path needs more months to cross
+    // the redenomination ceiling than the pre-seats 800-tick run.
+    const result = simulate(loadScenario({ name: 'dividend', seed: 1, ticks: 1200, sliders }));
     expect(result.audit.ok).toBe(true);
     const prices = series(result, 'priceLevel');
     expect(prices.every((value) => Number.isFinite(value) && value > 0)).toBe(true);

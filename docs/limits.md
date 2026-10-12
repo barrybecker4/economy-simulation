@@ -30,11 +30,12 @@ composite index.
 
 Population growth defaults to 0.5 percent a year, so the household count rises from the Households slider. At 0 the
 count stays at that slider. A negative rate removes people. Housing demand grows with productivity and is cut by the
-deflation penalty. Unemployment is pulled toward a natural rate that starts at 6 percent and rises with the AI share of
-output, because the hiring target shrinks with the human share. A shock that would raise unemployment in a search model
-may move it less here once that natural rate has risen. The hypothesis runner records that outcome instead of forcing
-the claim. The household UBI grant is a share of the AI slice of nominal GDP; it is an assumption, and a high share can
-expand public debt through bond finance.
+deflation penalty. Unemployment is pulled toward a natural rate that starts at 6 percent and rises as the human staffing
+weight falls. With labor replacement at 0 that weight follows Phase 17 displacement; with replacement above 0 it also
+tracks the residual human-task share. A shock that would raise unemployment in a search model may move it less here once
+that natural rate has risen. Measured unemployment still sheds at most 5 percent of employed workers a month. The
+hypothesis runner records that outcome instead of forcing the claim. The household UBI grant is a share of the AI slice
+of nominal GDP; it is an assumption, and a high share can expand public debt through bond finance.
 
 The AI block is a single automatable-share path with a bullishness scale and a later robotics ramp. It does not split
 knowledge workers from other occupations, does not have a separate cognitive wage, and does not carry an ideas stock
@@ -49,9 +50,13 @@ productivity growth, so a very high setting pulls real output away from the wage
 
 Household agents no longer stop selling once their ask crosses a fixed share of the wage. Agent compute has a falling
 real cost, a smooth takeup curve against the real wage, and a saturating capacity gain capped at
-`1 + agent.capabilityCeiling` (default: at most a doubling). The optional energy cost step is off for None and Modest
-(`agent.energyStepSize` 0). Substantial removes half of remaining cost at month 96, High three quarters at month 72, and
-Extreme nine tenths at month 48. That step is a scenario switch, not a forecast of fusion.
+`1 + agent.capabilityCeiling` (default: at most a doubling; slider max 100). Each ledger agent can stand for a swarm
+through `agent.subagentCeiling`; the bill and capacity units scale by that count while market depth still counts one
+row. The optional energy cost step is off for None and Modest (`agent.energyStepSize` 0). Substantial removes half of
+remaining cost at month 96, High three quarters at month 48, and Extreme nine tenths at month 24. That step is a
+scenario switch, not a forecast of fusion. `ai.laborReplacement` defaults to 0 so hiring stays on the Phase 17
+displacement path; Extreme sets it to 1 so the hiring target can approach full unemployment once the automatable share
+is in force.
 
 Expected deflation can cut only discretionary goods spending above the food and housing floor. That floor is the sum of
 the food and housing CPI weights, about 58 percent of the basket. Consumer credit, when tenure choice is on, adds to

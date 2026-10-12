@@ -275,6 +275,11 @@ function maybeBorrowConsumer(
   income: number,
   penalty: number,
 ): void {
+  // Bitcoin originates no new consumer loans. Mortgages stay savings-capped;
+  // existing consumer balances still repay through serviceDebts.
+  if (economy.params.regime === 'bitcoin') {
+    return;
+  }
   const creditCap = moneyAmount(economy, income * economy.params.consumerCreditLimit);
   const headroom = Math.max(0, creditCap - household.consumerLoan);
   const borrowFactor = Math.max(0, 1 - penalty) * rateTransmissionFactor(economy);

@@ -222,6 +222,64 @@ describe('phase 17 AI bullishness and robotics', () => {
       true,
     );
   }, 180_000);
+
+  it('raises unemployment faster under Extreme than High as labor replacement bites', () => {
+    const scale = {
+      ...FEATURE_OFF,
+      'scale.households': 80,
+      'scale.firms': 8,
+      'scale.banks': 1,
+      'shock.frequency': 0,
+      'ai.ownerShareCeiling': 0,
+      'agent.subagentCeiling': 1,
+    };
+    const high = run({
+      ...scale,
+      ...applyCategoryOption('aiBullishness', 'high', {}),
+      ticks: 72,
+    });
+    const extreme = run({
+      ...scale,
+      ...applyCategoryOption('aiBullishness', 'extreme', {}),
+      ticks: 72,
+    });
+    expect(high.audit.ok && extreme.audit.ok).toBe(true);
+    const highU = series(high, 'unemployment');
+    const extremeU = series(extreme, 'unemployment');
+    expect(extremeU[47] ?? 0).toBeGreaterThan(highU[47] ?? 0);
+    expect(extremeU[71] ?? 0).toBeGreaterThan(extremeU[47] ?? 0);
+    expect(extremeU[71] ?? 0).toBeGreaterThan(0.5);
+  });
+
+  it('keeps Extreme real GDP positive after human employment collapses', () => {
+    const scale = {
+      ...FEATURE_OFF,
+      'scale.households': 120,
+      'scale.firms': 12,
+      'scale.banks': 1,
+      'shock.frequency': 0,
+      'ai.ownerShareCeiling': 0,
+      'agent.subagentCeiling': 1,
+    };
+    const extreme = run({
+      ...scale,
+      ...applyCategoryOption('aiBullishness', 'extreme', {}),
+      ticks: 120,
+    });
+    const high = run({
+      ...scale,
+      ...applyCategoryOption('aiBullishness', 'high', {}),
+      ticks: 120,
+    });
+    expect(extreme.audit.ok && high.audit.ok).toBe(true);
+    const extremeU = series(extreme, 'unemployment');
+    const extremeY = series(extreme, 'realGdp');
+    const highY = series(high, 'realGdp');
+    expect(extremeU[119] ?? 0).toBeGreaterThan(0.95);
+    expect(extremeY.every((value) => value > 0)).toBe(true);
+    expect(extremeY[119] ?? 0).toBeGreaterThan(extremeY[0] ?? 0);
+    expect(highY[119] ?? 0).toBeGreaterThan(0);
+  });
 });
 
 function run(

@@ -61,6 +61,16 @@ export function scheduledAgentCount(
   return Math.max(0, Math.round(slots * agentsPerOwnerCeiling * progress));
 }
 
+/**
+ * Notional bots under one ledger agent. Starts at 1 and rises to the ceiling
+ * along the adoption curve. The field scales the compute bill and capacity
+ * input; it does not create more ledger rows.
+ */
+export function subagentCount(ceiling: number, progress: number): number {
+  const capped = Math.max(1, ceiling);
+  return 1 + (capped - 1) * clamp(progress, 0, 1);
+}
+
 /** How much of the physical-task share robots have opened by this year. */
 export function roboticsProgress(
   years: number,
@@ -89,6 +99,24 @@ export function taskGain(bullishness: number, years: number): number {
   const level = AI_INTERNET_TASK_GAIN + (1 - AI_INTERNET_TASK_GAIN) * Math.min(bullishness, 1);
   const compoundYears = Math.max(0, bullishness - 1) * AI_UNBOUNDED_GROWTH * years;
   return level * exp(compoundYears);
+}
+
+/**
+ * Human staffing weight after AI displacement and optional labor replacement.
+ * At replacement 0 this is 1 / (1 + adopted × min(taskGain, 1)).
+ * At replacement 1 it follows the residual human-task share 1 − inForce.
+ */
+export function humanTaskWeight(input: {
+  adopted: number;
+  taskGain: number;
+  inForce: number;
+  laborReplacement: number;
+}): number {
+  const current = 1 / (1 + input.adopted * Math.min(input.taskGain, 1));
+  const residual = Math.max(0, 1 - input.inForce);
+  const replacement = clamp(input.laborReplacement, 0, 1);
+  const blended = (1 - replacement) * current + replacement * residual;
+  return blended > 0 ? blended : 1e-9;
 }
 
 export function onPopulation(economy: Economy): void {
@@ -122,12 +150,20 @@ export function onPopulation(economy: Economy): void {
     economy.params.roboticsRampYears,
   );
   const effectivePhysical = economy.params.physicalShare * (1 - robotics);
+  const reachable = 1 - effectivePhysical;
   const computeCost = economy.wageLevel * (1 - economy.params.computeDecline) ** years;
   const costFactor = computeAdoptionFactor(economy.wageLevel, computeCost);
-  const adopted = span * (1 - effectivePhysical) * costFactor;
+  const adopted = span * reachable * costFactor;
+  const inForce = economy.automatedShare * reachable * costFactor;
   const gain = taskGain(economy.params.bullishness, years);
   economy.aiFactor = 1 + adopted * gain;
-  economy.displacementFactor = 1 + adopted * Math.min(gain, 1);
+  const weight = humanTaskWeight({
+    adopted,
+    taskGain: gain,
+    inForce,
+    laborReplacement: economy.params.laborReplacement,
+  });
+  economy.displacementFactor = 1 / weight;
   spawnAgents(economy, progress);
 }
 
@@ -263,11 +299,13 @@ function spawnAgents(economy: Economy, progress: number): void {
     progress,
   );
   const target = scheduledAgentCount(slots, economy.params.agentsPerOwnerCeiling, progress);
+  const subagents = subagentCount(economy.params.agentSubagentCeiling, progress);
   const counts = new Map<number, number>();
   for (let id = 0; id < slots; id += 1) {
     counts.set(id, 0);
   }
   for (const agent of economy.agents) {
+    agent.subagents = subagents;
     const count = counts.get(agent.owner);
     if (count !== undefined) {
       counts.set(agent.owner, count + 1);
@@ -276,7 +314,15 @@ function spawnAgents(economy: Economy, progress: number): void {
   while (economy.agents.length < target && slots > 0) {
     const owner = shortestOwner(counts, slots);
     const id = economy.agents.length;
-    economy.agents.push({ id, owner, deposit: 0, bitcoin: 0, income: 0, smoothed: 0 });
+    economy.agents.push({
+      id,
+      owner,
+      deposit: 0,
+      bitcoin: 0,
+      income: 0,
+      smoothed: 0,
+      subagents,
+    });
     counts.set(owner, (counts.get(owner) ?? 0) + 1);
   }
 }

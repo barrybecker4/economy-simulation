@@ -2,13 +2,19 @@
   "name": "fast-adoption",
   "ticks": 600,
   "sliders": {
-    "agent.energyStepMonth": 72,
+    "agent.capabilityCeiling": 15,
+    "agent.costHalvingMonths": 18,
+    "agent.energyStepMonth": 48,
     "agent.energyStepSize": 0.75,
+    "agent.subagentCeiling": 20,
     "ai.adoptionMidpointYear": 3,
     "ai.adoptionSteepness": 1.2,
+    "ai.automatableShareEnd": 0.95,
     "ai.bullishness": 1.5,
-    "ai.physicalTaskShare": 0.3,
-    "ai.roboticsRampYears": 8,
-    "ai.roboticsStartYear": 4
+    "ai.computeCostDeclineRate": 0.5,
+    "ai.laborReplacement": 0.7,
+    "ai.physicalTaskShare": 0.15,
+    "ai.roboticsRampYears": 6,
+    "ai.roboticsStartYear": 2
   }
 }

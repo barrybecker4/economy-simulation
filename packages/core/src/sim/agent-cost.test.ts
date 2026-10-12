@@ -173,9 +173,33 @@ describe('agent real cost', () => {
     expect(optionById('aiBullishness', 'substantial').values['agent.energyStepSize']).toBe(0.5);
     expect(optionById('aiBullishness', 'substantial').values['agent.energyStepMonth']).toBe(96);
     expect(optionById('aiBullishness', 'high').values['agent.energyStepSize']).toBe(0.75);
-    expect(optionById('aiBullishness', 'high').values['agent.energyStepMonth']).toBe(72);
+    expect(optionById('aiBullishness', 'high').values['agent.energyStepMonth']).toBe(48);
     expect(optionById('aiBullishness', 'extreme').values['agent.energyStepSize']).toBe(0.9);
-    expect(optionById('aiBullishness', 'extreme').values['agent.energyStepMonth']).toBe(48);
+    expect(optionById('aiBullishness', 'extreme').values['agent.energyStepMonth']).toBe(24);
+    expect(optionById('aiBullishness', 'extreme').values['ai.laborReplacement']).toBe(1);
+    expect(optionById('aiBullishness', 'extreme').values['agent.subagentCeiling']).toBe(1000);
+  });
+
+  it('scales agent volume with the subagent ceiling while depth still counts ledger rows', () => {
+    const agents = {
+      ...scale,
+      'ai.automatableShareStart': 0.1,
+      'ai.automatableShareEnd': 0.9,
+      'ai.adoptionMidpointYear': 1,
+      'ai.adoptionSteepness': 1.5,
+      'ai.ownerShareCeiling': 0.5,
+      'ai.agentsPerOwnerCeiling': 2,
+      'ai.computeProductivity': 0.2,
+      'agent.marketDepth': 0,
+      'agent.costHalvingMonths': 24,
+    };
+    const one = run({ ...agents, 'agent.subagentCeiling': 1 }, 36);
+    const ten = run({ ...agents, 'agent.subagentCeiling': 10 }, 36);
+    expect(one.audit.ok && ten.audit.ok).toBe(true);
+    const oneVol = series(one, 'agentVolume').reduce((sum, value) => sum + value, 0);
+    const tenVol = series(ten, 'agentVolume').reduce((sum, value) => sum + value, 0);
+    expect(oneVol).toBeGreaterThan(0);
+    expect(tenVol).toBeGreaterThan(oneVol * 2);
   });
 });
 

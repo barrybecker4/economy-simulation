@@ -177,7 +177,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     0.2,
     0,
     1,
-    'Maximum consumer loan stock as a share of monthly income when tenure choice is on. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off.',
+    'Maximum consumer loan stock as a share of monthly income when tenure choice is on in the fiat and hybrid regimes. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off, and unused under bitcoin, which originates no new consumer loans.',
   ),
   numberSlider(
     'housing.mortgageDefaultShare',

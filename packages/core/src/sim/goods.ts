@@ -189,5 +189,8 @@ function reprice(economy: Economy, firm: Firm, excessDemand: number): void {
     demandImpulse: economy.demandImpulse,
     productivityImpulse: economy.productivityImpulse,
   });
-  firm.price = Math.max(1, firm.price * (1 + move));
+  // Floor is one original cent in internal units. A hard 1 breaks after
+  // redenomination, when internal prices are fractional and scale > 1.
+  const minPrice = 1 / Math.max(economy.nominalScale, 1);
+  firm.price = Math.max(minPrice, firm.price * (1 + move));
 }

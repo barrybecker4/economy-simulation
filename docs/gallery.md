@@ -9,11 +9,12 @@ to adjust the underlying sliders.
 - `scenarios/presets/neutral.json` — Fiat; every category at its default option.
 - `scenarios/presets/no-ai.json` — AI bullishness: none (start and end automatable shares both 0.3).
 - `scenarios/presets/slow-adoption.json` — AI bullishness: modest (slow adoption, narrow reach, bullishness 0).
-- `scenarios/presets/fast-adoption.json` — AI bullishness: high (fast adoption, bullishness 1.5, typical reach).
+- `scenarios/presets/fast-adoption.json` — AI bullishness: high (fast adoption, labor replacement 0.7, bullishness 1.5).
 - `scenarios/presets/high-physical.json` — Same as modest / slow-adoption (kept for CLI name compatibility).
 - `scenarios/presets/austrian.json` — Bitcoin; credit: tight; public finance: small.
 - `scenarios/presets/keynesian.json` — Fiat; public finance: deficit spending; central bank: employment-leaning.
-- `scenarios/presets/monetized-dividend.json` — Fiat; monetizing; AI dividend; moderate credit; extreme AI.
+- `scenarios/presets/monetized-dividend.json` — Fiat; monetizing; AI dividend; moderate credit; extreme AI (full labor
+  replacement, swarm of 1,000 subagents per ledger agent).
 - `scenarios/presets/hawkish-dividend.json` — Fiat; hawkish; AI dividend; moderate credit; extreme AI.
 - `scenarios/presets/modest-dividend.json` — Fiat; monetizing; AI dividend; moderate credit; modest AI.
 - `scenarios/presets/private-surplus.json` — Fiat; hawkish; private surplus; moderate credit; extreme AI.

@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 14.
+Registry version: 16.
 
 ## agent.capabilityCeiling
 
@@ -12,12 +12,13 @@ Registry version: 14.
 - Group: aiClaims
 - Unit: capacity add
 - Default: 1
-- Range: 0 to 4
+- Range: 0 to 100
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Largest capacity adder from bought compute at one firm. Capacity is multiplied by one plus this ceiling
   times one minus an exponential in units, so small purchases match the linear slope and large ones saturate. The
-  default of 1 can at most double a firm. At 0 bought compute does not raise capacity.
+  default of 1 can at most double a firm. Stronger AI presets raise this so a saturated swarm can multiply a firm many
+  times. At 0 bought compute does not raise capacity.
 
 ## agent.capabilityGrowth
 
@@ -108,6 +109,20 @@ Registry version: 14.
   price level and marked up by payment friction. Above 0 it is multiplied by one plus this depth times agents per firm.
   Takeup falls smoothly as that ask rises relative to the wage. The default of 0.25 is a modest crowding markup. At 0
   the ask is unchanged.
+
+## agent.subagentCeiling
+
+- Label: Subagents per agent
+- Group: aiClaims
+- Unit: subagents
+- Default: 1
+- Range: 1 to 1000
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How many notional bots one ledger agent stands for once the adoption curve has finished. The count rises
+  along that curve from one to this ceiling. Each sale bills takeup times the current count and adds that many capacity
+  units, so a swarm saturates the capability ceiling without creating more ledger rows. Market depth still counts one
+  row per agent. The default of 1 leaves one bot per account.
 
 ## agent.valueWageShare
 
@@ -202,8 +217,8 @@ Registry version: 14.
   still saturates with the S-curve. At 1 each adopted task adds its full share to capacity. Above 1 the same level
   formula compounds: each point above 1 adds 15 percent a year of growth to the task gain with no ceiling, so at 2 the
   gain grows at 15 percent a year. Hiring still follows the adopted task share, capped by the physical-task share until
-  robots open it. Equal start and end automatable shares still turn the whole AI channel off. The anchors are a modeling
-  guess after Korinek et al. 2026 and the internet-era productivity literature.
+  robots open it, unless labor replacement is raised. Equal start and end automatable shares still turn the whole AI
+  channel off. The anchors are a modeling guess after Korinek et al. 2026 and the internet-era productivity literature.
 
 ## ai.computeCostDeclineRate
 
@@ -231,6 +246,22 @@ Registry version: 14.
 - Description: How much one unit of agent compute raises the buying firm’s capacity next month. Capacity is multiplied
   by one plus this rate times units bought last month. The default of 0.2 raises capacity for firms that buy compute. At
   0 the purchase is only a payment and capacity is unchanged.
+
+## ai.laborReplacement
+
+- Label: Labor replacement
+- Group: ai
+- Unit: share
+- Default: 0
+- Range: 0 to 1
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: How far hiring follows the residual human-task share instead of the Phase 17 displacement formula. At 0,
+  human staffing weight is one over one plus adopted times the task gain capped at one, so unbounded bullishness raises
+  capacity without driving unemployment to one. At 1, weight follows one minus the automatable share already in force
+  after robotics and the compute-cost gate, so a finished curve that ends at one can leave almost no human jobs. Values
+  in between blend the two. The default of 0 keeps the prior path. The cost gate is zero in month zero, so this does not
+  jump unemployment on the first tick.
 
 ## ai.ownerShareCeiling
 
@@ -1171,9 +1202,10 @@ Registry version: 14.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Maximum consumer loan stock as a share of monthly income when tenure choice is on. New borrowing each
-  month is that headroom times one minus the deflation penalty, and it cannot exceed bank lending room. The loan funds
-  discretionary spending only. At 0, no consumer credit is issued. Unused when tenure choice is off.
+- Description: Maximum consumer loan stock as a share of monthly income when tenure choice is on in the fiat and hybrid
+  regimes. New borrowing each month is that headroom times one minus the deflation penalty, and it cannot exceed bank
+  lending room. The loan funds discretionary spending only. At 0, no consumer credit is issued. Unused when tenure
+  choice is off, and unused under bitcoin, which originates no new consumer loans.
 
 ## housing.marketClearing
 

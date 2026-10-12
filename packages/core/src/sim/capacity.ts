@@ -21,6 +21,9 @@ export function firmCapacity(economy: Economy, firm: Firm): number {
       laborStar: referenceWorkersPerFirm(economy),
       aiFactor: economy.aiFactor,
       humanWeight: humanWeight(economy),
+      // AI seats only when labor replacement is on, so replacement 0 stays on
+      // the prior Phase 17 capacity path (ADR 0029).
+      automatedSeats: economy.params.laborReplacement > 0,
     }) * computeCapacityFactor(firm.computeReady, slope, economy.params.agentCapabilityCeiling)
   );
 }
@@ -36,10 +39,21 @@ export function productionCapacity(input: {
   laborStar: number;
   aiFactor: number;
   humanWeight: number;
+  /** When true, automation fills seats humans no longer take. */
+  automatedSeats?: boolean;
 }): number {
-  const weight = Math.min(1, Math.max(input.humanWeight, 1e-9));
-  const laborHat = Math.max(1e-9, input.laborStar * weight);
-  const staffing = staffingFactor(input.labor, laborHat, input.alpha, weight);
+  const weight = Math.min(1, Math.max(input.humanWeight, input.automatedSeats ? 0 : 1e-9));
+  let staffing: number;
+  if (input.automatedSeats) {
+    // Automation fills the seats humans no longer take, so a firm can run with
+    // zero human workers once humanWeight has fallen.
+    const effectiveLabor = input.labor + input.laborStar * (1 - weight);
+    const laborHat = Math.max(1e-9, input.laborStar);
+    staffing = staffingFactor(effectiveLabor, laborHat, input.alpha, weight);
+  } else {
+    const laborHat = Math.max(1e-9, input.laborStar * weight);
+    staffing = staffingFactor(input.labor, laborHat, input.alpha, weight);
+  }
   if (input.capital <= 0) {
     return 0;
   }
@@ -77,9 +91,14 @@ export function computeCapacityFactor(
   return 1 + productivity * units;
 }
 
-function staffingFactor(labor: number, laborHat: number, alpha: number, weight: number): number {
-  if (labor <= 0) {
+function staffingFactor(
+  effectiveLabor: number,
+  laborHat: number,
+  alpha: number,
+  weight: number,
+): number {
+  if (effectiveLabor <= 0) {
     return 0;
   }
-  return (labor / laborHat) ** ((1 - alpha) * weight);
+  return (effectiveLabor / laborHat) ** ((1 - alpha) * weight);
 }

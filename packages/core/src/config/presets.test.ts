@@ -105,13 +105,19 @@ describe('preset categories', () => {
     });
     expect(composeScenario('fast-adoption').sliders).toEqual({
       'ai.bullishness': 1.5,
+      'ai.laborReplacement': 0.7,
+      'ai.automatableShareEnd': 0.95,
       'ai.adoptionMidpointYear': 3,
       'ai.adoptionSteepness': 1.2,
-      'ai.physicalTaskShare': 0.3,
-      'ai.roboticsStartYear': 4,
-      'ai.roboticsRampYears': 8,
-      'agent.energyStepMonth': 72,
+      'ai.computeCostDeclineRate': 0.5,
+      'ai.physicalTaskShare': 0.15,
+      'ai.roboticsStartYear': 2,
+      'ai.roboticsRampYears': 6,
+      'agent.energyStepMonth': 48,
       'agent.energyStepSize': 0.75,
+      'agent.costHalvingMonths': 18,
+      'agent.capabilityCeiling': 15,
+      'agent.subagentCeiling': 20,
     });
     expect(composeScenario('slow-adoption').sliders).toEqual({});
     expect(composeScenario('high-physical').sliders).toEqual(

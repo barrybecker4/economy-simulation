@@ -29,7 +29,7 @@ export function monthlyPriceMove(input: {
 }): number {
   const costTarget = input.unitCost * (1 + input.markup) * input.pressure;
   const nudge = clamp(
-    input.priceSpeed * PRICE_PULL_SCALE * (costTarget / Math.max(input.price, 1) - 1),
+    input.priceSpeed * PRICE_PULL_SCALE * (costTarget / Math.max(input.price, 1e-12) - 1),
     -MAX_PRICE_PULL,
     MAX_PRICE_PULL,
   );

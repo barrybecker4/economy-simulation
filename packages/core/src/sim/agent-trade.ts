@@ -125,7 +125,9 @@ function sellCompute(
     agent.income = 0;
     return;
   }
-  const continuous = ask * takeup;
+  const swarm = Math.max(1, agent.subagents);
+  const units = takeup * swarm;
+  const continuous = ask * units;
   let bill = moneyAmount(economy, continuous);
   // Fiat cents round a tiny bill to zero once real cost has fallen. Keep a
   // one-cent floor so cheaper compute still clears instead of shutting off.
@@ -137,7 +139,7 @@ function sellCompute(
     return;
   }
   if (economy.params.regime === 'hybrid') {
-    sellComputeHybrid(economy, agent, firm, bank, bill, takeup, friction);
+    sellComputeHybrid(economy, agent, firm, bank, bill, units, friction);
     return;
   }
   // Fiat and bitcoin: credit bill − fee in one step so satoshi floats match the
@@ -150,7 +152,7 @@ function sellCompute(
   }
   debitDeposit(firm, bill);
   creditDeposit(agent, bill - fee);
-  firm.computeReady += takeup;
+  firm.computeReady += units;
   agent.income = bill - fee;
   if (fee > 0) {
     collectBankFee(bank, economy, fee);
@@ -166,7 +168,7 @@ function sellComputeHybrid(
   firm: Firm,
   bank: Bank,
   bill: number,
-  takeup: number,
+  units: number,
   friction: number,
 ): void {
   const currency = currencyFor(firm);
@@ -180,7 +182,7 @@ function sellComputeHybrid(
     fee = Math.min(paid, 1);
   }
   const taken = takeHybridComputeFee(economy, agent, bank, fee, currency);
-  firm.computeReady += takeup;
+  firm.computeReady += units;
   agent.income = paid - taken;
   economy.agentVolume += paid;
 }

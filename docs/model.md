@@ -165,16 +165,20 @@ fixed.
 
 ## Production
 
-A firm produces with Cobb–Douglas technology. Let `L*` be the headcount the firm would have at 94 percent of households,
-and `L_hat = L* × humanWeight`. Capacity is
+A firm produces with Cobb–Douglas technology. Let `L*` be the headcount the firm would have at 94 percent of households
+and `L` the human headcount. When `ai.laborReplacement` is 0, staffing follows the Phase 17 path against
+`L_hat = L* × humanWeight`. When labor replacement is positive, effective labor
+`L_eff = L + L* × (1 − humanWeight)` counts AI seats filled by automation, and capacity is
 
 ```text
-Y = A_firm * A * (1 + productivity impulse) * K^α * (L*)^(1−α) * aiFactor * (L / L_hat)^((1−α) × humanWeight)
+Y = A_firm * A * (1 + productivity impulse) * K^α * (L*)^(1−α) * aiFactor * (L_eff / L*)^((1−α) × humanWeight)
 ```
 
-When `humanWeight` is 1 this is the ordinary `K^α L^(1−α)` rule. When the firm is staffed at the AI-scaled hiring
-target, `L / L_hat` is 1, so fewer human workers do not cut output. A further shortfall still cuts capacity, with an
-elasticity that shrinks as humans become a smaller share of output.
+When `humanWeight` is 1 this is the ordinary `K^α L^(1−α)` rule. When replacement is on and the firm is staffed at the
+AI-scaled human hiring target, `L = L* × humanWeight` and `L_eff / L*` is 1, so fewer human workers do not cut output. A
+firm with no humans still produces once automation has opened AI seats (`humanWeight` below 1). Unemployment and the
+wage bill stay human-only. A further shortfall of effective labor still cuts capacity, with an elasticity that shrinks
+as humans become a smaller share of staffing.
 
 `production.demandWeight` mixes that capacity with sales. Desired output is smoothed unit sales plus the gap to one
 month of inventory, and it cannot exceed capacity. Monthly output is `(1 − weight) × capacity + weight × desired`. At
@@ -366,7 +370,9 @@ extinguishes the loan. A new mortgage credits the principal to firms. The buyer 
 keep the principal. Total deposits rise by the principal. A mortgagor does not sell the house back into firm deposits:
 that would pull working capital out of payroll. Tenure moves from mortgage to rent only when the loan is repaid or
 foreclosed. Shelter stays inside the food and housing floor. New consumer loans fund only discretionary spending and
-shrink with the penalty, down to zero.
+shrink with the penalty, down to zero. Under bitcoin, no new consumer loans are originated; existing balances still
+repay. Fiat and hybrid keep the income-share consumer-credit rule. See
+[ADR 0030](adr/0030-bitcoin-no-consumer-credit.md).
 Household mortgages and consumer loans join total credit. The tenure purchase price is 48 months of income times
 `(1 + goods.housingConstructionProductivity)^(-t)`, times scarcity, times the monetary-premium multiple. That 48-month
 level is the fiat-target sticker before construction tech, scarcity, and the hedge. `housing.monetaryPremium` is the
@@ -496,10 +502,12 @@ follow inflation only as prices move. Bitcoin uses satoshis, including fractions
 productivity, because base money does not grow. The loan rate moves toward the gap between loans and savings. Savings
 are 25 percent of household deposits under maturity-matched lending and 10 percent under full
 reserve. New bitcoin credit
-cannot exceed the unused savings. The government still finances a shortfall by selling bonds to banks, not by
+cannot exceed the unused savings. Bitcoin also originates no new consumer loans; mortgages and firm loans stay inside
+that savings cap. The government still finances a shortfall by selling bonds to banks, not by
 central-bank money. Hybrid clears in cents with a separate bitcoin till at the exogenous supply-shock price
 ([ADR 0028](adr/0028-hybrid-currency-choice.md)). Fiat printing, reserve accommodation, and the Taylor rule run on the
-fiat side. Coin credit stays savings-constrained. Goods prices under hybrid follow the inflation target, the same path
+fiat side. Coin credit stays savings-constrained; hybrid still allows new consumer loans under the fiat-side rule.
+Goods prices under hybrid follow the inflation target, the same path
 as fiat, because that printing is what the goods market is denominated in. The BTC/USD rate stays on the supply-shock
 path and is not the CPI. If a bank's equity is negative the hybrid central
 bank injects enough reserves and vault cash to make that equity positive. When `bank.resolution` is `merge`, an
@@ -562,13 +570,20 @@ Adopted tasks are that cost-weighted gain in the automatable share times one min
 share. The task gain is
 `0.1 + 0.9 × min(bullishness, 1)`, then multiplied by `exp(max(0, bullishness − 1) × 0.15 × years)`. At bullishness 0,
 the default, the gain is one tenth of the unit reference. At 1 it is one and saturates with the S-curve. Above 1 the
-same level compounds without a ceiling. The AI factor is `1 + adopted × taskGain`. Displacement is
-`adopted × min(taskGain, 1)`, and `humanWeight = 1 / (1 + displacement)`. Capacity uses the AI factor as the multiplier
-and `humanWeight` for the staffing weight. Hiring, wages, and the fiat policy rate scale with `humanWeight`. The AI
-share of output and the household grant use `1 − 1 / AI factor`. A displaced worker, one whose skill is below the
-automated share while capacity has increased, makes only one job application a month. Profit shares use `skill` raised
-to `1.5 + ownershipConcentration × (AI factor − 1)`, so the AI capital income is more concentrated. When a raw power
+same level compounds without a ceiling. The AI factor is `1 + adopted × taskGain`. The Phase 17 staffing weight is
+`1 / (1 + adopted × min(taskGain, 1))`. `ai.laborReplacement` blends that weight with the residual human-task share
+`1 − inForce`, where `inForce` is the automatable-share level reached so far after robotics and the compute-cost gate
+(including the opening share). At replacement 0 the Phase 17 path is unchanged. At 1, hiring follows the residual, so a
+finished curve that ends at 1 can leave almost no human jobs. The blended weight is stored as
+`displacementFactor = 1 / weight`. Capacity uses the AI factor as the multiplier. When labor replacement is positive it
+also counts AI seats in effective labor as `L + L* × (1 − humanWeight)`, so a firm can run with zero human workers; at
+replacement 0 the prior Phase 17 staffing path is unchanged. Hiring, wages, unemployment, and the fiat
+policy rate still scale with `humanWeight` and human headcount only. The AI share of output and the household grant use
+`1 − 1 / AI factor`. A displaced worker, one whose skill is below the automated share while capacity has increased,
+makes only one job application a month. Profit shares use `skill` raised to
+`1.5 + ownershipConcentration × (AI factor − 1)`, so the AI capital income is more concentrated. When a raw power
 overflows, the weights are scored against the highest skill. The ordering stays the same and every share stays finite.
+See [ADR 0029](adr/0029-labor-replacement-and-subagents.md).
 
 ## AI agents
 
@@ -580,28 +595,33 @@ the fewest agents. An existing agent keeps its owner and its deposit. The defaul
 and 20 agents per owner. See [ADR 0006](adr/0006-adoption-curve-agents.md) and
 [ADR 0027](adr/0027-agent-real-cost.md).
 
-An agent has an owning household, a deposit in the regime's unit, an income, and a smoothed income. The real cost of one
-compute unit starts at `agent.initialCostShare` times the opening wage and falls by half every
-`agent.costHalvingMonths` months. From `agent.energyStepMonth` onward, that cost is multiplied by
-`1 − agent.energyStepSize`. Size 0 leaves the exponential path alone (None and Modest). Substantial, High, and Extreme
-set size 0.5, 0.75, and 0.9 at months 96, 72, and 48. This cost path is separate from `ai.computeCostDeclineRate`, which
-only gates task adoption in the AI productivity block.
+An agent has an owning household, a deposit in the regime's unit, an income, a smoothed income, and a `subagents`
+field. That field rises along the adoption curve from 1 to `agent.subagentCeiling` (default 1). It stands for a swarm
+under one ledger account; it does not create more rows. The real cost of one compute unit starts at
+`agent.initialCostShare` times the opening wage and falls by half every `agent.costHalvingMonths` months. From
+`agent.energyStepMonth` onward, that cost is multiplied by `1 − agent.energyStepSize`. Size 0 leaves the exponential
+path alone (None and Modest). Substantial, High, and Extreme set size 0.5, 0.75, and 0.9 at months 96, 48, and 24.
+This cost path is separate from `ai.computeCostDeclineRate`, which only gates task adoption in the AI productivity
+block.
 
 The nominal ask is that real cost scaled by the current price level over the opening price level, marked up by payment
-friction, then by `1 + agent.marketDepth × agents / firms` when depth is above 0. Friction is `ai.paymentFrictionFiat`
-in the fiat regime and `ai.paymentFrictionBitcoin` otherwise. The fee is paid into bank equity. On a one-cent fiat bill,
-a friction of 5 percent or more takes that cent as the fee so agents keep nothing to spend. Firms buy a smooth share of
-each agent's unit:
+friction, then by `1 + agent.marketDepth × agents / firms` when depth is above 0. Depth counts ledger agents, not
+subagents. Friction is `ai.paymentFrictionFiat` in the fiat regime and `ai.paymentFrictionBitcoin` otherwise. The fee
+is paid into bank equity. On a one-cent fiat bill, a friction of 5 percent or more takes that cent as the fee so agents
+keep nothing to spend. Firms buy a smooth share of each agent's unit:
 `1 / (1 + (ask / wage / agent.valueWageShare) ^ agent.demandElasticity)`.
-That relative price is real (ask over wage). There is no hard wage-share cutoff. A fiat bill that would round below one
-cent while takeup is still positive clears at one cent so cheaper compute does not shut trade off. A firm that cannot
-pay skips that agent. Under hybrid, affordability and settlement use the firm’s pay currency (fiat deposit or bitcoin
-till), matching wages and goods.
+That relative price is real (ask over wage). There is no hard wage-share cutoff. The bill and the capacity units sold
+are takeup times the agent's current subagent count. A fiat bill that would round below one cent while takeup is still
+positive clears at one cent so cheaper compute does not shut trade off. A firm that cannot pay skips that agent. Under
+hybrid, affordability and settlement use the firm’s pay currency (fiat deposit or bitcoin till), matching wages and
+goods.
 
 Next month the buying firm’s capacity is multiplied by
 `1 + ceiling × (1 − exp(−slope × units / ceiling))`, where the month-zero slope is `ai.computeProductivity`, the slope
 grows by `agent.capabilityGrowth` doublings per year, and `ceiling` is `agent.capabilityCeiling`. At productivity 0, or
-with no units, or with ceiling 0, the factor is 1. The default ceiling of 1 can at most double a firm.
+with no units, or with ceiling 0, the factor is 1. The default ceiling of 1 can at most double a firm. The slider max
+is 100; Extreme sets 50 so a saturated swarm can multiply a firm many times without multiplying the ceiling by
+subagents.
 
 The agent then shops with the household budget rule at mean time preference plus the common inflation gap addend,
 reserving enough deposit to pay income tax. It pays `tax.incomeRate` on its income. After tax it keeps 1 percent of the
