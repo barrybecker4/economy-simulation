@@ -54,7 +54,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. More than one seed draws each median.',
+      'CPI is the expenditure-weighted basket. Food and beverages, housing, energy, apparel, transportation, medical care, education, recreation, and electronics can move apart from it. Dollar and satoshi charts share one display scale (a skill-1 opening wage is $5,000); the Dollars control switches every dollar chart between nominal and opening-month dollars. More than one seed draws each median.',
     lines: [
       { id: 'priceLevel', label: 'CPI', color: '#1e3a8a' },
       { id: 'priceFood', label: 'Food and bev', color: '#9a3412' },
@@ -100,7 +100,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Monthly UBI outlay. The pool is the UBI share slider times the AI share of output times nominal GDP, split equally across households. It starts at zero when AI capacity is not adopted.',
+      'Monthly UBI outlay. The pool is the UBI share slider times the AI share of output times nominal GDP, split equally across households. It starts at zero when AI capacity is not adopted. Amounts use the shared dollar or satoshi display scale and the Dollars control.',
     lines: [{ id: 'ubiOutlay', label: 'UBI outlay', color: '#047857' }],
   },
   {
@@ -110,7 +110,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Income tax collected from households and from AI agents. More than one seed draws each median.',
+      'Income tax collected from households and from AI agents. Amounts use the shared dollar or satoshi display scale and the Dollars control. More than one seed draws each median.',
     lines: [
       { id: 'taxRevenue', label: 'Total tax', color: '#0f766e' },
       { id: 'agentTaxRevenue', label: 'Agent tax', color: '#a21caf' },
@@ -134,7 +134,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Credit',
     unit: 'money',
     description:
-      'Loan balances written off that month from failed firms and foreclosed mortgages. More than one seed draws the median.',
+      'Loan balances written off that month from failed firms and foreclosed mortgages. Amounts use the shared dollar or satoshi display scale and the Dollars control. More than one seed draws the median.',
     lines: [{ id: 'defaults', label: 'Defaults', color: '#be123c', better: 'lower' }],
   },
   {
@@ -153,7 +153,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'New household consumer loans that month. Stays at zero until Housing tenure choice is on. More than one seed draws the median.',
+      'New household consumer loans that month. Stays at zero until Housing tenure choice is on. Amounts use the shared dollar or satoshi display scale and the Dollars control. More than one seed draws the median.',
     lines: [{ id: 'newConsumerBorrowing', label: 'New consumer loans', color: '#a16207' }],
   },
   {
@@ -177,7 +177,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'AI',
     unit: 'money',
     description:
-      'Goods bought by autonomous AI agents that month. More than one seed draws the median.',
+      'Goods bought by autonomous AI agents that month. Amounts use the shared dollar or satoshi display scale and the Dollars control. More than one seed draws the median.',
     lines: [{ id: 'agentGoodsSpend', label: 'Agent goods', color: '#be123c' }],
   },
   {
@@ -215,7 +215,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Real wage is the money wage divided by CPI. Mean and median real income are household wages and profits, plus the UBI grant and any treasury surplus rebate, divided by the CPI. Real income and real consumption use households only. More than one seed draws each median.',
+      'Wage is the monthly money wage. Mean and median income are household monthly wages and profits, plus the UBI grant and any treasury surplus rebate. Consumption is monthly goods buying. Income and consumption use households only. Charted amounts use the shared dollar or satoshi display scale so a dollar matches money stocks and flows. More than one seed draws each median.',
     lines: [
       { id: 'realWage', label: 'Real wage', color: '#1d4ed8', better: 'higher' },
       { id: 'meanRealIncome', label: 'Mean real income', color: '#0f766e', better: 'higher' },
@@ -315,7 +315,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Sum of household wealth divided by CPI — the stock the wealth-by-fifth shares divide. Cash and capital claims partition that stock: cash is deposits (and bitcoin valued at the exchange rate), and claims are equity claims on firm capital when the equity market is on. Negative holdings count as zero. Agent deposits are not included. For the output pie that grows like historical real GDP, see the Output chart. More than one seed draws the median.',
+      'Sum of household wealth — the stock the wealth-by-fifth shares divide. Cash and capital claims partition that stock: cash is deposits (and bitcoin valued at the exchange rate), and claims are equity claims on firm capital when the equity market is on. Negative holdings count as zero. Agent deposits are not included. Charted amounts use the shared dollar or satoshi display scale and the Dollars control so a dollar matches money stocks and flows. For the output pie that grows like historical real GDP, see the Output chart. More than one seed draws the median.',
     lines: [
       { id: 'totalRealWealth', label: 'Total real wealth', color: '#9f1239', better: 'higher' },
       { id: 'realCashWealth', label: 'Cash wealth', color: '#1d4ed8' },
@@ -329,7 +329,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Mean and median household wealth divided by CPI. Households only; agent deposits are not included. More than one seed draws each median.',
+      'Mean and median household wealth. Households only; agent deposits are not included. Charted amounts use the shared dollar or satoshi display scale and the Dollars control so a dollar matches money stocks and flows. More than one seed draws each median.',
     lines: [
       { id: 'meanRealWealth', label: 'Mean real wealth', color: '#9f1239', better: 'higher' },
       { id: 'medianRealWealth', label: 'Median real wealth', color: '#be123c', better: 'higher' },
@@ -355,7 +355,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Money supply is household, firm, agent, and government deposits. Base money is bank reserves. More than one seed draws each median.',
+      'Money supply is household, firm, agent, and government deposits. Base money is bank reserves. Amounts use the shared dollar or satoshi display scale and the Dollars control. More than one seed draws each median.',
     lines: [
       { id: 'moneySupply', label: 'Money supply', color: '#1e3a8a' },
       { id: 'baseMoney', label: 'Base money', color: '#0f766e' },
@@ -416,7 +416,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'money',
     logToggle: true,
     description:
-      'Who paid whom that month: household and agent goods, government purchases, wages, profits, tax, the household grant, AI compute sales and fees, sweeps to owners, interest, new loans, and loan repayment. More than one seed draws each median.',
+      'Who paid whom that month: household and agent goods, government purchases, wages, profits, tax, the household grant, AI compute sales and fees, sweeps to owners, interest, new loans, and loan repayment. Amounts use the shared dollar or satoshi display scale and the Dollars control. More than one seed draws each median.',
     lines: [
       { id: 'householdGoodsSpend', label: 'Household goods', color: '#1e3a8a' },
       { id: 'agentGoodsSpend', label: 'Agent goods', color: '#be123c' },

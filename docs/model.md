@@ -16,6 +16,14 @@ inflation, are unchanged. The division repeats so a hyperinflation can finish a 
 doubles in satoshis and may be a fraction of a satoshi. A redenomination divides the fiat price of bitcoin with the
 other prices and leaves bitcoin unit balances unchanged. See [ADR 0025](adr/0025-nominal-redenomination.md).
 
+Charts and the month payment diagram display those reported amounts on a shared scale. A skill-1 opening wage shows as
+$5,000 a month; one model cent is therefore $50 on the charts. Satoshi charts use the same wage at the model’s opening
+bitcoin price ($85,000), so the opening wage shows as about 5.88 million satoshis. The Dollars control switches every
+dollar chart together between nominal (current) dollars and dollars of the run’s first month. Satoshi amounts stay
+nominal. Series already divided by the CPI in the metrics table are multiplied back by that month’s CPI before the
+display scale, so a dollar of wealth matches a dollar of tax revenue or of the money stock. Totals stay for the
+simulated population; they are not scaled up to US national accounts. Ledger balances and agent decisions are unchanged.
+
 Each account is an asset, a liability, or equity. A debit increases an asset and decreases a liability or equity. A
 credit does the opposite. A transaction has at least two lines, and its debits equal its credits. The books update only
 after every line is valid, so a rejected transaction leaves balances unchanged.

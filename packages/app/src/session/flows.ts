@@ -1,7 +1,8 @@
 import { FLOW_EDGES } from '../dashboard/catalog.js';
+import type { DollarBasis } from '../chart/money-display.js';
+import { displayMoneyValue, moneyDisplayUnit } from '../chart/money-display.js';
 import type { RunSuccess } from '../worker/protocol.js';
-import { metricAt } from '../worker/series.js';
-import { moneyUnit } from '../chart/view.js';
+import { metricAt, readSeries } from '../worker/series.js';
 
 export interface FlowEdge {
   from: string;
@@ -25,16 +26,30 @@ export const FLOW_NODES = [
   { id: 'agents', label: 'AI agents', x: 200, y: 340 },
 ] as const;
 
-export function monthFlows(result: RunSuccess, regime: string, monthIndex: number): MonthFlows {
+export function monthFlows(
+  result: RunSuccess,
+  regime: string,
+  monthIndex: number,
+  dollarBasis: DollarBasis = 'nominal',
+): MonthFlows {
   const index = clampIndex(monthIndex, result.ticks.length);
+  const price = metricAt(result, 'priceLevel', index);
+  const opening = openingPrice(result);
   return {
     monthIndex: index,
-    unit: moneyUnit(regime),
+    unit: moneyDisplayUnit(regime, dollarBasis),
     edges: FLOW_EDGES.map((spec) => ({
       from: spec.from,
       to: spec.to,
       label: spec.label,
-      amount: metricAt(result, spec.id, index),
+      amount: displayMoneyValue(
+        metricAt(result, spec.id, index),
+        spec.id,
+        regime,
+        dollarBasis,
+        price,
+        opening,
+      ),
       color: spec.color,
     })),
   };
@@ -55,6 +70,14 @@ export function maxFlowAmount(edges: readonly FlowEdge[]): number {
     }
   }
   return max;
+}
+
+function openingPrice(result: RunSuccess): number {
+  const open = readSeries(result, 'priceLevel')[0];
+  if (open === undefined || !Number.isFinite(open) || !(open > 0)) {
+    throw new Error('Missing opening priceLevel');
+  }
+  return open;
 }
 
 function clampIndex(index: number, length: number): number {

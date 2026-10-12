@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { RunSuccess } from '../worker/protocol.js';
 import { CHART_METRICS } from '../worker/series.js';
+import { DOLLARS_PER_MODEL_CENT } from '../chart/money-display.js';
 import { agentCountFromShare, monthCensus, ownerCount, type CensusFrame } from './census.js';
 
 const ticks = [0, 1];
@@ -10,6 +11,7 @@ function series(): Record<string, number[]> {
   for (const id of CHART_METRICS) {
     out[id] = [0, 0];
   }
+  out.priceLevel = [120, 120];
   out.wealthQuintile1 = [0.05, 0.04];
   out.wealthQuintile2 = [0.1, 0.09];
   out.wealthQuintile3 = [0.15, 0.16];
@@ -30,16 +32,17 @@ describe('monthCensus', () => {
   it('builds wealth, job, and owner panels for the selected month', () => {
     const result: RunSuccess = { kind: 'run', ticks, series: series() };
     const frame = censusFrame();
-    const empty = monthCensus(result, 0, frame);
+    const empty = monthCensus(result, 0, frame, 'fiat', 'nominal');
     expect(empty.wealth.map((slice) => slice.share)).toEqual([0.05, 0.1, 0.15, 0.2, 0.5]);
-    expect(empty.totalRealWealth).toBe(200);
+    // 200 baskets × CPI 120 × $50/cent
+    expect(empty.totalRealWealth).toBe(200 * 120 * DOLLARS_PER_MODEL_CENT);
     expect(empty.realGdp).toBe(900);
     expect(empty.jobs.map((slice) => slice.share)).toEqual([0.06, 0.5, 0.44]);
     expect(empty.owners.hasAgents).toBe(false);
     expect(empty.owners.agentCount).toBe(0);
 
-    const later = monthCensus(result, 1, frame);
-    expect(later.totalRealWealth).toBe(250);
+    const later = monthCensus(result, 1, frame, 'fiat', 'nominal');
+    expect(later.totalRealWealth).toBe(250 * 120 * DOLLARS_PER_MODEL_CENT);
     expect(later.realGdp).toBe(1100);
     expect(later.owners.hasAgents).toBe(true);
     expect(later.owners.agentCount).toBe(25);

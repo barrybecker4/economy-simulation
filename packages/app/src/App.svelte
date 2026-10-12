@@ -1,6 +1,7 @@
 <script lang="ts">
   import { listSliders, type Slider } from '../../core/src/config/registry.js';
   import Chart from './chart/Chart.svelte';
+  import { moneyUnit, type DollarBasis } from './chart/money-display.js';
   import { chartViews, type ChartView } from './chart/view.js';
   import {
     canPinBaseline,
@@ -65,6 +66,7 @@
   let progressTotal = $state(0);
   let monthIndex = $state(0);
   let showHistory = $state(false);
+  let dollarBasis = $state<DollarBasis>('nominal');
   let resultsEl: HTMLElement | undefined = $state();
   let openChartGroups = $state<Record<string, boolean>>({ [FIRST_CHART_GROUP]: true });
   /** Shared chart origin so history lines and axis labels use the same calendar. */
@@ -74,6 +76,10 @@
   const bundle = $derived(comparisonBundle(session));
   const progressPercent = $derived(percentComplete(progressCompleted, progressTotal));
   const changed = $derived(changedSliders(sliders, session.regime, session.overrides));
+  const dollarBasisDisabled = $derived(
+    moneyUnit(session.regime) === 'satoshis' &&
+      (bundle.baseline === null || moneyUnit(bundle.baseline.regime) === 'satoshis'),
+  );
   const views = $derived(
     bundle.variant === null
       ? []
@@ -88,7 +94,7 @@
                 transitionLength: bundle.baseline.transitionLength,
               },
           bundle.variant.transitionLength,
-          { showHistory, origin: chartOrigin },
+          { showHistory, origin: chartOrigin, dollarBasis },
         ),
   );
   const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
@@ -99,22 +105,34 @@
   const flows = $derived(
     bundle.variant === null
       ? null
-      : monthFlows(bundle.variant.result, bundle.variant.regime, monthIndex),
+      : monthFlows(bundle.variant.result, bundle.variant.regime, monthIndex, dollarBasis),
   );
   const baselineFlows = $derived(
     bundle.baseline === null
       ? null
-      : monthFlows(bundle.baseline.result, bundle.baseline.regime, monthIndex),
+      : monthFlows(bundle.baseline.result, bundle.baseline.regime, monthIndex, dollarBasis),
   );
   const census = $derived(
     bundle.variant === null
       ? null
-      : monthCensus(bundle.variant.result, monthIndex, bundle.variant),
+      : monthCensus(
+          bundle.variant.result,
+          monthIndex,
+          bundle.variant,
+          bundle.variant.regime,
+          dollarBasis,
+        ),
   );
   const baselineCensus = $derived(
     bundle.baseline === null
       ? null
-      : monthCensus(bundle.baseline.result, monthIndex, bundle.baseline),
+      : monthCensus(
+          bundle.baseline.result,
+          monthIndex,
+          bundle.baseline,
+          bundle.baseline.regime,
+          dollarBasis,
+        ),
   );
   const visibleChartGroups = $derived(
     flows && census
@@ -324,6 +342,8 @@
       bind:ticks={() => session.ticks, (ticks) => (session = setTicks(session, ticks))}
       bind:seeds={() => session.seeds, (seeds) => (session = setSeeds(session, seeds))}
       bind:showHistory
+      bind:dollarBasis
+      {dollarBasisDisabled}
       {busy}
       runPrimary={primaryRun}
       {pinned}

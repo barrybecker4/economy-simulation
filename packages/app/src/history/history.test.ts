@@ -111,9 +111,11 @@ describe('chartViews with US history', () => {
       origin,
     });
     const prices = views.find((view) => view.key === 'prices');
+    const model = prices?.lines.find((line) => line.label === 'CPI');
     const us = prices?.lines.find((line) => line.label === 'US CPI');
+    const openPoint = model?.values.find((value) => value !== null);
     const historyPoints = us?.values.filter((value): value is number => value !== null) ?? [];
-    expect(historyPoints.at(-1)).toBeCloseTo(openCpi, 6);
+    expect(historyPoints.at(-1)).toBeCloseTo(openPoint ?? 0, 6);
     expect(us?.values.at(-1)).toBeNull();
   });
 
@@ -215,8 +217,8 @@ describe('chartViews with US history', () => {
     });
     for (const [key, modelLabel, usLabel] of [
       ['money', 'Money supply', 'US Money supply'],
-      ['typical-wealth', 'Mean real wealth', 'US Mean real wealth'],
-      ['total-wealth', 'Total real wealth', 'US Total real wealth'],
+      ['typical-wealth', 'Mean wealth', 'US Mean wealth'],
+      ['total-wealth', 'Total wealth', 'US Total wealth'],
     ] as const) {
       const chart = views.find((view) => view.key === key);
       const model = chart?.lines.find((line) => line.label === modelLabel);
@@ -227,6 +229,6 @@ describe('chartViews with US history', () => {
       expect(historyPoints.at(-1)).toBeCloseTo(openPoint ?? 0, 6);
     }
     const typical = views.find((view) => view.key === 'typical-wealth');
-    expect(typical?.lines.some((line) => line.label === 'US Median real wealth')).toBe(false);
+    expect(typical?.lines.some((line) => line.label === 'US Median wealth')).toBe(false);
   });
 });

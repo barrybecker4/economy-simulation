@@ -1,16 +1,35 @@
 import { CHART_PANELS, type ChartLineSpec, type ChartPanel } from '../dashboard/catalog.js';
 import {
+  HISTORY_DASH,
   historyAxisTicks,
   historyChartNote,
   historyLine,
+  historyPriceLevelsForMetric,
+  historySeriesValues,
   isHistoryMetric,
   padHistoryValues,
+  rebasedHistoryPriceLevels,
   wellbeingHistoryNote,
 } from '../history/history.js';
+import type { HistoryMetricId } from '../history/us-history-data.js';
 import type { BandRunResult, RunSuccess } from '../worker/protocol.js';
 import { readSeries } from '../worker/series.js';
 import { comparisonCaption, type CaptionSeries } from './caption.js';
 import { hasMarks, MARKS_TIP, mergeMarks, runMarks, type ChartMarks } from './marks.js';
+import {
+  type DollarBasis,
+  displayMoneySeries,
+  livingStandardsDescription,
+  moneyDisplayUnit,
+  moneyLineLabel,
+  moneyUnit,
+  needsPriceLevel,
+  pricesDescription,
+  wealthDescription,
+} from './money-display.js';
+
+export type { DollarBasis } from './money-display.js';
+export { moneyUnit } from './money-display.js';
 
 export interface ChartLine {
   label: string;
@@ -45,16 +64,6 @@ export interface ChartView {
   logToggle?: boolean;
 }
 
-export function moneyUnit(regime: string): string {
-  if (regime === 'fiat' || regime === 'hybrid') {
-    return 'cents';
-  }
-  if (regime === 'bitcoin') {
-    return 'satoshis';
-  }
-  throw new Error(`Unknown regime ${regime}`);
-}
-
 /** Dash pattern, in CSS pixels, for the scenario line when a baseline is overlaid. */
 export const VARIANT_DASH = [8, 6] as const;
 
@@ -69,6 +78,8 @@ export interface ChartViewOptions {
   showHistory?: boolean;
   /** Calendar month of tick 0. Shared with the chart axis. */
   origin?: Date;
+  /** Nominal or opening-month dollars. Ignored for bitcoin-only charts. */
+  dollarBasis?: DollarBasis;
 }
 
 export function chartViews(
@@ -83,13 +94,23 @@ export function chartViews(
   }
   const showHistory = options.showHistory === true;
   const origin = options.origin ?? new Date();
+  const dollarBasis = options.dollarBasis ?? 'nominal';
   const axisTicks = showHistory ? historyAxisTicks(result.ticks) : [...result.ticks];
   if (baseline !== null) {
-    return pairedViews(result, regime, baseline, transitionLength, axisTicks, showHistory, origin);
+    return pairedViews(
+      result,
+      regime,
+      baseline,
+      transitionLength,
+      axisTicks,
+      showHistory,
+      origin,
+      dollarBasis,
+    );
   }
   const marks = runMarks(result, transitionLength, 'solo');
   const views = CHART_PANELS.map((spec) =>
-    viewFromSpec(spec, result, regime, marks, axisTicks, showHistory, origin),
+    viewFromSpec(spec, result, regime, marks, axisTicks, showHistory, origin, dollarBasis),
   );
   if (result.kind === 'band') {
     const withBand = [...views];
@@ -97,17 +118,13 @@ export function chartViews(
     withBand.splice(
       pricesAt + 1,
       0,
-      cpiBandView(result, regime, marks, axisTicks, showHistory, origin),
+      cpiBandView(result, regime, marks, axisTicks, showHistory, origin, dollarBasis),
     );
     return withBand;
   }
   return views;
 }
 
-/** Cents in one dollar. Display only; ledger amounts stay in cents. */
-const CENTS_PER_DOLLAR = 100;
-/** Fiat money charts stay in cents at this level and switch to dollars above it. */
-const CENT_DISPLAY_MAX = 1_000;
 /** Left y-scale. Satoshis use a separate right-hand scale. */
 const LEFT_SCALE = 'y';
 const SATOSHI_SCALE = 'sats';
@@ -120,6 +137,7 @@ function pairedViews(
   axisTicks: number[],
   showHistory: boolean,
   origin: Date,
+  dollarBasis: DollarBasis,
 ): ChartView[] {
   if (baseline.result.ticks.length === 0) {
     throw new Error('Baseline run has no ticks');
@@ -132,7 +150,17 @@ function pairedViews(
     runMarks(variant, transitionLength, 'variant'),
   );
   return CHART_PANELS.map((spec) =>
-    pairedViewFromSpec(spec, variant, regime, baseline, marks, axisTicks, showHistory, origin),
+    pairedViewFromSpec(
+      spec,
+      variant,
+      regime,
+      baseline,
+      marks,
+      axisTicks,
+      showHistory,
+      origin,
+      dollarBasis,
+    ),
   );
 }
 
@@ -144,20 +172,28 @@ function viewFromSpec(
   axisTicks: number[],
   showHistory: boolean,
   origin: Date,
+  dollarBasis: DollarBasis,
 ): ChartView {
-  const modelLines = spec.lines.map((line) =>
-    padModelLine(lineOf(result, line), axisTicks, result.ticks),
-  );
-  const historyLines = showHistory ? historyLinesFor(spec, result, axisTicks, origin) : [];
-  const scaled = scaleCents(unitText(spec.unit, regime), [...modelLines, ...historyLines]);
+  const prices = paddedPriceLevels(result, axisTicks);
+  const openingPrice = openingPriceLevel(result);
+  const modelLines = spec.lines.map((line) => {
+    const padded = padModelLine(lineOf(result, line), axisTicks, result.ticks);
+    if (spec.unit !== 'money') {
+      return padded;
+    }
+    return convertMoneyLine(padded, line.id, regime, dollarBasis, prices, openingPrice);
+  });
+  const historyLines = showHistory
+    ? historyLinesFor(spec, result, axisTicks, origin, regime, dollarBasis)
+    : [];
   const view: ChartView = {
     key: spec.key,
     title: spec.title,
     group: spec.group,
-    unit: scaled.unit,
-    description: withMarksTip(spec.description, marks),
+    unit: unitText(spec.unit, regime, dollarBasis),
+    description: withMarksTip(panelDescription(spec, regime, dollarBasis), marks),
     ticks: axisTicks,
-    lines: scaled.lines,
+    lines: [...modelLines, ...historyLines],
     marks,
     ...logToggleField(spec),
   };
@@ -170,6 +206,26 @@ function viewFromSpec(
   return view;
 }
 
+function panelDescription(
+  spec: ChartPanel,
+  regime: string,
+  dollarBasis: DollarBasis,
+): string {
+  if (spec.key === 'living') {
+    return livingStandardsDescription(dollarBasis, regime);
+  }
+  if (spec.key === 'prices' || spec.key === 'cpi-band') {
+    return pricesDescription(dollarBasis, regime);
+  }
+  if (spec.key === 'total-wealth') {
+    return wealthDescription('total', dollarBasis, regime);
+  }
+  if (spec.key === 'typical-wealth') {
+    return wealthDescription('typical', dollarBasis, regime);
+  }
+  return spec.description;
+}
+
 function pairedViewFromSpec(
   spec: ChartPanel,
   variant: RunSuccess,
@@ -179,44 +235,74 @@ function pairedViewFromSpec(
   axisTicks: number[],
   showHistory: boolean,
   origin: Date,
+  dollarBasis: DollarBasis,
 ): ChartView {
   const baselineMoney = moneyUnit(baseline.regime);
   const variantMoney = moneyUnit(regime);
   const mixedMoney = spec.unit === 'money' && baselineMoney !== variantMoney;
+  const baselinePrices = paddedPriceLevels(baseline.result, axisTicks);
+  const variantPrices = paddedPriceLevels(variant, axisTicks);
+  const baselineOpen = openingPriceLevel(baseline.result);
+  const variantOpen = openingPriceLevel(variant);
   const rows: MoneyLine[] = [];
   for (const line of spec.lines) {
-    rows.push({
-      line: padModelLine(
-        checkedLine(
-          baseline.result.ticks,
-          line.label,
-          readSeries(baseline.result, line.id),
-          line.color,
-          {
-            omitLegend: true,
-            pair: line.id,
-          },
-        ),
-        axisTicks,
+    const baselineRaw = padModelLine(
+      checkedLine(
         baseline.result.ticks,
-      ),
-      money: baselineMoney,
-    });
-    rows.push({
-      line: padModelLine(
-        checkedLine(variant.ticks, line.label, readSeries(variant, line.id), line.color, {
-          dash: VARIANT_DASH,
+        line.label,
+        readSeries(baseline.result, line.id),
+        line.color,
+        {
+          omitLegend: true,
           pair: line.id,
-        }),
-        axisTicks,
-        variant.ticks,
+        },
       ),
-      money: variantMoney,
-    });
+      axisTicks,
+      baseline.result.ticks,
+    );
+    const variantRaw = padModelLine(
+      checkedLine(variant.ticks, line.label, readSeries(variant, line.id), line.color, {
+        dash: VARIANT_DASH,
+        pair: line.id,
+      }),
+      axisTicks,
+      variant.ticks,
+    );
+    if (spec.unit === 'money') {
+      rows.push({
+        line: convertMoneyLine(
+          baselineRaw,
+          line.id,
+          baseline.regime,
+          dollarBasis,
+          baselinePrices,
+          baselineOpen,
+        ),
+        money: baselineMoney,
+        displayUnit: moneyDisplayUnit(baseline.regime, dollarBasis),
+      });
+      rows.push({
+        line: convertMoneyLine(
+          variantRaw,
+          line.id,
+          regime,
+          dollarBasis,
+          variantPrices,
+          variantOpen,
+        ),
+        money: variantMoney,
+        displayUnit: moneyDisplayUnit(regime, dollarBasis),
+      });
+    } else {
+      rows.push({ line: baselineRaw, money: baselineMoney, displayUnit: baselineMoney });
+      rows.push({ line: variantRaw, money: variantMoney, displayUnit: variantMoney });
+    }
   }
-  const historyLines = showHistory ? historyLinesFor(spec, variant, axisTicks, origin) : [];
+  const historyLines = showHistory
+    ? historyLinesFor(spec, variant, axisTicks, origin, regime, dollarBasis)
+    : [];
   if (mixedMoney) {
-    const mixed = mixedMoneyView(spec, rows, marks, axisTicks);
+    const mixed = mixedMoneyView(spec, rows, marks, axisTicks, regime, dollarBasis);
     if (historyLines.length > 0) {
       mixed.lines = [...mixed.lines, ...historyLines];
       mixed.note = `${mixed.note ?? ''} ${historyChartNote()}`.trim();
@@ -224,17 +310,16 @@ function pairedViewFromSpec(
     return mixed;
   }
   const lines = [...rows.map((row) => row.line), ...historyLines];
-  const scaled = scaleCents(unitText(spec.unit, regime), lines);
   const view: ChartView = {
     key: spec.key,
     title: spec.title,
     group: spec.group,
-    unit: scaled.unit,
-    description: withMarksTip(spec.description, marks),
+    unit: unitText(spec.unit, regime, dollarBasis),
+    description: withMarksTip(panelDescription(spec, regime, dollarBasis), marks),
     ticks: axisTicks,
-    lines: scaled.lines,
+    lines,
     marks,
-    caption: comparisonCaption(captionSeries(spec.lines, scaled.lines)),
+    caption: comparisonCaption(captionSeries(spec.lines, lines, dollarBasis, regime)),
     ...logToggleField(spec),
   };
   if (historyLines.length > 0) {
@@ -248,7 +333,8 @@ function pairedViewFromSpec(
 
 interface MoneyLine {
   line: ChartLine;
-  money: string;
+  money: 'cents' | 'satoshis';
+  displayUnit: string;
 }
 
 function mixedMoneyView(
@@ -256,19 +342,19 @@ function mixedMoneyView(
   rows: readonly MoneyLine[],
   marks: ChartMarks,
   axisTicks: number[],
+  regime: string,
+  dollarBasis: DollarBasis,
 ): ChartView {
-  const fiatLines = rows.filter((row) => row.money === 'cents').map((row) => row.line);
-  const fiatUnit = peakAbs(fiatLines) > CENT_DISPLAY_MAX ? 'dollars' : 'cents';
-  const lines = rows.map((row) => placeMoneyLine(row, fiatUnit));
-  const baselineUnit = rows[0]?.money === 'cents' ? fiatUnit : 'satoshis';
-  const variantUnit = rows[1]?.money === 'cents' ? fiatUnit : 'satoshis';
+  const lines = rows.map((row) => placeMoneyLine(row));
+  const baselineUnit = rows[0]?.displayUnit ?? 'dollars';
+  const variantUnit = rows[1]?.displayUnit ?? 'satoshis';
   return {
     key: spec.key,
     title: spec.title,
     group: spec.group,
     unit: '',
     note: `Solid lines are the baseline, in ${baselineUnit} (${axisName(baselineUnit)} axis). Dashed lines are the scenario, in ${variantUnit} (${axisName(variantUnit)} axis).`,
-    description: withMarksTip(spec.description, marks),
+    description: withMarksTip(panelDescription(spec, regime, dollarBasis), marks),
     ticks: axisTicks,
     lines,
     marks,
@@ -277,19 +363,13 @@ function mixedMoneyView(
   };
 }
 
-function placeMoneyLine(row: MoneyLine, fiatUnit: string): ChartLine {
+function placeMoneyLine(row: MoneyLine): ChartLine {
   const fiat = row.money === 'cents';
-  const line: ChartLine = {
+  return {
     ...row.line,
     scale: fiat ? LEFT_SCALE : SATOSHI_SCALE,
-    unit: fiat ? fiatUnit : 'satoshis',
+    unit: row.displayUnit,
   };
-  if (fiat && fiatUnit === 'dollars') {
-    line.values = row.line.values.map((value) =>
-      value === null ? null : value / CENTS_PER_DOLLAR,
-    );
-  }
-  return line;
 }
 
 function axisName(unit: string): 'left' | 'right' {
@@ -299,6 +379,8 @@ function axisName(unit: string): 'left' | 'right' {
 function captionSeries(
   specs: readonly ChartLineSpec[],
   lines: readonly ChartLine[],
+  dollarBasis: DollarBasis,
+  regime: string,
 ): CaptionSeries[] {
   return specs.map((spec) => {
     const baseline = lines.find((line) => line.pair === spec.id && line.omitLegend === true);
@@ -307,7 +389,7 @@ function captionSeries(
       throw new Error(`Missing paired lines for ${spec.label}`);
     }
     const series: CaptionSeries = {
-      label: spec.label,
+      label: moneyLineLabel(spec.label, dollarBasis, regime),
       baseline: finiteSeries(baseline.values),
       variant: finiteSeries(variant.values),
     };
@@ -330,39 +412,42 @@ function withMarksTip(description: string, marks: ChartMarks): string {
   return `${description} ${MARKS_TIP}`;
 }
 
-function scaleCents(unit: string, lines: ChartLine[]): { unit: string; lines: ChartLine[] } {
-  if (unit !== 'cents' || peakAbs(lines) <= CENT_DISPLAY_MAX) {
-    return { unit, lines };
-  }
-  return { unit: 'dollars', lines: lines.map(asDollars) };
-}
-
-function peakAbs(lines: readonly ChartLine[]): number {
-  let peak = 0;
-  for (const line of lines) {
-    for (const value of line.values) {
-      if (value !== null && Number.isFinite(value)) {
-        peak = Math.max(peak, Math.abs(value));
-      }
-    }
-  }
-  return peak;
-}
-
-function asDollars(line: ChartLine): ChartLine {
+function convertMoneyLine(
+  line: ChartLine,
+  metricId: string,
+  regime: string,
+  basis: DollarBasis,
+  priceLevels: readonly (number | null)[],
+  openingPrice: number,
+): ChartLine {
   return {
     ...line,
-    values: line.values.map((value) => (value === null ? null : value / CENTS_PER_DOLLAR)),
+    label: moneyLineLabel(line.label, basis, regime),
+    values: displayMoneySeries(line.values, metricId, regime, basis, priceLevels, openingPrice),
   };
+}
+
+function openingPriceLevel(result: RunSuccess): number {
+  const prices = readSeries(result, 'priceLevel');
+  for (const open of prices) {
+    if (Number.isFinite(open) && open > 0) {
+      return open;
+    }
+  }
+  throw new Error('Missing opening priceLevel');
+}
+
+function paddedPriceLevels(result: RunSuccess, axisTicks: readonly number[]): (number | null)[] {
+  return padHistoryValues(axisTicks, readSeries(result, 'priceLevel'), result.ticks);
 }
 
 function logToggleField(spec: ChartPanel): { logToggle?: true } {
   return spec.logToggle === true ? { logToggle: true } : {};
 }
 
-function unitText(unit: ChartPanel['unit'], regime: string): string {
+function unitText(unit: ChartPanel['unit'], regime: string, basis: DollarBasis): string {
   if (unit === 'money') {
-    return moneyUnit(regime);
+    return moneyDisplayUnit(regime, basis);
   }
   if (unit === 'share') {
     return 'share';
@@ -405,15 +490,33 @@ function historyLinesFor(
   result: RunSuccess,
   axisTicks: readonly number[],
   origin: Date,
+  regime: string,
+  dollarBasis: DollarBasis,
 ): ChartLine[] {
   const lines: ChartLine[] = [];
+  const openPrice = openingPriceLevel(result);
   for (const line of spec.lines) {
     if (!isHistoryMetric(line.id)) {
       continue;
     }
     const model = readSeries(result, line.id);
     const open = model[0] ?? null;
-    lines.push(historyLine(line.id, line.label, line.color, axisTicks, origin, open));
+    const label = moneyLineLabel(line.label, dollarBasis, regime);
+    if (spec.unit !== 'money') {
+      lines.push(historyLine(line.id, label, line.color, axisTicks, origin, open));
+      continue;
+    }
+    const metricId = line.id as HistoryMetricId;
+    const historyPrices = needsPriceLevel(line.id)
+      ? historyPriceLevelsForMetric(metricId, axisTicks, origin, openPrice)
+      : rebasedHistoryPriceLevels(axisTicks, origin, openPrice);
+    const raw = historySeriesValues(line.id, axisTicks, origin, open);
+    lines.push({
+      label: `US ${label}`,
+      values: displayMoneySeries(raw, line.id, regime, dollarBasis, historyPrices, openPrice),
+      color: line.color,
+      dash: HISTORY_DASH,
+    });
   }
   return lines;
 }
@@ -425,31 +528,71 @@ function cpiBandView(
   axisTicks: number[],
   showHistory: boolean,
   origin: Date,
+  dollarBasis: DollarBasis,
 ): ChartView {
   const band = result.bands.priceLevel;
   if (band === undefined) {
     throw new Error('Missing band priceLevel');
   }
+  const prices = padHistoryValues(axisTicks, band.mid, result.ticks);
+  const openingPrice = band.mid[0];
+  if (openingPrice === undefined || !(openingPrice > 0)) {
+    throw new Error('Missing opening CPI band median');
+  }
   const modelLines = [
-    padModelLine(checkedLine(result.ticks, '5th', band.low, '#99b'), axisTicks, result.ticks),
-    padModelLine(checkedLine(result.ticks, 'Median', band.mid, '#246'), axisTicks, result.ticks),
-    padModelLine(checkedLine(result.ticks, '95th', band.high, '#99b'), axisTicks, result.ticks),
+    convertMoneyLine(
+      padModelLine(checkedLine(result.ticks, '5th', band.low, '#99b'), axisTicks, result.ticks),
+      'priceLevel',
+      regime,
+      dollarBasis,
+      prices,
+      openingPrice,
+    ),
+    convertMoneyLine(
+      padModelLine(checkedLine(result.ticks, 'Median', band.mid, '#246'), axisTicks, result.ticks),
+      'priceLevel',
+      regime,
+      dollarBasis,
+      prices,
+      openingPrice,
+    ),
+    convertMoneyLine(
+      padModelLine(checkedLine(result.ticks, '95th', band.high, '#99b'), axisTicks, result.ticks),
+      'priceLevel',
+      regime,
+      dollarBasis,
+      prices,
+      openingPrice,
+    ),
   ];
   const historyLines = showHistory
-    ? [historyLine('priceLevel', 'CPI', '#246', axisTicks, origin, band.mid[0] ?? null)]
+    ? historyLinesFor(
+        {
+          key: 'cpi-band',
+          title: 'CPI band',
+          group: 'Prices',
+          unit: 'money',
+          description: '',
+          lines: [{ id: 'priceLevel', label: 'CPI', color: '#246' }],
+        },
+        result,
+        axisTicks,
+        origin,
+        regime,
+        dollarBasis,
+      )
     : [];
-  const scaled = scaleCents(moneyUnit(regime), [...modelLines, ...historyLines]);
   const view: ChartView = {
     key: 'cpi-band',
     title: 'CPI band',
     group: 'Prices',
-    unit: scaled.unit,
+    unit: moneyDisplayUnit(regime, dollarBasis),
     description: withMarksTip(
-      'Median CPI across these seeds, with the 5th and 95th percentiles.',
+      `${pricesDescription(dollarBasis, regime)} Median CPI across these seeds, with the 5th and 95th percentiles.`,
       marks,
     ),
     ticks: axisTicks,
-    lines: scaled.lines,
+    lines: [...modelLines, ...historyLines],
     marks,
     logToggle: true,
   };

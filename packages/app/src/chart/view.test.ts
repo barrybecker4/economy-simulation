@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PercentileBand, RunSuccess } from '../worker/protocol.js';
 import { CHART_METRICS } from '../worker/series.js';
+import { DOLLARS_PER_MODEL_CENT, SATOSHIS_PER_MODEL_SAT } from './money-display.js';
 import { chartViews, moneyUnit, VARIANT_DASH } from './view.js';
 
 const ticks = [0, 1];
@@ -25,6 +26,14 @@ function bands(mid: number[]): Record<string, PercentileBand> {
   return out;
 }
 
+function dollars(cents: number): number {
+  return cents * DOLLARS_PER_MODEL_CENT;
+}
+
+function sats(model: number): number {
+  return model * SATOSHIS_PER_MODEL_SAT;
+}
+
 describe('moneyUnit', () => {
   it('uses cents for fiat and hybrid, satoshis for bitcoin', () => {
     expect(moneyUnit('fiat')).toBe('cents');
@@ -35,7 +44,7 @@ describe('moneyUnit', () => {
 });
 
 describe('chartViews', () => {
-  it('draws a fiat run in cents and a bitcoin run in satoshis', () => {
+  it('draws a fiat run in dollars and a bitcoin run in satoshis', () => {
     const fiat = chartViews({ kind: 'run', ticks, series: series([1, 2]) }, 'fiat');
     const bitcoin = chartViews({ kind: 'run', ticks, series: series([1, 2]) }, 'bitcoin');
     expect(fiat.map((view) => view.key)).toEqual([
@@ -69,8 +78,8 @@ describe('chartViews', () => {
       'cycle',
       'flows',
     ]);
-    expect(fiat.find((view) => view.key === 'prices')?.unit).toBe('cents');
-    expect(fiat.find((view) => view.key === 'tax')?.unit).toBe('cents');
+    expect(fiat.find((view) => view.key === 'prices')?.unit).toBe('dollars');
+    expect(fiat.find((view) => view.key === 'tax')?.unit).toBe('dollars');
     expect(bitcoin.find((view) => view.key === 'ubi')?.unit).toBe('satoshis');
     expect(fiat.find((view) => view.key === 'output')?.group).toBe('Output');
     expect(fiat.find((view) => view.key === 'tenure')?.group).toBe('Living standards');
@@ -98,6 +107,10 @@ describe('chartViews', () => {
     expect(views[pricesAt + 1]?.key).toBe('cpi-band');
     expect(views[pricesAt + 1]?.unit).toBe('satoshis');
     expect(views[pricesAt + 1]?.lines.map((line) => line.label)).toEqual(['5th', 'Median', '95th']);
+    expect(views[pricesAt + 1]?.lines.find((line) => line.label === 'Median')?.values).toEqual([
+      sats(3),
+      sats(4),
+    ]);
   });
 
   it('offers a log-scale toggle on charts that often grow exponentially', () => {
@@ -122,37 +135,84 @@ describe('chartViews', () => {
     expect(views.find((view) => view.key === 'labor')?.logToggle).toBeUndefined();
   });
 
-  it('shows fiat money charts in dollars when a point is above 1000 cents', () => {
+  it('scales fiat money charts by the shared dollar factor', () => {
     const cents = [500, 250_000];
-    const dollars = [5, 2_500];
     const views = chartViews({ kind: 'run', ticks, series: series(cents) }, 'fiat');
-    for (const key of ['prices', 'ubi', 'tax', 'ai-spend', 'living', 'money', 'flows']) {
+    for (const key of ['prices', 'ubi', 'tax', 'ai-spend', 'money', 'flows']) {
       const view = views.find((item) => item.key === key);
       expect(view?.unit).toBe('dollars');
-      expect(view?.lines[0]?.values).toEqual(dollars);
+      expect(view?.lines[0]?.values).toEqual([dollars(500), dollars(250_000)]);
     }
-    expect(views.find((view) => view.key === 'tax')?.lines[1]?.values).toEqual(dollars);
+    expect(views.find((view) => view.key === 'tax')?.lines[1]?.values).toEqual([
+      dollars(500),
+      dollars(250_000),
+    ]);
     expect(views.find((view) => view.key === 'labor')?.unit).toBe('share');
     expect(views.find((view) => view.key === 'labor')?.lines[0]?.values).toEqual(cents);
     expect(views.find((view) => view.key === 'output')?.unit).toBe('real units');
     expect(views.find((view) => view.key === 'wellbeing')?.unit).toBe('log points');
   });
 
-  it('keeps money charts in cents at 1000 and in satoshis under bitcoin', () => {
-    const atCap = chartViews({ kind: 'run', ticks, series: series([0, 1_000]) }, 'fiat');
-    const capped = atCap.find((view) => view.key === 'ubi');
-    expect(capped?.unit).toBe('cents');
-    expect(capped?.lines[0]?.values).toEqual([0, 1_000]);
+  it('puts CPI-deflated wealth into the same dollars as money stocks', () => {
+    const values = series([100, 200]);
+    values.priceLevel = [120, 240];
+    values.totalRealWealth = [10, 10];
+    values.moneySupply = [1_200, 2_400];
+    const views = chartViews({ kind: 'run', ticks, series: values }, 'fiat');
+    expect(views.find((view) => view.key === 'money')?.lines[0]?.values).toEqual([
+      dollars(1_200),
+      dollars(2_400),
+    ]);
+    expect(views.find((view) => view.key === 'total-wealth')?.lines[0]?.values).toEqual([
+      dollars(1_200),
+      dollars(2_400),
+    ]);
+    expect(views.find((view) => view.key === 'total-wealth')?.lines[0]?.label).toBe('Total wealth');
+  });
 
-    const justOver = chartViews({ kind: 'run', ticks, series: series([0, 1_100]) }, 'fiat');
-    const grant = justOver.find((view) => view.key === 'ubi');
-    expect(grant?.unit).toBe('dollars');
-    expect(grant?.lines[0]?.values).toEqual([0, 11]);
+  it('deflates dollar charts together when the basis is opening-month dollars', () => {
+    const values = series([100, 200]);
+    values.priceLevel = [120, 240];
+    values.taxRevenue = [1_200, 2_400];
+    values.totalRealWealth = [10, 10];
+    const views = chartViews({ kind: 'run', ticks, series: values }, 'fiat', null, 0, {
+      dollarBasis: 'real',
+    });
+    expect(views.find((view) => view.key === 'tax')?.unit).toBe('opening-month dollars');
+    expect(views.find((view) => view.key === 'tax')?.lines[0]?.values).toEqual([
+      dollars(1_200),
+      dollars(1_200),
+    ]);
+    expect(views.find((view) => view.key === 'total-wealth')?.lines[0]?.values).toEqual([
+      dollars(1_200),
+      dollars(1_200),
+    ]);
+    expect(views.find((view) => view.key === 'total-wealth')?.lines[0]?.label).toBe(
+      'Total real wealth',
+    );
+    expect(views.find((view) => view.key === 'living')?.description).toMatch(
+      /dollars of the run’s first month/,
+    );
+    expect(views.find((view) => view.key === 'living')?.description).not.toMatch(/divided by the CPI/);
+  });
 
-    const bitcoin = chartViews({ kind: 'run', ticks, series: series([0, 250_000]) }, 'bitcoin');
+  it('describes living standards as monthly money when dollars are nominal', () => {
+    const views = chartViews({ kind: 'run', ticks, series: series([100, 120]) }, 'fiat');
+    const living = views.find((view) => view.key === 'living');
+    expect(living?.description).toMatch(/monthly money wage/);
+    expect(living?.description).not.toMatch(/divided by|first month/);
+    expect(living?.lines[0]?.label).toBe('Wage');
+  });
+
+  it('scales bitcoin money charts by the shared satoshi factor without a dollar basis', () => {
+    const values = series([100, 250_000]);
+    values.ubiOutlay = [0, 250_000];
+    const bitcoin = chartViews({ kind: 'run', ticks, series: values }, 'bitcoin', null, 0, {
+      dollarBasis: 'real',
+    });
     const ubi = bitcoin.find((view) => view.key === 'ubi');
     expect(ubi?.unit).toBe('satoshis');
-    expect(ubi?.lines[0]?.values).toEqual([0, 250_000]);
+    expect(ubi?.lines[0]?.values).toEqual([0, sats(250_000)]);
   });
 
   it('scales a fiat CPI band to dollars', () => {
@@ -162,7 +222,10 @@ describe('chartViews', () => {
     );
     const band = wide.find((view) => view.key === 'cpi-band');
     expect(band?.unit).toBe('dollars');
-    expect(band?.lines.find((line) => line.label === 'Median')?.values).toEqual([2, 200]);
+    expect(band?.lines.find((line) => line.label === 'Median')?.values).toEqual([
+      dollars(200),
+      dollars(20_000),
+    ]);
   });
 
   it('overlays a solid baseline and a dashed variant in the same color', () => {
@@ -194,16 +257,16 @@ describe('chartViews', () => {
     ).toEqual(legend);
     expect(prices?.lines[0]?.pair).toBe(prices?.lines[1]?.pair);
     expect(prices?.lines[0]?.pair).not.toBe(prices?.lines[2]?.pair);
-    expect(prices?.lines[0]?.values).toEqual([1, 2]);
-    expect(prices?.lines[1]?.values).toEqual([3, 4]);
+    expect(prices?.lines[0]?.values).toEqual([dollars(1), dollars(2)]);
+    expect(prices?.lines[1]?.values).toEqual([dollars(3), dollars(4)]);
     expect(prices?.lines[0]?.color).toBe('#1e3a8a');
     expect(prices?.lines[1]?.color).toBe('#1e3a8a');
     expect(prices?.lines[0]?.dash).toBeUndefined();
     expect(prices?.lines[1]?.dash).toEqual([...VARIANT_DASH]);
-    expect(prices?.unit).toBe('cents');
+    expect(prices?.unit).toBe('dollars');
   });
 
-  it('scales paired fiat money charts from the combined peak', () => {
+  it('scales paired fiat money charts with the shared dollar factor', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([100, 200]) };
     const variant = { kind: 'run' as const, ticks, series: series([500, 2_000]) };
     const views = chartViews(variant, 'fiat', {
@@ -214,8 +277,8 @@ describe('chartViews', () => {
     const ubi = views.find((view) => view.key === 'ubi');
     expect(ubi?.unit).toBe('dollars');
     expect(ubi?.lines.map((line) => line.values)).toEqual([
-      [1, 2],
-      [5, 20],
+      [dollars(100), dollars(200)],
+      [dollars(500), dollars(2_000)],
     ]);
     expect(ubi?.lines[0]?.omitLegend).toBe(true);
     expect(ubi?.lines[1]?.omitLegend).toBeUndefined();
@@ -243,17 +306,17 @@ describe('chartViews', () => {
     expect(prices?.lines[1]?.label).toBe('CPI');
     expect(prices?.lines[0]?.omitLegend).toBe(true);
     expect(prices?.lines[1]?.omitLegend).toBeUndefined();
-    expect(prices?.lines[0]?.values).toEqual([5, 2_500]);
+    expect(prices?.lines[0]?.values).toEqual([dollars(500), dollars(250_000)]);
     expect(prices?.lines[0]?.scale).toBe('y');
     expect(prices?.lines[0]?.unit).toBe('dollars');
-    expect(prices?.lines[1]?.values).toEqual([8, 9]);
+    expect(prices?.lines[1]?.values).toEqual([sats(8), sats(9)]);
     expect(prices?.lines[1]?.scale).toBe('sats');
     expect(prices?.lines[1]?.unit).toBe('satoshis');
     expect(views.find((view) => view.key === 'labor')?.unit).toBe('share');
     expect(views.find((view) => view.key === 'labor')?.lines[0]?.scale).toBeUndefined();
   });
 
-  it('keeps a small fiat series in cents on the left when the scenario is satoshis', () => {
+  it('keeps dollars on the left for a small fiat series when the scenario is satoshis', () => {
     const baseline = { kind: 'run' as const, ticks, series: series([100, 500]) };
     const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
     const views = chartViews(variant, 'bitcoin', {
@@ -263,12 +326,12 @@ describe('chartViews', () => {
     });
     const grant = views.find((view) => view.key === 'ubi');
     expect(grant?.note).toBe(
-      'Solid lines are the baseline, in cents (left axis). Dashed lines are the scenario, in satoshis (right axis).',
+      'Solid lines are the baseline, in dollars (left axis). Dashed lines are the scenario, in satoshis (right axis).',
     );
-    expect(grant?.lines[0]?.values).toEqual([100, 500]);
-    expect(grant?.lines[0]?.unit).toBe('cents');
+    expect(grant?.lines[0]?.values).toEqual([dollars(100), dollars(500)]);
+    expect(grant?.lines[0]?.unit).toBe('dollars');
     expect(grant?.lines[0]?.scale).toBe('y');
-    expect(grant?.lines[1]?.values).toEqual([8, 9]);
+    expect(grant?.lines[1]?.values).toEqual([sats(8), sats(9)]);
     expect(grant?.lines[1]?.scale).toBe('sats');
   });
 
@@ -284,12 +347,31 @@ describe('chartViews', () => {
     expect(grant?.note).toBe(
       'Solid lines are the baseline, in satoshis (right axis). Dashed lines are the scenario, in dollars (left axis).',
     );
-    expect(grant?.lines[0]?.values).toEqual([8, 9]);
+    expect(grant?.lines[0]?.values).toEqual([sats(8), sats(9)]);
     expect(grant?.lines[0]?.scale).toBe('sats');
     expect(grant?.lines[0]?.unit).toBe('satoshis');
-    expect(grant?.lines[1]?.values).toEqual([5, 2_500]);
+    expect(grant?.lines[1]?.values).toEqual([dollars(500), dollars(250_000)]);
     expect(grant?.lines[1]?.scale).toBe('y');
     expect(grant?.lines[1]?.unit).toBe('dollars');
+  });
+
+  it('uses opening-month dollars on the fiat axis of a mixed comparison', () => {
+    const baseline = { kind: 'run' as const, ticks, series: series([120, 240]) };
+    const variant = { kind: 'run' as const, ticks, series: series([8, 9]) };
+    const views = chartViews(
+      variant,
+      'bitcoin',
+      { result: baseline, regime: 'fiat', transitionLength: 0 },
+      0,
+      { dollarBasis: 'real' },
+    );
+    const grant = views.find((view) => view.key === 'ubi');
+    expect(grant?.note).toBe(
+      'Solid lines are the baseline, in opening-month dollars (left axis). Dashed lines are the scenario, in satoshis (right axis).',
+    );
+    expect(grant?.lines[0]?.values).toEqual([dollars(120), dollars(120)]);
+    expect(grant?.lines[0]?.unit).toBe('opening-month dollars');
+    expect(grant?.lines[1]?.values).toEqual([sats(8), sats(9)]);
   });
 
   it('captions a verdict series and a directional series under a baseline', () => {
@@ -301,6 +383,8 @@ describe('chartViews', () => {
     baselineSeries.interestRate = [0.04, 0.04];
     baselineSeries.priceLevel = [100, 100];
     baselineSeries.totalRealWealth = [1000, 1000];
+    baselineSeries.realCashWealth = [0, 0];
+    baselineSeries.realClaimWealth = [0, 0];
     const variantSeries = series([1, 2]);
     variantSeries.meanWellbeing = [1.5, 2.5];
     variantSeries.medianWellbeing = [1, 2];
@@ -309,6 +393,8 @@ describe('chartViews', () => {
     variantSeries.interestRate = [0.04, 0.04];
     variantSeries.priceLevel = [100, 108];
     variantSeries.totalRealWealth = [1000, 1500];
+    variantSeries.realCashWealth = [0, 0];
+    variantSeries.realClaimWealth = [0, 0];
     const views = chartViews({ kind: 'run', ticks, series: variantSeries }, 'fiat', {
       result: { kind: 'run', ticks, series: baselineSeries },
       regime: 'fiat',
@@ -321,14 +407,15 @@ describe('chartViews', () => {
       'Unemployment ends lower (0.0800 → 0.0400). That is an improvement. Natural unemployment and Policy rate match the baseline.',
     );
     expect(views.find((view) => view.key === 'prices')?.caption).toMatch(
-      /^CPI ends higher \(100 → 108\)\./,
+      /^CPI ends higher \(5k → 5\.4k\)\./,
     );
     expect(views.find((view) => view.key === 'prices')?.caption).not.toMatch(/improvement|worse/);
     expect(views.find((view) => view.key === 'credit')?.caption).toBe(
       'Every series matches the baseline.',
     );
+    // Wealth: baseline 1000*100*50=5M, variant end 1500*108*50=8.1M
     expect(views.find((view) => view.key === 'total-wealth')?.caption).toBe(
-      'Total real wealth ends higher (10 → 15). That is an improvement. Cash wealth and Capital claims match the baseline.',
+      'Total wealth ends higher (5M → 8.1M). That is an improvement. Cash wealth and Capital claims match the baseline.',
     );
   });
 

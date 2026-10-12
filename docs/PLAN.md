@@ -479,9 +479,11 @@ Goal: change assumptions, run a scenario in the browser, and compare regimes.
    majority of months disagrees,
    and calls the change an improvement or worse only for well-being, unemployment, inequality, total wealth, living
    standards, real GDP,
-   and productivity per human. When a money chart's baseline and scenario use different units,
-   dollars (or cents, at or below 1,000 cents) are the left axis and satoshis are the right axis, and the caption does
-   not score that pair.
+   and productivity per human. Money charts and the month diagram display ledger amounts on a shared scale: a skill-1
+   opening wage is $5,000, and satoshi charts use that wage at the model’s opening bitcoin price. A Dollars control
+   switches every dollar chart between nominal and opening-month dollars; satoshi amounts stay nominal. When a money
+   chart's baseline and scenario use different units, dollars are the left axis and satoshis are the right axis, and
+   the caption does not score that pair.
 4. Charts with uPlot for the welfare dashboard and category prices.
    Hovering a legend item highlights that line.
    The horizontal axis labels each month of the run as a calendar month, starting at the month the page is viewed.
@@ -1640,7 +1642,8 @@ Acceptance:
 
 - Adding bonds past the safe integer throws.
 - Gradual nominal growth is redenominated before a fiat stock reaches that ceiling, so a hyperinflation still finishes
-  and charted prices stay in original cents. See the accounting section of `docs/model.md`.
+  and reported prices stay in original cents before the shared dollar display scale. See the accounting section of
+  `docs/model.md`.
 - A replaced firm keeps its worker list and household employer links.
 - A monetary fiat demand shock does not jump unemployment by 20 points or more in one month.
 

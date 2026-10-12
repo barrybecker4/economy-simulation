@@ -630,7 +630,7 @@ export function plotData(
   return data;
 }
 
-/** Compact tick labels so large cent and satoshi stocks stay readable. */
+/** Compact tick labels so large dollar and satoshi stocks stay readable. */
 export function formatAxisNumber(value: number): string {
   if (!Number.isFinite(value)) {
     return '';

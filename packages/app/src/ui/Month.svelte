@@ -355,8 +355,8 @@
   <div class="panel">
     <h3>Total wealth</h3>
     <p class="note">
-      Stock of household deposits plus equity claims when the equity market is on, divided by CPI.
-      The wealth-by-fifth bars are shares of this stock.
+      Stock of household deposits plus equity claims when the equity market is on, in the same
+      dollars or satoshis as the money charts. The wealth-by-fifth bars are shares of this stock.
     </p>
     {#if baselineCensus && baselineFlows !== null}
       {@const sameUnit = baselineFlows.unit === flows.unit}
@@ -368,7 +368,7 @@
             <div
               class="size-track"
               role="img"
-              aria-label="Baseline total real wealth {formatMoney(baselineCensus.totalRealWealth)} {flows.unit}"
+              aria-label="Baseline total wealth {formatMoney(baselineCensus.totalRealWealth)} {flows.unit}"
             >
               <div
                 class="size-fill"
@@ -384,7 +384,7 @@
             <div
               class="size-track"
               role="img"
-              aria-label="Scenario total real wealth {formatMoney(census.totalRealWealth)} {flows.unit}"
+              aria-label="Scenario total wealth {formatMoney(census.totalRealWealth)} {flows.unit}"
             >
               <div
                 class="size-fill"
@@ -403,7 +403,7 @@
       {/if}
     {:else}
       <p>
-        Total real household wealth: {formatMoney(census.totalRealWealth)}
+        Total household wealth: {formatMoney(census.totalRealWealth)}
         {flows.unit}.
       </p>
     {/if}

@@ -1,7 +1,9 @@
 import { adoptionProgress, ownerSlotCount } from '../../../core/src/sim/population.js';
+import type { DollarBasis } from '../chart/money-display.js';
+import { displayMoneyValue } from '../chart/money-display.js';
 import { CENSUS_JOBS, CENSUS_OWNERS, CENSUS_WEALTH } from '../dashboard/catalog.js';
 import type { RunSuccess } from '../worker/protocol.js';
-import { metricAt } from '../worker/series.js';
+import { metricAt, readSeries } from '../worker/series.js';
 
 export interface WealthSlice {
   label: string;
@@ -26,7 +28,7 @@ export interface OwnerPicture {
 export interface MonthCensus {
   monthIndex: number;
   wealth: WealthSlice[];
-  /** Real household wealth at this month: non-negative holdings over CPI. */
+  /** Household wealth at this month in the same display dollars or satoshis as the charts. */
   totalRealWealth: number;
   /** Real GDP (sum of firm capacities) at this month. */
   realGdp: number;
@@ -47,11 +49,15 @@ export function monthCensus(
   result: RunSuccess,
   monthIndex: number,
   frame: CensusFrame,
+  regime = 'fiat',
+  dollarBasis: DollarBasis = 'nominal',
 ): MonthCensus {
   const index = clampIndex(monthIndex, result.ticks.length);
   const agentShare = metricAt(result, CENSUS_OWNERS.aiShareOfAgents, index);
   const agentCount = agentCountFromShare(agentShare, frame.households);
   const owners = ownerCount(frame, index / 12, agentCount);
+  const price = metricAt(result, 'priceLevel', index);
+  const opening = openingPrice(result);
   return {
     monthIndex: index,
     wealth: CENSUS_WEALTH.map((slice) => ({
@@ -59,7 +65,14 @@ export function monthCensus(
       share: metricAt(result, slice.id, index),
       color: slice.color,
     })),
-    totalRealWealth: metricAt(result, 'totalRealWealth', index),
+    totalRealWealth: displayMoneyValue(
+      metricAt(result, 'totalRealWealth', index),
+      'totalRealWealth',
+      regime,
+      dollarBasis,
+      price,
+      opening,
+    ),
     realGdp: metricAt(result, 'realGdp', index),
     jobs: CENSUS_JOBS.map((job) => ({
       label: job.label,
@@ -74,6 +87,14 @@ export function monthCensus(
       hasAgents: agentCount > 0,
     },
   };
+}
+
+function openingPrice(result: RunSuccess): number {
+  const open = readSeries(result, 'priceLevel')[0];
+  if (open === undefined || !Number.isFinite(open) || !(open > 0)) {
+    throw new Error('Missing opening priceLevel');
+  }
+  return open;
 }
 
 /** Agents = share * (households + agents), so agents = share * households / (1 - share). */

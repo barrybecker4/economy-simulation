@@ -91,6 +91,59 @@ export function lastHistoryValue(metricId: HistoryMetricId, origin: Date): numbe
   return null;
 }
 
+/**
+ * US CPI on the history axis, scaled so the last historical month matches
+ * `openModelPrice`. Run months are null. Used when converting money history.
+ */
+export function rebasedHistoryPriceLevels(
+  axisTicks: readonly number[],
+  origin: Date,
+  openModelPrice: number | null,
+): (number | null)[] {
+  return historySeriesValues('priceLevel', axisTicks, origin, openModelPrice);
+}
+
+/**
+ * US CPI rebased so it equals `openModelPrice` on the last month that
+ * `metricId` has history. Real wealth series end before CPI; anchoring CPI to
+ * that month keeps the displayed join continuous after multiplying by price.
+ */
+export function historyPriceLevelsForMetric(
+  metricId: HistoryMetricId,
+  axisTicks: readonly number[],
+  origin: Date,
+  openModelPrice: number | null,
+): (number | null)[] {
+  if (openModelPrice === null || !Number.isFinite(openModelPrice)) {
+    return axisTicks.map(() => null);
+  }
+  let lastTick: number | null = null;
+  for (let tick = -1; tick >= -HISTORY_MONTHS; tick -= 1) {
+    if (historyValue(metricId, origin, tick) !== null) {
+      lastTick = tick;
+      break;
+    }
+  }
+  if (lastTick === null) {
+    return rebasedHistoryPriceLevels(axisTicks, origin, openModelPrice);
+  }
+  const cpiAtLast = historyValue('priceLevel', origin, lastTick);
+  if (cpiAtLast === null || cpiAtLast === 0) {
+    return rebasedHistoryPriceLevels(axisTicks, origin, openModelPrice);
+  }
+  const factor = openModelPrice / cpiAtLast;
+  return axisTicks.map((tick) => {
+    if (tick >= 0) {
+      return null;
+    }
+    const raw = historyValue('priceLevel', origin, tick);
+    if (raw === null) {
+      return null;
+    }
+    return raw * factor;
+  });
+}
+
 /** History values on the axis: filled for ticks &lt; 0, null from tick 0 onward. */
 export function historySeriesValues(
   metricId: HistoryMetricId,

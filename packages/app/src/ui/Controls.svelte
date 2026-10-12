@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { DollarBasis } from '../chart/money-display.js';
   import NameTip from '../tip/NameTip.svelte';
   import { MAX_SEEDS, MIN_SEEDS } from '../session/run.js';
 
@@ -7,6 +8,8 @@
     ticks = $bindable(),
     seeds = $bindable(),
     showHistory = $bindable(),
+    dollarBasis = $bindable(),
+    dollarBasisDisabled = false,
     busy,
     runPrimary,
     pinned,
@@ -22,6 +25,8 @@
     ticks: number;
     seeds: number;
     showHistory: boolean;
+    dollarBasis: DollarBasis;
+    dollarBasisDisabled?: boolean;
     busy: boolean;
     runPrimary: boolean;
     pinned: boolean;
@@ -75,6 +80,24 @@
       <label class="toggle">
         <input type="checkbox" bind:checked={showHistory} aria-describedby="help-us-history" />
         US history
+      </label>
+    </NameTip>
+    <NameTip
+      id="dollar-basis"
+      intro={dollarBasisDisabled
+        ? 'Satoshi charts stay in nominal satoshis. This control applies when a fiat or hybrid run is on the charts.'
+        : 'How money charts quote dollars. Nominal is current dollars. Inflation-adjusted is dollars of the run’s first month. Every dollar chart uses the same choice. Satoshi amounts stay nominal. Turning this does not rerun the simulation.'}
+    >
+      <label>
+        Dollars
+        <select
+          bind:value={dollarBasis}
+          disabled={dollarBasisDisabled}
+          aria-describedby="help-dollar-basis"
+        >
+          <option value="nominal">Nominal</option>
+          <option value="real">Inflation-adjusted</option>
+        </select>
       </label>
     </NameTip>
     <NameTip
@@ -170,6 +193,13 @@
   }
   .controls label.toggle {
     gap: 0.4rem;
+  }
+  .controls select {
+    font: inherit;
+    padding: 0.25rem 0.4rem;
+  }
+  .controls select:disabled {
+    opacity: 0.55;
   }
   button {
     font: inherit;
