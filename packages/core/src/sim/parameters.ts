@@ -38,6 +38,7 @@ export interface Parameters {
   computeProductivity: number;
   categoryGrowth: CategoryProductivity;
   housingSupplyGrowth: number;
+  housingConstructionProductivity: number;
   marketClearing: 'off' | 'on';
   monetaryPremium: number;
   regime: Regime;
@@ -161,6 +162,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
       electronics: slider(config, 'goods.electronicsProductivity'),
     },
     housingSupplyGrowth: slider(config, 'goods.housingSupplyGrowth'),
+    housingConstructionProductivity: slider(config, 'goods.housingConstructionProductivity'),
     marketClearing: marketClearingOf(config),
     monetaryPremium: slider(config, 'housing.monetaryPremium'),
     regime,

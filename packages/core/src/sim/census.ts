@@ -152,6 +152,7 @@ function categoryPrices(economy: Economy): BasketSplit {
     baselineGrowth: economy.params.prodGrowth,
     productivity: economy.params.categoryGrowth,
     housingSupplyGrowth: economy.params.housingSupplyGrowth,
+    housingConstructionProductivity: economy.params.housingConstructionProductivity,
     deflationPenalty: deflationPenalty(economy),
     housingPressure: factors.scarcity,
     monetaryMultiple: factors.multiple,

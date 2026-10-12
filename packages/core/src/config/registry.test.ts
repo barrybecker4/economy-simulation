@@ -62,6 +62,7 @@ const EXPECTED_IDS = [
   'goods.electronicsProductivity',
   'goods.foodProductivity',
   'goods.housingSupplyGrowth',
+  'goods.housingConstructionProductivity',
   'housing.marketClearing',
   'housing.monetaryPremium',
   'goods.energyProductivity',

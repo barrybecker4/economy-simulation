@@ -101,7 +101,10 @@ function recordTenure(snapshot: MetricSnapshot, metrics: MetricSink, penalty: nu
   }
   metrics.set('nonMortgageHousingShare', 0.25 + 0.6 * penalty);
   const years = snapshot.tick / 12;
-  const scarcity = (1 + snapshot.prodGrowth) ** years / (1 + snapshot.housingSupplyGrowth) ** years;
+  const scarcity =
+    (1 + snapshot.prodGrowth) ** years /
+    (1 + snapshot.housingSupplyGrowth) ** years /
+    (1 + snapshot.housingConstructionProductivity) ** years;
   metrics.set('propertyTurnover', (0.08 * (1 - penalty)) / Math.max(scarcity, 0.25));
   metrics.set('mortgageShare', 0);
   metrics.set('rentShare', 0);

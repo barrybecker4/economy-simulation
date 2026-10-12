@@ -226,6 +226,7 @@ guess. The full list is generated into `docs/assumptions.md`.
 | Goods       | goods.electronicsProductivity (annual) | 0.08            | 0 to 0.3                     |
 | Goods       | goods.foodProductivity (annual)        | 0.01            | 0 to 0.3                     |
 | Goods       | goods.housingSupplyGrowth (annual)     | 0.004           | -0.01 to 0.02                |
+| Goods       | goods.housingConstructionProductivity  | 0.005           | 0 to 0.05                    |
 | Goods       | goods.energyProductivity (annual)      | 0.005           | 0 to 0.3                     |
 | Goods       | goods.apparelProductivity (annual)     | 0.04            | 0 to 0.3                     |
 | Goods       | goods.transportProductivity (annual)   | 0.02            | 0 to 0.3                     |
@@ -740,6 +741,9 @@ Goal: housing scarcity can clear against tenure demand and supply, instead of on
 2. On: a scarcity index starts at 1 and moves with the share of owners and mortgage holders and with housing supply
    growth. It multiplies the housing category price and the home price. Tenure choice off holds demand at the neutral
    share.
+3. Follow-up: positive demand pressure soft-fades toward scarcity 8 with a hard clamp at 20 (was 4).
+   `goods.housingConstructionProductivity` (default 0.005) cheapens the months-of-income sticker and the unscaled
+   housing CPI line by `(1 + g_c)^(-t)`, separately from supply growth.
 
 Acceptance:
 
@@ -1455,8 +1459,8 @@ inflation target.
    baseline productivity under bitcoin. Hedge share is that path over the inflation target, clamped to [0, 1], and 0
    when the target is 0. The price multiple is `1 − premium × (1 − hedge)`.
 3. The multiple multiplies the tenure purchase price, opening mortgage principal, rent and user-cost home price, and the
-   unscaled CPI housing line. Market-clearing scarcity still multiplies after it. `homePriceMonths` records
-   `48 × scarcity × multiple`.
+   unscaled CPI housing line. Market-clearing scarcity and construction productivity still multiply after it.
+   `homePriceMonths` records `48 × (1 + g_c)^(-t) × scarcity × multiple`.
 
 Acceptance:
 

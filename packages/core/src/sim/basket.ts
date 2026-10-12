@@ -62,6 +62,8 @@ export function splitBasket(input: {
   baselineGrowth: number;
   productivity: CategoryProductivity;
   housingSupplyGrowth: number;
+  /** Building-tech rate; divides the unscaled housing line by (1 + g_c)^years. */
+  housingConstructionProductivity?: number;
   deflationPenalty: number;
   /** Extra scarcity from the housing market. Omitted or 1 keeps the formula price. */
   housingPressure?: number;
@@ -70,9 +72,11 @@ export function splitBasket(input: {
 }): BasketSplit {
   const relative = (growth: number): number =>
     (1 + input.baselineGrowth) ** input.years / (1 + growth) ** input.years;
+  const construction = input.housingConstructionProductivity ?? 0;
   const housing =
     ((relative(0) * (1 - input.deflationPenalty)) /
-      (1 + input.housingSupplyGrowth) ** input.years) *
+      (1 + input.housingSupplyGrowth) ** input.years /
+      (1 + construction) ** input.years) *
     (input.housingPressure ?? 1) *
     (input.monetaryMultiple ?? 1);
   const unscaled = {

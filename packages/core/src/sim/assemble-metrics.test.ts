@@ -231,6 +231,7 @@ function snapshot(
     tick: input.tick,
     prodGrowth: input.prodGrowth,
     housingSupplyGrowth: input.housingSupplyGrowth,
+    housingConstructionProductivity: input.housingConstructionProductivity,
     tenureChoice: input.tenure === null ? 'off' : 'on',
     tenure: input.tenure,
     investmentHurdle: input.investmentHurdle,
@@ -298,6 +299,7 @@ interface TestInput {
   tick: number;
   prodGrowth: number;
   housingSupplyGrowth: number;
+  housingConstructionProductivity: number;
   deposits: number;
   loans: number;
   investmentSpend: number;
@@ -325,6 +327,7 @@ function defaults(): TestInput {
     tick: 0,
     prodGrowth: 0,
     housingSupplyGrowth: 0,
+    housingConstructionProductivity: 0,
     deposits: 1,
     loans: 0,
     investmentSpend: 0,

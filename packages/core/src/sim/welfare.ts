@@ -63,6 +63,7 @@ function levels(
   | 'tick'
   | 'prodGrowth'
   | 'housingSupplyGrowth'
+  | 'housingConstructionProductivity'
   | 'tenureChoice'
   | 'tenure'
   | 'investmentHurdle'
@@ -88,6 +89,7 @@ function levels(
     tick: economy.tick,
     prodGrowth: economy.params.prodGrowth,
     housingSupplyGrowth: economy.params.housingSupplyGrowth,
+    housingConstructionProductivity: economy.params.housingConstructionProductivity,
     tenureChoice: economy.params.tenureChoice,
     tenure: economy.params.tenureChoice === 'on' ? readTenure(economy) : null,
     investmentHurdle: economy.params.investmentHurdle,

@@ -30,6 +30,7 @@ export const FEATURE_OFF: Readonly<Record<string, number | string>> = {
   'housing.marketClearing': 'off',
   'housing.monetaryPremium': 0,
   'goods.housingSupplyGrowth': 0,
+  'goods.housingConstructionProductivity': 0,
   'production.demandWeight': 0,
   'labor.firmLevelHiring': 'off',
   'firm.investmentHurdle': 'off',

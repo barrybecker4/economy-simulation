@@ -866,6 +866,20 @@ Registry version: 14.
   and housing supply growth equal to baseline productivity to put every price on the CPI. The default equals baseline
   productivity.
 
+## goods.housingConstructionProductivity
+
+- Label: Housing construction productivity
+- Group: goods
+- Unit: 1/year
+- Default: 0.005
+- Range: 0 to 0.05
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual rate at which building tech cheapens homes. After t years the months-of-income purchase price and
+  the unscaled housing CPI line are each divided by (1 + this rate) raised to t, separately from housing supply growth.
+  The default of 0.005 is mild cheapening. At 0 the previous 48-month sticker and housing relative-price path are
+  unchanged aside from supply growth and scarcity. It does not add vacant stock or a builder agent.
+
 ## goods.housingSupplyGrowth
 
 - Label: Housing supply growth
@@ -876,14 +890,15 @@ Registry version: 14.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Annual growth in the supply of housing. Demand is taken to rise with real income, so the unscaled housing
-  price is ((1 + baseline productivity growth) / (1 + this rate)) raised to t, times one minus the deflation penalty.
-  Housing is about 43 percent of the basket, the December 2024 CPI-U housing share with household energy removed, then
-  rescaled with the other categories. The basket is scaled so the expenditure-weighted average equals the CPI. Expected
-  deflation cuts housing demand through the penalty. A higher housing price relative to the CPI lowers housing security.
-  The default of 0.004 sits just under population growth, so scarcity can build when market clearing is on. At zero,
-  housing rises with productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and
-  set every category productivity equal to that same baseline, to put every price on the CPI aside from the deflation
-  term. When housing.marketClearing is on, this growth also eases the market scarcity index.
+  price is ((1 + baseline productivity growth) / (1 + this rate) / (1 + housing construction productivity)) raised to t,
+  times one minus the deflation penalty. Housing is about 43 percent of the basket, the December 2024 CPI-U housing
+  share with household energy removed, then rescaled with the other categories. The basket is scaled so the
+  expenditure-weighted average equals the CPI. Expected deflation cuts housing demand through the penalty. A higher
+  housing price relative to the CPI lowers housing security. The default of 0.004 sits just under population growth, so
+  scarcity can build when market clearing is on. At zero, housing rises with productivity aside from construction
+  productivity. A negative rate means the stock shrinks. Set this equal to baseline productivity, and set every category
+  productivity equal to that same baseline, to put every price on the CPI aside from the deflation term and construction
+  productivity. When housing.marketClearing is on, this growth also eases the market scarcity index.
 
 ## goods.medicalProductivity
 
@@ -1170,10 +1185,11 @@ Registry version: 14.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Whether housing scarcity is a market outcome. On, scarcity starts at 1 and moves with the share of
-  households who own or hold a mortgage, and with housing supply growth. That scarcity multiplies the housing category
-  price and the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so
-  scarcity stays at 1 unless supply growth moves it. Off keeps the formula price and a home price of 48 months of income
-  times the monetary-premium multiple.
+  households who own or hold a mortgage, and with housing supply growth. Positive demand pressure fades as scarcity
+  approaches 8; the index is hard-clamped between 0.25 and 20. That scarcity multiplies the housing category price and
+  the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays
+  at 1 unless supply growth moves it. Off keeps the formula price and a home price of 48 months of income times
+  construction productivity and the monetary-premium multiple.
 
 ## housing.monetaryPremium
 
@@ -1186,10 +1202,11 @@ Registry version: 14.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of the current 48-month home price that exists because housing is held as an inflation hedge. The
   hedge follows the regime price path: the inflation target under fiat and hybrid, and minus baseline productivity under
-  bitcoin. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income.
-  When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so the default of
-  0.25 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line by a quarter under bitcoin. Hybrid
-  keeps the full hedge because its goods path is the inflation target. At 0 the previous 48-month price is unchanged.
+  bitcoin. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income
+  times construction productivity and scarcity. When the path does not inflate, or the inflation target is 0, the
+  multiple is one minus this share, so the default of 0.25 cuts the purchase price, rent, mortgage size, and unscaled
+  CPI housing line by a quarter under bitcoin. Hybrid keeps the full hedge because its goods path is the inflation
+  target. At 0 the previous sticker before the premium is unchanged.
 
 ## housing.mortgageDefaultShare
 

@@ -1,10 +1,15 @@
-import { HOME_PRICE_MONTHS } from './rules.js';
+import { HOME_PRICE_MONTHS, MONTHS_PER_YEAR } from './rules.js';
 import { monthlyFromAnnual, clamp } from './stats.js';
 import type { Economy } from './economy.js';
 import { normalInflation } from './helpers.js';
 
 const NEUTRAL_DEMAND = 0.55;
 const PRESSURE_SPEED = 0.08;
+/** Soft ceiling: positive demand gap fades to zero as pressure approaches this. */
+export const HOUSING_PRESSURE_SOFT = 8;
+/** Hard floor / ceiling on the scarcity index. */
+export const HOUSING_PRESSURE_MIN = 0.25;
+export const HOUSING_PRESSURE_MAX = 20;
 
 /**
  * Share of the fiat-target home price that remains as an inflation hedge.
@@ -31,14 +36,28 @@ export function housingPriceMultiple(input: {
   return 1 - input.monetaryPremium * (1 - hedge);
 }
 
-/** Home price in months of income after scarcity and the monetary premium. */
+/** Construction-tech factor on the months-of-income sticker: (1 + g_c)^(-years). */
+export function constructionCostFactor(
+  constructionProductivity: number,
+  years: number,
+): number {
+  if (!(years > 0) || !(constructionProductivity > -1)) {
+    return 1;
+  }
+  return (1 + constructionProductivity) ** -years;
+}
+
+/** Home price in months of income after scarcity, construction tech, and the monetary premium. */
 export function homePriceMonthsOf(input: {
   scarcity: number;
   monetaryPremium: number;
   normalInflation: number;
   inflationTarget: number;
+  constructionProductivity?: number;
+  years?: number;
 }): number {
-  return HOME_PRICE_MONTHS * input.scarcity * housingPriceMultiple(input);
+  const build = constructionCostFactor(input.constructionProductivity ?? 0, input.years ?? 0);
+  return HOME_PRICE_MONTHS * build * input.scarcity * housingPriceMultiple(input);
 }
 
 /** Scarcity and monetary-premium multiple for the current economy. */
@@ -53,22 +72,31 @@ export function housingPriceFactors(economy: Economy): {
     normalInflation: normalInflation(economy),
     inflationTarget: economy.params.inflationTarget,
   });
+  const years = economy.tick / MONTHS_PER_YEAR;
+  const build = constructionCostFactor(economy.params.housingConstructionProductivity, years);
   return {
     scarcity,
     multiple,
-    months: HOME_PRICE_MONTHS * scarcity * multiple,
+    months: HOME_PRICE_MONTHS * build * scarcity * multiple,
   };
 }
 
-/** Next housing scarcity index. Neutral demand and zero supply growth leave it unchanged. */
+/**
+ * Next housing scarcity index. Positive demand pressure fades as the index
+ * approaches the soft ceiling; above that only supply can lower it. Hard clamp
+ * is a numerical guard.
+ */
 export function nextHousingPressure(input: {
   pressure: number;
   demand: number;
   supplyGrowthMonthly: number;
 }): number {
-  const gap = clamp(input.demand - NEUTRAL_DEMAND, -0.5, 0.5);
+  let gap = clamp(input.demand - NEUTRAL_DEMAND, -0.5, 0.5);
+  if (gap > 0) {
+    gap *= Math.max(0, 1 - input.pressure / HOUSING_PRESSURE_SOFT);
+  }
   const updated = (input.pressure * (1 + PRESSURE_SPEED * gap)) / (1 + input.supplyGrowthMonthly);
-  return clamp(updated, 0.25, 4);
+  return clamp(updated, HOUSING_PRESSURE_MIN, HOUSING_PRESSURE_MAX);
 }
 
 export function updateHousingPressure(economy: Economy): void {

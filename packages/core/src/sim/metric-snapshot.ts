@@ -54,6 +54,7 @@ export interface MetricSnapshot {
   tick: number;
   prodGrowth: number;
   housingSupplyGrowth: number;
+  housingConstructionProductivity: number;
   tenureChoice: 'off' | 'on';
   tenure: TenureReading | null;
   investmentHurdle: 'off' | 'on';

@@ -25,11 +25,35 @@ describe('CPI basket', () => {
       baselineGrowth: 0.01,
       productivity: baseline,
       housingSupplyGrowth: 0.01,
+      housingConstructionProductivity: 0,
       deflationPenalty: 0,
     });
     for (const price of Object.values(split)) {
       expect(price).toBeCloseTo(120, 8);
     }
+  });
+
+  it('cheapens housing when construction productivity rises', () => {
+    const plain = splitBasket({
+      cpi: 100,
+      years: 10,
+      baselineGrowth: 0.01,
+      productivity: baseline,
+      housingSupplyGrowth: 0.01,
+      housingConstructionProductivity: 0,
+      deflationPenalty: 0,
+    });
+    const tech = splitBasket({
+      cpi: 100,
+      years: 10,
+      baselineGrowth: 0.01,
+      productivity: baseline,
+      housingSupplyGrowth: 0.01,
+      housingConstructionProductivity: 0.02,
+      deflationPenalty: 0,
+    });
+    expect(tech.priceHousing).toBeLessThan(plain.priceHousing);
+    expect(basketAverage(tech)).toBeCloseTo(100, 8);
   });
 
   it('keeps the expenditure-weighted average equal to the CPI', () => {

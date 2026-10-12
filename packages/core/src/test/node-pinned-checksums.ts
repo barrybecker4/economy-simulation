@@ -3,8 +3,8 @@
  * CI and local dev use the same Node major (see .nvmrc); bump these when upgrading.
  */
 export const CROSS_ENGINE_SERIES_CHECKSUMS = {
-  bitcoinNoMortgage: 'a57afcbd7aa166bd',
-  gradualTransition: '517dd503a1c8239a',
+  bitcoinNoMortgage: 'bbb03d1cd1db60cb',
+  gradualTransition: 'fee69463c6684cff',
 } as const;
 
 export const PINNED_NODE_MAJOR = '26';
