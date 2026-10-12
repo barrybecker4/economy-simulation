@@ -196,6 +196,22 @@ describe('chartViews', () => {
     expect(views.find((view) => view.key === 'living')?.description).not.toMatch(/divided by the CPI/);
   });
 
+  it('explains the bitcoin exchange rate as a goods index times the redenomination scale', () => {
+    const fiat = chartViews({ kind: 'run', ticks, series: series([100, 120]) }, 'fiat');
+    const bitcoin = chartViews({ kind: 'run', ticks, series: series([100, 120]) }, 'bitcoin');
+    const hybrid = chartViews({ kind: 'run', ticks, series: series([100, 120]) }, 'hybrid');
+    expect(fiat.find((view) => view.key === 'bitcoin-price')?.description).toMatch(/3 billion/);
+    expect(bitcoin.find((view) => view.key === 'bitcoin-price')?.description).toMatch(
+      /0\.05 and 20/,
+    );
+    expect(bitcoin.find((view) => view.key === 'bitcoin-price')?.description).not.toMatch(
+      /3 billion/,
+    );
+    expect(hybrid.find((view) => view.key === 'bitcoin-price')?.description).toMatch(
+      /8\.5 million cents/,
+    );
+  });
+
   it('describes living standards as monthly money when dollars are nominal', () => {
     const views = chartViews({ kind: 'run', ticks, series: series([100, 120]) }, 'fiat');
     const living = views.find((view) => view.key === 'living');

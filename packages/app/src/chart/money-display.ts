@@ -152,6 +152,21 @@ export function livingStandardsDescription(basis: DollarBasis, regime: string): 
   return `Wage is the monthly money wage in dollars of the run’s first month. Mean and median income are household monthly wages and profits, plus the UBI grant and any treasury surplus rebate, on that same basis. Consumption is monthly goods buying on that basis. When the CPI has fallen, these opening-month dollars sit above nominal dollars; when it has risen, they sit below. ${shared}`;
 }
 
+/**
+ * Bitcoin exchange-rate blurb. The catalog text is the fiat chart: a goods index
+ * times the redenomination scale. Bitcoin skips that scale. Hybrid charts cents per bitcoin.
+ */
+export function bitcoinExchangeDescription(regime: string, fiatDescription: string): string {
+  const seeds = 'More than one seed draws the median.';
+  if (regime === 'hybrid') {
+    return `Cents per bitcoin on the outside supply-shock path. The path opens in October 2026 at $85,000, which is 8.5 million cents. Household demand in this economy leaves the path unchanged. After a fiat redenomination the chart still shows that price in original cents. ${seeds}`;
+  }
+  if (regime === 'bitcoin') {
+    return `Goods bought by one unit of bitcoin money. The goods-unit is one unit of the consumption basket, the basket the CPI prices in satoshis. The index opens at 1 and stays between 0.05 and 20. It moves with the bitcoin money share and issuance when monetary choice or the market-price weight is on. ${seeds}`;
+  }
+  return fiatDescription;
+}
+
 /** Prices chart blurb. Opening-month dollars hold the CPI at the opening basket price. */
 export function pricesDescription(basis: DollarBasis, regime: string): string {
   const categories =

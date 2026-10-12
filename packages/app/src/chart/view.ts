@@ -19,6 +19,7 @@ import { hasMarks, MARKS_TIP, mergeMarks, runMarks, type ChartMarks } from './ma
 import {
   type DollarBasis,
   displayMoneySeries,
+  bitcoinExchangeDescription,
   livingStandardsDescription,
   moneyDisplayUnit,
   moneyLineLabel,
@@ -222,6 +223,9 @@ function panelDescription(
   }
   if (spec.key === 'typical-wealth') {
     return wealthDescription('typical', dollarBasis, regime);
+  }
+  if (spec.key === 'bitcoin-price') {
+    return bitcoinExchangeDescription(regime, spec.description);
   }
   return spec.description;
 }

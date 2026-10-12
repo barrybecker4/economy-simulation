@@ -381,7 +381,12 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Money',
     unit: 'index',
     description:
-      'Bitcoin exchange rate against the goods unit. Opens at 1 and stays between 0.05 and 20. Moves with the bitcoin money share and issuance when monetary choice or the market-price weight is on. More than one seed draws the median.',
+      'Goods bought by one unit of bitcoin money. The goods-unit is one unit of the consumption basket, ' +
+        'the basket the CPI prices. The index opens at 1 and stays between 0.05 and 20. It moves with the bitcoin money share and issuance ' +
+        'when monetary choice or the market-price weight is on. The chart multiplies that index by the fiat redenomination scale. ' +
+        'Each redenomination divides fiat prices and money stocks by 1,000 and multiplies the scale by 1,000, ' +
+        'so three of those steps draw an index of 3 as 3 billion. ' +
+        'More than one seed draws the median.',
     lines: [{ id: 'bitcoinPrice', label: 'Bitcoin price', color: '#a16207' }],
   },
   {

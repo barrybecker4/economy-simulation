@@ -8,6 +8,7 @@ import {
   displayMoneySeries,
   displayMoneyValue,
   moneyDisplayUnit,
+  bitcoinExchangeDescription,
   livingStandardsDescription,
   moneyLineLabel,
   moneyUnit,
@@ -125,6 +126,28 @@ describe('livingStandardsDescription', () => {
     expect(text).toMatch(/dollars of the run’s first month/);
     expect(text).toMatch(/When the CPI has fallen/);
     expect(text).not.toMatch(/divided by the CPI/);
+  });
+});
+
+describe('bitcoinExchangeDescription', () => {
+  const fiat = 'fiat catalog text';
+
+  it('uses the fiat catalog text, which carries the redenomination scale', () => {
+    expect(bitcoinExchangeDescription('fiat', fiat)).toBe(fiat);
+  });
+
+  it('describes the bitcoin regime as the goods index alone', () => {
+    const text = bitcoinExchangeDescription('bitcoin', fiat);
+    expect(text).toMatch(/consumption basket/);
+    expect(text).toMatch(/0\.05 and 20/);
+    expect(text).not.toMatch(/3 billion|supply-shock/);
+  });
+
+  it('describes hybrid as cents per bitcoin on the supply-shock path', () => {
+    const text = bitcoinExchangeDescription('hybrid', fiat);
+    expect(text).toMatch(/8\.5 million cents/);
+    expect(text).toMatch(/\$85,000/);
+    expect(text).not.toMatch(/0\.05 and 20/);
   });
 });
 
