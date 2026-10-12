@@ -74,7 +74,7 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     group: 'Labor',
     unit: 'share',
     description:
-      'Unemployment is the share of households without a job. Natural unemployment rises as AI shrinks the hiring target. The policy rate is the annual interest rate: under fiat it follows inflation and the gap from that natural rate, scaled by the human share of output, and under bitcoin or hybrid it moves with the gap between loans and savings. More than one seed draws each median.',
+      'Unemployment is the share of households without a job. Natural unemployment rises as AI shrinks the hiring target. The policy rate is the annual interest rate: under fiat and hybrid it follows inflation and the gap from that natural rate, scaled by the human share of output, and under bitcoin it moves with the gap between loans and savings. More than one seed draws each median.',
     lines: [
       { id: 'unemployment', label: 'Unemployment', color: '#b45309', better: 'lower' },
       { id: 'naturalUnemployment', label: 'Natural unemployment', color: '#92400e' },

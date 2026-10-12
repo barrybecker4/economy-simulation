@@ -59,8 +59,8 @@ later tick on that day in a later month. The run itself still starts at month 0.
 ## Expectations
 
 Expected inflation is `expectations.anchorWeight` times the regime path plus one minus that weight times trailing
-year-over-year inflation. The regime path is the inflation target under fiat and minus baseline productivity under
-bitcoin and hybrid. At weight 0 the expectation is the trailing rate. Spending, the real return on money, the deflation
+year-over-year inflation. The regime path is the inflation target under fiat and hybrid, and minus baseline
+productivity under bitcoin. At weight 0 the expectation is the trailing rate. Spending, the real return on money, the deflation
 penalty, housing tenure, and the fiat policy rate use the expectation. The recorded inflation series stays the trailing
 rate. Posted prices follow the regime path at weight 0, and the expectation when the weight is positive. Wages negotiate
 toward the agreed wage from the price level and productivity; they do not take the regime path directly.
@@ -218,7 +218,7 @@ There is one consumption good. A household's budget is a smoothed income, times 
 `1 − government.spendingShareOfGDP` tilted by how impatient the household is relative to the mean, plus
 `household.inflationTimePreference` times the gap between year-over-year inflation and the regime's normal inflation,
 times one plus the demand impulse, plus a small spend out of deposits above 48 months of income. Normal inflation is the
-inflation target under fiat and minus `productivity.baseGrowth` under bitcoin and hybrid. At sensitivity 0 the gap does
+inflation target under fiat and hybrid, and minus `productivity.baseGrowth` under bitcoin. At sensitivity 0 the gap does
 not enter. The response is small because value can sit in assets other than goods. Smoothed income is 90 percent of its
 previous value plus 10 percent of this tick's income. That uncut budget is split into a food and housing floor and a
 discretionary remainder. The floor share is the sum of the food and housing CPI weights, about 0.585. When
@@ -351,8 +351,8 @@ shrink with the penalty, down to zero.
 Household mortgages and consumer loans join total credit. The tenure purchase price is 48 months of income times
 scarcity times the monetary-premium multiple. That 48-month level is the fiat-target price, treated as already including
 any inflation-hedge bid. `housing.monetaryPremium` is the share of that price that exists because housing is held as an
-inflation hedge. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat, and minus
-baseline productivity under bitcoin and hybrid. Hedge share is that path over the inflation target, clamped to [0, 1],
+inflation hedge. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat and hybrid,
+and minus baseline productivity under bitcoin. Hedge share is that path over the inflation target, clamped to [0, 1],
 and 0 when the target is 0. The multiple is `1 − premium × (1 − hedge)`, so under a deflationary path a premium of 0.5
 cuts homes to 24 months of income. At premium 0 the multiple is 1. See
 [ADR 0018](adr/0018-housing-monetary-premium.md). When `housing.marketClearing` is off there is no separate housing
@@ -442,8 +442,8 @@ cannot withdraw more than reserves on the books. See [ADR 0010](adr/0010-injecti
 `prices.trendWeight` is below 1 (registry default 1 leaves the blend off) and opening deposits are shorter than half the 48-month spending buffer,
 each household's share of pro-rata new money is added to smoothed income in proportion to how far the deposit sits under
 the buffer. `centralBank.spendNewMoney` (default 0.5) forces that blend even with thick opening deposits, and it is the
-only blend applied to loan, bond, and treasury receipts. A trend weight of 1 leaves the blend off. Bitcoin and hybrid
-ignore money growth and crisis stimulus. If bank reserves are below `bank.reserveRequirement` times deposits, the central bank issues the
+only blend applied to loan, bond, and treasury receipts. A trend weight of 1 leaves the blend off. Bitcoin
+ignores money growth and crisis stimulus. Hybrid runs both against fiat deposits only. If bank reserves are below `bank.reserveRequirement` times deposits, the central bank issues the
 gap to the first bank and credits matching firm deposits. Bitcoin and hybrid do not create reserves to meet the
 requirement. The hybrid lender of last resort is described under regimes.
 
@@ -472,8 +472,9 @@ are 25 percent of household deposits under maturity-matched lending and 10 perce
 cannot exceed the unused savings. The government still finances a shortfall by selling bonds to banks, not by
 central-bank money. Hybrid clears in cents with a separate bitcoin till at the exogenous supply-shock price
 ([ADR 0028](adr/0028-hybrid-currency-choice.md)). Fiat printing, reserve accommodation, and the Taylor rule run on the
-fiat side. Coin credit stays savings-constrained. Goods price trend under hybrid follows minus baseline productivity,
-matching the hard-money goods path beside the rising BTC/USD rate. If a bank's equity is negative the hybrid central
+fiat side. Coin credit stays savings-constrained. Goods prices under hybrid follow the inflation target, the same path
+as fiat, because that printing is what the goods market is denominated in. The BTC/USD rate stays on the supply-shock
+path and is not the CPI. If a bank's equity is negative the hybrid central
 bank injects enough reserves and vault cash to make that equity positive. When `bank.resolution` is `merge`, an
 insolvent bank that is still negative after hybrid lender-of-last-resort support transfers deposits and loans to a
 surviving bank, or bails in every depositor at a sole bank, including the treasury balance at bank 0, until equity meets

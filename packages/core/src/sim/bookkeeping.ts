@@ -65,14 +65,16 @@ function replaceFirm(economy: Economy, firm: Firm): void {
   // Hybrid custody is a plug: bitcoinReserves = coinDeposits − coinLoans.
   // Writing off a coin loan raises that plug when custody is synced, so charging
   // equity for the coin leg would double-count the loss and open the books.
+  // A gradual transition has no custody plug, so the coin leg is a real asset.
   if (bitcoinDebt > 0) {
     economy.bitcoinLoanCarried -= bitcoinDebt;
     firm.bitcoinLoan = 0;
   }
   const fiatLoss = firm.loan;
   economy.defaultsThisTick += fiatLoss + bitcoinDebt;
-  if (fiatLoss > 0) {
-    chargeEquityForDefault(bank, economy, fiatLoss);
+  const equityLoss = economy.params.regime === 'hybrid' ? fiatLoss : fiatLoss + bitcoinDebt;
+  if (equityLoss > 0) {
+    chargeEquityForDefault(bank, economy, equityLoss);
   }
   // Keep the current workforce. Clearing them here made unemployment jump by
   // the whole firm for one month before the next labor step could rehire.

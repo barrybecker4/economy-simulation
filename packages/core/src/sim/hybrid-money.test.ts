@@ -114,6 +114,17 @@ describe('hybrid dual-currency books', () => {
     expect(trustedBitcoinShare).toBeGreaterThan(quietBitcoinShare);
   });
 
+  it('keeps hybrid goods prices on the fiat path while bitcoin prices fall', () => {
+    const bitcoin = run({ ...small, 'regime.type': 'bitcoin', ticks: 60 });
+    const hybrid = run({ ...small, 'regime.type': 'hybrid', ticks: 60 });
+    const bitcoinPrice = series(bitcoin, 'priceLevel').at(-1) ?? 0;
+    const hybridPrice = series(hybrid, 'priceLevel').at(-1) ?? 0;
+    const hybridRate = series(hybrid, 'interestRate').at(-1) ?? 0;
+    expect(bitcoin.audit.ok && hybrid.audit.ok).toBe(true);
+    expect(hybridPrice).toBeGreaterThan(bitcoinPrice * 1.05);
+    expect(hybridRate).toBeGreaterThan(0.01);
+  });
+
   it('leaves a fiat run bitcoin price path unchanged', () => {
     const fiat = run({ ...small, 'regime.type': 'fiat', ticks: 24 });
     expect(fiat.audit.ok).toBe(true);

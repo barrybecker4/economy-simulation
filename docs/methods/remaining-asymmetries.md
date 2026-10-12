@@ -33,7 +33,9 @@ Endogenous opening tenure remains deferred.
 Hybrid is no longer a satoshi twin of bitcoin with a lender of last resort. It
 clears goods in cents with a separate bitcoin till at an exogenous BTC/USD path
 ([ADR 0028](../adr/0028-hybrid-currency-choice.md)). Fiat printing and the
-Taylor rule run on fiat deposits. Coin credit stays savings-constrained. The
+Taylor rule run on fiat deposits, and the goods-price trend is the inflation
+target rather than bitcoin's productivity deflation. Coin credit stays
+savings-constrained. The
 LOLR still injects reserves when equity is negative. With choice speed 0 and no
 bank failure, hybrid still differs from bitcoin because of the cent numeraire,
 the rising exogenous bitcoin price, and fiat money growth. If LOLR support

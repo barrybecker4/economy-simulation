@@ -400,7 +400,7 @@ Registry version: 14.
 - Options: proRataDeposits, governmentSpending, newLoans, assetPurchase
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist; an asset-purchase contraction draws only reserves above the reserve requirement. Bitcoin and hybrid ignore this slider.
+- Description: Where new fiat money first lands when money growth is positive. proRataDeposits splits new deposits and reserves by existing household balances. governmentSpending credits the treasury, adds reserves, and buys firm inventory; unspent credit stays in the treasury. newLoans books firm loans within unused credit room and does not create reserves; those loans retire on the ordinary repayment path. assetPurchase buys bonds already on bank books, pays households, and adds reserves equal to the purchase; the retired bond seats on vault cash and the private-equity residual so books close without a second interest-bearing reserve; with no bonds it places nothing. A contraction withdraws from the sector that channel credits, and only up to the balances that exist; an asset-purchase contraction draws only reserves above the reserve requirement. Bitcoin ignores this slider. Hybrid places its fiat injections through it.
 
 ## centralBank.moneyGrowth
 
@@ -411,7 +411,7 @@ Registry version: 14.
 - Range: 0.05 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits, plus any crisis stimulus. A contraction draws reserves from banks in id order, starting with the first, and stops when those reserves are used up. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. The weight cannot be 0: some fiat expansion always happens when the gap is non-negative. Bitcoin and hybrid ignore this slider.
+- Description: How strongly the fiat central bank grows broad money with the inflation target and productivity. Each month deposits and reserves change by this weight times (inflation target + baseline productivity + inflation gap) / 12 times deposits, plus any crisis stimulus. A contraction draws reserves from banks in id order, starting with the first, and stops when those reserves are used up. At 1 on the 2 percent target with 1 percent productivity growth, deposits grow about 3 percent a year when inflation is on target. Below-target inflation raises growth; above-target slows it. The weight cannot be 0: some fiat expansion always happens when the gap is non-negative. Bitcoin ignores this slider. Hybrid applies it to fiat deposits only, so a bitcoin price jump does not scale the injection.
 
 ## centralBank.outputWeight
 
@@ -433,7 +433,7 @@ Registry version: 14.
 - Range: 0 to 0.95
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Weight on last month’s policy rate when publishing this month’s rate. The rest is the new Taylor setting under fiat, or the new market loan rate under bitcoin and hybrid. A high weight stops one capped price move from swinging the opening rate between 0 and the mid-teens. At 0 the published rate is the raw setting. The weight cannot be 1, so a sustained inflation gap still moves the rate.
+- Description: Weight on last month’s policy rate when publishing this month’s rate. The rest is the new Taylor setting under fiat and hybrid, or the new market loan rate under bitcoin. A high weight stops one capped price move from swinging the opening rate between 0 and the mid-teens. At 0 the published rate is the raw setting. The weight cannot be 1, so a sustained inflation gap still moves the rate.
 
 ## centralBank.spendNewMoney
 
@@ -444,7 +444,7 @@ Registry version: 14.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of new fiat blended into household smoothed income when prices.trendWeight is below 1. The default of 0.5 spends half of new money into demand. On the household channel, 0 still blends a thin opening (deposits below 24 months). On the loan, bond, and treasury channels, only this share is blended, so those receipts are not a silent hoard. Bitcoin and hybrid ignore this slider.
+- Description: Share of new fiat blended into household smoothed income when prices.trendWeight is below 1. The default of 0.5 spends half of new money into demand. On the household channel, 0 still blends a thin opening (deposits below 24 months). On the loan, bond, and treasury channels, only this share is blended, so those receipts are not a silent hoard. Bitcoin ignores this slider. Hybrid blends its fiat injections through it.
 
 ## centralBank.stimulus
 
@@ -455,7 +455,7 @@ Registry version: 14.
 - Range: 0 to 2
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Positive stimulus stays at full strength until broad money reaches twice opening deposits, then fades linearly to zero at three times opening, so secular growth does not eat stimulus headroom before it can act. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin and hybrid ignore this slider.
+- Description: Extra annual fiat broad-money growth per unit of the lagged unemployment gap (unemployment minus the natural rate). A positive gap expands money after the lag; a negative gap withdraws. Positive stimulus stays at full strength until broad money reaches twice opening deposits, then fades linearly to zero at three times opening, so secular growth does not eat stimulus headroom before it can act. At the default of 1.75, a ten-point unemployment gap adds about 17.5 percent a year once the lag has passed and money is still near its opening level. At 0 the crisis term is off and only the secular money-growth rule runs. Bitcoin ignores this slider. Hybrid applies it to fiat deposits only.
 
 ## centralBank.stimulusLag
 
@@ -477,7 +477,7 @@ Registry version: 14.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of each month’s fiat crisis-stimulus injection that may spare failing firms (six months of negative equity plus a missed wage or interest payment) from replacement. The notional budget is that share of the stimulus slice of the positive money-growth injection; a firm is spared in id order when the remaining budget covers its equity shortfall. The failure clock is not reset. The budget is a cap on skipped replacements and does not move deposits beyond the ordinary injection. At 0 the Phase 66 replacement path is unchanged. Bitcoin and hybrid ignore this slider.
+- Description: Share of each month’s fiat crisis-stimulus injection that may spare failing firms (six months of negative equity plus a missed wage or interest payment) from replacement. The notional budget is that share of the stimulus slice of the positive money-growth injection; a firm is spared in id order when the remaining budget covers its equity shortfall. The failure clock is not reset. The budget is a cap on skipped replacements and does not move deposits beyond the ordinary injection. At 0 the Phase 66 replacement path is unchanged. Bitcoin ignores this slider. Hybrid uses it on the fiat stimulus slice.
 
 ## credit.endogenousWeight
 
@@ -554,7 +554,7 @@ Registry version: 14.
 - Range: 0 to 1
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and minus baseline productivity under bitcoin and hybrid. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price trends keep the regime path at weight 0, and follow the expectation above 0. Wages negotiate toward the agreed wage from the price level and do not take this path directly. The default of 0.65 puts most weight on the regime path. At 0 every expectation is the trailing rate. At 1 expectations sit on the regime path.
+- Description: How far expected inflation follows the regime path instead of the last year of prices. The path is the inflation target under fiat and hybrid, and minus baseline productivity under bitcoin. Expected inflation is this weight times that path plus one minus the weight times trailing inflation. Spending, the real return on money, the deflation penalty, contract choice, and the fiat policy rate use that expectation. Posted-price trends keep the regime path at weight 0, and follow the expectation above 0. Wages negotiate toward the agreed wage from the price level and do not take this path directly. The default of 0.65 puts most weight on the regime path. At 0 every expectation is the trailing rate. At 1 expectations sit on the regime path.
 
 ## firm.hurdlePremium
 
@@ -785,7 +785,7 @@ Registry version: 14.
 - Range: 0 to 0.5
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: How strongly inflation above the regime normal path raises the goods spending share. The gap is expected inflation minus the inflation target under fiat, or minus productivity growth under bitcoin and hybrid. Expected inflation is the trailing year-over-year rate unless expectations.anchorWeight pulls it toward that path. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.
+- Description: How strongly inflation above the regime normal path raises the goods spending share. The gap is expected inflation minus the inflation target under fiat and hybrid, or minus productivity growth under bitcoin. Expected inflation is the trailing year-over-year rate unless expectations.anchorWeight pulls it toward that path. The share rises by this coefficient times the gap. At 0.1, ten percentage points of inflation above the path raises the share by one percentage point. The response is small because value can sit in assets other than goods, so only a leak into consumption shows up here. At 0 the spending share ignores inflation. The fiat policy rate still uses the mean time-preference slider alone.
 
 ## household.openingDepositMonths
 
@@ -884,7 +884,7 @@ Registry version: 14.
 - Range: 0 to 0.75
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat, and minus baseline productivity under bitcoin and hybrid. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so the default of 0.25 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line by a quarter under bitcoin. At 0 the previous 48-month price is unchanged.
+- Description: Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat and hybrid, and minus baseline productivity under bitcoin. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so the default of 0.25 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line by a quarter under bitcoin. Hybrid keeps the full hedge because its goods path is the inflation target. At 0 the previous 48-month price is unchanged.
 
 ## housing.mortgageDefaultShare
 
@@ -1104,7 +1104,7 @@ Registry version: 14.
 - Range: 0 to 0.04
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin or hybrid money the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Category prices are measured against this baseline. Match a category productivity, or housing supply growth, to it and that unscaled price stays flat against the baseline. Set every one of them equal to it to put every price on the CPI.
+- Description: Annual growth of economy-wide productivity before the AI channels. It compounds into productive capacity and into wage growth. Under bitcoin the price trend is the negative of this rate, because the money stock does not grow with output, so the CPI tends to fall as goods get easier to make. Hybrid prints fiat, so its goods trend is the inflation target instead. Category prices are measured against this baseline. Match a category productivity, or housing supply growth, to it and that unscaled price stays flat against the baseline. Set every one of them equal to it to put every price on the CPI.
 
 ## productivity.endogenousWeight
 

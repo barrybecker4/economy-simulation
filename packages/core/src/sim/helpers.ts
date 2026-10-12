@@ -64,11 +64,15 @@ export function expectedInflation(economy: Economy): number {
   );
 }
 
-/** Annual inflation the regime price path aims for. */
+/**
+ * Annual inflation the regime price path aims for.
+ * Fiat and hybrid print against the inflation target. Bitcoin does not grow
+ * the money stock, so its goods path is minus baseline productivity.
+ */
 export function normalInflation(economy: Economy): number {
-  return economy.params.regime === 'fiat'
-    ? economy.params.inflationTarget
-    : -economy.params.prodGrowth;
+  return economy.params.regime === 'bitcoin'
+    ? -economy.params.prodGrowth
+    : economy.params.inflationTarget;
 }
 
 export function inflation(economy: Economy): number {

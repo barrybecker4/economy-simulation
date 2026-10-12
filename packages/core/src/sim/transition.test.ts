@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
 import { createEconomy } from './init.js';
 import { loadParameters } from './parameters.js';
+import { simulate } from './simulate.js';
 import { onTransition } from './transition.js';
 
 describe('fiat to bitcoin transition', () => {
@@ -33,5 +34,22 @@ describe('fiat to bitcoin transition', () => {
     const after = economy.households.reduce((sum, household) => sum + household.deposit, 0);
     expect(after).toBe(before);
     expect(economy.params.regime).toBe('bitcoin');
+  });
+
+  it('closes bank books through the first halving on a gradual transition', () => {
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const result = simulate(
+        loadScenario({
+          name: 'gradual-books',
+          seed,
+          ticks: 20,
+          sliders: {
+            'transition.lengthMonths': 60,
+            'transition.gradualWeight': 1,
+          },
+        }),
+      );
+      expect(result.audit.ok, `seed ${seed}`).toBe(true);
+    }
   });
 });

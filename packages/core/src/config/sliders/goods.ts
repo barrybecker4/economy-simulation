@@ -46,7 +46,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     0.25,
     0,
     0.75,
-    'Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat, and minus baseline productivity under bitcoin and hybrid. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so the default of 0.25 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line by a quarter under bitcoin. At 0 the previous 48-month price is unchanged.',
+    'Share of the current 48-month home price that exists because housing is held as an inflation hedge. The hedge follows the regime price path: the inflation target under fiat and hybrid, and minus baseline productivity under bitcoin. When that path matches a positive inflation target, the multiple stays 1 and homes cost 48 months of income. When the path does not inflate, or the inflation target is 0, the multiple is one minus this share, so the default of 0.25 cuts the purchase price, rent, mortgage size, and unscaled CPI housing line by a quarter under bitcoin. Hybrid keeps the full hedge because its goods path is the inflation target. At 0 the previous 48-month price is unchanged.',
   ),
   basketProductivity(
     'goods.energyProductivity',

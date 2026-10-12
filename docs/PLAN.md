@@ -632,7 +632,7 @@ and the fiat policy rate stay fixed.
 
 1. `household.inflationTimePreference` defaults to 0.1. The goods spending share rises by this coefficient times
    (year-over-year inflation minus normal inflation).
-2. Normal inflation is the inflation target under fiat and minus `productivity.baseGrowth` under bitcoin and hybrid. At
+2. Normal inflation is the inflation target under fiat and hybrid, and minus `productivity.baseGrowth` under bitcoin. At
    sensitivity 0 the spending share ignores inflation.
 3. Household draws of time preference and the fiat policy rate still use `household.timePreferenceMean` alone. AI agents
    shop at the mean plus the same common addend.
@@ -1420,13 +1420,14 @@ Acceptance:
 
 ### Phase 65: Housing monetary premium
 
-Goal: homes lose their inflation-hedge bid when holding money itself protects purchasing power, so bitcoin and hybrid
-home prices fall in months of income relative to fiat.
+Goal: homes lose their inflation-hedge bid when holding money itself protects purchasing power, so bitcoin
+home prices fall in months of income relative to fiat. Hybrid keeps the fiat hedge because its goods path is the
+inflation target.
 
 1. `housing.monetaryPremium` defaults to 0. It is the share of the current 48-month home price that exists because
    housing is held as an inflation hedge. Zero reproduces Phase 64.
-2. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat, and minus baseline
-   productivity under bitcoin and hybrid. Hedge share is that path over the inflation target, clamped to [0, 1], and 0
+2. The hedge follows the regime price path (`normalInflation`): the inflation target under fiat and hybrid, and minus
+   baseline productivity under bitcoin. Hedge share is that path over the inflation target, clamped to [0, 1], and 0
    when the target is 0. The price multiple is `1 − premium × (1 − hedge)`.
 3. The multiple multiplies the tenure purchase price, opening mortgage principal, rent and user-cost home price, and the
    unscaled CPI housing line. Market-clearing scarcity still multiplies after it. `homePriceMonths` records
@@ -1623,6 +1624,7 @@ printing still runs, and the BTC/USD rate is the supply-shock path taken as give
    month 300. Hybrid reads it; fiat and bitcoin do not.
 2. Hybrid clears in cents with per-actor bitcoin tills, an exchange residual, and bitcoin reserves on the bank books.
 3. Wages, goods, and new debts can clear in each actor’s pay currency; service stays in the currency of issue.
+4. The goods-price trend is the inflation target, the same path as fiat. The supply-shock path is the BTC/USD rate, not the CPI.
 
 Acceptance:
 

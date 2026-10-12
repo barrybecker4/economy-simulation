@@ -3,7 +3,7 @@ import { loadScenario } from '../config/load.js';
 import type { TickContext } from '../engine/engine.js';
 import { Ledger } from '../ledger/ledger.js';
 import { MetricsRecorder } from '../metrics/metrics.js';
-import { creditBitcoinLoan } from './dual-currency.js';
+import { creditBitcoin, creditBitcoinLoan } from './dual-currency.js';
 import { firmEquity, onBookkeeping } from './bookkeeping.js';
 import type { Economy } from './economy.js';
 import { syncHybridCustody } from './hybrid-money.js';
@@ -108,6 +108,50 @@ describe('hybrid custody write-offs', () => {
     }
   }, 600_000);
 });
+
+describe('transition firm replacement', () => {
+  it('charges equity for a bitcoin firm loan that is not a custody plug', () => {
+    const economy = openedTransition();
+    const firm = economy.firms[0];
+    const bank = economy.banks[0];
+    if (!firm || !bank) {
+      throw new Error('expected firm and bank');
+    }
+    const units = 1_000 / economy.bitcoinPrice;
+    creditBitcoin(economy, firm, units);
+    creditBitcoinLoan(economy, firm, units);
+    expect(Math.abs(bankBalanceIdentity(economy))).toBeLessThan(1e-6);
+    firm.capital = 0;
+    firm.missedPayment = true;
+    firm.missTicks = MISSED_PAYMENT_TICKS;
+    firm.negTicks = FAILURE_TICKS;
+    const equityBefore = bank.equity;
+    const coinValue = firm.bitcoinLoan * economy.bitcoinPrice;
+    const fiatLoan = firm.loan;
+    expect(coinValue).toBeGreaterThan(100);
+    bookkeep(economy);
+    expect(firm.bitcoinLoan).toBe(0);
+    expect(bank.equity).toBeCloseTo(equityBefore - fiatLoan - coinValue, 4);
+    expect(Math.abs(bankBalanceIdentity(economy))).toBeLessThan(1e-4);
+  });
+});
+
+function openedTransition(): Economy {
+  const config = loadScenario({
+    name: 'transition-firm-failure',
+    seed: 1,
+    ticks: 1,
+    sliders: {
+      'transition.lengthMonths': 60,
+      'transition.gradualWeight': 1,
+      'scale.households': 20,
+      'scale.firms': 4,
+      'scale.banks': 1,
+      'shock.frequency': 0,
+    },
+  });
+  return createEconomy(loadParameters(config), config.seed, null);
+}
 
 function openedHybrid(): Economy {
   const config = loadScenario({
