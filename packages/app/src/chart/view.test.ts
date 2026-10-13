@@ -72,6 +72,7 @@ describe('chartViews', () => {
       'typical-wealth',
       'turnover',
       'money',
+      'public-finance',
       'money-mix',
       'bitcoin-price',
       'shocks',
@@ -193,7 +194,9 @@ describe('chartViews', () => {
     expect(views.find((view) => view.key === 'living')?.description).toMatch(
       /dollars of the run’s first month/,
     );
-    expect(views.find((view) => view.key === 'living')?.description).not.toMatch(/divided by the CPI/);
+    expect(views.find((view) => view.key === 'living')?.description).not.toMatch(
+      /divided by the CPI/,
+    );
   });
 
   it('explains the bitcoin exchange rate as a goods index times the redenomination scale', () => {
