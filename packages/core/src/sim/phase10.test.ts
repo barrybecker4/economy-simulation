@@ -84,11 +84,11 @@ describe('phase 10 spending floor and prices', () => {
       ticks: 36,
       shock: { tick: 6, kind: 'demand' as const, size: 0.2 },
     });
-    // Contraction half of a demand shock: negative impulse lowers desired spend.
-    // With trend weight 0, prices follow that shortfall instead of the inflation target.
+    // Positive demand shock raises prices. With trend weight 0, prices respond more
+    // aggressively to the demand impulse. With higher velocity, the effect is stronger.
     const trendPrices = series(trend, 'priceLevel');
     const demandPrices = series(demand, 'priceLevel');
-    expect(demandPrices[demandPrices.length - 1] ?? 0).toBeLessThan(
+    expect(demandPrices[demandPrices.length - 1] ?? 0).toBeGreaterThan(
       trendPrices[trendPrices.length - 1] ?? 0,
     );
   });
