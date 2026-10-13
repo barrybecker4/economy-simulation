@@ -137,7 +137,7 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     0.09,
     0,
     0.2,
-    'Annual rate at which homeowners experience a life event (move, job change, family change) that triggers a home sale and potential repurchase. At the real-world U.S. rate of about 9% per year, roughly 3.3% of households originate a purchase mortgage annually (about 61% of owners have mortgages and most movers who can afford it finance with a mortgage). At 0 only the adjustment rate drives tenure changes. Unused when tenure choice is off.',
+    'Annual rate at which homeowners experience a life event (move, job change, family change) that sells a mortgaged home. After the sale the household picks rent, a new mortgage, or cash ownership by the same user-cost rule as an ordinary tenure switch, so a move does not force a new mortgage when rent or cash ownership wins. At the real-world U.S. rate of about 9% per year, roughly 3.3% of households originate a purchase mortgage annually when a mortgage still wins (about 61% of owners have mortgages and most movers who can afford it finance with a mortgage). At 0 only the adjustment rate drives tenure changes. Unused when tenure choice is off.',
   ),
   numberSlider(
     'housing.openingOwnerShare',

@@ -61,7 +61,7 @@ export function taylorRate(input: {
   );
 }
 
-/** Bitcoin/hybrid loan rate as a level around time preference, not a ratchet to zero. */
+/** Bitcoin loan rate as a level around time preference, not a ratchet to zero. */
 export function marketLoanRate(input: {
   timePrefMean: number;
   loans: number;
