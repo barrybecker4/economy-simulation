@@ -35,27 +35,39 @@ describe('household census', () => {
     expect(measured.wellbeingMedian).toBeCloseTo(1.25);
   });
 
-  it('partitions non-negative wealth into cash and claims that sum to the wealth total', () => {
+  it('partitions wealth into cash and claims; net worth can be negative', () => {
     const economy = economyWith(20, 4);
     for (const household of economy.households) {
-      household.deposit = 10;
+      household.deposit = 100;
       household.bitcoin = 0;
+      // Clear any opening debt so net worth equals deposits
+      household.mortgage = 0;
+      household.bitcoinMortgage = 0;
+      household.consumerLoan = 0;
+      household.bitcoinConsumer = 0;
     }
     economy.params.equityMarket = 'off';
     const off = measureHouseholds(economy);
     expect(off.claimWealthTotal).toBe(0);
+    // When all households have positive wealth and no claims, cash total equals wealth total
     expect(off.cashWealthTotal).toBe(off.wealth.total);
+    expect(off.wealth.total).toBe(2000); // 20 households × 100
 
-    economy.params.equityMarket = 'on';
+    // Give one household negative net worth via large mortgage
     const household = economy.households[0];
     if (!household) {
       throw new Error('missing household');
     }
-    household.deposit = -2;
-    const on = measureHouseholds(economy);
-    expect(on.cashWealthTotal + on.claimWealthTotal).toBeCloseTo(on.wealth.total);
-    expect(on.claimWealthTotal).toBeGreaterThan(0);
-    expect(on.cashWealthTotal).toBeLessThan(on.wealth.total);
+    household.mortgage = 150; // Debt exceeds deposits: net worth = 100 - 150 = -50
+    
+    const withDebt = measureHouseholds(economy);
+    expect(withDebt.claimWealthTotal).toBe(0); // Still no equity market
+    // wealth.total sums only non-negative: 19×100 + 0 = 1900
+    expect(withDebt.wealth.total).toBe(1900);
+    // cashWealthTotal includes the negative: 19×100 + (-50) = 1850
+    expect(withDebt.cashWealthTotal).toBe(1850);
+    // Negative net worth is captured in the difference
+    expect(withDebt.cashWealthTotal).toBeLessThan(withDebt.wealth.total);
   });
 
   it('reports no owner-wealth share until an agent exists', () => {

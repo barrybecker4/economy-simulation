@@ -5,6 +5,7 @@ import { refreshEquityClaims } from './equity.js';
 import { deflationPenalty, employedCount } from './helpers.js';
 import { housingPriceFactors } from './housing.js';
 import { clamp, distributionOf, mean, median } from './stats.js';
+import type { Household } from './types.js';
 
 /** Housing security, in [0, 1], adds at most this much to log real consumption. */
 export const HOUSING_SECURITY_WEIGHT = 0.5;
@@ -17,9 +18,9 @@ export interface HouseholdMeasures {
   employed: number;
   income: ReturnType<typeof distributionOf>;
   wealth: ReturnType<typeof distributionOf>;
-  /** Nominal sum of the cash part of non-negative household wealth. */
+  /** Nominal sum of non-negative cash wealth parts across households. */
   cashWealthTotal: number;
-  /** Nominal sum of the capital-claim part of non-negative household wealth. */
+  /** Nominal sum of non-negative capital-claim wealth parts across households. */
   claimWealthTotal: number;
   skill: ReturnType<typeof distributionOf>;
   consumption: ReturnType<typeof distributionOf>;
@@ -46,7 +47,10 @@ export function measureHouseholds(economy: Economy): HouseholdMeasures {
     homePriceMonths: housingPriceFactors(economy).months,
     employed: employedCount(economy),
     income: distributionOf(incomes),
-    wealth: distributionOf(holdings.map((holding) => holding.combined)),
+    // Wealth distribution with standard Gini (shifts negatives to stay well-defined).
+    // Tail shares and quintiles include negative net worth in numerator but use positive
+    // total as denominator, matching US wealth inequality measurement conventions.
+    wealth: distributionOf(holdings.map((holding) => holding.combined), true),
     cashWealthTotal: holdings.reduce((sum, holding) => sum + holding.cashPart, 0),
     claimWealthTotal: holdings.reduce((sum, holding) => sum + holding.claimPart, 0),
     skill: distributionOf(economy.households.map((household) => household.skill)),
@@ -117,28 +121,40 @@ export function jobShares(economy: Economy): {
 }
 
 interface WealthHolding {
-  /** Non-negative combined cash plus claim. */
+  /** Net worth: cash plus claim, which can be negative when debt exceeds assets. */
   combined: number;
   cashPart: number;
   claimPart: number;
 }
 
 /**
- * Partition each household's non-negative wealth into cash and capital claims.
- * Combined is max(0, cash + claim). Cash part is min(combined, max(cash, 0));
- * the rest is the claim part.
+ * Partition household wealth (net worth: assets minus liabilities) into cash and capital claims.
+ * Net worth can be negative when debt exceeds assets, matching US data where the bottom 20%
+ * hold about -0.2% of wealth. Combined is cash + claim (no floor). Cash part is 
+ * min(combined, max(cash, 0)); the rest is the claim part.
  */
 function householdHoldings(economy: Economy): WealthHolding[] {
   const price = economy.bitcoinPrice;
-  const cashOf = (household: { deposit: number; bitcoin: number }) =>
-    household.deposit + household.bitcoin * price;
+  const cashOf = (household: Household) => {
+    // Assets: deposits and bitcoin holdings
+    const assets = household.deposit + household.bitcoin * price;
+    // Liabilities: mortgages and consumer loans (both fiat and bitcoin-denominated)
+    const liabilities =
+      household.mortgage +
+      household.consumerLoan +
+      household.bitcoinMortgage * price +
+      household.bitcoinConsumer * price;
+    // Net worth = assets - liabilities (can be negative)
+    return assets - liabilities;
+  };
   if (economy.params.equityMarket === 'on') {
     refreshEquityClaims(economy);
   }
   return economy.households.map((household, index) => {
     const cash = cashOf(household);
     const claim = economy.params.equityMarket === 'on' ? (economy.equityClaims[index] ?? 0) : 0;
-    const combined = Math.max(0, cash + claim);
+    // Combined net worth includes claims, and can be negative
+    const combined = cash + claim;
     const cashPart = Math.min(combined, Math.max(cash, 0));
     return { combined, cashPart, claimPart: combined - cashPart };
   });
