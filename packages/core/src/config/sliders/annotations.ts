@@ -36,6 +36,11 @@ export const ANNOTATIONS: Record<string, Pick<Slider, 'status' | 'source'>> = {
   'bank.depositPassThrough': {
     status: 'calibrated',
     source:
-      'Average bank deposit-rate beta ≈0.46 (Drechsler, Savov & Schnabl NBER w22152). NY Fed Liberty Street cycle betas about 0.6 (2004–07), ≤0.4 (2015–19), about 0.4 (2022Q4). The registry default and the monetary preset both use 0.45 so paid/policy sits in 0.3–0.6.',
+      'Average bank deposit-rate beta ≈0.46 (Drechsler, Savov & Schnabl NBER w22152). NY Fed Liberty Street cycle betas about 0.6 (2004–07), ≤0.4 (2015–19), about 0.4 (2022Q4). The registry default is 0.45. The monetary preset keeps this slider at 1 so bitcoin and hybrid match the pre-calibration pass-through.',
+  },
+  'bank.fiatDepositPassThrough': {
+    status: 'calibrated',
+    source:
+      'Same deposit beta as bank.depositPassThrough. The monetary preset sets 0.45 for fiat only. The default of -1 means fiat uses bank.depositPassThrough.',
   },
 };

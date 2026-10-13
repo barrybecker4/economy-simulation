@@ -42,7 +42,8 @@ describe('preset stability fixes', () => {
   it('pins the monetary preset to choice speed 0 and firm-level hiring on', () => {
     expect(monetaryPreset['money.choiceSpeed']).toBe(0);
     expect(monetaryPreset['labor.firmLevelHiring']).toBe('on');
-    expect(monetaryPreset['bank.depositPassThrough']).toBe(0.45);
+    expect(monetaryPreset['bank.depositPassThrough']).toBe(1);
+    expect(monetaryPreset['bank.fiatDepositPassThrough']).toBe(0.45);
   });
 
   it('unwinds asset purchases only from excess reserves', () => {

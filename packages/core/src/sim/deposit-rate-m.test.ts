@@ -12,11 +12,15 @@ describe('deposit rate calibration M (issue #15)', () => {
     expectFiatBand('M fiat', summarizeArm({ ...monetaryPreset, 'regime.type': 'fiat' }));
   });
 
-  it('M bitcoin paid/policy mean and range over 10 seeds', { timeout: ARM_TIMEOUT }, () => {
-    const summary = summarizeArm({ ...monetaryPreset, 'regime.type': 'bitcoin' });
-    logArm('M bitcoin', summary);
-    expect(summary.median).toBeGreaterThanOrEqual(0.3);
-  });
+  it(
+    'M bitcoin paid/policy stays on the shared pass-through of 1',
+    { timeout: ARM_TIMEOUT },
+    () => {
+      const summary = summarizeArm({ ...monetaryPreset, 'regime.type': 'bitcoin' });
+      logArm('M bitcoin', summary);
+      expect(summary.median).toBeGreaterThan(0.6);
+    },
+  );
 });
 
 function expectFiatBand(label: string, summary: SeedSummary): void {

@@ -1,5 +1,6 @@
 import { tradeAgents, shopAgents, type GoodsMarket } from './agent-trade.js';
 import { firmCapacity } from './capacity.js';
+import { assignPostedDepositRate } from './deposit-rate.js';
 import type { Economy } from './economy.js';
 import { expectedInflation, normalInflation, pay, priceTrend } from './helpers.js';
 import { payFromCash, spendableCash } from './dual-currency.js';
@@ -12,7 +13,7 @@ import { clamp, shuffleInPlace } from './stats.js';
 import type { Firm, Household } from './types.js';
 
 export function onGoods(economy: Economy): void {
-  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
+  assignPostedDepositRate(economy);
   economy.consumptionSpend = 0;
   economy.desiredSpend = 0;
   economy.unmetGoodsDemand = 0;

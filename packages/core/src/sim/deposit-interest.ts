@@ -1,4 +1,5 @@
 import { totalDeposits } from './banking.js';
+import { assignPostedDepositRate } from './deposit-rate.js';
 import type { Economy } from './economy.js';
 import { moneyAmount } from './helpers.js';
 import { payDepositInterest, subsidizeDepositInterest } from './money.js';
@@ -16,9 +17,7 @@ export function payHouseholdDepositInterest(
 ): void {
   economy.depositInterestPaid = 0;
   economy.reserveInterestPaid = 0;
-  const passThrough =
-    economy.params.regime === 'bitcoin' ? 1.0 : economy.params.depositPassThrough;
-  economy.depositRate = passThrough * economy.policyRate;
+  assignPostedDepositRate(economy);
   if (economy.depositRate <= 0) {
     economy.paidDepositRate = 0;
     return;

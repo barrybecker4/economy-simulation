@@ -917,7 +917,7 @@ Acceptance:
 
 Goal: the web app opens on settings where spending can move prices and output.
 
-1. `scenarios/presets/monetary.json` sets trend weight 0.35, demand weight 1, deposit pass-through 0.45, anchor weight 0.5,
+1. `scenarios/presets/monetary.json` sets trend weight 0.35, demand weight 1, fiat deposit pass-through 0.45 (the shared `bank.depositPassThrough` stays at 1 so bitcoin and hybrid match the previous preset), anchor weight 0.5,
    tenure choice on, `money.choiceSpeed` 0, and `labor.firmLevelHiring` on. Money growth stays at its default of 1.
    Firm-level hiring keeps an aggregate employment floor so demand-led bitcoin runs do not shed into mass unemployment.
    Trend weight 0.35 keeps most of the path demand-led while anchoring opening prices enough that early well-being does

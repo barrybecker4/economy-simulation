@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { ARM_TIMEOUT, logArm, summarizeArm, type SeedSummary } from './test-helpers/deposit-rate-calibration.js';
+import {
+  ARM_TIMEOUT,
+  logArm,
+  summarizeArm,
+  type SeedSummary,
+} from './test-helpers/deposit-rate-calibration.js';
 
 describe('deposit rate calibration S0 (issue #15)', () => {
   it('S0 fiat paid/policy mean and range over 10 seeds', { timeout: ARM_TIMEOUT }, () => {
@@ -7,9 +12,7 @@ describe('deposit rate calibration S0 (issue #15)', () => {
   });
 
   it('S0 bitcoin paid/policy mean and range over 10 seeds', { timeout: ARM_TIMEOUT }, () => {
-    const summary = summarizeArm({ 'regime.type': 'bitcoin' });
-    logArm('S0 bitcoin', summary);
-    expect(summary.median).toBeGreaterThanOrEqual(0.3);
+    expectFiatBand('S0 bitcoin', summarizeArm({ 'regime.type': 'bitcoin' }));
   });
 });
 
