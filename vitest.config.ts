@@ -16,5 +16,7 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 15_000,
     hookTimeout: 15_000,
+    // Long synchronous sims block worker RPC; cap parallelism so onTaskUpdate stays under birpc's 60s default.
+    pool: 'threads',
   },
 });

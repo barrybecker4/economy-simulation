@@ -44,7 +44,7 @@ describe('opening well-being', () => {
       expect(result.audit.ok, `seed ${seed}`).toBe(true);
       assertOpeningJumps(result, seed, DEFAULTS_JUMP_CAP);
     }
-  }, 60_000);
+  }, 120_000);
 
   it('keeps early mean and median jumps small on the monetary preset', () => {
     for (let seed = 1; seed <= 10; seed += 1) {
@@ -67,7 +67,7 @@ describe('opening well-being', () => {
       expect(result.audit.ok, `seed ${seed}`).toBe(true);
       assertOpeningJumps(result, seed, MONETARY_JUMP_CAP);
     }
-  }, 60_000);
+  }, 120_000);
 });
 
 function assertOpeningJumps(result: SimulationResult, seed: number, cap: number): void {

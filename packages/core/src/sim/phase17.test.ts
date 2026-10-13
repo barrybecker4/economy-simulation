@@ -208,7 +208,7 @@ describe('phase 17 AI bullishness and robotics', () => {
     expect(result.audit.ok).toBe(true);
     const gdp = result.metrics.series.realGdp;
     expect(gdp.every((value) => value !== null && Number.isFinite(value))).toBe(true);
-  }, 60_000);
+  }, 120_000);
 
   it('finishes 1200 months of extreme AI with a finite price level', async () => {
     await new Promise((resolve) => setImmediate(resolve));

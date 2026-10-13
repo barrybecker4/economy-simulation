@@ -55,6 +55,7 @@
   } from './worker/protocol.js';
 
   const FIRST_CHART_GROUP = 'Welfare';
+  const SOURCE_REPO_URL = 'https://github.com/barrybecker4/economy-simulation/';
   const sliders = listSliders();
   const parameters = parameterSliders(sliders);
   const initial = parsePageState(location.search, defaultPage());
@@ -336,6 +337,9 @@
     <div class="title-row">
       <h1>Economy simulation</h1>
       <Guide />
+      <a class="source-link" href={SOURCE_REPO_URL} target="_blank" rel="noopener noreferrer">
+        Source code
+      </a>
     </div>
     <Controls
       bind:seed={() => session.seed, (seed) => (session = setSeed(session, seed))}
@@ -514,6 +518,15 @@
     font-size: 1.75rem;
     font-weight: 600;
     margin: 0;
+  }
+  .source-link {
+    color: inherit;
+    font-size: 1rem;
+    text-decoration: none;
+  }
+  .source-link:hover,
+  .source-link:focus-visible {
+    text-decoration: underline;
   }
   .status {
     margin: 0.55rem 0 0;

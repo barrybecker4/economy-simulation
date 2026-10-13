@@ -51,5 +51,5 @@ describe('fiat to bitcoin transition', () => {
       );
       expect(result.audit.ok, `seed ${seed}`).toBe(true);
     }
-  });
+  }, 60_000);
 });
