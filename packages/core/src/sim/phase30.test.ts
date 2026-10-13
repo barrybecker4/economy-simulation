@@ -21,40 +21,6 @@ describe('phase 30 rates that match cash', () => {
     expect(marketLoanRate({ timePrefMean: 0.04, loans: 0, savings: 100 })).toBeLessThan(0.04);
   });
 
-  it('prices expected inflation into the bitcoin market rate (Fisher)', () => {
-    const real = marketLoanRate({
-      timePrefMean: 0.04,
-      loans: 100,
-      savings: 100,
-      expectedInflation: 0,
-    });
-    expect(real).toBeCloseTo(0.04, 8);
-    expect(
-      marketLoanRate({
-        timePrefMean: 0.04,
-        loans: 100,
-        savings: 100,
-        expectedInflation: -0.02,
-      }),
-    ).toBeCloseTo(0.02, 8);
-    expect(
-      marketLoanRate({
-        timePrefMean: 0.04,
-        loans: 100,
-        savings: 100,
-        expectedInflation: 0.02,
-      }),
-    ).toBeCloseTo(0.06, 8);
-    expect(
-      marketLoanRate({
-        timePrefMean: 0.04,
-        loans: 100,
-        savings: 100,
-        expectedInflation: -0.1,
-      }),
-    ).toBe(0);
-  });
-
   it('keeps a positive bitcoin interest rate when loans are near savings', () => {
     const result = run({
       ...small,

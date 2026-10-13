@@ -97,13 +97,16 @@ and inventory, not from the stabilizer.
 
 ## Credit/GDP under a falling price level
 
-`creditToGdp` is bank loans over nominal annual GDP. After Fisher pricing
-([ADR 0031](../adr/0031-fisher-bitcoin-loan-rate.md)) bitcoin real mortgage
-rates stay near time preference, so the opening mortgage book does not run off
-to a tenth of fiat. The same satoshi loan stock then sits over a falling
-deflator, so bitcoin `creditToGdp` can exceed fiat even when mortgagor shares
-are similar. That is debt-deflation of a living book, not a leftover of
-forced mobility originations. Do not clamp the ratio to the fiat band.
+`creditToGdp` is bank loans over nominal annual GDP. After the tenure Fisher
+correction ([ADR 0031](../adr/0031-fisher-bitcoin-loan-rate.md)) bitcoin real
+mortgage rates stay near time preference plus the loan spread, so the opening
+mortgage book does not run off to a tenth of fiat. The same satoshi loan stock
+then sits over a falling deflator, so bitcoin `creditToGdp` can exceed fiat
+even when mortgagor shares are similar. That is debt-deflation of a living
+book, not a leftover of forced mobility originations. Do not clamp the ratio
+to the fiat band. The published bitcoin policy rate is not marked down with
+inflation; doing so starved bank interest and failed issue #11’s failure-rate
+ceilings.
 
 ## Registry versus app defaults
 

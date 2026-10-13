@@ -4,9 +4,16 @@ import {
   monthlyMortgagePayment,
   monthlyOwnedCost,
   tenureFromBurdens,
+  tenureRealLoanRate,
 } from './contracts.js';
 
 describe('phase 72 mortgage user cost once', () => {
+  it('keeps bitcoin tenure real rates from adding deflation on top of a real market rate', () => {
+    expect(tenureRealLoanRate(0.04, -0.02, 'bitcoin')).toBeCloseTo(0.06, 8);
+    expect(tenureRealLoanRate(0.06, 0.02, 'fiat')).toBeCloseTo(0.06, 8);
+    expect(tenureRealLoanRate(0.06, 0.02, 'hybrid')).toBeCloseTo(0.06, 8);
+  });
+
   it('makes a long mortgage lose to rent under eight percent expected deflation with the real rate alone', () => {
     const homePrice = 48_000;
     const loan = homePrice * 0.8;

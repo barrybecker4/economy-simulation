@@ -45,6 +45,25 @@ export function ownershipCapitalLoss(homePrice: number, expectedInflation: numbe
   return (-expectedInflation * homePrice) / 12;
 }
 
+/**
+ * Real loan rate for buy-versus-rent. The fiat Taylor rate is already nominal,
+ * so subtract expected inflation once. Bitcoin's market rate is already real;
+ * subtracting inflation again would double-count deflation. Charged interest
+ * stays `policyRate + LOAN_SPREAD` so bank income is not marked down under
+ * deflation (that blew issue #11 failure rates). See ADR 0031.
+ */
+export function tenureRealLoanRate(
+  policyRate: number,
+  expectedInflation: number,
+  regime: 'fiat' | 'bitcoin' | 'hybrid',
+): number {
+  const loanRate = policyRate + LOAN_SPREAD;
+  if (regime === 'bitcoin') {
+    return loanRate;
+  }
+  return loanRate - expectedInflation;
+}
+
 /** Level monthly payment on an amortizing mortgage. */
 export function monthlyMortgagePayment(
   principal: number,
@@ -136,7 +155,7 @@ export function onContractChoice(economy: Economy): void {
   const maxTermYears = economy.params.mortgageTermYears;
   const ltv = economy.params.mortgageLtv;
   const loanRate = economy.policyRate + LOAN_SPREAD;
-  const realRate = loanRate - inflation;
+  const realRate = tenureRealLoanRate(economy.policyRate, inflation, economy.params.regime);
   const monthlyMobilityRate = economy.params.housingMobility / 12;
   for (const household of economy.households) {
     const priorTenure = household.tenure;

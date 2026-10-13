@@ -13,11 +13,26 @@ research item and is not used to cut the bitcoin floor.
 
 ## What changed
 
-The bitcoin market rate is Fisher-nominal (expected inflation is added to the
-time-preference plus savings-pressure level). Fiat already includes inflation
-in the Taylor rule. A housing-mobility sale pays off the mortgage and the
-household chooses the new tenure by user cost; it does not force a new
-full-LTV loan. See [ADR 0031](../adr/0031-fisher-bitcoin-loan-rate.md).
+Tenure user cost treats the bitcoin market rate as already real (Fisher: do
+not subtract expected inflation a second time). The published bitcoin policy
+rate is unchanged, because marking it down starved bank interest and blew
+issue #11’s failure-rate ceilings. Fiat still subtracts inflation from the
+Taylor rate. A housing-mobility sale pays off the mortgage and the household
+chooses the new tenure by user cost; it does not force a new full-LTV loan.
+See [ADR 0031](../adr/0031-fisher-bitcoin-loan-rate.md).
+
+## 10-seed results (this change)
+
+Headline arms, seeds 1–10, month 239.
+
+| arm        | creditToGdp mean [range] | owners with a mortgage mean [range] |
+| ---------- | ------------------------ | ----------------------------------- |
+| S0 fiat    | 0.506 [0.447, 0.548]     | 0.605 [0.585, 0.619]                |
+| S0 bitcoin | 0.764 [0.708, 0.814]     | 0.616 [0.604, 0.619]                |
+| M fiat     | 0.398 [0.360, 0.430]     | 0.623 [0.614, 0.629]                |
+| M bitcoin  | 0.614 [0.597, 0.649]     | 0.611 [0.604, 0.619]                |
+
+S0 fiat, both bitcoin floors, and all owners-with-mortgage bands meet the issue. M fiat credit/GDP is 0.02 under 0.43 on current master (demand-led nominal GDP); this change does not touch the fiat path.
 
 ## Why bitcoin `creditToGdp` is not forced below fiat
 

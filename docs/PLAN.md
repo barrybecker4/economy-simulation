@@ -790,8 +790,7 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to
-   0. Fiat is the residual.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
    return, and exchange rates move with each digital share. The policy-rate rule still follows `regime.type`. Bitcoin
    issuance is the halving schedule, not a slider.
@@ -891,10 +890,10 @@ is a level around time preference.
 1. Household deposit interest is paid after firm loan interest and before bank dividends, funded by borrower interest
    plus equity above the capital target.
 2. The annualized paid deposit rate enters goods spending’s real return.
-3. Bitcoin sets the policy rate to
-   `max(0, timePrefMean + LOAN_SPREAD × pressure + expectedInflation)` (Fisher),
-   with pressure clamped, not a ratchet toward zero. Hybrid keeps the Taylor
-   path on the fiat side. See [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md).
+3. Bitcoin and hybrid set the policy rate to `max(0, timePrefMean + LOAN_SPREAD × pressure)` with pressure clamped, not
+   a ratchet toward zero. Tenure user cost treats that bitcoin rate as already real and does not subtract expected
+   inflation again; fiat still subtracts it from the Taylor rate. See
+   [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md).
 
 Acceptance:
 
@@ -1288,8 +1287,7 @@ Acceptance:
 - At the same amount, only `newLoans` raises firm loans, only `assetPurchase` raises bonds, and a government-spending
   injection is spent on firms in that tick.
 - A `newLoans` contraction reduces firm deposits and firm loans.
-- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
-  3. `spendNewMoney` on the default channel stays under 10 percent inflation.
+- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is 3. `spendNewMoney` on the default channel stays under 10 percent inflation.
 
 ### Phase 57: Inflation after inside-money runoff
 

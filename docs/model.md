@@ -503,12 +503,13 @@ Fiat keeps the central-bank rule above. The posted-price trend follows the infla
 reserves when the reserve requirement binds. Wages negotiate toward the agreed wage from prices and
 productivity, so they
 follow inflation only as prices move. Bitcoin uses satoshis, including fractions. Its price trend is minus baseline
-productivity, because base money does not grow. The loan rate is Fisher-nominal:
-time preference plus `LOAN_SPREAD` times savings pressure plus expected
-inflation, floored at 0. Fiat already includes inflation in the Taylor rule, so
-this term applies only to bitcoin. Real user cost is still the nominal loan rate
-minus expected inflation, so the real rate stays time preference plus pressure.
-See [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md). Savings
+productivity, because base money does not grow. The loan rate moves toward the gap between loans and savings:
+`max(0, timePrefMean + LOAN_SPREAD × pressure)`. That published rate is already
+real. Tenure user cost uses it plus the loan spread without subtracting expected
+inflation again; fiat and hybrid still subtract inflation from the Taylor rate.
+Charged interest stays the published rate plus the spread, so bank income is not
+marked down under deflation. See [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md).
+Savings
 are 25 percent of household deposits under maturity-matched lending and 10 percent under full
 reserve. New bitcoin credit
 cannot exceed the unused savings. Bitcoin also originates no new consumer loans; mortgages and firm loans stay inside
