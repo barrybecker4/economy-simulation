@@ -156,8 +156,12 @@ export function openFirmBooks(economy: Economy): number {
 
 export function seedHouseholdCash(economy: Economy): void {
   const months = economy.params.openingDepositMonths;
+  const concentration = economy.params.wealthConcentration;
   for (const household of economy.households) {
-    setDeposit(household, Math.round(household.skill ** 2 * INITIAL_WAGE * months));
+    // Opening deposits scale with skill raised to the concentration exponent.
+    // Higher concentration (e.g. 2.5-4) creates a more unequal opening distribution,
+    // moving toward US wealth inequality where business/equity ownership and debt create dispersion.
+    setDeposit(household, Math.round(household.skill ** concentration * INITIAL_WAGE * months));
     household.income = 0;
   }
 }

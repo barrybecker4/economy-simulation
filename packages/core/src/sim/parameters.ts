@@ -78,6 +78,7 @@ export interface Parameters {
   firmCount: number;
   bankCount: number;
   skillSigma: number;
+  wealthConcentration: number;
   openingDepositMonths: number;
   prefStd: number;
   realReturnSensitivity: number;
@@ -208,6 +209,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     firmCount: Math.round(slider(config, 'scale.firms')),
     bankCount: Math.round(slider(config, 'scale.banks')),
     skillSigma: slider(config, 'household.skillSigma'),
+    wealthConcentration: slider(config, 'household.wealthConcentration'),
     openingDepositMonths: slider(config, 'household.openingDepositMonths'),
     prefStd: slider(config, 'household.timePreferenceStd'),
     realReturnSensitivity: slider(config, 'household.realReturnSensitivity'),

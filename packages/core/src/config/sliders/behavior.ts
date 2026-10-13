@@ -63,6 +63,16 @@ export const BEHAVIOR_SLIDERS: readonly Slider[] = [
     'Spread of innate earning power, as the standard deviation of a lognormal skill draw. Draws are kept between 0.2 and 5, then divided by their average so mean skill is 1. A worker is paid the firm wage times skill. Starting deposits scale with skill squared, about the opening-deposit months of the base wage for a skill of 1, so wealth begins more unequal than pay. Profits are shared with weights of skill raised to 1.5 or more, which concentrates capital income on high-skill households. The default of 0.7 thickens the high-skill tail relative to 0.5.',
   ),
   numberSlider(
+    'household.wealthConcentration',
+    'Initial wealth concentration',
+    'behavior',
+    'exponent',
+    2.5,
+    2,
+    4,
+    'Exponent applied to skill when setting opening deposits. Deposits are skill raised to this power, times the base wage and opening months. The default of 2.5 concentrates wealth more than the skill^2 from earlier phases. At 2, wealth starts as unequal as skill squared (the wage-earnings relationship). At 3 or 4, the top decile opens with a larger share, moving the opening Gini toward US wealth inequality (0.79-0.86) where concentrated business ownership, return heterogeneity, and debt drive dispersion. Raising this does not change skill itself or labor income; it only spreads the initial deposit distribution.',
+  ),
+  numberSlider(
     'household.realReturnSensitivity',
     'Real-return spending sensitivity',
     'behavior',

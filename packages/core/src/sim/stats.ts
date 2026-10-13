@@ -1,6 +1,11 @@
-/** Gini of a sample. Negative values are shifted so the measure stays defined. */
-export function gini(values: readonly number[]): number {
-  return giniOfSorted(prepareSorted(values));
+/**
+ * Gini of a sample. For income/consumption, negative values are shifted so the measure
+ * stays defined. For wealth, pass shift=false to preserve negative net worth in the
+ * calculation, matching the approach used for US wealth Gini where the bottom quintiles
+ * can have negative net worth (debt exceeding assets).
+ */
+export function gini(values: readonly number[], shift = true): number {
+  return giniOfSorted(shift ? prepareSorted(values) : sortedCopy(values));
 }
 
 export function mean(values: readonly number[]): number {
@@ -50,9 +55,16 @@ export function quintileShares(
 
 /**
  * One ascending sort feeds Gini, mean, median, tail shares, and quintiles.
- * Gini still shifts negatives; shares and total treat negatives as zero.
+ * For income/consumption, Gini shifts negatives to stay defined (shiftGini=true).
+ * For wealth, pass shiftGini=false to preserve negative net worth in the Gini calculation,
+ * matching the approach for US wealth Gini where bottom quintiles can have negative net worth.
+ * Total (denominator) always counts only non-negative wealth. Tail shares (numerator) include
+ * negative net worth, so the bottom quintile can have a negative share when debt exceeds assets.
  */
-export function distributionOf(values: readonly number[]): {
+export function distributionOf(
+  values: readonly number[],
+  shiftGini = true,
+): {
   gini: number;
   mean: number;
   median: number;
@@ -63,7 +75,7 @@ export function distributionOf(values: readonly number[]): {
 } {
   const sorted = sortedCopy(values);
   return {
-    gini: giniOfSorted(prepareSortedFromSorted(sorted)),
+    gini: giniOfSorted(shiftGini ? prepareSortedFromSorted(sorted) : sorted),
     mean: mean(values),
     median: medianOfSorted(sorted),
     topDecile: tailShareOfSorted(sorted, 0.1, 'top'),
@@ -124,8 +136,21 @@ function giniOfSorted(sorted: readonly number[]): number {
   for (const value of sorted) {
     sum += value;
   }
-  if (sum === 0) {
-    return 0;
+  // For wealth with negative net worth, use sum of absolute values to stay well-defined
+  if (sum <= 0) {
+    let absSum = 0;
+    for (const value of sorted) {
+      absSum += Math.abs(value);
+    }
+    if (absSum === 0) {
+      return 0;
+    }
+    // Compute with absolute sum denominator
+    let weighted = 0;
+    for (let index = 0; index < count; index += 1) {
+      weighted += (2 * (index + 1) - count - 1) * (sorted[index] ?? 0);
+    }
+    return Math.abs(weighted) / (count * absSum);
   }
   let weighted = 0;
   for (let index = 0; index < count; index += 1) {
@@ -157,10 +182,12 @@ function tailShareOfSorted(
   let total = 0;
   let slice = 0;
   for (let index = 0; index < sorted.length; index += 1) {
-    const value = Math.max(0, sorted[index] ?? 0);
-    total += value;
+    const value = sorted[index] ?? 0;
+    // Total (denominator) counts only non-negative wealth
+    total += Math.max(0, value);
     const inSlice = end === 'top' ? index >= sorted.length - count : index < count;
     if (inSlice) {
+      // Slice (numerator) includes negative net worth, so bottom quintile can be negative
       slice += value;
     }
   }
@@ -192,7 +219,8 @@ function quintileSharesOfSorted(
     const end = Math.floor(((quintile + 1) * count) / 5);
     let slice = 0;
     for (let index = start; index < end; index += 1) {
-      slice += Math.max(0, sorted[index] ?? 0);
+      // Include negative net worth in quintile shares (actual value, not floored at zero)
+      slice += sorted[index] ?? 0;
     }
     shares.push(slice / total);
   }
