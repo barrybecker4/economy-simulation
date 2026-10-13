@@ -359,7 +359,11 @@ It is outstanding principal, not a new deposit: the purchase was in the past. Ea
 would leave that bank's reserves short of the reserve
 requirement. A household whose principal rounds to zero owns outright. Each month a household draws against
 `housing.adjustmentRate` (default 0.01). Only those who draw may switch
-tenure on the ordinary path, so one cheap month cannot move the whole stock. Under expected deflation, a liquid
+tenure on the ordinary path, so one cheap month cannot move the whole stock.
+`housing.mobilityRate` (default 0.09 per year) is a life-event draw among
+mortgagors: the household sells, pays off the loan when deposits cover it, and
+then picks the new tenure by the same user-cost rule. A move does not force a
+new mortgage. See [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md). Under expected deflation, a liquid
 mortgagor may also prepay without that draw when the real burden says rent or cash ownership is cheaper. A household who
 may switch picks rent, a nominal mortgage, or cash ownership by the lowest expected real burden. That burden adds the
 household's time preference minus the mean, so the median household is near the rent-mortgage margin at the neutral loan
@@ -499,7 +503,13 @@ Fiat keeps the central-bank rule above. The posted-price trend follows the infla
 reserves when the reserve requirement binds. Wages negotiate toward the agreed wage from prices and
 productivity, so they
 follow inflation only as prices move. Bitcoin uses satoshis, including fractions. Its price trend is minus baseline
-productivity, because base money does not grow. The loan rate moves toward the gap between loans and savings. Savings
+productivity, because base money does not grow. The loan rate moves toward the gap between loans and savings:
+`max(0, timePrefMean + LOAN_SPREAD × pressure)`. That published rate is already
+real. Tenure user cost uses it plus the loan spread without subtracting expected
+inflation again; fiat and hybrid still subtract inflation from the Taylor rate.
+Charged interest stays the published rate plus the spread, so bank income is not
+marked down under deflation. See [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md).
+Savings
 are 25 percent of household deposits under maturity-matched lending and 10 percent under full
 reserve. New bitcoin credit
 cannot exceed the unused savings. Bitcoin also originates no new consumer loans; mortgages and firm loans stay inside
