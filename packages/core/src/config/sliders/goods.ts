@@ -130,6 +130,16 @@ export const GOODS_SLIDERS: readonly Slider[] = [
     'Share of households who may switch tenure in one month when tenure choice is on. Each household draws against its own stream, so a cheap loan rate cannot move the whole eligible stock in the opening tick. Opening tenure is unchanged until a household draws a switch. At 1 every household reconsiders every month. At 0 tenure stays at the opening mix. Unused when tenure choice is off.',
   ),
   numberSlider(
+    'housing.mobilityRate',
+    'Housing mobility rate',
+    'credit',
+    '1/year',
+    0.09,
+    0,
+    0.2,
+    'Annual rate at which homeowners experience a life event (move, job change, family change) that triggers a home sale and potential repurchase. At the real-world U.S. rate of about 9% per year, roughly 3.3% of households originate a purchase mortgage annually (about 61% of owners have mortgages and most movers who can afford it finance with a mortgage). At 0 only the adjustment rate drives tenure changes. Unused when tenure choice is off.',
+  ),
+  numberSlider(
     'housing.openingOwnerShare',
     'Opening owner share',
     'credit',

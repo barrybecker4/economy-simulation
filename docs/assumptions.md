@@ -1180,6 +1180,22 @@ Registry version: 16.
   smoothed income; one below the mean saves more. A wider spread fans consumption and deposit balances apart. At zero,
   every household has the mean rate and no patience draw is used.
 
+## household.wealthConcentration
+
+- Label: Initial wealth concentration
+- Group: behavior
+- Unit: exponent
+- Default: 2.5
+- Range: 2 to 4
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Exponent applied to skill when setting opening deposits. Deposits are skill raised to this power, times
+  the base wage and opening months. The default of 2.5 concentrates wealth more than the skill^2 from earlier phases. At
+  2, wealth starts as unequal as skill squared (the wage-earnings relationship). At 3 or 4, the top decile opens with a
+  larger share, moving the opening Gini toward US wealth inequality (0.79-0.86) where concentrated business ownership,
+  return heterogeneity, and debt drive dispersion. Raising this does not change skill itself or labor income; it only
+  spreads the initial deposit distribution.
+
 ## housing.adjustmentRate
 
 - Label: Tenure adjustment rate
@@ -1223,6 +1239,20 @@ Registry version: 16.
   the home price used for tenure choice. When tenure choice is off, demand sits at the neutral share, so scarcity stays
   at 1 unless supply growth moves it. Off keeps the formula price and a home price of 48 months of income times
   construction productivity and the monetary-premium multiple.
+
+## housing.mobilityRate
+
+- Label: Housing mobility rate
+- Group: credit
+- Unit: 1/year
+- Default: 0.09
+- Range: 0 to 0.2
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Annual rate at which homeowners experience a life event (move, job change, family change) that triggers a
+  home sale and potential repurchase. At the real-world U.S. rate of about 9% per year, roughly 3.3% of households
+  originate a purchase mortgage annually (about 61% of owners have mortgages and most movers who can afford it finance
+  with a mortgage). At 0 only the adjustment rate drives tenure changes. Unused when tenure choice is off.
 
 ## housing.monetaryPremium
 
