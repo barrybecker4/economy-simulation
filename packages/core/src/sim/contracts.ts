@@ -183,7 +183,7 @@ export function onContractChoice(economy: Economy): void {
       household.tenure === 'mortgage' &&
       household.mortgage > 0 &&
       household.bitcoinMortgage <= 0;
-    const adjusting = household.search.uniform() < economy.params.housingAdjustment;
+    let adjusting = household.search.uniform() < economy.params.housingAdjustment;
     if (considerPrepay && (choice === 'rent' || choice === 'owned')) {
       fundFromBitcoin(economy, household, household.mortgage);
       if (household.deposit >= household.mortgage) {
@@ -199,12 +199,11 @@ export function onContractChoice(economy: Economy): void {
       }
     }
 
-    // Housing mobility: mortgage holders may refinance/move; this generates purchase originations.
-    // At the real-world rate of ~9%/year, owners experience life events (job change, family change,
-    // move to different city) that trigger a home sale and repurchase. Since the model doesn't track
-    // individual homes or a resale market, we model this as: pay off existing mortgage (if any),
-    // then immediately try to originate a new mortgage. This creates the steady flow of purchase
-    // originations without needing to model the full housing market.
+    // Housing mobility: a life event sells the current mortgaged home. The
+    // household then picks the new tenure by user cost, the same decide() path
+    // as an ordinary switch. Forcing a new mortgage here is what pumped bitcoin
+    // credit/GDP above fiat after issue #12: the sale resets LTV at sticky
+    // satoshi incomes while nominal GDP falls.
     const mobilityEvent =
       household.tenure === 'mortgage' &&
       hasMortgageDebt(household) &&
@@ -213,7 +212,6 @@ export function onContractChoice(economy: Economy): void {
       const totalDebt = household.mortgage + household.bitcoinMortgage * economy.bitcoinPrice;
       fundFromBitcoin(economy, household, totalDebt);
       if (household.deposit >= totalDebt) {
-        // Pay off existing mortgage
         if (household.mortgage > 0) {
           const payoff = household.mortgage;
           repayMortgage(household, payoff);
@@ -230,30 +228,11 @@ export function onContractChoice(economy: Economy): void {
         household.mortgageArrears = 0;
         household.mortgageIndexed = false;
         household.tenure = 'rent';
-        
-        // Immediately try to originate a new mortgage for the "move"
-        if (termYears > 0) {
-          const room = mortgageCreditRoom(economy, household.bank);
-          const principal = Math.min(maxLoan, Math.max(0, room));
-          if (principal > 0 && household.deposit >= downPayment && downPayment >= 0) {
-            if (downPayment > 0) {
-              payCashForHome(household, economy, downPayment);
-            }
-            drawMortgage(household, economy, principal);
-            household.mortgagePayment = moneyAmount(
-              economy,
-              monthlyMortgagePayment(principal, loanRate, termYears),
-            );
-            household.mortgageIndexed = false;
-            household.tenure = 'mortgage';
-            economy.newBorrowing += principal;
-            economy.mortgageOriginations += 1;
-            economy.rentToMortgage += 1;
-          }
-        }
+        adjusting = true;
+      } else {
+        maybeBorrowConsumer(economy, household, income, penalty);
+        continue;
       }
-      maybeBorrowConsumer(economy, household, income, penalty);
-      continue;
     }
 
     if (!adjusting) {

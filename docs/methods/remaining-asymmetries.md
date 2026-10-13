@@ -95,6 +95,16 @@ seeds were a shortage allocation bug; proportional spending scales and stockout
 price lift clear them. Further consumption-gap work should start from tenure
 and inventory, not from the stabilizer.
 
+## Credit/GDP under a falling price level
+
+`creditToGdp` is bank loans over nominal annual GDP. After Fisher pricing
+([ADR 0031](../adr/0031-fisher-bitcoin-loan-rate.md)) bitcoin real mortgage
+rates stay near time preference, so the opening mortgage book does not run off
+to a tenth of fiat. The same satoshi loan stock then sits over a falling
+deflator, so bitcoin `creditToGdp` can exceed fiat even when mortgagor shares
+are similar. That is debt-deflation of a living book, not a leftover of
+forced mobility originations. Do not clamp the ratio to the fiat band.
+
 ## Registry versus app defaults
 
 The registry default `prices.trendWeight` is 1 so opening prices follow the regime

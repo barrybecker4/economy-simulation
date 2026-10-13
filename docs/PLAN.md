@@ -891,8 +891,10 @@ is a level around time preference.
 1. Household deposit interest is paid after firm loan interest and before bank dividends, funded by borrower interest
    plus equity above the capital target.
 2. The annualized paid deposit rate enters goods spending’s real return.
-3. Bitcoin and hybrid set the policy rate to `max(0, timePrefMean + LOAN_SPREAD × pressure)` with pressure clamped, not
-   a ratchet toward zero.
+3. Bitcoin sets the policy rate to
+   `max(0, timePrefMean + LOAN_SPREAD × pressure + expectedInflation)` (Fisher),
+   with pressure clamped, not a ratchet toward zero. Hybrid keeps the Taylor
+   path on the fiat side. See [ADR 0031](adr/0031-fisher-bitcoin-loan-rate.md).
 
 Acceptance:
 

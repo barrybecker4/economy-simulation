@@ -61,14 +61,21 @@ export function taylorRate(input: {
   );
 }
 
-/** Bitcoin/hybrid loan rate as a level around time preference, not a ratchet to zero. */
+/**
+ * Bitcoin loan rate as a Fisher nominal: time preference plus credit pressure
+ * plus expected inflation. The fiat Taylor rule already includes inflation, so
+ * this applies only to the bitcoin market rate. Under deflation the nominal
+ * rate falls and the real rate stays the time-preference level plus pressure.
+ */
 export function marketLoanRate(input: {
   timePrefMean: number;
   loans: number;
   savings: number;
+  expectedInflation?: number;
 }): number {
   const pressure = input.savings > 0 ? clamp(input.loans / input.savings - 1, -1, 2) : 0;
-  return Math.max(0, input.timePrefMean + LOAN_SPREAD * pressure);
+  const real = input.timePrefMean + LOAN_SPREAD * pressure;
+  return Math.max(0, real + (input.expectedInflation ?? 0));
 }
 
 export function onCentralBank(economy: Economy): void {
@@ -558,6 +565,7 @@ function setMarketRate(economy: Economy): void {
       timePrefMean: economy.params.timePrefMean,
       loans: totalLoans(economy),
       savings: savingsStock(economy),
+      expectedInflation: expectedInflation(economy),
     }),
   );
 }
