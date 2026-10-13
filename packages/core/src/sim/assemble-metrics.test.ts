@@ -282,6 +282,9 @@ function snapshot(
     aiFactor: input.aiFactor,
     automatedShare: 0,
     naturalUnemployment: 0,
+    jobStayerCount: 0,
+    jobStayersWithCuts: 0,
+    jobStayerCutShare: 0,
   };
 }
 

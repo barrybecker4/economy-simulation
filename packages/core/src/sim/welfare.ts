@@ -5,6 +5,11 @@ import { aiShareOfWealth, jobShares, measureHouseholds, ownerWealthShare } from 
 import { depositFlowBuckets } from './deposit-flows.js';
 import type { Economy } from './economy.js';
 import { growth, inflation, naturalUnemployment, pay } from './helpers.js';
+import {
+  recordWageHistory,
+  calculateJobStayerStats,
+  type JobStayerWageStats,
+} from './job-stayer-wage-cuts.js';
 import { CONSUMER_LOAN_REPAY } from './rules.js';
 import { median } from './stats.js';
 import type { Household } from './types.js';
@@ -37,11 +42,16 @@ function actualAverageWage(economy: Economy): number {
 
 export function onWelfare(economy: Economy, ctx: TickContext): void {
   economy.depositFlowHistory.push(depositFlowBuckets(economy));
-  assembleMetrics(metricSnapshot(economy), ctx.metrics);
+  
+  // Record wage history for job-stayer tracking
+  recordWageHistory(economy);
+  const jobStayerStats = calculateJobStayerStats(economy);
+  
+  assembleMetrics(metricSnapshot(economy, jobStayerStats), ctx.metrics);
   economy.defaultsThisTick = 0;
 }
 
-function metricSnapshot(economy: Economy): MetricSnapshot {
+function metricSnapshot(economy: Economy, jobStayerStats: JobStayerWageStats): MetricSnapshot {
   const measured = measureHouseholds(economy);
   return {
     ...levels(economy, measured),
@@ -62,6 +72,9 @@ function metricSnapshot(economy: Economy): MetricSnapshot {
     aiFactor: economy.aiFactor,
     automatedShare: economy.automatedShare,
     naturalUnemployment: naturalUnemployment(economy),
+    jobStayerCount: jobStayerStats.jobStayerCount,
+    jobStayersWithCuts: jobStayerStats.jobStayersWithCuts,
+    jobStayerCutShare: jobStayerStats.jobStayerCutShare,
   };
 }
 

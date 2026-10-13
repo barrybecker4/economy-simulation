@@ -24,6 +24,7 @@ export function assembleMetrics(snapshot: MetricSnapshot, metrics: MetricSink): 
   recordFlows(snapshot, metrics);
   recordDistributions(snapshot, metrics);
   recordPopulation(snapshot, metrics);
+  recordJobStayerStats(snapshot, metrics);
 }
 
 function recordOutput(snapshot: MetricSnapshot, metrics: MetricSink): void {
@@ -202,4 +203,10 @@ function recordPopulation(snapshot: MetricSnapshot, metrics: MetricSink): void {
   metrics.set('aiShareOfTransactions', activity > 0 ? agentActivity / activity : 0);
   metrics.set('aiShareOfOutput', snapshot.aiFactor > 1 ? 1 - 1 / snapshot.aiFactor : 0);
   metrics.set('tasksAutomated', snapshot.automatedShare);
+}
+
+function recordJobStayerStats(snapshot: MetricSnapshot, metrics: MetricSink): void {
+  metrics.set('jobStayerCount', snapshot.jobStayerCount);
+  metrics.set('jobStayersWithCuts', snapshot.jobStayersWithCuts);
+  metrics.set('jobStayerCutShare', snapshot.jobStayerCutShare);
 }

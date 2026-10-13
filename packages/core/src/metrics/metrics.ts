@@ -99,6 +99,9 @@ export const METRIC_IDS = [
   'stablecoinShare',
   'cbdcShare',
   'bitcoinPrice',
+  'jobStayerCount',
+  'jobStayersWithCuts',
+  'jobStayerCutShare',
   'auditOk',
 ] as const;
 

@@ -107,4 +107,10 @@ export interface MetricSnapshot {
   aiFactor: number;
   automatedShare: number;
   naturalUnemployment: number;
+  /** Number of job-stayers (employed at same firm 12 months ago) */
+  jobStayerCount: number;
+  /** Number of job-stayers whose nominal wage fell from 12 months ago */
+  jobStayersWithCuts: number;
+  /** Share of job-stayers with nominal wage cuts (0 to 1) */
+  jobStayerCutShare: number;
 }

@@ -412,10 +412,10 @@ function updateWages(economy: Economy): void {
 
 /**
  * Update wages at a specific firm with downward nominal rigidity.
- * Both incumbent and new-hire wages resist downward adjustment.
+ * Incumbent wages only fall after extreme sustained pressure; new hires get market wage.
  */
 function updateFirmWages(economy: Economy, firm: Firm, referenceGrowth: number): void {
-  // Market wage for this firm (what the market would clear at)
+  // Market wage for this firm (new hires)
   const marketWage = economy.wageLevel * firm.productivity;
   
   // Track pressure conditions
@@ -428,40 +428,23 @@ function updateFirmWages(economy: Economy, firm: Firm, referenceGrowth: number):
   // Decide if we can cut wages
   const canCutWages = firm.wageCutPressure >= WAGE_CUT_PRESSURE_THRESHOLD;
   
-  // Calculate average incumbent wage at this firm for new hire reference
-  let incumbentWageSum = 0;
-  let incumbentCount = 0;
-  for (const workerId of firm.workers) {
-    const worker = economy.households[workerId];
-    if (worker && worker.nominalWage > 0) {
-      incumbentWageSum += worker.nominalWage / worker.skill; // Base wage
-      incumbentCount += 1;
-    }
-  }
-  
-  // New hires get the higher of: market wage or average incumbent wage
-  // This implements "internal equity" - new hires shouldn't be paid dramatically
-  // less than existing workers doing the same job, which would cause morale issues
-  const avgIncumbentBase = incumbentCount > 0 ? incumbentWageSum / incumbentCount : marketWage;
-  const newHireBase = canCutWages ? marketWage : Math.max(marketWage, avgIncumbentBase);
-  
-  // For incumbent workers, apply rigidity to downward moves
+  // Update incumbent workers with downward rigidity
   for (const workerId of firm.workers) {
     const worker = economy.households[workerId];
     if (!worker) {
       continue;
     }
     
-    // If worker has no wage set (legacy), set to the new hire base
+    // If worker has no wage set (new hire or legacy), set to market
     if (worker.nominalWage <= 0) {
-      worker.nominalWage = newHireBase * worker.skill;
+      worker.nominalWage = marketWage * worker.skill;
       continue;
     }
     
-    // Target wage for this worker
+    // Target wage for this worker based on current market
     const targetWage = marketWage * worker.skill;
     
-    // Always allow upward adjustments
+    // Always allow upward adjustments (catch-up)
     if (targetWage > worker.nominalWage) {
       // Apply the same catch-up scaling as the economy reference
       const growth = (targetWage / worker.nominalWage - 1) * (1 - economy.params.rigidity);
@@ -473,14 +456,14 @@ function updateFirmWages(economy: Economy, firm: Firm, referenceGrowth: number):
         : growth;
       worker.nominalWage *= 1 + clamp(scaledGrowth, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
     } else if (targetWage < worker.nominalWage && canCutWages) {
-      // Only allow downward adjustments after sustained pressure
+      // Only allow downward adjustments after sustained extreme pressure
       // Still apply rigidity to make cuts gradual
       const growth = (targetWage / worker.nominalWage - 1) * (1 - economy.params.rigidity);
       worker.nominalWage *= 1 + clamp(growth, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
     }
-    // else: hold wage constant (downward nominal rigidity without threshold met)
+    // else: hold wage constant (downward nominal rigidity)
   }
   
-  // Set firm's wage to the new hire base (for new hires and reference)
-  firm.wage = newHireBase;
+  // Set firm's wage to market wage (for new hires and reference)
+  firm.wage = marketWage;
 }

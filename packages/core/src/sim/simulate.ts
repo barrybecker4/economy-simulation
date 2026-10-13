@@ -1,5 +1,6 @@
 import type { ResolvedConfig } from '../config/load.js';
 import { runSimulation, type SimulationResult } from '../engine/engine.js';
+import { clearWageHistory } from './job-stayer-wage-cuts.js';
 import { World } from './world.js';
 
 export interface ForcedShock {
@@ -13,6 +14,8 @@ export function simulate(
   shock: ForcedShock | null = null,
   onTick?: (completed: number, total: number) => void,
 ): SimulationResult {
+  // Clear wage history from any previous run
+  clearWageHistory();
   const world = new World(config, shock);
   return runSimulation(config, world.handlers(), onTick);
 }
