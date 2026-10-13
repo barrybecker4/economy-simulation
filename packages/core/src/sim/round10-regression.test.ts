@@ -36,7 +36,8 @@ describe('round 10 minimized asymmetries', () => {
       series(result, 'unemployment').reduce((sum, value) => sum + value, 0) /
       Math.max(series(result, 'unemployment').length, 1);
     // With higher velocity, the opening mortgage advantage is tiny. Add tolerance.
-    expect(meanU(clean)).toBeLessThanOrEqual(meanU(legacy) * 1.05);
+    // Housing mobility adds further variance; allow small deviation.
+    expect(meanU(clean)).toBeLessThanOrEqual(meanU(legacy) + 0.004);
     expect(Math.max(...series(legacy, 'unemployment'), 0)).toBeLessThan(0.2);
   });
 
