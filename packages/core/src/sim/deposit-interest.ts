@@ -16,7 +16,9 @@ export function payHouseholdDepositInterest(
 ): void {
   economy.depositInterestPaid = 0;
   economy.reserveInterestPaid = 0;
-  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
+  const passThrough =
+    economy.params.regime === 'bitcoin' ? 1.0 : economy.params.depositPassThrough;
+  economy.depositRate = passThrough * economy.policyRate;
   if (economy.depositRate <= 0) {
     economy.paidDepositRate = 0;
     return;

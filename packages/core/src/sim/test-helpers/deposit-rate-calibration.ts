@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadScenario } from '../config/load.js';
-import type { MetricId } from '../metrics/metrics.js';
-import type { SimulationResult } from '../engine/engine.js';
-import { simulate } from './simulate.js';
+import { loadScenario } from '../../config/load.js';
+import type { MetricId } from '../../metrics/metrics.js';
+import type { SimulationResult } from '../../engine/engine.js';
+import { simulate } from '../simulate.js';
 
 const presetPath = path.join(
-  fileURLToPath(new URL('../../../../scenarios/presets/monetary.json', import.meta.url)),
+  fileURLToPath(new URL('../../../../../scenarios/presets/monetary.json', import.meta.url)),
 );
 
 export const monetaryPreset = JSON.parse(readFileSync(presetPath, 'utf8')).sliders as Record<

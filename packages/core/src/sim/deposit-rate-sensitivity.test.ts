@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARM_TIMEOUT, logArm, monetaryPreset, summarizeArm } from './deposit-rate-calibration.js';
+import { ARM_TIMEOUT, logArm, monetaryPreset, summarizeArm } from './test-helpers/deposit-rate-calibration.js';
 
 describe('deposit rate calibration sensitivity (issue #15)', () => {
   it(

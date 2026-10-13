@@ -1,9 +1,13 @@
 # Deposit-rate pass-through calibration
 
 Issue #15. The registry default and the monetary preset both set `bank.depositPassThrough` to 0.45 so
-the paid deposit rate over the policy rate sits in the empirical deposit-beta band of 0.3–0.6. A slider
-of 1.0 on the monetary preset paid about 0.69 of the policy rate and overstated how well fiat savers
-are protected from inflation.
+the paid deposit rate over the policy rate sits in the empirical deposit-beta band of 0.3–0.6 for fiat
+regimes. A slider of 1.0 on the monetary preset paid about 0.69 of the policy rate and overstated how
+well fiat savers are protected from inflation.
+
+The pass-through of 0.45 applies only to fiat and hybrid regimes. Bitcoin uses a pass-through of 1.0
+regardless of the slider setting, because the fiat-era empirical deposit beta does not apply to a
+bitcoin standard.
 
 Sources:
 
@@ -21,16 +25,17 @@ Sources:
 Numbers from `deposit-rate-s0.test.ts`, `deposit-rate-m.test.ts`, and
 `deposit-rate-sensitivity.test.ts`.
 
-## S0 / M × fiat / bitcoin at pass-through 0.45
+## S0 / M fiat at slider pass-through 0.45
 
-| arm        | mean  | median | range       |
-| ---------- | ----- | ------ | ----------- |
-| S0 fiat    | 0.371 | 0.371  | 0.356–0.383 |
-| S0 bitcoin | 0.404 | 0.404  | 0.403–0.405 |
-| M fiat     | 0.388 | 0.389  | 0.385–0.391 |
-| M bitcoin  | 0.407 | 0.408  | 0.403–0.408 |
+| arm     | mean  | median | range       |
+| ------- | ----- | ------ | ----------- |
+| S0 fiat | 0.371 | 0.371  | 0.356–0.383 |
+| M fiat  | 0.388 | 0.389  | 0.385–0.391 |
 
 M fiat median 0.389 is inside 0.3–0.6.
+
+Bitcoin uses an effective pass-through of 1.0 regardless of the slider setting. The S0 and M bitcoin
+arms measure the paid/policy ratio but do not constrain it to the fiat-era band.
 
 ## M fiat sensitivity
 
