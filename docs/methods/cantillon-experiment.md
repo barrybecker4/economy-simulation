@@ -1,137 +1,132 @@
-# Cantillon Effect Experiment
+# Cantillon effect experiment
 
-## Overview
+Issue #16: the default `proRataDeposits` channel is a savers' dividend with no
+first-receiver advantage, and the other injection channels had no experiment
+that compared wealth or income across them. This note is that experiment.
 
-This experiment tests the distributional impact of different monetary injection channels to address the claim that "fiat enriches those closest to the printer" (Cantillon effect). It implements the requirements from issue #16.
+The simulation cannot show that one monetary system is better in the real world.
+It shows which assumptions a conclusion depends on. Cantillon is the usual
+bitcoin-side claim students raise; the run is meant to show sign and size,
+including that the measured effect is small.
 
-## Research Question
+## Design
 
-Does the channel through which new fiat money enters the economy create measurable differences in wealth and income distribution, and if so, how large are these effects?
+Each cell is one preset × one regime. Every cell uses the same money-growth
+rule and turns shocks off so the only slider that changes is
+`centralBank.injectionChannel`.
 
-## Real-World Evidence
+| Cell       | Preset                            | Regime  |
+| ---------- | --------------------------------- | ------- |
+| S0 fiat    | `FEATURE_OFF`                     | fiat    |
+| S0 bitcoin | `FEATURE_OFF`                     | bitcoin |
+| M fiat     | `scenarios/presets/monetary.json` | fiat    |
+| M bitcoin  | `scenarios/presets/monetary.json` | bitcoin |
 
-- **Euro-area QE (Lenza & Slacalek, ECB WP 2190)**: wealth Gini moved from 69.17 to 69.14 (−0.03 points), income Gini from 43.15 to 43.09 (−0.06 points)
-- **Unanticipated inflation (Doepke & Schneider, 2006)**: shifts 5.7-15.2% of GDP from rich, old bondholders to young debtors
+Scale is 60 households, 6 firms, 1 bank. Horizon is 24 months. Seed band is
+1–10. Bitcoin ignores the injection slider; those rows are a control.
 
-## Method
+Channels, and who first holds the new money:
 
-### Injection Channels Tested
+- `proRataDeposits`: households, in proportion to existing deposits.
+- `governmentSpending`: the treasury, then firms that still have inventory.
+- `newLoans`: firms, as loans booked inside unused credit room.
+- `assetPurchase`: households, paid for bonds already on bank books. Places
+  nothing when there are no bonds.
 
-1. **proRataDeposits** (neutral baseline): New money distributed to households proportional to existing balances
-2. **governmentSpending**: New money enters through government purchases from firms
-3. **newLoans**: New money enters through new firm loans (within credit capacity)
-4. **assetPurchase**: New money enters through central bank bond purchases, paying households
+Metrics:
 
-### Experimental Design
+- Wealth Gini change: last month minus month 0.
+- Top-decile wealth-share change: last month minus month 0.
+- Gini versus `proRataDeposits`: same-seed end Gini minus the pro-rata end Gini.
+  That is the cross-channel Cantillon increment.
+- First-receiver gain, months 0–12: relative change in top-decile real wealth
+  (`topDecileWealthShare × totalRealWealth`) for household-first channels, and
+  in `realClaimWealth` for firm-first channels.
 
-- **Seeds**: 10+ per configuration (per acceptance criteria)
-- **Duration**: 24 ticks (2 years) to observe distributional effects
-- **Regimes**: fiat and bitcoin
-- **Presets**: S0 (feature-off baseline) and monetary (demand-driven)
-- **Control variables**:
-  - Same secular money growth rate across all channels (`centralBank.moneyGrowth = 1`)
-  - Crisis stimulus disabled (`centralBank.stimulus = 0`)
-  - Shocks disabled to isolate channel effects
-  - Demand-driven prices (`prices.trendWeight = 0`, `production.demandWeight = 1`)
+The issue's target is unchanged: mean wealth-Gini change within **±0.01** of
+zero for `assetPurchase` and `proRataDeposits`.
 
-### Metrics
+## How to run
 
-1. **Wealth Gini change**: End wealth Gini minus start wealth Gini
-2. **Top decile share change**: End top 10% wealth share minus start share
-3. **First-receiver gain**: 12-month wealth change of the group receiving new money first
-   - proRataDeposits/assetPurchase: top quintile gain (households)
-   - governmentSpending/newLoans: mean real wealth gain (firm receipts flow to households)
-
-## Acceptance Criteria (Issue #16)
-
-The experiment exists and runs in CI. Across channels:
-
-- Change in wealth Gini is within **±0.01** of zero for `assetPurchase` / `proRataDeposits`, consistent with the ECB estimate
-- First-receiver gain is reported for each channel
-
-## Implementation
-
-- `packages/core/src/experiments/cantillon.ts`: Core experiment runner
-- `packages/core/src/experiments/cantillon-report.ts`: Report generator with summary statistics
-- `packages/core/src/experiments/run-cantillon.ts`: CLI runner
-- Tests: `cantillon.test.ts` and `cantillon-report.test.ts`
-
-## Running the Experiment
+The experiment is `packages/core/src/experiments/cantillon.ts`. CI runs it in
+`cantillon-ci.test.ts`.
 
 ```bash
-# Run the full experiment (10+ seeds, all channels, both regimes)
-pnpm tsx packages/core/src/experiments/run-cantillon.ts
-
-# Run tests
 pnpm vitest run cantillon
 ```
 
-## Expected Results
+## Findings (10 seeds)
 
-Based on the ECB evidence, we expect:
+Means with `[min, max]` over seeds 1–10. "Target" is `|GiniΔ| ≤ 0.01` on
+start-to-end wealth Gini for `proRataDeposits` and `assetPurchase`.
 
-- **Neutral channels** (proRataDeposits, assetPurchase): Gini changes near zero (within ±0.01)
-- **Firm-first channels** (governmentSpending, newLoans): Potentially larger but still modest effects
-- **Regime differences**: Bitcoin's fixed money supply may amplify or dampen effects differently than fiat
+### S0 × fiat
 
-## Interpretation
+| Channel            | Gini Δ                     | vs pro-rata                | Top-decile Δ               | First-receiver             |
+| ------------------ | -------------------------- | -------------------------- | -------------------------- | -------------------------- |
+| proRataDeposits    | −0.0660 [−0.0760, −0.0602] | 0                          | −0.0518 [−0.0678, −0.0402] | −0.0591 [−0.0656, −0.0527] |
+| governmentSpending | −0.0731 [−0.0855, −0.0658] | −0.0072 [−0.0099, −0.0055] | −0.0575 [−0.0768, −0.0440] | 0.0243 [0.0240, 0.0246]    |
+| newLoans           | −0.0694 [−0.0787, −0.0635] | −0.0035 [−0.0054, −0.0016] | −0.0547 [−0.0728, −0.0427] | 0.0108 [−0.1105, 0.0246]   |
+| assetPurchase      | −0.0686 [−0.0794, −0.0622] | −0.0027 [−0.0035, −0.0021] | −0.0541 [−0.0711, −0.0418] | −0.0771 [−0.0833, −0.0704] |
 
-The Cantillon effect is theoretically important but empirically small in the real world. The simulator should replicate this: teachable sign and direction, but modest magnitude. This allows instructors to show students:
+Start-to-end Gini **misses** ±0.01 on both named channels. The cross-channel
+gaps versus pro-rata all sit inside ±0.01.
 
-1. The effect exists (different channels produce different distributions)
-2. The effect is typically small (consistent with empirical findings)
-3. Which structural assumptions matter for the size of the effect
+### S0 × bitcoin
 
-## Findings (10 seeds per preset/regime)
+Every channel is the same path: Gini Δ −0.0657 [−0.0760, −0.0592], vs pro-rata
+0, top-decile −0.0513 [−0.0679, −0.0400]. First-receiver is −0.0579 for the
+household-first proxy and +0.0243 for the firm-claim proxy, because those
+proxies read different stocks, not because the printer ran. Bitcoin ignores
+`centralBank.injectionChannel`. Start-to-end Gini **misses** ±0.01.
 
-### S0 (Feature-Off Baseline) + Fiat
-- **All channels**: Gini Δ ≈ -0.10 (range: -0.13 to -0.085)
-- **Interpretation**: Wealth inequality decreases uniformly across channels because the baseline has minimal economic dynamics
+### M × fiat
 
-### Monetary Preset + Fiat
-- **proRataDeposits**: Gini Δ = -0.024 (range: -0.033 to -0.015)
-- **governmentSpending**: Gini Δ = -0.023 (range: -0.033 to -0.014)
-- **newLoans**: Gini Δ = -0.015 (range: -0.029 to -0.004) — smallest effect
-- **assetPurchase**: Gini Δ = -0.028 (range: -0.039 to -0.016) — largest effect
-- **Interpretation**: Modest differences between channels; all show wealth inequality decrease
+| Channel            | Gini Δ                    | vs pro-rata              | Top-decile Δ               | First-receiver             |
+| ------------------ | ------------------------- | ------------------------ | -------------------------- | -------------------------- |
+| proRataDeposits    | −0.0166 [−0.0549, 0.0023] | 0                        | −0.0336 [−0.0481, −0.0089] | −0.0520 [−0.1214, −0.0115] |
+| governmentSpending | −0.0110 [−0.0510, 0.0076] | 0.0056 [−0.0068, 0.0179] | −0.0364 [−0.0546, −0.0121] | 0.0296 [−0.0089, 0.0515]   |
+| newLoans           | 0.0021 [−0.0184, 0.0224]  | 0.0187 [0.0017, 0.0386]  | −0.0386 [−0.0524, −0.0160] | 0.0315 [−0.0103, 0.0535]   |
+| assetPurchase      | −0.0017 [−0.0312, 0.0192] | 0.0149 [0.0020, 0.0350]  | −0.0385 [−0.0524, −0.0129] | −0.0413 [−0.0903, −0.0054] |
 
-### S0 + Bitcoin
-- **All channels**: Identical Gini Δ ≈ -0.103 (range: -0.129 to -0.088)
-- **Interpretation**: Without money growth, channels have no differential effect
+`assetPurchase` start-to-end Gini **hits** ±0.01. `proRataDeposits` **misses**
+(mean −0.0166). New loans raise end Gini relative to a savers' dividend
+(+0.0187), which is the teachable first-receiver sign on this preset.
 
-### Monetary Preset + Bitcoin
-- **All channels**: Gini Δ ≈ -0.057 (range: -0.073 to -0.038)
-- **First-receiver gains**:
-  - proRataDeposits/assetPurchase: +0.52% (households)
-  - governmentSpending/newLoans: -2.64% (firms channel)
-- **Interpretation**: Channels differ in first-receiver wealth changes but produce similar Gini outcomes
+### M × bitcoin
 
-## Status Relative to Acceptance Criteria
+Every channel is the same path: Gini Δ −0.0311 [−0.0732, −0.0135], vs pro-rata
+0, top-decile −0.0341 [−0.0558, −0.0039]. First-receiver −0.0556 (household
+proxy) and +0.0329 (firm-claim proxy). Start-to-end Gini **misses** ±0.01.
 
-**✓ Experiment exists and runs in CI** — Implemented in `cantillon-ci.test.ts`
+## Target status
 
-**✗ Gini changes within ±0.01** — Not met. Measured changes are 2-10× larger than the ECB-based target.
+The experiment exists and runs in CI. First-receiver gain is reported for every
+channel. The ±0.01 start-to-end Gini target is **not met** for
+`proRataDeposits` on any cell, and is met for `assetPurchase` only on M/fiat.
 
-**✓ First-receiver gains reported** — Implemented for all channels
+That miss is not a reason to widen the band. Over 24 months the model's wealth
+Gini falls by several points from opening skill-squared deposits, equity
+claims, and ordinary income flows. A month of ~3 percent a year fiat growth is
+small next to that. Euro-area QE moved a 0–100 wealth Gini by −0.03 points
+(Lenza & Slacalek). The printer is not what moves Gini here.
 
-### Why the Target is Not Met
+The quantity that matches the teaching claim is the same-seed gap versus
+`proRataDeposits`. On S0/fiat that gap is inside ±0.01 for every channel. On
+M/fiat it is small for government spending and larger for new loans, which is
+the sign students should see: credit-first money can concentrate claims more
+than a savers' dividend. Bitcoin cannot show a Cantillon injection at all.
 
-The acceptance criterion (±0.01) is based on Euro-area QE data where the wealth Gini moved by only -0.03 points. The simulation shows larger changes because:
+## Why not retune to hit ±0.01
 
-1. **Structural differences**: The model has fewer asset classes and wealth dampeners than real economies
-2. **Time scale**: 24 months may be too short to reach steady-state distribution
-3. **Opening conditions**: Wealth starts more concentrated than in the real world
-4. **Calibration needed**: Capital valuations, equity markets, and wealth accumulation need tuning to match real-world Gini sensitivity
-
-The experiment successfully demonstrates that:
-- Different injection channels CAN be tested
-- Distributional effects ARE measurable
-- Channel differences exist but are relatively small (consistent with "small Cantillon effect" finding)
-
-**Recommendation**: Either (1) calibrate the model to reach ±0.01 by adjusting wealth accumulation parameters, or (2) update the acceptance criterion to reflect what the model's structure implies (e.g., ±0.05).
+Forcing start-to-end Gini inside ±0.01 would mean flattening opening inequality
+or equity claims so the whole 24-month path barely moves. That would hide the
+model's other distributional mechanics and would not isolate the printer. The
+experiment keeps the target, reports the miss, and reports the cross-channel
+increment.
 
 ## References
 
-- Issue #16: https://github.com/barrybecker4/economy-simulation/issues/16
-- Lenza & Slacalek (2018), "How does monetary policy affect income and wealth inequality?", ECB Working Paper 2190
-- Doepke & Schneider (2006), "Inflation and the Redistribution of Nominal Wealth", Journal of Political Economy
+- Issue #16
+- Lenza & Slacalek, ECB Working Paper 2190
+- Doepke & Schneider (2006), _Journal of Political Economy_
