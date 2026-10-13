@@ -137,6 +137,7 @@ export function onContractChoice(economy: Economy): void {
   const ltv = economy.params.mortgageLtv;
   const loanRate = economy.policyRate + LOAN_SPREAD;
   const realRate = loanRate - inflation;
+  const monthlyMobilityRate = economy.params.housingMobility / 12;
   for (const household of economy.households) {
     const priorTenure = household.tenure;
     serviceDebts(economy, household);
@@ -196,6 +197,63 @@ export function onContractChoice(economy: Economy): void {
         economy.mortgageToOwned += 1;
         economy.tenureChanges += 1;
       }
+    }
+
+    // Housing mobility: mortgage holders may refinance/move; this generates purchase originations.
+    // At the real-world rate of ~9%/year, owners experience life events (job change, family change,
+    // move to different city) that trigger a home sale and repurchase. Since the model doesn't track
+    // individual homes or a resale market, we model this as: pay off existing mortgage (if any),
+    // then immediately try to originate a new mortgage. This creates the steady flow of purchase
+    // originations without needing to model the full housing market.
+    const mobilityEvent =
+      household.tenure === 'mortgage' &&
+      hasMortgageDebt(household) &&
+      household.search.uniform() < monthlyMobilityRate;
+    if (mobilityEvent) {
+      const totalDebt = household.mortgage + household.bitcoinMortgage * economy.bitcoinPrice;
+      fundFromBitcoin(economy, household, totalDebt);
+      if (household.deposit >= totalDebt) {
+        // Pay off existing mortgage
+        if (household.mortgage > 0) {
+          const payoff = household.mortgage;
+          repayMortgage(household, payoff);
+          economy.loanRepaid += payoff;
+        }
+        if (household.bitcoinMortgage > 0) {
+          const price = economy.bitcoinPrice > 0 ? economy.bitcoinPrice : 0;
+          const coinValue = household.bitcoinMortgage * price;
+          if (coinValue > 0) {
+            repayBitcoinMortgage(economy, household, coinValue);
+          }
+        }
+        household.mortgagePayment = 0;
+        household.mortgageArrears = 0;
+        household.mortgageIndexed = false;
+        household.tenure = 'rent';
+        
+        // Immediately try to originate a new mortgage for the "move"
+        if (termYears > 0) {
+          const room = mortgageCreditRoom(economy, household.bank);
+          const principal = Math.min(maxLoan, Math.max(0, room));
+          if (principal > 0 && household.deposit >= downPayment && downPayment >= 0) {
+            if (downPayment > 0) {
+              payCashForHome(household, economy, downPayment);
+            }
+            drawMortgage(household, economy, principal);
+            household.mortgagePayment = moneyAmount(
+              economy,
+              monthlyMortgagePayment(principal, loanRate, termYears),
+            );
+            household.mortgageIndexed = false;
+            household.tenure = 'mortgage';
+            economy.newBorrowing += principal;
+            economy.mortgageOriginations += 1;
+            economy.rentToMortgage += 1;
+          }
+        }
+      }
+      maybeBorrowConsumer(economy, household, income, penalty);
+      continue;
     }
 
     if (!adjusting) {

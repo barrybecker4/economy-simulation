@@ -89,6 +89,7 @@ export interface Parameters {
   equityMarket: 'off' | 'on';
   tenureChoice: 'off' | 'on';
   housingAdjustment: number;
+  housingMobility: number;
   openingOwnerShare: number;
   openingMortgageAmongOwners: number;
   mortgageTermYears: number;
@@ -220,6 +221,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     equityMarket: equityMarketOf(config),
     tenureChoice: tenureChoiceOf(config),
     housingAdjustment: slider(config, 'housing.adjustmentRate'),
+    housingMobility: slider(config, 'housing.mobilityRate'),
     openingOwnerShare: slider(config, 'housing.openingOwnerShare'),
     openingMortgageAmongOwners: slider(config, 'housing.openingMortgageShareOfOwners'),
     mortgageTermYears: slider(config, 'housing.mortgageTermYears'),

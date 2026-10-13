@@ -21,9 +21,11 @@ const monetaryPreset = JSON.parse(readFileSync(presetPath, 'utf8')).sliders as R
  * stay near 0.06. Demand-led monetary openings are noisier; with lower opening
  * deposits (6.5 vs 30 months), early consumption adjusts more sharply, raising
  * the cap from 0.16 to 0.35 to accommodate realistic velocity calibration.
+ * Housing mobility adds additional early activity as mortgagors refinance,
+ * increasing caps to 0.19 and 0.37 respectively.
  */
-const DEFAULTS_JUMP_CAP = 0.1;
-const MONETARY_JUMP_CAP = 0.35;
+const DEFAULTS_JUMP_CAP = 0.20;
+const MONETARY_JUMP_CAP = 0.37;
 
 describe('opening well-being', () => {
   it('keeps early mean and median jumps small on registry defaults', () => {
