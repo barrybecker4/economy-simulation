@@ -25,7 +25,7 @@ const ISSUE_SCALE = {
 const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 const WINDOW_START = 24;
 const WINDOW_END = 240;
-const LONG_TEST_TIMEOUT = 180_000;
+const ARM_TIMEOUT = 60_000;
 
 interface SeedSummary {
   mean: number;
@@ -36,36 +36,48 @@ interface SeedSummary {
 }
 
 describe('deposit rate calibration (issue #15)', () => {
+  it('S0 fiat paid/policy mean and range over 10 seeds', { timeout: ARM_TIMEOUT }, () => {
+    expectBand('S0 fiat', summarizeArm({ 'regime.type': 'fiat' }));
+  });
+
+  it('S0 bitcoin paid/policy mean and range over 10 seeds', { timeout: ARM_TIMEOUT }, () => {
+    expectBand('S0 bitcoin', summarizeArm({ 'regime.type': 'bitcoin' }));
+  });
+
+  it('M bitcoin paid/policy mean and range over 10 seeds', { timeout: ARM_TIMEOUT }, () => {
+    expectBand('M bitcoin', summarizeArm({ ...monetaryPreset, 'regime.type': 'bitcoin' }));
+  });
+
+  it('M fiat paid/policy is in 0.3–0.6 (median over 10 seeds)', { timeout: ARM_TIMEOUT }, () => {
+    expectBand('M fiat', summarizeArm({ ...monetaryPreset, 'regime.type': 'fiat' }));
+  });
+
   it(
-    'reports S0/M × fiat/bitcoin over 10 seeds and M fiat sensitivity at 0.3 and 0.6',
-    { timeout: LONG_TEST_TIMEOUT },
+    'M fiat sensitivity at pass-through 0.3 sits below the 0.45 preset',
+    { timeout: ARM_TIMEOUT },
     () => {
-      const s0Fiat = summarizeArm({ 'regime.type': 'fiat' });
-      const s0Bitcoin = summarizeArm({ 'regime.type': 'bitcoin' });
-      const mFiat = summarizeArm({ ...monetaryPreset, 'regime.type': 'fiat' });
-      const mBitcoin = summarizeArm({ ...monetaryPreset, 'regime.type': 'bitcoin' });
-      const mFiat03 = summarizeArm({
+      const summary = summarizeArm({
         ...monetaryPreset,
         'regime.type': 'fiat',
         'bank.depositPassThrough': 0.3,
       });
-      const mFiat06 = summarizeArm({
+      logArm('M fiat pass-through 0.3', summary);
+      expect(summary.mean).toBeLessThanOrEqual(0.3);
+    },
+  );
+
+  it(
+    'M fiat sensitivity at pass-through 0.6 sits above the 0.45 preset',
+    { timeout: ARM_TIMEOUT },
+    () => {
+      const summary = summarizeArm({
         ...monetaryPreset,
         'regime.type': 'fiat',
         'bank.depositPassThrough': 0.6,
       });
-
-      logArm('S0 fiat', s0Fiat);
-      logArm('S0 bitcoin', s0Bitcoin);
-      logArm('M fiat', mFiat);
-      logArm('M bitcoin', mBitcoin);
-      logArm('M fiat pass-through 0.3', mFiat03);
-      logArm('M fiat pass-through 0.6', mFiat06);
-
-      expect(mFiat.median).toBeGreaterThanOrEqual(0.3);
-      expect(mFiat.median).toBeLessThanOrEqual(0.6);
-      expect(mFiat03.mean).toBeLessThan(mFiat.mean);
-      expect(mFiat.mean).toBeLessThan(mFiat06.mean);
+      logArm('M fiat pass-through 0.6', summary);
+      expect(summary.mean).toBeGreaterThan(0.45);
+      expect(summary.mean).toBeLessThanOrEqual(0.6);
     },
   );
 });
@@ -125,6 +137,12 @@ function summarize(ratios: number[]): SeedSummary {
     max: Math.max(...ratios),
     ratios,
   };
+}
+
+function expectBand(label: string, summary: SeedSummary): void {
+  logArm(label, summary);
+  expect(summary.median).toBeGreaterThanOrEqual(0.3);
+  expect(summary.median).toBeLessThanOrEqual(0.6);
 }
 
 function logArm(label: string, summary: SeedSummary): void {
