@@ -155,7 +155,6 @@ describe('issue #10 ten-seed verification', { timeout: LONG_TEST_TIMEOUT }, () =
     expect(shock.wageOverPrice.mean).toBeLessThan(1);
     for (const row of [...rows, shock]) {
       // Printed into the verification doc from the test run.
-      // eslint-disable-next-line no-console
       console.log(JSON.stringify(row));
     }
   });

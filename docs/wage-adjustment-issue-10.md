@@ -59,9 +59,9 @@ Real wage trend = `realWage` at month 239 / month 24.
 
 | Arm        | YoY decline mean [min, max] | Job-stayer MoM cut mean [min, max] | Zero-month share mean [min, max] | Real wage ratio mean [min, max] |
 | ---------- | --------------------------- | ---------------------------------- | -------------------------------- | ------------------------------- |
-| S0 fiat    | 0.2% [0.0, 2.3%]            | 0.0% [0.0, 0.0%]                   | 93.0% [91.7, 94.9%]              | 1.13 [1.07, 1.17]               |
+| S0 fiat    | 0.1% [0.0, 1.4%]            | 0.0% [0.0, 0.0%]                   | 93.0% [91.7, 94.9%]              | 1.13 [1.07, 1.17]               |
 | S0 bitcoin | 7.6% [0.0, 14.8%]           | 7.9% [0.0, 13.4%]                  | 14.4% [0.0, 38.9%]               | 1.20 [1.19, 1.20]               |
-| M fiat     | 7.7% [0.9, 12.5%]           | 0.0% [0.0, 0.0%]                   | 95.0% [92.1, 96.8%]              | 1.89 [1.71, 2.19]               |
+| M fiat     | 8.2% [1.9, 13.9%]           | 0.0% [0.0, 0.0%]                   | 95.4% [92.1, 97.2%]              | 1.87 [1.63, 2.18]               |
 | M bitcoin  | 9.0% [4.2, 18.1%]           | 0.1% [0.0, 0.9%]                   | 95.3% [94.4, 96.3%]              | 1.64 [1.44, 1.80]               |
 
 Deep demand shock (bitcoin, demand-led prices, hold 18, review off, size −0.3 at
@@ -73,7 +73,7 @@ rose while prices fell).
 ## What this hits, and what it does not
 
 **Fiat.** Large zero-change pile (Daly–Hobijn). YoY money-wage declines are rare
-on S0 (0.2%) and uncommon on M (7.7%). MoM cuts are 0% on the common index, so
+on S0 (0.1%) and uncommon on M (8.2%). MoM cuts are 0% on the common index, so
 the Grigsby 2–2.4% _cross-section_ of job-stayers is not reproduced: that needs
 firm-level wages, which this change does not add.
 
