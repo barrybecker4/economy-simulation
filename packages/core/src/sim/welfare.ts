@@ -116,6 +116,7 @@ function flows(
   | 'taxRevenue'
   | 'agentTaxRevenue'
   | 'ubiOutlay'
+  | 'bondCouponsThisTick'
   | 'wageBill'
   | 'profitPaid'
   | 'wageLevel'
@@ -149,6 +150,7 @@ function flows(
     taxRevenue: economy.taxRevenue,
     agentTaxRevenue: economy.agentTaxRevenue,
     ubiOutlay: economy.ubiOutlay,
+    bondCouponsThisTick: economy.bondCouponsThisTick,
     wageBill: economy.wageBill,
     profitPaid: economy.profitPaid,
     wageLevel: economy.wageLevel,

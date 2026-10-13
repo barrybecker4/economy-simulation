@@ -37,6 +37,7 @@ export interface Economy {
   taxRevenue: number;
   agentTaxRevenue: number;
   ubiOutlay: number;
+  bondCouponsThisTick: number;
   wageLevel: number;
   priceLevel: number;
   /**

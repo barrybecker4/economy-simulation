@@ -47,6 +47,8 @@ export const METRIC_IDS = [
   'taxRevenue',
   'agentTaxRevenue',
   'ubiOutlay',
+  'fiscalBalancePctGdp',
+  'cbBalanceSheetPctGdp',
   'wageBill',
   'profitPaid',
   'householdGoodsSpend',

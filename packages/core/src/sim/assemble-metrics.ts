@@ -134,6 +134,24 @@ function recordFlows(snapshot: MetricSnapshot, metrics: MetricSink): void {
   metrics.set('taxRevenue', reported(snapshot, snapshot.taxRevenue));
   metrics.set('agentTaxRevenue', reported(snapshot, snapshot.agentTaxRevenue));
   metrics.set('ubiOutlay', reported(snapshot, snapshot.ubiOutlay));
+  
+  // Fiscal balance as % of GDP: (revenue - spending - transfers - bond coupons) / annualized GDP
+  // Positive means surplus, negative means deficit
+  const annualizedGdp = snapshot.nominalOutput * 12;
+  if (annualizedGdp > 0) {
+    const fiscalBalance = snapshot.taxRevenue - snapshot.govGoodsSpend - snapshot.ubiOutlay - snapshot.bondCouponsThisTick;
+    metrics.set('fiscalBalancePctGdp', (fiscalBalance / annualizedGdp) * 100);
+  } else {
+    metrics.set('fiscalBalancePctGdp', 0);
+  }
+  
+  // CB balance sheet as % of GDP: reserves / annualized GDP
+  if (annualizedGdp > 0) {
+    metrics.set('cbBalanceSheetPctGdp', (snapshot.reserves / annualizedGdp) * 100);
+  } else {
+    metrics.set('cbBalanceSheetPctGdp', 0);
+  }
+  
   metrics.set('wageBill', reported(snapshot, snapshot.wageBill));
   metrics.set('profitPaid', reported(snapshot, snapshot.profitPaid));
   metrics.set(

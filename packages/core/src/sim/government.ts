@@ -24,6 +24,7 @@ import type { Firm } from './types.js';
  * income after wages.
  */
 export function onGovernment(economy: Economy): void {
+  economy.bondCouponsThisTick = 0;
   collectTax(economy);
   const grants = payUbi(economy);
   buyGoods(economy);
@@ -239,6 +240,7 @@ function payBondInterest(economy: Economy): void {
     }
     payBondCoupon(bank, economy, coupon);
     economy.interestPaid += coupon;
+    economy.bondCouponsThisTick += coupon;
   }
 }
 

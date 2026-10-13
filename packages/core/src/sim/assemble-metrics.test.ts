@@ -250,6 +250,7 @@ function snapshot(
     taxRevenue: 0,
     agentTaxRevenue: 0,
     ubiOutlay: 0,
+    bondCouponsThisTick: 0,
     wageBill: 0,
     profitPaid: 0,
     wageLevel: input.wageLevel,
