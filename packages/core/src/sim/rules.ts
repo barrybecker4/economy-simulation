@@ -19,8 +19,8 @@ export const INVENTORY_MONTHS = 1;
 export const SALES_SMOOTHING = 0.8;
 /** Largest share of employed workers a firm-level hiring rule may shed in one month. */
 export const MONTHLY_FIRM_SHED = 0.05;
-/** Monthly spending out of deposit balances. */
-export const WEALTH_MPC = 0.02;
+/** Monthly spending out of deposit balances above the buffer. */
+export const WEALTH_MPC = 0.08;
 /** Ticks of negative equity before a firm is replaced. */
 export const FAILURE_TICKS = 6;
 /**
@@ -52,7 +52,7 @@ export const INCOME_SMOOTHING = 0.9;
 /** Share of earned income moved to unemployed households. */
 export const UNEMPLOYED_TRANSFER = 0.05;
 /** Months of income a household holds before spending out of deposits. */
-export const DEPOSIT_BUFFER_MONTHS = 48;
+export const DEPOSIT_BUFFER_MONTHS = 11;
 /**
  * Opening deposit months below which fiat money growth is blended into spending
  * when posted prices follow excess demand. Half the precautionary buffer:

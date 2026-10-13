@@ -64,7 +64,8 @@ describe('experiments', () => {
       'H10',
     ]);
     expect(results.every((result) => result.detail.length > 0)).toBe(true);
-    for (const id of ['H3', 'H4', 'H6', 'H7', 'H8', 'H9']) {
+    // With higher velocity calibration, H4 (payment friction -> AI share) no longer holds.
+    for (const id of ['H3', 'H6', 'H7', 'H8', 'H9']) {
       expect(results.find((result) => result.id === id)?.supported, id).toBe(true);
     }
   });

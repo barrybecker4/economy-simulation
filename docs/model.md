@@ -226,13 +226,13 @@ worker's skill.
 
 ## Goods and relative prices
 
-Opening household deposits are `household.openingDepositMonths` (default 30) times the base wage, scaled by skill
+Opening household deposits are `household.openingDepositMonths` (default 6.5) times the base wage, scaled by skill
 squared.
 
 There is one consumption good. A household's budget is a smoothed income, times a marginal propensity of
 `1 − government.spendingShareOfGDP` tilted by how impatient the household is relative to the mean, plus
 `household.inflationTimePreference` times the gap between year-over-year inflation and the regime's normal inflation,
-times one plus the demand impulse, plus a small spend out of deposits above 48 months of income. Normal inflation is the
+times one plus the demand impulse, plus a spend out of deposits above 11 months of income at 8 percent per month. Normal inflation is the
 inflation target under fiat and hybrid, and minus `productivity.baseGrowth` under bitcoin. At sensitivity 0 the gap does
 not enter. The response is small because value can sit in assets other than goods. Smoothed income is 90 percent of its
 previous value plus 10 percent of this tick's income. That uncut budget is split into a food and housing floor and a

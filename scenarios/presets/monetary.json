@@ -13,7 +13,7 @@
     "housing.mortgageLtv": 0.95,
     "bank.capitalRatio": 0.04,
     "bank.resolution": "merge",
-    "household.openingDepositMonths": 30,
+    "household.openingDepositMonths": 6.5,
     "household.skillSigma": 1.1,
     "money.choiceSpeed": 0,
     "labor.firmLevelHiring": "on"
