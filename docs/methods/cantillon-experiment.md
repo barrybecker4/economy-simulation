@@ -84,20 +84,22 @@ proxies read different stocks, not because the printer ran. Bitcoin ignores
 
 | Channel            | Gini Δ                    | vs pro-rata              | Top-decile Δ               | First-receiver             |
 | ------------------ | ------------------------- | ------------------------ | -------------------------- | -------------------------- |
-| proRataDeposits    | −0.0166 [−0.0549, 0.0023] | 0                        | −0.0336 [−0.0481, −0.0089] | −0.0520 [−0.1214, −0.0115] |
-| governmentSpending | −0.0110 [−0.0510, 0.0076] | 0.0056 [−0.0068, 0.0179] | −0.0364 [−0.0546, −0.0121] | 0.0296 [−0.0089, 0.0515]   |
-| newLoans           | 0.0021 [−0.0184, 0.0224]  | 0.0187 [0.0017, 0.0386]  | −0.0386 [−0.0524, −0.0160] | 0.0315 [−0.0103, 0.0535]   |
-| assetPurchase      | −0.0017 [−0.0312, 0.0192] | 0.0149 [0.0020, 0.0350]  | −0.0385 [−0.0524, −0.0129] | −0.0413 [−0.0903, −0.0054] |
+| proRataDeposits    | −0.0333 [−0.2252, 0.0049] | 0                        | −0.0333 [−0.0471, −0.0091] | −0.0541 [−0.1159, −0.0155] |
+| governmentSpending | −0.0110 [−0.0585, 0.0071] | 0.0224 [−0.0376, 0.2212] | −0.0353 [−0.0520, −0.0078] | 0.0318 [−0.0073, 0.0540]   |
+| newLoans           | 0.0009 [−0.0364, 0.0220]  | 0.0343 [−0.0223, 0.2473] | −0.0372 [−0.0549, −0.0154] | 0.0331 [−0.0069, 0.0556]   |
+| assetPurchase      | −0.0041 [−0.0697, 0.0207] | 0.0293 [−0.0671, 0.2460] | −0.0374 [−0.0548, −0.0127] | −0.0446 [−0.0777, −0.0074] |
 
 `assetPurchase` start-to-end Gini **hits** ±0.01. `proRataDeposits` **misses**
-(mean −0.0166). New loans raise end Gini relative to a savers' dividend
-(+0.0187), which is the teachable first-receiver sign on this preset.
+(mean −0.0333). One seed drops Gini by 0.225 under pro-rata, which pulls the
+mean and widens the vs-pro-rata range. New loans still raise end Gini relative
+to a savers' dividend on average (+0.0343), which is the teachable
+first-receiver sign on this preset.
 
 ### M × bitcoin
 
-Every channel is the same path: Gini Δ −0.0311 [−0.0732, −0.0135], vs pro-rata
-0, top-decile −0.0341 [−0.0558, −0.0039]. First-receiver −0.0556 (household
-proxy) and +0.0329 (firm-claim proxy). Start-to-end Gini **misses** ±0.01.
+Every channel is the same path: Gini Δ −0.0337 [−0.0858, −0.0137], vs pro-rata
+0, top-decile −0.0336 [−0.0549, −0.0029]. First-receiver −0.0600 (household
+proxy) and +0.0325 (firm-claim proxy). Start-to-end Gini **misses** ±0.01.
 
 ## Target status
 
