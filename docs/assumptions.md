@@ -1110,14 +1110,15 @@ Registry version: 16.
 - Label: Opening deposit months
 - Group: behavior
 - Unit: months
-- Default: 30
+- Default: 6.5
 - Range: 6 to 60
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Months of the base wage, scaled by skill squared, held as each household’s opening deposit. The default
-  of 30 sits above the thin-opening threshold (24 months) used when blending new fiat into smoothed income, so early
-  consumption and well-being open without a sharp spending pulse. Lower values raise velocity and can spike spending in
-  the first months. At 36 deposits are about three years of income and velocity is low.
+- Description: Months of the base wage, scaled by skill squared, held as each household's opening deposit. The default
+  of 6.5 is calibrated to achieve realistic money velocity (annualized 1.1-2.2, matching US M2V). Lower values raise
+  velocity further but can cause sharp spending changes in early months. At 30 deposits are about 2.5 years of income
+  and velocity falls well below real-world levels. Households spend from deposits above 11 months of income at a rate of
+  8 percent per month.
 
 ## household.realReturnSensitivity
 

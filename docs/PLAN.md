@@ -955,7 +955,7 @@ Acceptance:
 Goal: fix the supply-shock hiring sign and remeasure unemployment, velocity, and inequality on the monetary preset.
 
 1. The employment quota scales with the productivity impulse so an adverse supply shock raises unemployment.
-2. `household.openingDepositMonths` defaults to 36. The monetary preset uses 12.
+2. `household.openingDepositMonths` defaults to 6.5. The monetary preset also uses 6.5. The deposit buffer is lowered from 48 months to 11 months, and the wealth MPC is raised from 0.02 to 0.08, to calibrate velocity toward the real-world range of 1.1-2.2/yr.
 
 Acceptance:
 
