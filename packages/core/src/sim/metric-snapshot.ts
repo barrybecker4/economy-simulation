@@ -74,6 +74,7 @@ export interface MetricSnapshot {
   agentTaxRevenue: number;
   ubiOutlay: number;
   bondCouponsThisTick: number;
+  rebateOutlay: number;
   wageBill: number;
   profitPaid: number;
   wageLevel: number;

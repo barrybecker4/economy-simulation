@@ -30,4 +30,7 @@ debt haircut wrote loans down without a balance anyone could hold or spend.
 ## Consequences
 
 `docs/model.md` and `docs/limits.md` follow this ADR. ADR 0005 still governs the
-one-step path. The fiat fiscal stabilizer stays fiat-only.
+one-step path. The fiat-only stabilizer consequence is superseded by
+[ADR 0031](0031-crisis-fiscal-tool.md): extra purchases can follow the
+unemployment gap in every regime, with a savings-constrained cap under bitcoin
+and hybrid.

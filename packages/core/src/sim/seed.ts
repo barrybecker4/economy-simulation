@@ -53,6 +53,7 @@ export function blankEconomy(
     agentTaxRevenue: 0,
     ubiOutlay: 0,
     bondCouponsThisTick: 0,
+    rebateOutlay: 0,
     wageLevel,
     priceLevel,
     nominalScale: 1,

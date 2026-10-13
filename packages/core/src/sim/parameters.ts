@@ -72,6 +72,9 @@ export interface Parameters {
   agentSubagentCeiling: number;
   ubiShare: number;
   treasuryBufferMonths: number;
+  rainyDayMonths: number;
+  hardMoneyDeficitCap: number;
+  crisisOutlayCap: number;
   shockFrequency: number;
   shockSize: number;
   householdCount: number;
@@ -108,6 +111,7 @@ export interface Parameters {
   zombieSupport: number;
   injectionChannel: 'proRataDeposits' | 'governmentSpending' | 'newLoans' | 'assetPurchase';
   spendNewMoney: number;
+  stimulusGdpWeight: number;
   stabilizer: number;
   transitionLength: number;
   debtHaircut: number;
@@ -203,6 +207,9 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     agentSubagentCeiling: slider(config, 'agent.subagentCeiling'),
     ubiShare: slider(config, 'government.ubiShare'),
     treasuryBufferMonths: slider(config, 'government.treasuryBufferMonths'),
+    rainyDayMonths: slider(config, 'government.rainyDayMonths'),
+    hardMoneyDeficitCap: slider(config, 'government.hardMoneyDeficitCap'),
+    crisisOutlayCap: slider(config, 'government.crisisOutlayCap'),
     shockFrequency: slider(config, 'shock.frequency'),
     shockSize: slider(config, 'shock.size'),
     householdCount: Math.round(slider(config, 'scale.households')),
@@ -239,6 +246,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     zombieSupport: slider(config, 'centralBank.zombieSupport'),
     injectionChannel: injectionChannelOf(config),
     spendNewMoney: slider(config, 'centralBank.spendNewMoney'),
+    stimulusGdpWeight: slider(config, 'centralBank.stimulusGdpWeight'),
     stabilizer: slider(config, 'government.stabilizer'),
     transitionLength,
     debtHaircut: slider(config, 'transition.debtHaircut'),

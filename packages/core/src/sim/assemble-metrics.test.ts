@@ -71,6 +71,27 @@ describe('assembleMetrics', () => {
     expect(values.get('propertyTurnover')).toBeCloseTo(0.08 * 0.5);
   });
 
+  it('records fiscal balance including rebates and the CB sheet as shares of GDP', () => {
+    const values = recorded(
+      snapshot({
+        priceLevel: 2,
+        realGdp: 50,
+        taxRevenue: 80,
+        govGoodsSpend: 40,
+        ubiOutlay: 10,
+        bondCouponsThisTick: 5,
+        rebateOutlay: 15,
+        reserves: 120,
+      }),
+    );
+    // Monthly GDP is 100. Outlays 70. Surplus 10 / 100 = 0.10.
+    expect(values.get('fiscalBalancePctGdp')).toBeCloseTo(0.1);
+    // Reserves 120 / (100 * 12) = 0.10 of annual GDP.
+    expect(values.get('cbBalanceSheetPctGdp')).toBeCloseTo(0.1);
+    expect(recorded(snapshot({ priceLevel: 0, realGdp: 0 })).get('fiscalBalancePctGdp')).toBe(0);
+    expect(recorded(snapshot({ priceLevel: 0, realGdp: 0 })).get('cbBalanceSheetPctGdp')).toBe(0);
+  });
+
   it('records profit sharing, velocity, credit, and the AI output share', () => {
     const values = recorded(
       snapshot({
@@ -225,7 +246,7 @@ function snapshot(
     interestRate: 0.02,
     deflationSensitivity: input.deflationSensitivity,
     deposits: input.deposits,
-    reserves: 0,
+    reserves: input.reserves,
     loans: input.loans,
     savings: input.deposits,
     tick: input.tick,
@@ -240,17 +261,18 @@ function snapshot(
     consumptionSpend: input.consumptionSpend,
     investmentSpend: input.investmentSpend,
     agentGoodsSpend: input.agentGoodsSpend,
-    govGoodsSpend: 0,
+    govGoodsSpend: input.govGoodsSpend,
     agentVolume: 0,
     agentFees: 0,
     agentSweep: 0,
     interestPaid: 0,
     newBorrowing: 0,
     loanRepaid: 0,
-    taxRevenue: 0,
+    taxRevenue: input.taxRevenue,
     agentTaxRevenue: 0,
-    ubiOutlay: 0,
-    bondCouponsThisTick: 0,
+    ubiOutlay: input.ubiOutlay,
+    bondCouponsThisTick: input.bondCouponsThisTick,
+    rebateOutlay: input.rebateOutlay,
     wageBill: 0,
     profitPaid: 0,
     wageLevel: input.wageLevel,
@@ -302,7 +324,13 @@ interface TestInput {
   housingSupplyGrowth: number;
   housingConstructionProductivity: number;
   deposits: number;
+  reserves: number;
   loans: number;
+  taxRevenue: number;
+  govGoodsSpend: number;
+  ubiOutlay: number;
+  bondCouponsThisTick: number;
+  rebateOutlay: number;
   investmentSpend: number;
   investmentHurdle: 'off' | 'on';
   housingSecurity: number;
@@ -330,7 +358,13 @@ function defaults(): TestInput {
     housingSupplyGrowth: 0,
     housingConstructionProductivity: 0,
     deposits: 1,
+    reserves: 0,
     loans: 0,
+    taxRevenue: 0,
+    govGoodsSpend: 0,
+    ubiOutlay: 0,
+    bondCouponsThisTick: 0,
+    rebateOutlay: 0,
     investmentSpend: 0,
     investmentHurdle: 'off',
     housingSecurity: 0,

@@ -1,21 +1,26 @@
 # Remaining design asymmetries
 
-Phase 50 note, updated through Phase 62. These asymmetries still shape regime
-comparisons even after Phases 35–62.
+Phase 50 note, updated through [ADR 0031](../adr/0031-crisis-fiscal-tool.md).
+These asymmetries still shape regime comparisons even after Phases 35–62.
 
 ## Transition window
 
 A positive `transition.gradualWeight` converts deposits and debts into bitcoin units month by month. Goods can be paid
-from either balance while the window is open. Weight 0 is still a one-step rebase on the last month. The fiscal
-stabilizer stays fiat-only during and after the window.
+from either balance while the window is open. Weight 0 is still a one-step rebase on the last month. Extra crisis
+purchases during the window follow the active regime’s financing rule in ADR 0031.
 
 ## Fiscal stabilizer
 
-`government.stabilizer` raises the fiat spending share with the unemployment
-gap. Under bitcoin and hybrid the boost is zero: spending cannot be financed by
-new base money. That is intentional for the hard-money comparison, not a bug.
-A tax surplus above `government.treasuryBufferMonths` is rebated in every
-regime, so the treasury does not sit on idle deposits.
+`government.stabilizer` raises the purchase share with the unemployment gap in
+every regime. Fiat extra is capped at `government.crisisOutlayCap` of GDP and
+may be bond-financed, including central-bank purchases. Bitcoin and hybrid extra
+is capped at `government.hardMoneyDeficitCap` of GDP and can only spend tax
+deposits, the rainy-day buffer, and bonds from unused savings, so it cannot
+print. The household/hiring `fiscalBoost` is still fiat-only. A tax surplus
+above the treasury buffer, including bitcoin’s rainy-day months, is rebated in
+every regime. Calm-year deficits stay near zero because the tax rate equals the
+spending share and the rebate returns any leftover; that is a Phase 53 choice,
+not a remaining coding asymmetry.
 
 ## Payment friction
 

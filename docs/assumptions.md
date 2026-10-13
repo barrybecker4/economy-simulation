@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 16.
+Registry version: 17.
 
 ## agent.capabilityCeiling
 
@@ -620,6 +620,22 @@ Registry version: 16.
   is off and only the secular money-growth rule runs. Bitcoin ignores this slider. Hybrid applies it to fiat deposits
   only.
 
+## centralBank.stimulusGdpWeight
+
+- Label: Stimulus GDP weight
+- Group: centralBank
+- Unit: share
+- Default: 0.35
+- Range: 0 to 1
+- Status: calibrated
+- Source: Weight 0.35 mixes deposit-based and GDP-scaled fiat crisis stimulus so a deep unemployment gap on the monetary
+  preset can expand the reserve sheet by 15–30 points of GDP (FRED WALCL 2008 and 2020). An 18 percent of GDP annual cap
+  in the growth rule stops trend-price S0 runs from hitting the monthly deposit cap every month.
+- Description: How much fiat crisis stimulus is sized to annual GDP rather than the deposit stock. At 0 the extra annual
+  growth is stimulus times the lagged unemployment gap, applied to deposits. At 1 that term is scaled by annual GDP over
+  deposits. The default of 0.35 is a mix so a deep slump can expand reserves by about 15–30 points of GDP without
+  hitting the monthly deposit cap every month. Bitcoin ignores this slider. Hybrid applies it to fiat deposits only.
+
 ## centralBank.stimulusLag
 
 - Label: Stimulus lag
@@ -1014,6 +1030,50 @@ Registry version: 16.
   it, the shortfall is financed like any other deficit. The default of 0.04 is a 4 percent coupon. At 0 bonds pay no
   coupon.
 
+## government.crisisOutlayCap
+
+- Label: Fiat crisis outlay cap
+- Group: publicFinance
+- Unit: share of GDP
+- Default: 0.12
+- Range: 0 to 1
+- Status: calibrated
+- Source: Twelve percent of GDP extra fiat outlays, sized so a deep slump plus the tax drop can reach an 8–15 percent of
+  GDP deficit (FRED FYFSGDA188S 2009 and 2020).
+- Description: Largest extra government outlay, as a share of monthly GDP, that fiat may add when the stabilizer is on.
+  Combined with a tax drop in a deep slump this is meant to land the peak deficit in the 8–15 percent of GDP band. The
+  default is 0.12. At 0 the spending share does not rise. Bitcoin and hybrid ignore this cap and use
+  government.hardMoneyDeficitCap.
+
+## government.hardMoneyDeficitCap
+
+- Label: Hard-money deficit cap
+- Group: publicFinance
+- Unit: share of GDP
+- Default: 0.035
+- Range: 0 to 0.15
+- Status: calibrated
+- Source: 3.5 percent of GDP extra outlays, so a deep slump lands in the 2–6 percent of GDP gold-standard band, near
+  1930s US deficits of about 4.6–5.4 percent of GDP (FRED FYFSGDA188S).
+- Description: Largest extra government outlay, as a share of monthly GDP, that bitcoin or hybrid may add when the
+  stabilizer is on. Extra spending is also limited to tax deposits plus unused savings, so it cannot print. At the
+  default of 0.035 a deep slump can open about a 2–6 percent of GDP deficit, inside the 1930s gold-standard band. At 0
+  the spending share does not rise under bitcoin or hybrid. Fiat uses government.crisisOutlayCap instead.
+
+## government.rainyDayMonths
+
+- Label: Rainy-day fund
+- Group: publicFinance
+- Unit: months
+- Default: 6
+- Range: 0 to 24
+- Status: calibrated
+- Source: Six months of outlays, sized so a drawn-down bitcoin fund can open a 2–6 percent of GDP deficit in a deep
+  slump, near 1930s US gold-standard deficits.
+- Description: Extra months of this tick’s outlays bitcoin and hybrid keep in the treasury. Crisis purchases draw that
+  cash first, then unused savings, and cannot print. Fiat ignores it. At 0 there is no extra stock. The default of 6 is
+  about half a year of public outlays.
+
 ## government.spendingShareOfGDP
 
 - Label: Government spending share
@@ -1039,10 +1099,11 @@ Registry version: 16.
 - Status: guess
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: How much government goods spending responds to unemployment. Under fiat, the spending share rises by this
-  coefficient times the gap of unemployment above the natural rate, capped at 0.8. Under bitcoin or hybrid, spending
-  cannot exceed tax deposits plus bonds banks can hold from unused savings, so the stabilizer cannot expand base money.
-  The default of 1 raises purchases one-for-one with the unemployment gap. At 0 the spending share stays at the
-  government spending slider.
+  coefficient times the gap of unemployment above the natural rate, capped at 0.8, and a shortfall is financed with
+  bonds the central bank may buy. Under bitcoin or hybrid, the same gap can raise spending only up to
+  government.hardMoneyDeficitCap of GDP, and only from tax deposits, the rainy-day buffer, and bonds banks can hold from
+  unused savings. The default of 1 raises the fiat purchase share one-for-one with the unemployment gap. At 0 the
+  spending share stays at the government spending slider.
 
 ## government.treasuryBufferMonths
 
@@ -1057,7 +1118,8 @@ Registry version: 16.
   actually bought, and bond coupons. Cash above that is paid to households in proportion to that tick’s income, after
   tax, and counted in their income, so it raises next month’s demand and is not taxed in the collection that funded it.
   The share follows income so the refund does not flatten the distribution. At 1 the treasury cannot build a stock of
-  deposits. At 0 any surplus is rebated the same month. A shortfall still issues bonds.
+  deposits. At 0 any surplus is rebated the same month. A shortfall still issues bonds. Bitcoin and hybrid add
+  government.rainyDayMonths of extra buffer in good times.
 
 ## government.ubiShare
 
@@ -1179,6 +1241,22 @@ Registry version: 16.
   preference, then the draw is kept between 1 and 15 percent a year. A household above the mean spends a larger share of
   smoothed income; one below the mean saves more. A wider spread fans consumption and deposit balances apart. At zero,
   every household has the mean rate and no patience draw is used.
+
+## household.wealthConcentration
+
+- Label: Initial wealth concentration
+- Group: behavior
+- Unit: exponent
+- Default: 2.5
+- Range: 2 to 4
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Exponent applied to skill when setting opening deposits. Deposits are skill raised to this power, times
+  the base wage and opening months. The default of 2.5 concentrates wealth more than the skill^2 from earlier phases. At
+  2, wealth starts as unequal as skill squared (the wage-earnings relationship). At 3 or 4, the top decile opens with a
+  larger share, moving the opening Gini toward US wealth inequality (0.79-0.86) where concentrated business ownership,
+  return heterogeneity, and debt drive dispersion. Raising this does not change skill itself or labor income; it only
+  spreads the initial deposit distribution.
 
 ## housing.adjustmentRate
 

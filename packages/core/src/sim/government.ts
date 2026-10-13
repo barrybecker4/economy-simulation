@@ -25,6 +25,7 @@ import type { Firm } from './types.js';
  */
 export function onGovernment(economy: Economy): void {
   economy.bondCouponsThisTick = 0;
+  economy.rebateOutlay = 0;
   collectTax(economy);
   const grants = payUbi(economy);
   buyGoods(economy);
@@ -96,7 +97,7 @@ function ubiPool(economy: Economy): number {
 
 function buyGoods(economy: Economy): void {
   let purchases = Math.max(0, Math.round(effectiveSpendShare(economy) * economy.demandBase));
-  if (economy.params.regime !== 'fiat' && economy.params.stabilizer > 0) {
+  if (hardMoneyFinancing(economy)) {
     const room = Math.max(0, economy.govDeposits) + Math.max(0, savingsRoom(economy));
     purchases = Math.min(purchases, Math.round(room));
   }
@@ -132,11 +133,31 @@ function buyFirmInventory(economy: Economy, firm: Firm, remaining: number): numb
 }
 
 function effectiveSpendShare(economy: Economy): number {
-  if (economy.params.stabilizer <= 0 || economy.params.regime !== 'fiat') {
+  if (economy.params.stabilizer <= 0) {
     return economy.params.spendShare;
   }
-  const boosted = economy.params.spendShare + economy.params.stabilizer * unemploymentGap(economy);
-  return clamp(boosted, 0, MAX_SPEND_SHARE);
+  const extra = Math.min(
+    economy.params.stabilizer * unemploymentGap(economy),
+    extraOutlayShare(economy),
+  );
+  return clamp(economy.params.spendShare + extra, 0, MAX_SPEND_SHARE);
+}
+
+/** Extra crisis purchases as a share of the income base, capped in GDP units. */
+function extraOutlayShare(economy: Economy): number {
+  const cap =
+    economy.params.regime === 'fiat'
+      ? Math.max(0, economy.params.crisisOutlayCap)
+      : Math.max(0, economy.params.hardMoneyDeficitCap);
+  if (cap <= 0 || economy.demandBase <= 0) {
+    return 0;
+  }
+  const monthlyGdp = economy.priceLevel * economy.realGdp;
+  return Math.max(0, (cap * monthlyGdp) / economy.demandBase);
+}
+
+function hardMoneyFinancing(economy: Economy): boolean {
+  return economy.params.regime !== 'fiat' && economy.params.stabilizer > 0;
 }
 
 /**
@@ -170,11 +191,29 @@ function rebateSurplus(economy: Economy): number[] {
     paid += share;
   }
   debitTreasury(economy, paid);
+  economy.rebateOutlay = paid;
   return rebates;
 }
 
 function treasuryBuffer(economy: Economy): number {
-  return Math.max(0, economy.params.treasuryBufferMonths) * monthlyOutlays(economy);
+  return (
+    (Math.max(0, economy.params.treasuryBufferMonths) + rainyDayMonths(economy)) *
+    monthlyOutlays(economy)
+  );
+}
+
+/**
+ * Bitcoin and hybrid keep extra months of this tick's outlays in the treasury.
+ * Crisis purchases spend that cash first because they are paid from deposits;
+ * the buffer target is not drained as a lump. Fiat ignores it because it can
+ * issue bonds and print.
+ */
+function rainyDayMonths(economy: Economy): number {
+  const extra = Math.max(0, economy.params.rainyDayMonths);
+  if (extra <= 0 || economy.params.regime === 'fiat') {
+    return 0;
+  }
+  return extra;
 }
 
 function monthlyOutlays(economy: Economy): number {

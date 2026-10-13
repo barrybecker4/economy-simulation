@@ -37,6 +37,7 @@ import {
   DEPOSIT_BUFFER_MONTHS,
   LOAN_SPREAD,
   MAX_POLICY_RATE,
+  STIMULUS_GDP_ANNUAL_CAP,
   THIN_OPENING_MONTHS,
 } from './rules.js';
 import { clamp } from './stats.js';
@@ -129,7 +130,7 @@ export function growFiatMoney(economy: Economy): void {
     economy.params.regime === 'hybrid' ? fiatDepositStock(economy) : totalDeposits(economy);
   const moneyMultiple = economy.openingDeposits > 0 ? depositBase / economy.openingDeposits : 1;
   const stimulusEffective = lagged > 0 ? stimulusMoneyFade(moneyMultiple) : 1;
-  const stimulusAnnual = economy.params.stimulus * lagged * stimulusEffective;
+  const stimulusAnnual = scaledStimulusAnnual(economy, depositBase, lagged, stimulusEffective);
   const annual = secular + stimulusAnnual;
   const monthly = annual / 12;
   const deposits = depositBase;
@@ -159,6 +160,36 @@ export function growFiatMoney(economy: Economy): void {
   }
   const removed = withdrawInjection(economy, -amount);
   economy.fiatInjectionFlow = -removed;
+}
+
+/**
+ * Size crisis stimulus to deposits, to annual GDP, or a mix. Weight 0 keeps the
+ * deposit-growth addend. Weight 1 scales that addend by annual GDP / deposits
+ * so the injection is a share of GDP.
+ */
+function scaledStimulusAnnual(
+  economy: Economy,
+  depositBase: number,
+  lagged: number,
+  fade: number,
+): number {
+  const depositAnnual = economy.params.stimulus * lagged * fade;
+  const weight = clamp(economy.params.stimulusGdpWeight, 0, 1);
+  if (weight <= 0 || depositAnnual === 0) {
+    return depositAnnual;
+  }
+  const annualGdp = economy.priceLevel * economy.realGdp * 12;
+  const gdpScale = depositBase > 0 && annualGdp > 0 ? clamp(annualGdp / depositBase, 0.25, 2) : 1;
+  let annual = depositAnnual * (1 - weight + weight * gdpScale);
+  // When stimulus is GDP-weighted, cap extra injection at 18% of GDP a year
+  // so trend-price S0 runs cannot snowball to a 80pp sheet.
+  if (weight > 0 && annualGdp > 0 && depositBase > 0) {
+    const maxRate = (STIMULUS_GDP_ANNUAL_CAP * annualGdp) / depositBase;
+    if (Math.abs(annual) > maxRate) {
+      annual = Math.sign(annual) * maxRate;
+    }
+  }
+  return annual;
 }
 
 /** Ignore unemployment gaps inside this band so calm noise does not move stimulus. */

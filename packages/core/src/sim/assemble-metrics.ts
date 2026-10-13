@@ -134,24 +134,7 @@ function recordFlows(snapshot: MetricSnapshot, metrics: MetricSink): void {
   metrics.set('taxRevenue', reported(snapshot, snapshot.taxRevenue));
   metrics.set('agentTaxRevenue', reported(snapshot, snapshot.agentTaxRevenue));
   metrics.set('ubiOutlay', reported(snapshot, snapshot.ubiOutlay));
-  
-  // Fiscal balance as % of GDP: (revenue - spending - transfers - bond coupons) / annualized GDP
-  // Positive means surplus, negative means deficit
-  const annualizedGdp = snapshot.nominalOutput * 12;
-  if (annualizedGdp > 0) {
-    const fiscalBalance = snapshot.taxRevenue - snapshot.govGoodsSpend - snapshot.ubiOutlay - snapshot.bondCouponsThisTick;
-    metrics.set('fiscalBalancePctGdp', (fiscalBalance / annualizedGdp) * 100);
-  } else {
-    metrics.set('fiscalBalancePctGdp', 0);
-  }
-  
-  // CB balance sheet as % of GDP: reserves / annualized GDP
-  if (annualizedGdp > 0) {
-    metrics.set('cbBalanceSheetPctGdp', (snapshot.reserves / annualizedGdp) * 100);
-  } else {
-    metrics.set('cbBalanceSheetPctGdp', 0);
-  }
-  
+  recordPublicFinance(snapshot, metrics);
   metrics.set('wageBill', reported(snapshot, snapshot.wageBill));
   metrics.set('profitPaid', reported(snapshot, snapshot.profitPaid));
   metrics.set(
@@ -173,6 +156,24 @@ function recordFlows(snapshot: MetricSnapshot, metrics: MetricSink): void {
   metrics.set('bankFailures', snapshot.cumulativeFailures);
   metrics.set('boomLength', snapshot.boomLength);
   metrics.set('bustLength', snapshot.bustLength);
+}
+
+/**
+ * Fiscal balance is a share of this month's GDP, negative for a deficit, and
+ * includes goods, the household grant, coupons, and the surplus rebate.
+ * The central-bank sheet is reserves over annualized GDP, matching WALCL/GDP.
+ */
+function recordPublicFinance(snapshot: MetricSnapshot, metrics: MetricSink): void {
+  const monthlyGdp = snapshot.nominalOutput;
+  const outlays =
+    snapshot.govGoodsSpend +
+    snapshot.ubiOutlay +
+    snapshot.bondCouponsThisTick +
+    snapshot.rebateOutlay;
+  const fiscal = snapshot.taxRevenue - outlays;
+  metrics.set('fiscalBalancePctGdp', monthlyGdp > 0 ? fiscal / monthlyGdp : 0);
+  const annualGdp = monthlyGdp * 12;
+  metrics.set('cbBalanceSheetPctGdp', annualGdp > 0 ? snapshot.reserves / annualGdp : 0);
 }
 
 function recordDistributions(snapshot: MetricSnapshot, metrics: MetricSink): void {

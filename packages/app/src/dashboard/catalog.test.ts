@@ -70,6 +70,8 @@ const EXPECTED_WORKER_SERIES = [
   'loanToSavings',
   'moneySupply',
   'baseMoney',
+  'fiscalBalancePctGdp',
+  'cbBalanceSheetPctGdp',
   'fiatShare',
   'bitcoinShare',
   'stablecoinShare',

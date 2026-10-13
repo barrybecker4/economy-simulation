@@ -79,6 +79,12 @@ export const CREDIT_IMPULSE_DRAW = 0.2;
 export const DEFLATION_REPAY_RATE = 0.02;
 /** Government spending share cannot rise above this when the stabilizer is on. */
 export const MAX_SPEND_SHARE = 0.8;
+/**
+ * When `centralBank.stimulusGdpWeight` is positive, extra annual crisis
+ * injection cannot exceed this share of GDP. Keeps trend-price runs from
+ * hitting the 5 percent monthly deposit cap every month.
+ */
+export const STIMULUS_GDP_ANNUAL_CAP = 0.18;
 /** How far posted prices may be pulled toward unit cost in one month. */
 export const MAX_PRICE_PULL = 0.001;
 /** The price-speed slider is applied to this fraction of the cost gap. */

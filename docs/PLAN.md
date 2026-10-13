@@ -614,15 +614,19 @@ through deposit interest.
    consumer credit, not the food and housing floor.
 2. `centralBank.bondPurchaseShare` lets the fiat central bank buy a share of new bonds with new reserves. Bitcoin and
    hybrid ignore it.
-3. `government.stabilizer` raises the fiat spending share with the unemployment gap. Under bitcoin, spending is limited
-   to tax revenue plus bonds banks can hold without new base money.
+3. `government.stabilizer` raises the spending share with the unemployment gap in every regime. Fiat extra is capped at
+   `government.crisisOutlayCap` of GDP and may be bond-financed. Bitcoin and hybrid extra is capped at
+   `government.hardMoneyDeficitCap` of GDP and can only spend tax deposits, the rainy-day buffer, and bonds from unused
+   savings. `FEATURE_OFF` sets the hard-money cap to 0 so the original “spending does not rise” path still matches.
+   See [ADR 0031](adr/0031-crisis-fiscal-tool.md).
 
 Acceptance:
 
 - All three at 0 match Phase 13.
 - Under fiat, a demand shock with higher stabilizer and bond purchases ends with a smaller output drop and higher base
   money.
-- The same shock under bitcoin does not raise base money, and spending does not rise with the stabilizer.
+- The same shock under bitcoin does not raise base money. With `government.hardMoneyDeficitCap` at 0, spending does not
+  rise with the stabilizer. At the registry default, spending may rise up to that cap without printing.
 - Pass-through above 0 lets a higher fiat policy rate cut discretionary spending and new consumer credit while leaving
   the floor in place.
 
@@ -790,8 +794,7 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to
-   0. Fiat is the residual.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
    return, and exchange rates move with each digital share. The policy-rate rule still follows `regime.type`. Bitcoin
    issuance is the halving schedule, not a slider.
@@ -1286,8 +1289,7 @@ Acceptance:
 - At the same amount, only `newLoans` raises firm loans, only `assetPurchase` raises bonds, and a government-spending
   injection is spent on firms in that tick.
 - A `newLoans` contraction reduces firm deposits and firm loans.
-- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
-  3. `spendNewMoney` on the default channel stays under 10 percent inflation.
+- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is 3. `spendNewMoney` on the default channel stays under 10 percent inflation.
 
 ### Phase 57: Inflation after inside-money runoff
 

@@ -362,6 +362,18 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     ],
   },
   {
+    key: 'public-finance',
+    title: 'Public finance',
+    group: 'Money',
+    unit: 'share',
+    description:
+      'Fiscal balance is tax minus goods, the household grant, bond coupons, and the surplus rebate, as a share of that month’s GDP. Negative is a deficit. The central-bank sheet is bank reserves over annualized GDP. More than one seed draws each median.',
+    lines: [
+      { id: 'fiscalBalancePctGdp', label: 'Fiscal balance / GDP', color: '#0f766e' },
+      { id: 'cbBalanceSheetPctGdp', label: 'CB sheet / GDP', color: '#1e3a8a' },
+    ],
+  },
+  {
     key: 'money-mix',
     title: 'Money mix',
     group: 'Money',
@@ -382,11 +394,11 @@ export const CHART_PANELS: readonly ChartPanel[] = [
     unit: 'index',
     description:
       'Goods bought by one unit of bitcoin money. The goods-unit is one unit of the consumption basket, ' +
-        'the basket the CPI prices. The index opens at 1 and stays between 0.05 and 20. It moves with the bitcoin money share and issuance ' +
-        'when monetary choice or the market-price weight is on. The chart multiplies that index by the fiat redenomination scale. ' +
-        'Each redenomination divides fiat prices and money stocks by 1,000 and multiplies the scale by 1,000, ' +
-        'so three of those steps draw an index of 3 as 3 billion. ' +
-        'More than one seed draws the median.',
+      'the basket the CPI prices. The index opens at 1 and stays between 0.05 and 20. It moves with the bitcoin money share and issuance ' +
+      'when monetary choice or the market-price weight is on. The chart multiplies that index by the fiat redenomination scale. ' +
+      'Each redenomination divides fiat prices and money stocks by 1,000 and multiplies the scale by 1,000, ' +
+      'so three of those steps draw an index of 3 as 3 billion. ' +
+      'More than one seed draws the median.',
     lines: [{ id: 'bitcoinPrice', label: 'Bitcoin price', color: '#a16207' }],
   },
   {

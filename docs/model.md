@@ -414,8 +414,16 @@ and is not taxed in the collection that funded it. The refund follows income so 
 Bitcoin uses the same rebate. A shortfall still issues bonds. See
 [ADR 0012](adr/0012-treasury-surplus-rebate.md).
 
-Under fiat, `government.stabilizer` times the unemployment gap above the natural rate also becomes a fiscal demand boost
-for the next month’s household spending and hiring. Bitcoin and hybrid set that boost to zero.
+`government.stabilizer` times the unemployment gap above the natural rate raises the purchase share in every regime.
+Fiat extra cannot exceed `government.crisisOutlayCap` of that month’s GDP. Bitcoin and hybrid extra cannot exceed
+`government.hardMoneyDeficitCap` of GDP, and purchases cannot exceed tax deposits plus unused savings, so the extra
+cannot print. Bitcoin and hybrid also keep `government.rainyDayMonths` of extra treasury cash; crisis purchases spend
+that stock first. Fiat ignores the rainy-day buffer. Under fiat only, the same unemployment gap is a `fiscalBoost` for
+the next month’s household spending and hiring. Bitcoin and hybrid set that boost to zero. See
+[ADR 0031](adr/0031-crisis-fiscal-tool.md).
+
+`fiscalBalancePctGdp` is tax minus goods, the household grant, coupons, and the surplus rebate, as a share of that
+month’s GDP. Negative is a deficit. `cbBalanceSheetPctGdp` is bank reserves over annualized GDP.
 
 `government.bondRate` is the annual coupon on bank-held government bonds. The monthly payment leaves the treasury
 deposit and raises bank equity, with the private-equity residual falling by the same amount. A shortfall is financed by
@@ -448,7 +456,9 @@ private equity. The annualized rate actually paid enters the real return on mone
 productivity growth, that is about 3 percent a year when inflation is on target. The weight cannot be 0: some fiat
 expansion always happens when the gap is non-negative. High inflation can still slow or shrink the stock.
 `centralBank.stimulus` (default 1.75, minimum 0) times the unemployment gap from `centralBank.stimulusLag` months ago
-(default 3, minimum 1) adds to that annual rate. The gap is unemployment minus the natural rate: positive expands money,
+(default 3, minimum 1) adds to that annual rate. `centralBank.stimulusGdpWeight` (default 0.35) mixes that addend
+between a deposit-stock scale and an annual-GDP scale. When the weight is positive, extra annual injection cannot
+exceed 18 percent of GDP. The gap is unemployment minus the natural rate: positive expands money,
 negative withdraws, through the same monthly channel cap. Gaps inside two percentage points of the natural rate are
 treated as zero so calm noise does not move the stock. Positive crisis stimulus stays at full strength until broad money
 reaches twice opening deposits, then fades linearly to zero at three times opening, so secular growth does not eat

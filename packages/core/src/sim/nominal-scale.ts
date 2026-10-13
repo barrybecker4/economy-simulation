@@ -102,6 +102,8 @@ function divideNominal(economy: Economy): void {
   economy.taxRevenue = divide(economy.taxRevenue);
   economy.agentTaxRevenue = divide(economy.agentTaxRevenue);
   economy.ubiOutlay = divide(economy.ubiOutlay);
+  economy.bondCouponsThisTick = divide(economy.bondCouponsThisTick);
+  economy.rebateOutlay = divide(economy.rebateOutlay);
   economy.depositInterestPaid = divide(economy.depositInterestPaid);
   economy.reserveInterestPaid = divide(economy.reserveInterestPaid);
   economy.fiatInjectionFlow = divide(economy.fiatInjectionFlow);
