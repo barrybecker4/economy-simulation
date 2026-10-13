@@ -4,10 +4,36 @@ import { savingsStock, totalDeposits, totalLoans } from './banking.js';
 import { aiShareOfWealth, jobShares, measureHouseholds, ownerWealthShare } from './census.js';
 import { depositFlowBuckets } from './deposit-flows.js';
 import type { Economy } from './economy.js';
-import { growth, inflation, naturalUnemployment } from './helpers.js';
+import { growth, inflation, naturalUnemployment, pay } from './helpers.js';
 import { CONSUMER_LOAN_REPAY } from './rules.js';
 import { median } from './stats.js';
 import type { Household } from './types.js';
+
+/**
+ * Calculate the actual average wage being paid to currently employed workers.
+ * Uses worker-level nominal wages, not the market reference for new hires.
+ */
+function actualAverageWage(economy: Economy): number {
+  let totalWage = 0;
+  let employedCount = 0;
+  
+  for (const household of economy.households) {
+    if (household.employer >= 0) {
+      const firm = economy.firms[household.employer];
+      if (firm) {
+        totalWage += pay(household, firm);
+        employedCount += 1;
+      }
+    }
+  }
+  
+  // If no one is employed, fall back to the market reference
+  if (employedCount === 0) {
+    return economy.wageLevel;
+  }
+  
+  return totalWage / employedCount;
+}
 
 export function onWelfare(economy: Economy, ctx: TickContext): void {
   economy.depositFlowHistory.push(depositFlowBuckets(economy));
@@ -151,7 +177,7 @@ function flows(
     ubiOutlay: economy.ubiOutlay,
     wageBill: economy.wageBill,
     profitPaid: economy.profitPaid,
-    wageLevel: economy.wageLevel,
+    wageLevel: actualAverageWage(economy),
     demandImpulse: economy.demandImpulse,
     creditImpulse: economy.creditImpulse,
     productivityImpulse: economy.productivityImpulse,

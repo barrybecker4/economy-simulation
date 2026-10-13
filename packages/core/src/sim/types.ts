@@ -32,6 +32,11 @@ export interface Household {
   consumerLoan: number;
   /** Consumer principal denominated in bitcoin units. */
   bitcoinConsumer: number;
+  /**
+   * The household's current nominal money wage. Set when hired or when the firm
+   * adjusts wages. Used for downward nominal wage rigidity.
+   */
+  nominalWage: number;
 }
 
 export interface Firm {
@@ -66,6 +71,11 @@ export interface Firm {
   missedPayment: boolean;
   /** Consecutive months with a missed wage or interest payment. */
   missTicks: number;
+  /**
+   * Months of consecutive conditions that would justify a nominal wage cut:
+   * sustained deflation, firm losses, or high unemployment. Reset when conditions improve.
+   */
+  wageCutPressure: number;
 }
 
 export interface Agent {

@@ -214,6 +214,7 @@ function addHousehold(economy: Economy): void {
     mortgageArrears: 0,
     consumerLoan: 0,
     bitcoinConsumer: 0,
+    nominalWage: 0,
   };
   economy.households.push(household);
 }

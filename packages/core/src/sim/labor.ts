@@ -13,10 +13,12 @@ import type { Firm, Household } from './types.js';
 import {
   displaced,
   employedCount,
+  expectedInflation,
   humanWeight,
   inflation,
   outputGap,
   separate,
+  unemploymentRate,
 } from './helpers.js';
 
 /** Money wage both sides would sign this month. Uses trend productivity and tightness. */
@@ -309,6 +311,8 @@ function placeHousehold(economy: Economy, household: Household, perFirm: number)
     }
     firm.workers.push(household.id);
     household.employer = firm.id;
+    // Set new hire's nominal wage to the market wage
+    household.nominalWage = firm.wage * household.skill;
     return true;
   }
   return false;
@@ -332,6 +336,8 @@ function placeAtUnderstaffed(
     }
     firm.workers.push(household.id);
     household.employer = firm.id;
+    // Set new hire's nominal wage to the market wage
+    household.nominalWage = firm.wage * household.skill;
     return true;
   }
   return false;
@@ -345,23 +351,136 @@ export function fiatWageCatchUpScale(overshoot: number, inflationTarget: number)
   return clamp(1 - (0.5 * overshoot) / Math.max(inflationTarget, 0.01), 0.5, 1);
 }
 
+/**
+ * Months of sustained pressure before a firm cuts incumbent nominal wages.
+ * Reflects real-world downward nominal wage rigidity: most firms avoid cutting
+ * base pay except in extreme, sustained crises.
+ */
+const WAGE_CUT_PRESSURE_THRESHOLD = 24;
+
+/**
+ * Check if conditions justify incrementing wage-cut pressure for a firm.
+ * Returns true only in severe crisis conditions that would justify nominal wage cuts
+ * in the real world (e.g., 1929-33 Great Depression, 2008-09 financial crisis).
+ * 
+ * This implements strong downward nominal wage rigidity observed empirically.
+ */
+function hasWageCutPressure(economy: Economy, firm: Firm): boolean {
+  // Deep deflation: expected inflation below -5% (extreme crisis territory)
+  const expectedInflationAnnual = expectedInflation(economy);
+  const extremeDeflation = expectedInflationAnnual < -0.05;
+  
+  // Firm in severe distress: negative equity
+  const firmLosses = firm.deposit + firm.capital * firm.price - firm.loan < 0;
+  
+  // Depression-level unemployment: above 15%
+  const depressionUnemployment = unemploymentRate(economy) > 0.15;
+  
+  // Only cut wages in truly extreme circumstances:
+  // Need BOTH extreme deflation and either firm losses or depression unemployment
+  return extremeDeflation && (firmLosses || depressionUnemployment);
+}
+
 function updateWages(economy: Economy): void {
+  // Calculate the market wage (what new hires would get)
+  const marketWage = agreedWageLevel(economy);
+  
+  // Calculate upward growth for the economy-wide reference
   let growth = wageGrowth({
     posted: economy.wageLevel,
-    agreed: agreedWageLevel(economy),
+    agreed: marketWage,
     rigidity: economy.params.rigidity,
   });
+  
   // Under fiat, damp upward catch-up once trailing inflation is already above
   // target so wages and prices do not chase each other into a money spiral.
-  // Half-strength with a 0.5 floor keeps some catch-up after supply shocks.
   if (economy.params.regime === 'fiat' && growth > 0) {
     growth *= fiatWageCatchUpScale(
       inflation(economy) - economy.params.inflationTarget,
       economy.params.inflationTarget,
     );
   }
+  
+  // Update economy-wide reference wage (for new hires)
   economy.wageLevel *= 1 + growth;
+  
+  // Update each firm's wages with downward nominal rigidity
   for (const firm of economy.firms) {
-    firm.wage = economy.wageLevel * firm.productivity;
+    updateFirmWages(economy, firm, growth);
   }
+}
+
+/**
+ * Update wages at a specific firm with downward nominal rigidity.
+ * Both incumbent and new-hire wages resist downward adjustment.
+ */
+function updateFirmWages(economy: Economy, firm: Firm, referenceGrowth: number): void {
+  // Market wage for this firm (what the market would clear at)
+  const marketWage = economy.wageLevel * firm.productivity;
+  
+  // Track pressure conditions
+  if (hasWageCutPressure(economy, firm)) {
+    firm.wageCutPressure += 1;
+  } else {
+    firm.wageCutPressure = 0;
+  }
+  
+  // Decide if we can cut wages
+  const canCutWages = firm.wageCutPressure >= WAGE_CUT_PRESSURE_THRESHOLD;
+  
+  // Calculate average incumbent wage at this firm for new hire reference
+  let incumbentWageSum = 0;
+  let incumbentCount = 0;
+  for (const workerId of firm.workers) {
+    const worker = economy.households[workerId];
+    if (worker && worker.nominalWage > 0) {
+      incumbentWageSum += worker.nominalWage / worker.skill; // Base wage
+      incumbentCount += 1;
+    }
+  }
+  
+  // New hires get the higher of: market wage or average incumbent wage
+  // This implements "internal equity" - new hires shouldn't be paid dramatically
+  // less than existing workers doing the same job, which would cause morale issues
+  const avgIncumbentBase = incumbentCount > 0 ? incumbentWageSum / incumbentCount : marketWage;
+  const newHireBase = canCutWages ? marketWage : Math.max(marketWage, avgIncumbentBase);
+  
+  // For incumbent workers, apply rigidity to downward moves
+  for (const workerId of firm.workers) {
+    const worker = economy.households[workerId];
+    if (!worker) {
+      continue;
+    }
+    
+    // If worker has no wage set (legacy), set to the new hire base
+    if (worker.nominalWage <= 0) {
+      worker.nominalWage = newHireBase * worker.skill;
+      continue;
+    }
+    
+    // Target wage for this worker
+    const targetWage = marketWage * worker.skill;
+    
+    // Always allow upward adjustments
+    if (targetWage > worker.nominalWage) {
+      // Apply the same catch-up scaling as the economy reference
+      const growth = (targetWage / worker.nominalWage - 1) * (1 - economy.params.rigidity);
+      const scaledGrowth = economy.params.regime === 'fiat' && growth > 0
+        ? growth * fiatWageCatchUpScale(
+            inflation(economy) - economy.params.inflationTarget,
+            economy.params.inflationTarget,
+          )
+        : growth;
+      worker.nominalWage *= 1 + clamp(scaledGrowth, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+    } else if (targetWage < worker.nominalWage && canCutWages) {
+      // Only allow downward adjustments after sustained pressure
+      // Still apply rigidity to make cuts gradual
+      const growth = (targetWage / worker.nominalWage - 1) * (1 - economy.params.rigidity);
+      worker.nominalWage *= 1 + clamp(growth, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+    }
+    // else: hold wage constant (downward nominal rigidity without threshold met)
+  }
+  
+  // Set firm's wage to the new hire base (for new hires and reference)
+  firm.wage = newHireBase;
 }

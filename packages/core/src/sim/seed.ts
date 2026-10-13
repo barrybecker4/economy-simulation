@@ -210,6 +210,7 @@ function seedFirms(economy: Economy, init: Rng): void {
       negTicks: 0,
       missedPayment: false,
       missTicks: 0,
+      wageCutPressure: 0,
     });
   }
 }
@@ -239,6 +240,7 @@ function seedHouseholds(economy: Economy, init: Rng, root: Rng): void {
       mortgageArrears: 0,
       consumerLoan: 0,
       bitcoinConsumer: 0,
+      nominalWage: 0,
     });
   }
 }
@@ -247,7 +249,12 @@ function payOpeningWages(economy: Economy, firm: Firm): void {
   const revenue = Math.max(0, Math.round(firm.price * firmCapacity(economy, firm)));
   const pays = firm.workers.flatMap((workerId) => {
     const worker = economy.households[workerId];
-    return worker ? [{ id: workerId, amount: pay(worker, firm) }] : [];
+    if (!worker) {
+      return [];
+    }
+    // Set initial nominal wage for workers
+    worker.nominalWage = firm.wage * worker.skill;
+    return [{ id: workerId, amount: pay(worker, firm) }];
   });
   const parts = splitProportional(
     revenue,

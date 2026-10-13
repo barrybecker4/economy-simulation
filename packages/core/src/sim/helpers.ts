@@ -39,6 +39,10 @@ export function outputGap(economy: Economy): number {
 }
 
 export function pay(household: Household, firm: Firm): number {
+  // Use the worker's individual nominal wage if set, otherwise fall back to firm reference
+  if (household.nominalWage > 0) {
+    return Math.max(1, Math.round(household.nominalWage));
+  }
   return Math.max(1, Math.round(firm.wage * household.skill));
 }
 
@@ -100,6 +104,8 @@ export function separate(economy: Economy, household: Household): void {
     firm.workers = firm.workers.filter((id) => id !== household.id);
   }
   household.employer = -1;
+  // Clear the wage so they get a fresh market wage when rehired
+  household.nominalWage = 0;
 }
 
 export function employ(economy: Economy, count: number): void {
