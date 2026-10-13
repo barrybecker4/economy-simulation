@@ -48,7 +48,10 @@ function run(
  * - Shocks on: ≤ 3.2 total failures
  */
 describe('Regression: bank failure rates (issue #11)', () => {
-  it('M bitcoin with shocks off stays under 0.5% per bank-year (median of 10 seeds)', () => {
+  // These tests run 10 full simulations each, which takes time
+  const LONG_TEST_TIMEOUT = 120_000; // 2 minutes per test
+
+  it('M bitcoin with shocks off stays under 0.5% per bank-year (median of 10 seeds)', { timeout: LONG_TEST_TIMEOUT }, () => {
     const results: number[] = [];
     
     for (let seed = 0; seed < 10; seed++) {
@@ -75,7 +78,7 @@ describe('Regression: bank failure rates (issue #11)', () => {
     expect(perBankYear).toBeLessThanOrEqual(0.005);
   });
 
-  it('M bitcoin with shocks on stays under 4% per bank-year (median of 10 seeds)', () => {
+  it('M bitcoin with shocks on stays under 4% per bank-year (median of 10 seeds)', { timeout: LONG_TEST_TIMEOUT }, () => {
     const results: number[] = [];
     
     for (let seed = 0; seed < 10; seed++) {
@@ -102,7 +105,7 @@ describe('Regression: bank failure rates (issue #11)', () => {
     expect(perBankYear).toBeLessThanOrEqual(0.04);
   });
 
-  it('S0 bitcoin with shocks off stays under 0.5% per bank-year', () => {
+  it('S0 bitcoin with shocks off stays under 0.5% per bank-year', { timeout: LONG_TEST_TIMEOUT }, () => {
     const results: number[] = [];
     
     for (let seed = 0; seed < 10; seed++) {
