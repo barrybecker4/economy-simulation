@@ -239,7 +239,8 @@ previous value plus 10 percent of this tick's income. That uncut budget is split
 discretionary remainder. The floor share is the sum of the food and housing CPI weights, about 0.585. When
 `household.realReturnSensitivity` is positive and the real return on money is positive, only the remainder is multiplied
 by `max(0, 1 − sensitivity × real return)`. The real return is the deposit rate minus year-over-year inflation. Deposits
-pay at `bank.depositPassThrough` times the policy rate (default 0.45). At sensitivity 0 the uncut budget is unchanged.
+pay at `bank.depositPassThrough` times the policy rate (default 0.45, also the monetary-preset value). At sensitivity 0
+the uncut budget is unchanged.
 Households shop in a seeded random order each month so early ids do not always claim scarce inventory first. Desired
 spendable budgets are scaled by `min(1, stock value / desired)` before the walk, so scarce output is shared in
 proportion to what households want to spend rather than first-come emptying the shelves. Each household then visits up
@@ -432,8 +433,10 @@ and publishes `centralBank.rateSmoothing` times last month's rate plus the rest 
 loan rate is smoothed the same way. The default weight is 0.5, high enough that the opening months do not swing from
 0 to the mid-teens. A sustained gap still moves the published rate, because the weight is below 1.
 
-`bank.depositPassThrough` times the policy rate is the posted deposit rate. Household interest is paid after firm loan
-interest and before bank dividends. Funding is this tick's borrower interest, plus, under fiat, interest on reserves at
+`bank.depositPassThrough` times the policy rate is the posted deposit rate. The default and the monetary preset are both
+0.45, so the paid deposit rate over the policy rate sits in the empirical deposit-beta band of 0.3–0.6 rather than a
+full pass-through. Household interest is paid after firm loan interest and before bank dividends. Funding is this tick's
+borrower interest, plus, under fiat, interest on reserves at
 the policy rate and an optional deposit-interest subsidy, and only up to the gap in the coupon and the steady-state
 money-growth budget. Reserve interest and the subsidy are new base money and are subtracted from the same tick's
 money-growth injection, so the growth rule still hits its annual path. Coupon above that budget is not paid. The capital

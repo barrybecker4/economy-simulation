@@ -33,4 +33,9 @@ export const ANNOTATIONS: Record<string, Pick<Slider, 'status' | 'source'>> = {
     source:
       'About 62 percent of U.S. owner households have a mortgage, from the Census mortgage-status share.',
   },
+  'bank.depositPassThrough': {
+    status: 'calibrated',
+    source:
+      'Average bank deposit-rate beta ≈0.46 (Drechsler, Savov & Schnabl NBER w22152). NY Fed Liberty Street cycle betas about 0.6 (2004–07), ≤0.4 (2015–19), about 0.4 (2022Q4). The registry default and the monetary preset both use 0.45 so paid/policy sits in 0.3–0.6.',
+  },
 };

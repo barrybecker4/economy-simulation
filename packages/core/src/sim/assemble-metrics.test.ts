@@ -13,6 +13,11 @@ function recorded(snapshot: MetricSnapshot): Map<MetricId, number> {
 }
 
 describe('assembleMetrics', () => {
+  it('records the paid deposit rate next to the policy rate', () => {
+    expect(recorded(snapshot()).get('paidDepositRate')).toBe(0.009);
+    expect(recorded(snapshot()).get('interestRate')).toBe(0.02);
+  });
+
   it('derives household goods spend from consumption minus agent goods', () => {
     const values = recorded(snapshot({ consumptionSpend: 40, agentGoodsSpend: 15 }));
     expect(values.get('householdGoodsSpend')).toBe(25);
@@ -223,6 +228,7 @@ function snapshot(
     homePriceMonths: input.homePriceMonths,
     inflation: input.inflation,
     interestRate: 0.02,
+    paidDepositRate: 0.009,
     deflationSensitivity: input.deflationSensitivity,
     deposits: input.deposits,
     reserves: 0,

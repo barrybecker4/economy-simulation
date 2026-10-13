@@ -79,7 +79,10 @@ consumption, real wealth, unemployment, debt service, and tenure shares, with th
   not publish unpaired consumption gaps from crash survivors; those gaps flatter bitcoin on consumption by about a
   percentage point on the monetary preset. Unemployment gaps were not affected by that survivor bias.
 - **Pass-through sensitivity.** Fiat-only reserve interest and the deposit subsidy are a saver transfer. Report saver
-  and distribution gaps with `bank.depositPassThrough` at 0 as well as at the preset.
+  and distribution gaps with `bank.depositPassThrough` at 0 as well as at the preset. The monetary preset uses the
+  registry default of 0.45 (empirical deposit beta ≈0.46). A full pass-through overstates how well fiat savers are
+  protected from inflation. Sensitivity at 0.3 and 0.6 is in
+  [docs/methods/deposit-rate-calibration.md](methods/deposit-rate-calibration.md).
 - **Injection channels.** First-recipient claims use `centralBank.spendNewMoney` 0. Do not treat a collapse of
   `newLoans` under the monetary preset as a failed gift.
 - **Rebate-off sensitivity.** S0–S3 gaps are reported with the default treasury buffer and with a buffer high enough

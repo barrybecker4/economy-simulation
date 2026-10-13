@@ -42,6 +42,7 @@ describe('preset stability fixes', () => {
   it('pins the monetary preset to choice speed 0 and firm-level hiring on', () => {
     expect(monetaryPreset['money.choiceSpeed']).toBe(0);
     expect(monetaryPreset['labor.firmLevelHiring']).toBe('on');
+    expect(monetaryPreset['bank.depositPassThrough']).toBe(0.45);
   });
 
   it('unwinds asset purchases only from excess reserves', () => {
@@ -122,7 +123,7 @@ describe('preset stability fixes', () => {
     // supply doesn't fall dramatically and unemployment doesn't rise significantly.
     const stimulatedMoney36 = series(stimulated, 'moneySupply')[36] ?? 0;
     const quietMoney36 = series(quiet, 'moneySupply')[36] ?? 0;
-    expect(stimulatedMoney36 / Math.max(quietMoney36, 1)).toBeGreaterThan(0.90);
+    expect(stimulatedMoney36 / Math.max(quietMoney36, 1)).toBeGreaterThan(0.9);
     const peak = (result: SimulationResult) => Math.max(...series(result, 'unemployment'));
     // Housing mobility increases unemployment variance significantly; allow up to 2.5pp difference
     expect(peak(stimulated)).toBeLessThanOrEqual(peak(quiet) + 0.025);

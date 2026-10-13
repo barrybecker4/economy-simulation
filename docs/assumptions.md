@@ -416,13 +416,15 @@ Registry version: 16.
 - Unit: share
 - Default: 0.45
 - Range: 0 to 1
-- Status: guess
-- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Status: calibrated
+- Source: Average bank deposit-rate beta ≈0.46 (Drechsler, Savov & Schnabl NBER w22152). NY Fed Liberty Street cycle
+  betas about 0.6 (2004–07), ≤0.4 (2015–19), about 0.4 (2022Q4). The registry default and the monetary preset both use
+  0.45 so paid/policy sits in 0.3–0.6.
 - Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy
   rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from
   this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. The
-  default of 0.45 pays just under half the policy rate. At 0 deposits pay nothing. It cannot cut the food and housing
-  spending floor.
+  default of 0.45 matches the empirical deposit beta of about 0.46. At 0 deposits pay nothing. It cannot cut the food
+  and housing spending floor.
 
 ## bank.reserveRequirement
 

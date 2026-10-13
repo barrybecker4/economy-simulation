@@ -4,7 +4,7 @@
   "sliders": {
     "prices.trendWeight": 0.35,
     "production.demandWeight": 1,
-    "bank.depositPassThrough": 1,
+    "bank.depositPassThrough": 0.45,
     "expectations.anchorWeight": 0.5,
     "housing.tenureChoice": "on",
     "credit.endogenousWeight": 1,

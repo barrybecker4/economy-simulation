@@ -17,6 +17,7 @@ export const METRIC_IDS = [
   'homePriceMonths',
   'inflation',
   'interestRate',
+  'paidDepositRate',
   'moneySupply',
   'baseMoney',
   'loanToSavings',

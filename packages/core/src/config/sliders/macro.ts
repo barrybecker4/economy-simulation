@@ -258,7 +258,7 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0.45,
     0,
     1,
-    'Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 pays just under half the policy rate. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.',
+    'Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 matches the empirical deposit beta of about 0.46. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.',
   ),
   numberSlider(
     'bank.depositInterestSubsidy',
