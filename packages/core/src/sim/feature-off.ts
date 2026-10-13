@@ -49,4 +49,6 @@ export const FEATURE_OFF: Readonly<Record<string, number | string>> = {
   'ai.computeProductivity': 0,
   'agent.marketDepth': 0,
   'prices.trendWeight': 1,
+  'wage.unexpectedHoldMonths': 0,
+  'wage.reviewMonths': 0,
 };

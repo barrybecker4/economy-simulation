@@ -101,6 +101,10 @@ describe('hybrid custody write-offs', () => {
             'money.choiceSpeed': 1,
             'money.bitcoinTrust': 1,
             'money.fiatLegalTender': 1,
+            // Identity, not wage shape: keep the pre-#10 monthly wage path so a
+            // 12-month review jump cannot leave a 4-cent hybrid residual.
+            'wage.unexpectedHoldMonths': 0,
+            'wage.reviewMonths': 0,
           },
         }),
       );

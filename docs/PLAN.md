@@ -104,7 +104,9 @@ These are starting rules. Mark each as sourced or as a guess when it is implemen
   minus alpha. Alpha defaults to 0.33.
 - Wage setting: the agreed wage is the price level times the opening real wage times productivity and labor-market
   tightness. Employees close a shortfall and employers close an excess. Nominal rigidity is the share of that gap left
-  for next month, so a high rigidity means wages adjust slowly in both directions.
+  for next month. The posted wage also freezes during unexpected deflation for `wage.unexpectedHoldMonths`, and when
+  expected inflation is non-negative it moves only every `wage.reviewMonths`. Behaviour follows the inflation
+  surprise, not the regime label. See [ADR 0031](adr/0031-expectation-wage-adjustment.md).
 - Pricing: unit cost times one plus a markup, adjusted up when inventory is low and down when inventory is high.
 - Consumption: a household consumes a fraction of expected income plus a smaller fraction of wealth. The fractions
   depend on time preference.
@@ -209,6 +211,8 @@ guess. The full list is generated into `docs/assumptions.md`.
 | Behavior    | firm.markup                            | 0.2             | 0.05 to 0.6                  |
 | Behavior    | firm.priceAdjustSpeed                  | 0.3             | 0.05 to 1                    |
 | Behavior    | wage.nominalRigidity                   | 0.9             | 0 to 0.95                    |
+| Behavior    | wage.unexpectedHoldMonths              | 18              | 0 to 36                      |
+| Behavior    | wage.reviewMonths                      | 12              | 0 to 24                      |
 | Environment | productivity.baseGrowth (annual)       | 0.01            | 0 to 0.04                    |
 | Environment | population.growth (annual)             | 0.005           | -0.01 to 0.02                |
 | Environment | shock.frequency (per year)             | 0.1             | 0 to 1                       |
@@ -790,8 +794,7 @@ Acceptance:
 
 Goal: fiat, bitcoin, stablecoins, and CBDC can coexist, and their shares can move.
 
-1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to
-   0. Fiat is the residual.
+1. Bitcoin’s opening share is fixed at 0.4 percent of assets. `money.stablecoinStart` and `money.cbdcStart` default to 0. Fiat is the residual.
 2. `money.choiceSpeed` defaults to 0. Above 0, shares step toward a score of legal tender, trust, friction, and the real
    return, and exchange rates move with each digital share. The policy-rate rule still follows `regime.type`. Bitcoin
    issuance is the halving schedule, not a slider.
@@ -1286,8 +1289,7 @@ Acceptance:
 - At the same amount, only `newLoans` raises firm loans, only `assetPurchase` raises bonds, and a government-spending
   injection is spent on firms in that tick.
 - A `newLoans` contraction reduces firm deposits and firm loans.
-- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is
-  3. `spendNewMoney` on the default channel stays under 10 percent inflation.
+- Demand-led fiat with `newLoans` does not finish near 25 percent inflation, including when real-return sensitivity is 3. `spendNewMoney` on the default channel stays under 10 percent inflation.
 
 ### Phase 57: Inflation after inside-money runoff
 
@@ -1411,7 +1413,9 @@ unemployment stays near the natural rate in every regime, and the lag's sign doe
    `0.4` times labor-market tightness.
 2. `wage.nominalRigidity` is the share of the posted-to-agreed gap left for next month. Employees close a shortfall and
    employers close an excess at rate `1 − rigidity`, capped by the monthly wage move. The default moves from 0.7 to 0.9.
-   Squared downward rigidity is gone.
+   Squared downward rigidity is gone. Issue #10 adds an unexpected-deflation hold and a review interval under
+   non-negative expected inflation; both are off at 0, which is `FEATURE_OFF`. See
+   [ADR 0031](adr/0031-expectation-wage-adjustment.md).
 3. `labor.wageElasticity` compares the real wage with the hiring reference
    (`1 / (1 + firm.markup)` times productivity). Phase 68 drops tightness and the impulse from that reference. The
    default stays 0.5.

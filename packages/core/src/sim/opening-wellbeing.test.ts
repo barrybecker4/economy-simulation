@@ -22,9 +22,10 @@ const monetaryPreset = JSON.parse(readFileSync(presetPath, 'utf8')).sliders as R
  * deposits (6.5 vs 30 months), early consumption adjusts more sharply, raising
  * the cap from 0.16 to 0.35 to accommodate realistic velocity calibration.
  * Housing mobility adds additional early activity as mortgagors refinance,
- * increasing caps to 0.19 and 0.37 respectively.
+ * increasing caps to 0.19 and 0.37 respectively. Annual wage reviews (issue #10)
+ * close a larger agreed-wage gap on review months, so the default cap is 0.21.
  */
-const DEFAULTS_JUMP_CAP = 0.20;
+const DEFAULTS_JUMP_CAP = 0.21;
 const MONETARY_JUMP_CAP = 0.37;
 
 describe('opening well-being', () => {

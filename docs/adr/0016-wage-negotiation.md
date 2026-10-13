@@ -28,3 +28,7 @@ slider left at 0 would have kept that path as the default.
 Calm runs at the defaults stay near the natural rate in fiat, bitcoin, and hybrid. Rising prices leave employees behind
 while wages catch up; falling prices leave them ahead. Phase tests that assumed automatic trend indexation or that
 default elasticity alone raised unemployment when productivity grew are rewritten.
+
+Issue #10 and [ADR 0031](0031-expectation-wage-adjustment.md) keep this agreed-wage target and add an
+expectation-driven hold on the posted wage plus a review interval under non-negative expected inflation.
+Those sliders default on; `FEATURE_OFF` sets them to 0.

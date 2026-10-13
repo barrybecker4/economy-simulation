@@ -6,6 +6,7 @@ import {
   NATURAL_UNEMPLOYMENT,
   SALES_SMOOTHING,
   TIGHTNESS_WAGE,
+  UNEXPECTED_DEFLATION_GAP,
 } from './rules.js';
 import { clamp } from './stats.js';
 import type { Economy } from './economy.js';
@@ -13,6 +14,7 @@ import type { Firm, Household } from './types.js';
 import {
   displaced,
   employedCount,
+  expectedInflation,
   humanWeight,
   inflation,
   outputGap,
@@ -43,13 +45,91 @@ export function hiringReferenceRealWage(input: { markup: number; productivity: n
   return (1 / (1 + input.markup)) * input.productivity;
 }
 
-/** Monthly wage growth that closes (1 − rigidity) of the gap to the agreed wage. */
-export function wageGrowth(input: { posted: number; agreed: number; rigidity: number }): number {
+/** How far realized inflation sits below expected inflation. Zero when prices are at or above the expectation. */
+export function unexpectedDeflationGap(expectedInflation: number, inflation: number): number {
+  return Math.max(0, expectedInflation - inflation);
+}
+
+/**
+ * Hold clock for unexpected deflation. Once an episode starts it runs at
+ * least two thirds of `holdDuration`, then continues only while the surprise
+ * lasts, up to the full slider.
+ */
+export function advanceHoldClock(input: {
+  held: number;
+  gap: number;
+  threshold: number;
+  holdDuration: number;
+}): number {
+  if (input.holdDuration <= 0) {
+    return 0;
+  }
+  const minHold = Math.ceil((input.holdDuration * 2) / 3);
+  if (input.held > 0 && input.held < minHold) {
+    return input.held + 1;
+  }
+  if (input.held >= minHold && input.held < input.holdDuration) {
+    return input.gap > input.threshold ? input.held + 1 : 0;
+  }
+  if (input.gap > input.threshold) {
+    return input.held + 1;
+  }
+  return 0;
+}
+
+/**
+ * Monthly wage growth that closes (1 − rigidity) of the gap to the agreed wage,
+ * with two expectation-driven exceptions:
+ * - The posted wage freezes while unexpected deflation is inside the hold window.
+ * - When expected inflation is non-negative, wages only move every reviewMonths
+ *   ticks and close the missed months in one step (zero-change pile).
+ * Rigidity 0 still matches the agreed wage immediately.
+ */
+export function wageGrowth(input: {
+  posted: number;
+  agreed: number;
+  rigidity: number;
+  expectedInflation?: number;
+  monthsHeld?: number;
+  unexpectedHoldMonths?: number;
+  reviewMonths?: number;
+  tick?: number;
+}): number {
   if (!(input.posted > 0)) {
     return 0;
   }
-  const gapShare = (input.agreed / input.posted - 1) * (1 - input.rigidity);
-  return clamp(gapShare, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+  const raw = input.agreed / input.posted - 1;
+  if (input.rigidity <= 0) {
+    return clamp(raw, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+  }
+  const expected = input.expectedInflation ?? 0;
+  const reviewMonths = input.reviewMonths ?? 0;
+  const tick = input.tick ?? 0;
+  // Tick 0 is never a review month: a 12-month catch-up on the first tick
+  // would jump well-being past the opening cap.
+  const onReview = reviewMonths <= 1 || expected < 0 || (tick !== 0 && tick % reviewMonths === 0);
+  if (!onReview) {
+    return 0;
+  }
+  const closed =
+    onReview && reviewMonths > 1 && expected >= 0
+      ? 1 - integerPower(input.rigidity, reviewMonths)
+      : 1 - input.rigidity;
+  let growth = raw * closed;
+  const holdDuration = input.unexpectedHoldMonths ?? 0;
+  const monthsHeld = input.monthsHeld ?? 0;
+  if (holdDuration > 0 && monthsHeld > 0 && monthsHeld <= holdDuration) {
+    growth = 0;
+  }
+  return clamp(growth, -MAX_MONTHLY_PRICE_MOVE, MAX_MONTHLY_PRICE_MOVE);
+}
+
+function integerPower(base: number, exp: number): number {
+  let value = 1;
+  for (let step = 0; step < exp; step += 1) {
+    value *= base;
+  }
+  return value;
 }
 
 /** Scale the hiring quota when the real wage is away from its cost reference. Elasticity 0 leaves it at 1. */
@@ -346,17 +426,33 @@ export function fiatWageCatchUpScale(overshoot: number, inflationTarget: number)
 }
 
 function updateWages(economy: Economy): void {
+  const expected = expectedInflation(economy);
+  const realized = inflation(economy);
+  const mom = economy.priceAtLastWage > 0 ? economy.priceLevel / economy.priceAtLastWage - 1 : 0;
+  economy.priceAtLastWage = economy.priceLevel;
+  const monthlyUnexpected = unexpectedDeflationGap(expected / 12, mom);
+  economy.unexpectedDeflationMonths = advanceHoldClock({
+    held: economy.unexpectedDeflationMonths,
+    gap: monthlyUnexpected,
+    threshold: UNEXPECTED_DEFLATION_GAP / 12,
+    holdDuration: economy.params.unexpectedHoldMonths,
+  });
   let growth = wageGrowth({
     posted: economy.wageLevel,
     agreed: agreedWageLevel(economy),
     rigidity: economy.params.rigidity,
+    expectedInflation: expected,
+    monthsHeld: economy.unexpectedDeflationMonths,
+    unexpectedHoldMonths: economy.params.unexpectedHoldMonths,
+    reviewMonths: economy.params.reviewMonths,
+    tick: economy.tick,
   });
   // Under fiat, damp upward catch-up once trailing inflation is already above
   // target so wages and prices do not chase each other into a money spiral.
   // Half-strength with a 0.5 floor keeps some catch-up after supply shocks.
   if (economy.params.regime === 'fiat' && growth > 0) {
     growth *= fiatWageCatchUpScale(
-      inflation(economy) - economy.params.inflationTarget,
+      realized - economy.params.inflationTarget,
       economy.params.inflationTarget,
     );
   }

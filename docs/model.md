@@ -73,6 +73,8 @@ the deflation penalty, housing tenure, and the fiat policy rate use the expectat
 series stays the trailing rate. Posted prices follow the regime path at weight 0, and the expectation when the
 weight is positive. Wages negotiate
 toward the agreed wage from the price level and productivity; they do not take the regime path directly.
+Cuts freeze when month-over-month inflation is unexpectedly below that expectation, and the posted wage moves only every
+`wage.reviewMonths` when the expectation is non-negative. See the labor-market section.
 
 ## Randomness
 
@@ -216,11 +218,22 @@ rate is `1 − 0.94 × humanWeight`. It starts at 6 percent when displacement is
 The agreed money wage is the price level times `1 / (1 + firm.markup)` times economy-wide productivity times one plus
 `0.4` times tightness, where tightness is `(natural unemployment − unemployment) × humanWeight`. The posted money wage
 closes `1 − wage.nominalRigidity` of the gap to that agreed wage each month, capped by the monthly wage move. Employees
-close a shortfall; employers close an excess; both sides use the same speed. At rigidity 0 the posted wage matches the
-agreed wage immediately. Under fiat, whenever trailing inflation is already above the target, upward wage catch-up is
+close a shortfall; employers close an excess; both sides use the same speed unless one of two expectation-driven
+exceptions binds. The posted wage is frozen while unexpected deflation lasts: unexpected
+deflation is a month-over-month price change more than two annual points below expected inflation. Once a hold starts it
+runs at least two thirds of `wage.unexpectedHoldMonths` (12 of 18 by default), then only while the surprise lasts, up to
+the full slider. After the hold, cuts resume at the usual speed, so the money-wage drop stays smaller than the price drop
+while prices are still falling. That
+hold is the 1929–33 manufacturing-wage pattern (about 12–24 months flat, then −16.8% vs prices near −25%). It does not
+apply when deflation is already expected, so a gold-standard path like 1873–96 still lets money wages drift down with
+prices while real wages rise with productivity. When expected inflation is at or above zero, the posted wage moves only
+every `wage.reviewMonths` (default 12) and that review closes the gap monthly partial adjustment would have closed over
+the interval, which produces a Daly–Hobijn pile of exact-zero months. The interval is ignored when expected inflation is
+negative. At rigidity 0 the posted wage matches the agreed wage immediately and both exceptions are skipped. Under fiat, whenever trailing inflation is already above the target, upward wage catch-up is
 scaled by `clamp(1 − 0.5 × overshoot / target, 0.5, 1)`, so catch-up slows but never freezes. Hiring compares
 the posted real wage with the reference above, which equals the agreed real wage
 at zero tightness. During the lag, rising prices leave employees behind and falling prices leave them ahead. The
+shape follows the inflation surprise, not `regime.type`. The
 contract wage at a firm is the money wage times the firm's productivity. Pay offered to a worker is that wage times the
 worker's skill.
 

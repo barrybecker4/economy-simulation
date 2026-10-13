@@ -17,6 +17,8 @@ const EXPECTED_IDS = [
   'firm.hurdlePremium',
   'prices.trendWeight',
   'wage.nominalRigidity',
+  'wage.unexpectedHoldMonths',
+  'wage.reviewMonths',
   'equity.marketOn',
   'productivity.baseGrowth',
   'population.growth',

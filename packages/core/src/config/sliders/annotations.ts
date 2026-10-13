@@ -33,4 +33,14 @@ export const ANNOTATIONS: Record<string, Pick<Slider, 'status' | 'source'>> = {
     source:
       'About 62 percent of U.S. owner households have a mortgage, from the Census mortgage-status share.',
   },
+  'wage.unexpectedHoldMonths': {
+    status: 'sourced',
+    source:
+      'US manufacturing wages held roughly 12–24 months after the 1929 deflationary shock, then fell by less than wholesale prices (about −16.8% vs −25% by 1933). Midpoint 18 months. Not a fiat-era job-stayer cut rate.',
+  },
+  'wage.reviewMonths': {
+    status: 'calibrated',
+    source:
+      'Calibrated to the Daly–Hobijn zero-change spike: under non-negative expected inflation most months have no posted-wage change. Off when expected inflation is negative (gold-standard 1873–96).',
+  },
 };

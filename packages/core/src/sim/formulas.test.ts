@@ -3,7 +3,7 @@ import { productionCapacity } from './capacity.js';
 import { taylorRate } from './central-bank.js';
 import { hurdleInvestment } from './credit.js';
 import { deflationPenaltyFrom } from './helpers.js';
-import { agreedWage, hiringScale, wageGrowth } from './labor.js';
+import { advanceHoldClock, agreedWage, hiringScale, wageGrowth } from './labor.js';
 import { monthlyPriceMove } from './pricing.js';
 import {
   adoptionProgress,
@@ -45,9 +45,7 @@ describe('pure economy formulas', () => {
       laborStar: 4,
       automatedSeats: true,
     };
-    expect(
-      productionCapacity({ ...base, labor: 0, aiFactor: 1, humanWeight: 1 }),
-    ).toBe(0);
+    expect(productionCapacity({ ...base, labor: 0, aiFactor: 1, humanWeight: 1 })).toBe(0);
     const automated = productionCapacity({
       ...base,
       labor: 0,
@@ -86,12 +84,7 @@ describe('pure economy formulas', () => {
     };
     expect(productionCapacity({ ...base, labor: 0, humanWeight: 1e-9 })).toBe(0);
     const shrunk = productionCapacity({ ...base, labor: 2, humanWeight: 0.5 });
-    const prior =
-      1 *
-      1 *
-      8 ** 0.5 *
-      4 ** 0.5 *
-      (2 / (4 * 0.5)) ** ((1 - 0.5) * 0.5);
+    const prior = 1 * 1 * 8 ** 0.5 * 4 ** 0.5 * (2 / (4 * 0.5)) ** ((1 - 0.5) * 0.5);
     expect(shrunk).toBeCloseTo(prior, 12);
   });
 
@@ -137,9 +130,7 @@ describe('pure economy formulas', () => {
     expect(
       humanTaskWeight({ adopted, taskGain: gain, inForce: 0.8, laborReplacement: 0.5 }),
     ).toBeCloseTo(0.5 * current + 0.5 * 0.2, 12);
-    expect(
-      humanTaskWeight({ adopted: 0, taskGain: 2, inForce: 0, laborReplacement: 1 }),
-    ).toBe(1);
+    expect(humanTaskWeight({ adopted: 0, taskGain: 2, inForce: 0, laborReplacement: 1 })).toBe(1);
   });
 
   it('grows the subagent field along the adoption curve', () => {
@@ -183,6 +174,89 @@ describe('pure economy formulas', () => {
     expect(wageGrowth({ posted: 100, agreed: 102, rigidity: 0 })).toBeCloseTo(0.02, 12);
     expect(wageGrowth({ posted: 100, agreed: 98, rigidity: 0 })).toBeCloseTo(-0.02, 12);
     expect(wageGrowth({ posted: 100, agreed: 110, rigidity: 0 })).toBeCloseTo(0.05, 12);
+  });
+
+  it('freezes cuts while unexpected deflation is inside the hold, then resumes', () => {
+    const cut = {
+      posted: 100,
+      agreed: 90,
+      rigidity: 0.9,
+      unexpectedHoldMonths: 18,
+    };
+    expect(wageGrowth({ ...cut, monthsHeld: 1 })).toBe(0);
+    expect(wageGrowth({ ...cut, monthsHeld: 18 })).toBe(0);
+    expect(wageGrowth({ ...cut, monthsHeld: 19 })).toBeCloseTo(-0.01, 12);
+    expect(wageGrowth({ ...cut, monthsHeld: 0 })).toBeCloseTo(-0.01, 12);
+  });
+
+  it('holds the posted wage flat during an unexpected-deflation hold', () => {
+    expect(
+      wageGrowth({
+        posted: 100,
+        agreed: 110,
+        rigidity: 0.9,
+        monthsHeld: 6,
+        unexpectedHoldMonths: 18,
+      }),
+    ).toBe(0);
+  });
+
+  it('matches the agreed wage immediately at rigidity 0 even during a hold', () => {
+    expect(
+      wageGrowth({
+        posted: 100,
+        agreed: 90,
+        rigidity: 0,
+        monthsHeld: 6,
+        unexpectedHoldMonths: 18,
+        reviewMonths: 12,
+        tick: 1,
+      }),
+    ).toBeCloseTo(-0.05, 12);
+  });
+
+  it('skips non-review months only when expected inflation is non-negative', () => {
+    expect(
+      wageGrowth({
+        posted: 100,
+        agreed: 110,
+        rigidity: 0.9,
+        expectedInflation: 0.02,
+        reviewMonths: 12,
+        tick: 1,
+      }),
+    ).toBe(0);
+    expect(
+      wageGrowth({
+        posted: 100,
+        agreed: 102,
+        rigidity: 0.9,
+        expectedInflation: 0.02,
+        reviewMonths: 12,
+        tick: 12,
+      }),
+    ).toBeCloseTo(0.01435140927038, 12);
+    expect(
+      wageGrowth({
+        posted: 100,
+        agreed: 99.5,
+        rigidity: 0.9,
+        expectedInflation: -0.01,
+        reviewMonths: 12,
+        tick: 1,
+      }),
+    ).toBeCloseTo(-0.0005, 12);
+  });
+
+  it('runs an unexpected-deflation hold at least two thirds of its duration, then while the surprise lasts', () => {
+    expect(advanceHoldClock({ held: 0, gap: 0.03, threshold: 0.02, holdDuration: 18 })).toBe(1);
+    expect(advanceHoldClock({ held: 5, gap: 0, threshold: 0.02, holdDuration: 18 })).toBe(6);
+    expect(advanceHoldClock({ held: 11, gap: 0, threshold: 0.02, holdDuration: 18 })).toBe(12);
+    expect(advanceHoldClock({ held: 12, gap: 0, threshold: 0.02, holdDuration: 18 })).toBe(0);
+    expect(advanceHoldClock({ held: 12, gap: 0.03, threshold: 0.02, holdDuration: 18 })).toBe(13);
+    expect(advanceHoldClock({ held: 18, gap: 0.03, threshold: 0.02, holdDuration: 18 })).toBe(19);
+    expect(advanceHoldClock({ held: 18, gap: 0, threshold: 0.02, holdDuration: 18 })).toBe(0);
+    expect(advanceHoldClock({ held: 0, gap: 0.03, threshold: 0.02, holdDuration: 0 })).toBe(0);
   });
 
   it('builds the agreed wage from price, productivity, and tightness', () => {

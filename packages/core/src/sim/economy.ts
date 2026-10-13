@@ -38,6 +38,14 @@ export interface Economy {
   agentTaxRevenue: number;
   ubiOutlay: number;
   wageLevel: number;
+  /**
+   * Consecutive months month-over-month inflation has sat more than
+   * `UNEXPECTED_DEFLATION_GAP` below expected inflation. Zero when the
+   * surprise fades. Wages use this as the unexpected-deflation hold clock.
+   */
+  unexpectedDeflationMonths: number;
+  /** Price level at the last wage step. Used for the month-over-month surprise. */
+  priceAtLastWage: number;
   priceLevel: number;
   /**
    * Multiplier from the internal fiat unit back to original cents.

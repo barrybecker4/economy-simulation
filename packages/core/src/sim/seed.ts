@@ -53,6 +53,8 @@ export function blankEconomy(
     agentTaxRevenue: 0,
     ubiOutlay: 0,
     wageLevel,
+    unexpectedDeflationMonths: 0,
+    priceAtLastWage: priceLevel,
     priceLevel,
     nominalScale: 1,
     productivity: 1,

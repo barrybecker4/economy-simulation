@@ -37,6 +37,12 @@ export const TIGHTNESS_WAGE = 0.4;
 export const MAX_POLICY_RATE = 0.2;
 /** Largest monthly move in a price or wage, as a numerical guard. */
 export const MAX_MONTHLY_PRICE_MOVE = 0.05;
+/**
+ * Annual gap of realized inflation below expected inflation that counts as
+ * unexpected deflation for the wage hold. One point of noise does not start
+ * the hold; a 1929-style break from the expected path does.
+ */
+export const UNEXPECTED_DEFLATION_GAP = 0.02;
 /** Length of a credit impulse and of the contraction that follows it. */
 export const SHOCK_PHASE_MONTHS = 12;
 /** Initial money wage, in cents. */

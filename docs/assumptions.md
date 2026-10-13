@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 16.
+Registry version: 17.
 
 ## agent.capabilityCeiling
 
@@ -1763,8 +1763,43 @@ Registry version: 16.
 - Source: Modeling guess. No external series was fitted. See docs/limits.md.
 - Description: Share of the gap between the posted money wage and the agreed wage left for next month. The agreed wage
   is the price level times 1 / (1 + firm markup) times economy-wide productivity times one plus 0.4 times labor-market
-  tightness. Employees close a shortfall and employers close an excess at the same speed: one minus this rigidity of the
-  gap each month, capped by the monthly wage move. At 0.9, ten percent of the gap closes each month. At 0 the posted
-  wage matches the agreed wage immediately. Under fiat, whenever trailing inflation is already above the target, upward
-  catch-up is scaled by clamp(1 − 0.5 × overshoot / target, 0.5, 1), so catch-up slows but never freezes. Under rising
-  prices the lag leaves employees behind; under falling prices it leaves them ahead.
+  tightness. Employees close a shortfall and employers close an excess at rate one minus this rigidity, capped by the
+  monthly wage move. At 0 the posted wage matches the agreed wage immediately. The posted wage is frozen while
+  unexpected month-over-month deflation is inside wage.unexpectedHoldMonths. When expected inflation is non-negative,
+  wages move only every wage.reviewMonths ticks. Under fiat, whenever trailing inflation is already above the target,
+  upward catch-up is scaled by clamp(1 − 0.5 × overshoot / target, 0.5, 1). The onus follows the inflation surprise, not
+  the regime label.
+
+## wage.reviewMonths
+
+- Label: Wage review interval
+- Group: behavior
+- Unit: months
+- Default: 12
+- Range: 0 to 24
+- Status: calibrated
+- Source: Calibrated to the Daly–Hobijn zero-change spike: under non-negative expected inflation most months have no
+  posted-wage change. Off when expected inflation is negative (gold-standard 1873–96).
+- Description: When expected inflation is at or above zero, the posted wage is unchanged except every this many months,
+  and that review closes the gap that monthly partial adjustment would have closed over the interval. That produces a
+  Daly–Hobijn pile of exact-zero months under fiat-like expectations. When expected inflation is negative the interval
+  is ignored and wages can drift every month, as under 1873–96 gold-standard deflation. At 0 or 1 the wage moves every
+  month.
+
+## wage.unexpectedHoldMonths
+
+- Label: Unexpected-deflation wage hold
+- Group: behavior
+- Unit: months
+- Default: 18
+- Range: 0 to 36
+- Status: sourced
+- Source: US manufacturing wages held roughly 12–24 months after the 1929 deflationary shock, then fell by less than
+  wholesale prices (about −16.8% vs −25% by 1933). Midpoint 18 months. Not a fiat-era job-stayer cut rate.
+- Description: Months of unexpected deflation before nominal wages start cutting. Unexpected deflation is a
+  month-over-month price change more than two annual points below expected inflation. During the hold the posted wage is
+  frozen. Once a hold starts it runs at least two thirds of this slider, then only while the surprise lasts, up to the
+  full slider. After the hold, cuts resume at the usual rigidity speed, so the wage drop stays smaller than the price
+  drop while prices are still falling. At 0 there is no hold. The default of 18 sits in the 12–24 month window of US
+  manufacturing wages after 1929. The hold is keyed to the inflation surprise, not to regime.type, so expected
+  gold-standard deflation is not frozen.
