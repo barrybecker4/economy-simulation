@@ -44,6 +44,7 @@ const EXPECTED_IDS = [
   'household.durableShare',
   'transition.gradualWeight',
   'bank.depositPassThrough',
+  'bank.fiatDepositPassThrough',
   'bank.depositInterestSubsidy',
   'centralBank.bondPurchaseShare',
   'centralBank.moneyGrowth',

@@ -4,7 +4,7 @@ Generated from the slider registry. Do not edit by hand.
 
 Regenerate with `pnpm sim assumptions --out docs/assumptions.md`.
 
-Registry version: 16.
+Registry version: 17.
 
 ## agent.capabilityCeiling
 
@@ -416,13 +416,33 @@ Registry version: 16.
 - Unit: share
 - Default: 0.45
 - Range: 0 to 1
-- Status: guess
-- Source: Modeling guess. No external series was fitted. See docs/limits.md.
-- Description: Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy
-  rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from
-  this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. The
-  default of 0.45 pays just under half the policy rate. At 0 deposits pay nothing. It cannot cut the food and housing
-  spending floor.
+- Status: calibrated
+- Source: Average bank deposit-rate beta ≈0.46 (Drechsler, Savov & Schnabl NBER w22152). NY Fed Liberty Street cycle
+  betas about 0.6 (2004–07), ≤0.4 (2015–19), about 0.4 (2022Q4). The registry default is 0.45. The monetary preset keeps
+  this slider at 1 so bitcoin and hybrid match the pre-calibration pass-through.
+- Description: Share of the policy rate paid on household deposits. Bitcoin and hybrid always use this slider. Fiat uses
+  it when bank.fiatDepositPassThrough is -1. The deposit rate is this fraction times the policy rate. It enters the real
+  return on money that can cut discretionary spending. Banks pay that monthly interest from loan interest this tick and,
+  under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 pays just under half
+  the policy rate. The monetary preset keeps this slider at 1 so bitcoin and hybrid on that preset match the
+  pass-through from before the fiat deposit-beta calibration. At 0 deposits pay nothing. It cannot cut the food and
+  housing spending floor.
+
+## bank.fiatDepositPassThrough
+
+- Label: Fiat deposit pass-through
+- Group: credit
+- Unit: share
+- Default: -1
+- Range: -1 to 1
+- Status: calibrated
+- Source: Same deposit beta as bank.depositPassThrough. The monetary preset sets 0.45 for fiat only. The default of -1
+  means fiat uses bank.depositPassThrough.
+- Description: Fiat-only deposit pass-through. At -1, fiat uses bank.depositPassThrough, so bitcoin, hybrid, and fiat
+  share one slider. A value from 0 to 1 replaces that slider for the fiat regime only. The monetary preset sets 0.45,
+  the fiat-era deposit beta, and leaves bank.depositPassThrough at 1 so bitcoin and hybrid on that preset stay on the
+  previous pass-through. Bitcoin and hybrid ignore this slider. Hybrid coin deposits earn no interest; the fiat deposit
+  leg under hybrid follows bank.depositPassThrough.
 
 ## bank.reserveRequirement
 

@@ -258,7 +258,17 @@ export const MACRO_SLIDERS: readonly Slider[] = [
     0.45,
     0,
     1,
-    'Share of the policy rate paid on household deposits. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from this tick’s loan interest and, under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 pays just under half the policy rate. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.',
+    'Share of the policy rate paid on household deposits. Bitcoin and hybrid always use this slider. Fiat uses it when bank.fiatDepositPassThrough is -1. The deposit rate is this fraction times the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly interest from loan interest this tick and, under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 pays just under half the policy rate. The monetary preset keeps this slider at 1 so bitcoin and hybrid on that preset match the pass-through from before the fiat deposit-beta calibration. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.',
+  ),
+  numberSlider(
+    'bank.fiatDepositPassThrough',
+    'Fiat deposit pass-through',
+    'credit',
+    'share',
+    -1,
+    -1,
+    1,
+    'Fiat-only deposit pass-through. At -1, fiat uses bank.depositPassThrough, so bitcoin, hybrid, and fiat share one slider. A value from 0 to 1 replaces that slider for the fiat regime only. The monetary preset sets 0.45, the fiat-era deposit beta, and leaves bank.depositPassThrough at 1 so bitcoin and hybrid on that preset stay on the previous pass-through. Bitcoin and hybrid ignore this slider. Hybrid coin deposits earn no interest; the fiat deposit leg under hybrid follows bank.depositPassThrough.',
   ),
   numberSlider(
     'bank.depositInterestSubsidy',

@@ -55,6 +55,7 @@ function levels(
   | 'homePriceMonths'
   | 'inflation'
   | 'interestRate'
+  | 'paidDepositRate'
   | 'deflationSensitivity'
   | 'deposits'
   | 'reserves'
@@ -81,6 +82,7 @@ function levels(
     homePriceMonths: measured.homePriceMonths,
     inflation: inflation(economy),
     interestRate: economy.policyRate,
+    paidDepositRate: economy.paidDepositRate,
     deflationSensitivity: economy.params.deflationSensitivity,
     deposits: totalDeposits(economy),
     reserves: economy.banks.reduce((sum, bank) => sum + bank.reserves, 0),

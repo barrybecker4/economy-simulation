@@ -99,6 +99,7 @@ export interface Parameters {
   investmentHurdle: 'off' | 'on';
   hurdlePremium: number;
   depositPassThrough: number;
+  fiatDepositPassThrough: number;
   depositInterestSubsidy: number;
   resolution: 'off' | 'merge';
   depositHaircut: number;
@@ -231,6 +232,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     investmentHurdle: investmentHurdleOf(config),
     hurdlePremium: slider(config, 'firm.hurdlePremium'),
     depositPassThrough: slider(config, 'bank.depositPassThrough'),
+    fiatDepositPassThrough: slider(config, 'bank.fiatDepositPassThrough'),
     depositInterestSubsidy: slider(config, 'bank.depositInterestSubsidy'),
     resolution: resolutionOf(config),
     depositHaircut: slider(config, 'bank.depositHaircut'),

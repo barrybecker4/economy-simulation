@@ -8,6 +8,7 @@ import {
   totalDeposits,
   totalLoans,
 } from './banking.js';
+import { assignPostedDepositRate } from './deposit-rate.js';
 import { markBitcoinToMarket } from './dual-currency.js';
 import type { Economy } from './economy.js';
 import {
@@ -590,7 +591,7 @@ function publishRate(economy: Economy, raw: number): void {
   const weight = clamp(economy.params.rateSmoothing, 0, 0.95);
   const setting = Math.max(0, raw);
   economy.policyRate = weight * economy.policyRate + (1 - weight) * setting;
-  economy.depositRate = economy.params.depositPassThrough * economy.policyRate;
+  assignPostedDepositRate(economy);
 }
 
 function accommodateReserves(economy: Economy): void {

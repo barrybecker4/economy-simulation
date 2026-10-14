@@ -46,6 +46,7 @@ export interface MetricSnapshot {
   homePriceMonths: number;
   inflation: number;
   interestRate: number;
+  paidDepositRate: number;
   deflationSensitivity: number;
   deposits: number;
   reserves: number;
