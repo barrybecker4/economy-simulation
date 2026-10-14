@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { listSliders, type Slider } from '../../core/src/config/registry.js';
   import Chart from './chart/Chart.svelte';
   import { moneyUnit, type DollarBasis } from './chart/money-display.js';
-  import { chartViews, type ChartView } from './chart/view.js';
+  import { chartViews } from './chart/view.js';
   import {
     canPinBaseline,
     canPromoteBaseline,
@@ -22,17 +23,28 @@
     pinBaseline,
     prepareRun,
     promoteBaseline,
+    replaceSide,
     resetDiffToBaseline,
     resetToDefaults,
     setSeed,
     setSeeds,
     setTicks,
+    settingsDifferFromShown,
   } from './session/compare.js';
   import { monthCensus } from './session/census.js';
   import { monthFlows } from './session/flows.js';
+  import { presentLessonCharts } from './session/lesson-views.js';
+  import {
+    applyLessonLever,
+    lessonById,
+    matchingLessonChoice,
+    type Lesson,
+  } from './session/lessons.js';
+  import { predictionOutcome } from './session/prediction.js';
   import { matchingCategories, matchingWorld } from './session/presets.js';
   import { defaultPage, pageSearch, parsePageState } from './session/query.js';
   import { activityLabel, readyLabel, runRequest } from './session/run.js';
+  import { lessonSnapshot } from './session/snapshot.js';
   import {
     changedSliders,
     parameterSliders,
@@ -44,9 +56,11 @@
   import Controls from './ui/Controls.svelte';
   import Guide from './ui/Guide.svelte';
   import Ledger from './ui/Ledger.svelte';
+  import LessonPanel from './ui/LessonPanel.svelte';
+  import LessonsMenu from './ui/LessonsMenu.svelte';
   import Month from './ui/Month.svelte';
   import Parameters from './ui/Parameters.svelte';
-  import Lesson from './lesson/Lesson.svelte';
+  import Snapshot from './ui/Snapshot.svelte';
   import { tickBudget } from './worker/budget.js';
   import {
     formatWorkerError,
@@ -56,11 +70,11 @@
   } from './worker/protocol.js';
 
   const FIRST_CHART_GROUP = 'Welfare';
-  const lessonMode = new URLSearchParams(location.search).get('lesson') === 'deficit';
   const SOURCE_REPO_URL = 'https://github.com/barrybecker4/economy-simulation/';
   const sliders = listSliders();
   const parameters = parameterSliders(sliders);
   const initial = parsePageState(location.search, defaultPage());
+  const activeLesson: Lesson | null = initial.lesson === null ? null : lessonById(initial.lesson);
 
   let session = $state(openComparisonSession(initial));
   let status = $state(IDLE_STATUS);
@@ -69,9 +83,12 @@
   let progressTotal = $state(0);
   let monthIndex = $state(0);
   let showHistory = $state(false);
-  let dollarBasis = $state<DollarBasis>('nominal');
+  let dollarBasis = $state<DollarBasis>(activeLesson === null ? 'nominal' : 'real');
+  let guessId = $state<string | null>(null);
   let resultsEl: HTMLElement | undefined = $state();
-  let openChartGroups = $state<Record<string, boolean>>({ [FIRST_CHART_GROUP]: true });
+  let openChartGroups = $state<Record<string, boolean>>(
+    activeLesson === null ? { [FIRST_CHART_GROUP]: true } : { Lesson: true },
+  );
   /** Shared chart origin so history lines and axis labels use the same calendar. */
   const chartOrigin = new Date();
 
@@ -83,7 +100,7 @@
     moneyUnit(session.regime) === 'satoshis' &&
       (bundle.baseline === null || moneyUnit(bundle.baseline.regime) === 'satoshis'),
   );
-  const views = $derived(
+  const rawViews = $derived(
     bundle.variant === null
       ? []
       : chartViews(
@@ -97,26 +114,40 @@
                 transitionLength: bundle.baseline.transitionLength,
               },
           bundle.variant.transitionLength,
-          { showHistory, origin: chartOrigin, dollarBasis },
+          {
+            showHistory: activeLesson === null && showHistory,
+            origin: chartOrigin,
+            dollarBasis,
+          },
         ),
   );
+  const views = $derived(
+    activeLesson === null ? rawViews : presentLessonCharts(rawViews, activeLesson),
+  );
   const outcomeViews = $derived(views.filter((view) => view.group !== 'This month'));
-  const monthViews = $derived(views.filter((view) => view.group === 'This month'));
+  const monthViews = $derived(
+    activeLesson === null ? views.filter((view) => view.group === 'This month') : [],
+  );
   const outcomeGroups = $derived(groupedChartViews(outcomeViews));
   const categories = $derived(matchingCategories(session.overrides));
   const world = $derived(matchingWorld(session.regime, session.overrides));
+  const lessonChoice = $derived(
+    activeLesson === null
+      ? null
+      : matchingLessonChoice(activeLesson, session.regime, session.overrides),
+  );
   const flows = $derived(
-    bundle.variant === null
+    activeLesson !== null || bundle.variant === null
       ? null
       : monthFlows(bundle.variant.result, bundle.variant.regime, monthIndex, dollarBasis),
   );
   const baselineFlows = $derived(
-    bundle.baseline === null
+    activeLesson !== null || bundle.baseline === null
       ? null
       : monthFlows(bundle.baseline.result, bundle.baseline.regime, monthIndex, dollarBasis),
   );
   const census = $derived(
-    bundle.variant === null
+    activeLesson !== null || bundle.variant === null
       ? null
       : monthCensus(
           bundle.variant.result,
@@ -127,7 +158,7 @@
         ),
   );
   const baselineCensus = $derived(
-    bundle.baseline === null
+    activeLesson !== null || bundle.baseline === null
       ? null
       : monthCensus(
           bundle.baseline.result,
@@ -149,21 +180,50 @@
   const canPin = $derived(canPinBaseline(session));
   const canPromote = $derived(canPromoteBaseline(session));
   const pinned = $derived(isPinned(session));
-  const hint = $derived(nextStep(session));
-  const primaryRun = $derived(runIsPrimary(session));
+  const lessonNeedsGuess = $derived(
+    activeLesson !== null &&
+      pinned &&
+      settingsDifferFromShown(session) &&
+      guessId === null,
+  );
+  const snapshot = $derived(
+    activeLesson === null || result === null ? null : lessonSnapshot(result, activeLesson),
+  );
+  const feedback = $derived(
+    activeLesson === null || result === null || guessId === null
+      ? null
+      : predictionOutcome(
+          activeLesson,
+          guessId,
+          session.pin === null || session.pin.result === result ? null : session.pin.result,
+          result,
+        ),
+  );
+  const hint = $derived(
+    activeLesson === null
+      ? nextStep(session)
+      : lessonNeedsGuess
+        ? 'Pick a guess before you run the scenario.'
+        : pinned
+          ? 'Change the lever, pick a guess, and press Run to compare.'
+          : 'The baseline is running. Charts appear when it finishes.',
+  );
+  const primaryRun = $derived(activeLesson === null ? runIsPrimary(session) : true);
 
-  const worker = lessonMode
-    ? undefined
-    : new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
-  if (worker !== undefined) {
-    worker.onmessage = onWorkerMessage;
-    worker.onerror = (event) => {
-      fail(presentable(event.message));
-    };
-    worker.onmessageerror = () => {
-      fail('could not read the worker reply.');
-    };
-  }
+  const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
+  worker.onmessage = onWorkerMessage;
+  worker.onerror = (event) => {
+    fail(presentable(event.message));
+  };
+  worker.onmessageerror = () => {
+    fail('could not read the worker reply.');
+  };
+
+  onMount(() => {
+    if (activeLesson !== null && session.result === null) {
+      run();
+    }
+  });
 
   function onWorkerMessage(event: MessageEvent<WorkerMessage>): void {
     const message = event.data;
@@ -183,15 +243,11 @@
     busy = false;
     session = noteResult(session, message);
     monthIndex = Math.max(0, message.ticks.length - 1);
+    if (activeLesson !== null && session.pin === null && canPinBaseline(session)) {
+      applyUpdate(pinBaseline(session, sliders));
+    }
     status = readyLabel();
-    const search = pageSearch({
-      seed: session.seed,
-      ticks: session.ticks,
-      seeds: session.seeds,
-      regime: session.regime,
-      overrides: session.overrides,
-    });
-    history.replaceState(null, '', `?${search}`);
+    syncUrl();
     queueMicrotask(() => {
       if (resultsEl === undefined) {
         return;
@@ -199,6 +255,18 @@
       resultsEl.scrollTop = 0;
       resultsEl.scrollIntoView({ block: 'nearest' });
     });
+  }
+
+  function syncUrl(): void {
+    const search = pageSearch({
+      seed: session.seed,
+      ticks: session.ticks,
+      seeds: session.seeds,
+      regime: session.regime,
+      overrides: session.overrides,
+      lesson: activeLesson?.id ?? null,
+    });
+    history.replaceState(null, '', `?${search}`);
   }
 
   function fail(message: string): void {
@@ -224,7 +292,7 @@
   }
 
   function run(): void {
-    if (busy) {
+    if (busy || lessonNeedsGuess) {
       return;
     }
     const prepared = prepareRun(session, sliders);
@@ -244,9 +312,6 @@
       fail(formatWorkerError(err));
       return;
     }
-    if (worker === undefined) {
-      return;
-    }
     session = notePosted(session);
     progressCompleted = 0;
     progressTotal = tickBudget(request);
@@ -261,6 +326,18 @@
     }
     event.preventDefault();
     run();
+  }
+
+  function onLessonChoice(id: string): void {
+    if (activeLesson === null) {
+      return;
+    }
+    session = replaceSide(session, applyLessonLever(activeLesson, id));
+    syncUrl();
+  }
+
+  function onLessonGuess(id: string): void {
+    guessId = id;
   }
 
   function commitPin(): void {
@@ -278,6 +355,7 @@
   function commitReset(): void {
     applyUpdate(resetToDefaults());
     monthIndex = 0;
+    guessId = null;
     history.replaceState(null, '', `?${pageSearch(defaultPage())}`);
   }
 
@@ -341,15 +419,14 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-{#if lessonMode}
-  <Lesson />
-{:else}
 <main aria-busy={busy}>
   <header class="bar">
     <div class="title-row">
-      <h1>Economy simulation</h1>
-      <Guide />
-      <a class="source-link" href="?lesson=deficit">Deficit lesson</a>
+      <h1>{activeLesson === null ? 'Economy simulation' : 'Money Systems Lab'}</h1>
+      {#if activeLesson === null}
+        <Guide />
+        <LessonsMenu />
+      {/if}
       <a class="source-link" href={SOURCE_REPO_URL} target="_blank" rel="noopener noreferrer">
         Source code
       </a>
@@ -363,6 +440,8 @@
       {dollarBasisDisabled}
       {busy}
       runPrimary={primaryRun}
+      runDisabled={lessonNeedsGuess}
+      classroom={activeLesson !== null}
       {pinned}
       {canPin}
       {canPromote}
@@ -384,32 +463,47 @@
 
   <div class="workspace">
     <aside class="editor">
-      <Parameters
-        {parameters}
-        regime={session.regime}
-        {world}
-        {categories}
-        {pinned}
-        value={valueOf}
-        onWorld={applyWorldChoice}
-        onRegime={onRegime}
-        onCategory={applyCategoryChoice}
-        onSlider={onSlider}
-      />
-      <Ledger sliders={changed} value={valueOf} />
+      {#if activeLesson !== null}
+        <LessonPanel
+          lesson={activeLesson}
+          choiceId={lessonChoice}
+          {guessId}
+          onChoice={onLessonChoice}
+          onGuess={onLessonGuess}
+        />
+      {:else}
+        <Parameters
+          {parameters}
+          regime={session.regime}
+          {world}
+          {categories}
+          {pinned}
+          value={valueOf}
+          onWorld={applyWorldChoice}
+          onRegime={onRegime}
+          onCategory={applyCategoryChoice}
+          onSlider={onSlider}
+        />
+        <Ledger sliders={changed} value={valueOf} />
+      {/if}
     </aside>
 
     <section class="results" bind:this={resultsEl} aria-label="Results">
-      {#if pinned}
+      {#if pinned && activeLesson === null}
         <Compare {diffs} onReset={resetDiff} />
       {/if}
 
       {#if result}
-        <div class="chart-tools">
-          <button type="button" onclick={() => setAllChartGroups(!allChartsOpen)}>
-            {allChartsOpen ? 'Collapse all' : 'Expand all'}
-          </button>
-        </div>
+        {#if snapshot}
+          <Snapshot card={snapshot} {feedback} />
+        {/if}
+        {#if activeLesson === null}
+          <div class="chart-tools">
+            <button type="button" onclick={() => setAllChartGroups(!allChartsOpen)}>
+              {allChartsOpen ? 'Collapse all' : 'Expand all'}
+            </button>
+          </div>
+        {/if}
         {#each outcomeGroups as block (block.group)}
           <details
             class="chart-group"
@@ -432,7 +526,7 @@
                   marks={chart.marks}
                   origin={chartOrigin}
                   caption={chart.caption ?? ''}
-                  logToggle={chart.logToggle === true}
+                  logToggle={chart.logToggle === true && activeLesson === null}
                 />
               {/each}
             {/if}
@@ -476,12 +570,15 @@
           </details>
         {/if}
       {:else}
-        <p class="empty">Press Run to see charts of prices, jobs, and welfare.</p>
+        <p class="empty">
+          {activeLesson === null
+            ? 'Press Run to see charts of prices, jobs, and welfare.'
+            : 'The baseline run is starting…'}
+        </p>
       {/if}
     </section>
   </div>
 </main>
-{/if}
 
 <style>
   :global(html),

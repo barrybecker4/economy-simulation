@@ -12,9 +12,11 @@
     dollarBasisDisabled = false,
     busy,
     runPrimary,
+    runDisabled = false,
     pinned,
     canPin,
     canPromote,
+    classroom = false,
     onRun,
     onPin,
     onClear,
@@ -29,9 +31,11 @@
     dollarBasisDisabled?: boolean;
     busy: boolean;
     runPrimary: boolean;
+    runDisabled?: boolean;
     pinned: boolean;
     canPin: boolean;
     canPromote: boolean;
+    classroom?: boolean;
     onRun: () => void;
     onPin: () => void;
     onClear: () => void;
@@ -42,133 +46,143 @@
 
 <section class="controls">
   <div class="primary">
-    <NameTip id="seed" intro="Which random path the simulation draws. The same seed with the same settings repeats the same path.">
-      <label>
-        Seed
-        <input type="number" min="0" bind:value={seed} aria-describedby="help-seed" />
-      </label>
-    </NameTip>
-    <NameTip
-      id="months"
-      intro="How many months to simulate, from 12 to 1200. Charts and the month inspector cover that span."
-    >
-      <label>
-        Months
-        <input type="number" min="12" max="1200" bind:value={ticks} aria-describedby="help-months" />
-      </label>
-    </NameTip>
-    <NameTip
-      id="num-seeds"
-      intro="How many consecutive seeds to run, starting at Seed. Charts show the median across those runs, which depends less on one random draw. The shocks chart shows the mean absolute impulse, so a larger shock counts more than a smaller one. With more than one seed and no baseline pinned, CPI also shows the 5th and 95th percentiles."
-    >
-      <label>
-        Num seeds
-        <input
-          type="number"
-          min={MIN_SEEDS}
-          max={MAX_SEEDS}
-          bind:value={seeds}
-          disabled={busy}
-          aria-describedby="help-num-seeds"
-        />
-      </label>
-    </NameTip>
-    <NameTip
-      id="us-history"
-      intro="Extends the chart axis ten years before the run and draws dotted US lines on charts that have a matching series. Turning this on does not rerun the simulation."
-    >
-      <label class="toggle">
-        <input type="checkbox" bind:checked={showHistory} aria-describedby="help-us-history" />
-        US history
-      </label>
-    </NameTip>
-    <NameTip
-      id="dollar-basis"
-      intro={dollarBasisDisabled
-        ? 'Satoshi charts stay in nominal satoshis. This control applies when a fiat or hybrid run is on the charts.'
-        : 'How money charts quote dollars. Nominal is current dollars. Inflation-adjusted is dollars of the run’s first month. Every dollar chart uses the same choice. Satoshi amounts stay nominal. Turning this does not rerun the simulation.'}
-    >
-      <label>
-        Dollars
-        <select
-          bind:value={dollarBasis}
-          disabled={dollarBasisDisabled}
-          aria-describedby="help-dollar-basis"
-        >
-          <option value="nominal">Nominal</option>
-          <option value="real">Inflation-adjusted</option>
-        </select>
-      </label>
-    </NameTip>
+    {#if !classroom}
+      <NameTip id="seed" intro="Which random path the simulation draws. The same seed with the same settings repeats the same path.">
+        <label>
+          Seed
+          <input type="number" min="0" bind:value={seed} aria-describedby="help-seed" />
+        </label>
+      </NameTip>
+      <NameTip
+        id="months"
+        intro="How many months to simulate, from 12 to 1200. Charts and the month inspector cover that span."
+      >
+        <label>
+          Months
+          <input type="number" min="12" max="1200" bind:value={ticks} aria-describedby="help-months" />
+        </label>
+      </NameTip>
+      <NameTip
+        id="num-seeds"
+        intro="How many consecutive seeds to run, starting at Seed. Charts show the median across those runs, which depends less on one random draw. The shocks chart shows the mean absolute impulse, so a larger shock counts more than a smaller one. With more than one seed and no baseline pinned, CPI also shows the 5th and 95th percentiles."
+      >
+        <label>
+          Num seeds
+          <input
+            type="number"
+            min={MIN_SEEDS}
+            max={MAX_SEEDS}
+            bind:value={seeds}
+            disabled={busy}
+            aria-describedby="help-num-seeds"
+          />
+        </label>
+      </NameTip>
+      <NameTip
+        id="us-history"
+        intro="Extends the chart axis ten years before the run and draws dotted US lines on charts that have a matching series. Turning this on does not rerun the simulation."
+      >
+        <label class="toggle">
+          <input type="checkbox" bind:checked={showHistory} aria-describedby="help-us-history" />
+          US history
+        </label>
+      </NameTip>
+      <NameTip
+        id="dollar-basis"
+        intro={dollarBasisDisabled
+          ? 'Satoshi charts stay in nominal satoshis. This control applies when a fiat or hybrid run is on the charts.'
+          : 'How money charts quote dollars. Nominal is current dollars. Inflation-adjusted is dollars of the run’s first month. Every dollar chart uses the same choice. Satoshi amounts stay nominal. Turning this does not rerun the simulation.'}
+      >
+        <label>
+          Dollars
+          <select
+            bind:value={dollarBasis}
+            disabled={dollarBasisDisabled}
+            aria-describedby="help-dollar-basis"
+          >
+            <option value="nominal">Nominal</option>
+            <option value="real">Inflation-adjusted</option>
+          </select>
+        </label>
+      </NameTip>
+    {/if}
     <NameTip
       id="run"
-      intro="Runs the simulation with the current seed, month count, seed count, regime, and sliders. One seed draws that path. More than one seed runs Seed through Seed plus the count minus one; charts show the median, the shocks chart shows the mean absolute impulse, and CPI also shows the 5th and 95th percentiles when no baseline is pinned. Press Control or Command and Enter to run from anywhere."
+      intro={classroom
+        ? 'Runs this lab with the current lever. Pick a guess before you change the lever and run again.'
+        : 'Runs the simulation with the current seed, month count, seed count, regime, and sliders. One seed draws that path. More than one seed runs Seed through Seed plus the count minus one; charts show the median, the shocks chart shows the mean absolute impulse, and CPI also shows the 5th and 95th percentiles when no baseline is pinned. Press Control or Command and Enter to run from anywhere.'}
     >
       <button
         type="button"
         class:primary={runPrimary}
         aria-describedby="help-run"
         onclick={() => onRun()}
-        disabled={busy}
+        disabled={busy || runDisabled}
       >
         Run
       </button>
     </NameTip>
   </div>
-  <div class="secondary">
-    {#if pinned}
-      <NameTip
-        id="clear-baseline"
-        intro="Drops the pinned baseline so charts follow the live run alone."
-      >
-        <button type="button" aria-describedby="help-clear-baseline" onclick={onClear} disabled={busy}>
-          Clear baseline
-        </button>
-      </NameTip>
-      {#if canPromote}
+  {#if !classroom}
+    <div class="secondary">
+      {#if pinned}
         <NameTip
-          id="promote-baseline"
-          intro="Replaces the pinned baseline with the current scenario result and its settings."
+          id="clear-baseline"
+          intro="Drops the pinned baseline so charts follow the live run alone."
+        >
+          <button type="button" aria-describedby="help-clear-baseline" onclick={onClear} disabled={busy}>
+            Clear baseline
+          </button>
+        </NameTip>
+        {#if canPromote}
+          <NameTip
+            id="promote-baseline"
+            intro="Replaces the pinned baseline with the current scenario result and its settings."
+          >
+            <button
+              type="button"
+              aria-describedby="help-promote-baseline"
+              onclick={onPromote}
+              disabled={busy}
+            >
+              Use scenario as baseline
+            </button>
+          </NameTip>
+        {/if}
+      {:else}
+        <NameTip
+          id="pin-baseline"
+          intro="Freezes the current run as a baseline, including a multi-seed median. Later runs overlay on the same charts. Edit parameters for the scenario only. Scale and population growth stay at the baseline."
         >
           <button
             type="button"
-            aria-describedby="help-promote-baseline"
-            onclick={onPromote}
-            disabled={busy}
+            aria-describedby="help-pin-baseline"
+            onclick={onPin}
+            disabled={busy || !canPin}
           >
-            Use scenario as baseline
+            Pin as baseline
           </button>
         </NameTip>
       {/if}
-    {:else}
       <NameTip
-        id="pin-baseline"
-        intro="Freezes the current run as a baseline, including a multi-seed median. Later runs overlay on the same charts. Edit parameters for the scenario only. Scale and population growth stay at the baseline."
+        id="reset-defaults"
+        intro="Restores seed, months, seed count, regime, and every slider to their defaults, drops a pinned baseline, and clears the current charts."
       >
         <button
           type="button"
-          aria-describedby="help-pin-baseline"
-          onclick={onPin}
-          disabled={busy || !canPin}
+          aria-describedby="help-reset-defaults"
+          onclick={onReset}
+          disabled={busy}
         >
-          Pin as baseline
+          Reset to defaults
         </button>
       </NameTip>
-    {/if}
-    <NameTip
-      id="reset-defaults"
-      intro="Restores seed, months, seed count, regime, and every slider to their defaults, drops a pinned baseline, and clears the current charts."
-    >
-      <button
-        type="button"
-        aria-describedby="help-reset-defaults"
-        onclick={onReset}
-        disabled={busy}
-      >
-        Reset to defaults
-      </button>
-    </NameTip>
-  </div>
+    </div>
+  {:else}
+    <div class="secondary">
+      <a class="exit" href="?">Leave classroom lab</a>
+    </div>
+  {/if}
 </section>
 
 <style>
@@ -221,5 +235,10 @@
   .secondary button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+  .exit {
+    color: inherit;
+    font: inherit;
+    text-decoration: underline;
   }
 </style>

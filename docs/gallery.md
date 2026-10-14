@@ -33,3 +33,9 @@ the top of its collapsible group (central bank, public finance, credit, AI bulli
 monetary-regime group. Chart groups start with only Welfare open; the rest stay collapsed until opened. Expand all opens
 every group, and Collapse all closes them again. Pin a run as the baseline, then run a scenario to overlay both on the
 charts.
+
+## Classroom labs
+
+Locked labs for a class period live under [docs/lessons/](lessons/README.md). In the app, open **Lessons** next to How
+to use, or go straight to a `lesson` query parameter such as `?lesson=prices`. The page auto-runs and pins a baseline,
+shows one lever, a short chart set, and a cannot-show box. Leave the lab with the link back to the research app.

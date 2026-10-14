@@ -1,4 +1,5 @@
 import { assertSliderValue, getSlider } from '../../../core/src/config/registry.js';
+import { lessonById, lessonPageState } from './lessons.js';
 import { assertSeedCount, MAX_SEEDS, MIN_SEEDS } from './run.js';
 import { defaultRegime } from './sliders.js';
 
@@ -8,7 +9,11 @@ export interface PageState {
   seeds: number;
   regime: string;
   overrides: Record<string, number | string>;
+  /** Classroom lab id, or null for the research app. */
+  lesson: string | null;
 }
+
+const RESERVED = new Set(['seed', 'ticks', 'seeds', 'regime', 'lesson']);
 
 /** Opening page uses the registry defaults with no extra overrides. */
 export const MONETARY_OVERRIDES: Readonly<Record<string, number | string>> = {};
@@ -20,6 +25,7 @@ export function defaultPage(): PageState {
     seeds: 1,
     regime: defaultRegime(),
     overrides: {},
+    lesson: null,
   };
 }
 
@@ -32,24 +38,41 @@ export function parsePageState(search: string, defaults: PageState = defaultPage
       seeds: defaults.seeds,
       regime: defaults.regime,
       overrides: { ...defaults.overrides },
+      lesson: null,
     };
   }
+  const lesson = readLesson(params.get('lesson'));
+  const base =
+    lesson === null
+      ? defaults
+      : {
+          ...defaults,
+          ...lessonPageState(requireKnownLesson(lesson)),
+          lesson,
+        };
+  const hasSliderParams = [...params.keys()].some(
+    (key) => !RESERVED.has(key) && !key.startsWith('_'),
+  );
   return {
     seed: readInteger(
       params.get('seed'),
       'Seed must be a non-negative safe integer',
-      defaults.seed,
+      base.seed,
       (value) => value >= 0,
     ),
     ticks: readInteger(
       params.get('ticks'),
       'Ticks must be a positive integer',
-      defaults.ticks,
+      base.ticks,
       (value) => value > 0,
     ),
-    seeds: readSeeds(params.get('seeds'), defaults.seeds),
-    regime: readRegime(params.get('regime'), defaults.regime),
-    overrides: readOverrides(params),
+    seeds: readSeeds(params.get('seeds'), base.seeds),
+    regime: readRegime(params.get('regime'), base.regime),
+    overrides:
+      lesson !== null && !hasSliderParams
+        ? { ...base.overrides }
+        : readOverrides(params),
+    lesson,
   };
 }
 
@@ -61,10 +84,31 @@ export function pageSearch(state: PageState): string {
     params.set('seeds', String(state.seeds));
   }
   params.set('regime', state.regime);
+  if (state.lesson !== null) {
+    params.set('lesson', state.lesson);
+  }
   for (const id of Object.keys(state.overrides).sort()) {
     params.set(id, String(overrideAt(state.overrides, id)));
   }
   return params.toString();
+}
+
+function requireKnownLesson(id: string): NonNullable<ReturnType<typeof lessonById>> {
+  const lesson = lessonById(id);
+  if (lesson === null) {
+    throw new Error(`Unknown lesson ${id}`);
+  }
+  return lesson;
+}
+
+function readLesson(raw: string | undefined): string | null {
+  if (raw === undefined) {
+    return null;
+  }
+  if (lessonById(raw) === null) {
+    throw new Error(`Unknown lesson ${raw}`);
+  }
+  return raw;
 }
 
 function singleParams(search: string): Map<string, string> {
@@ -81,13 +125,7 @@ function singleParams(search: string): Map<string, string> {
 function readOverrides(params: Map<string, string>): Record<string, number | string> {
   const overrides: Record<string, number | string> = {};
   for (const [key, raw] of params) {
-    if (
-      key === 'seed' ||
-      key === 'ticks' ||
-      key === 'seeds' ||
-      key === 'regime' ||
-      key === 'lesson'
-    ) {
+    if (RESERVED.has(key)) {
       continue;
     }
     // Hosts add private parameters, such as the editor's _ijt cache buster.

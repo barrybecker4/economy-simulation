@@ -1742,6 +1742,14 @@ tests on a fixed set of seeds. Each test states a tolerance. Failures report the
 - Performance may miss the release target. Mitigation: measure each phase, use typed arrays for agent state, and run
   sweeps on Node worker threads.
 
+## Classroom labs
+
+The research app stays the default. A `lesson` query parameter opens a locked labs view over the same worker, presets,
+and charts. Five labs live in `packages/app/src/session/lessons.ts` with teacher notes in [docs/lessons/](lessons/README.md).
+Each lab auto-runs and pins a 120-month baseline, exposes one lever, filters charts, and shows a snapshot card. Seed-1
+directions are locked by `packages/app/src/session/lessons-direction.test.ts`. Scenario worlds also carry a `plain`
+sentence for student-facing copy. Core simulation behavior does not change for classroom mode.
+
 ## Still deferred
 
 - A market for firm shares. Profit-sharing is the substitute in this release, measured from finance flows when the

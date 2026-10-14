@@ -219,6 +219,14 @@ export function editWorld(session: ComparisonSession, worldId: string): Comparis
   return writeSide(session, applyWorld(worldId, session.overrides));
 }
 
+/** Replace the live regime and overrides (classroom lever). */
+export function replaceSide(
+  session: ComparisonSession,
+  side: { regime: string; overrides: Record<string, number | string> },
+): ComparisonSession {
+  return writeSide(session, { regime: side.regime, overrides: { ...side.overrides } });
+}
+
 export function resetDiffToBaseline(session: ComparisonSession, id: string): ComparisonSession {
   if (session.pin === null) {
     return session;

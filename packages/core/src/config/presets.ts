@@ -93,6 +93,8 @@ export interface ScenarioWorld {
   id: string;
   name: string;
   detail: string;
+  /** One sentence a student can read before touching a control. */
+  plain: string;
   regime: string;
   choices: Readonly<Record<string, string>>;
 }
@@ -104,6 +106,7 @@ export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
     name: 'Monetized dividend',
     detail:
       'Fiat; monetizing central bank; AI dividend; moderate credit; extreme AI. The central bank buys half of new bonds while the grant rises with adoption.',
+    plain: 'Everyone gets a check, and the central bank prints money to pay for it.',
     regime: 'fiat',
     choices: {
       centralBank: 'monetizing',
@@ -117,6 +120,7 @@ export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
     name: 'Hawkish dividend',
     detail:
       'Fiat; hawkish central bank; AI dividend; moderate credit; extreme AI. Same grant as Monetized dividend; the central bank fights inflation and leaves bonds with banks.',
+    plain: 'Same check. The central bank refuses to print and fights inflation.',
     regime: 'fiat',
     choices: {
       centralBank: 'hawkish',
@@ -130,6 +134,7 @@ export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
     name: 'Modest dividend',
     detail:
       'Fiat; monetizing central bank; AI dividend; moderate credit; modest AI. Same fiscal and money rule as Monetized dividend; AI stays on the registry default path.',
+    plain: 'Same money rule, but machines arrive slowly.',
     regime: 'fiat',
     choices: {
       centralBank: 'monetizing',
@@ -143,6 +148,7 @@ export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
     name: 'Private surplus',
     detail:
       'Fiat; hawkish central bank; private surplus; moderate credit; extreme AI. Same AI and rate rule as Hawkish dividend; the household grant is off.',
+    plain: 'Machines arrive fast. The gains stay with owners.',
     regime: 'fiat',
     choices: {
       centralBank: 'hawkish',
@@ -156,6 +162,7 @@ export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
     name: 'Bitcoin dividend',
     detail:
       'Bitcoin; balanced central bank (ignored); AI dividend; moderate credit; extreme AI. Same grant as Hawkish dividend; the regime cannot monetize bonds.',
+    plain: 'Same check, but new money cannot be printed.',
     regime: 'bitcoin',
     choices: {
       centralBank: 'balanced',
@@ -169,6 +176,7 @@ export const SCENARIO_WORLDS: readonly ScenarioWorld[] = [
     name: 'Bitcoin private surplus',
     detail:
       'Bitcoin; balanced central bank (ignored); private surplus; moderate credit; extreme AI. Hard money with no household grant.',
+    plain: 'Hard money, and no check.',
     regime: 'bitcoin',
     choices: {
       centralBank: 'balanced',
