@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { effectiveDepositPassThrough } from './deposit-rate.js';
 
 describe('effective deposit pass-through', () => {
-  it('applies the monetary preset beta to fiat only', () => {
+  it('applies the monetary preset beta to fiat and to hybrid fiat deposits', () => {
     const monetary = { depositPassThrough: 1, fiatDepositPassThrough: 0.45 };
     expect(effectiveDepositPassThrough({ regime: 'fiat', ...monetary })).toBe(0.45);
+    expect(effectiveDepositPassThrough({ regime: 'hybrid', ...monetary })).toBe(0.45);
     expect(effectiveDepositPassThrough({ regime: 'bitcoin', ...monetary })).toBe(1);
-    expect(effectiveDepositPassThrough({ regime: 'hybrid', ...monetary })).toBe(1);
   });
 
   it('follows the shared slider when the fiat slider inherits', () => {

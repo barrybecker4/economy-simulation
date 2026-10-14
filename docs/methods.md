@@ -80,9 +80,10 @@ consumption, real wealth, unemployment, debt service, and tenure shares, with th
   percentage point on the monetary preset. Unemployment gaps were not affected by that survivor bias.
 - **Pass-through sensitivity.** Fiat-only reserve interest and the deposit subsidy are a saver transfer. Report saver
   and distribution gaps with `bank.fiatDepositPassThrough` at 0 as well as at the preset. The monetary preset sets
-  that fiat slider to 0.45 (empirical deposit beta ≈0.46) and leaves `bank.depositPassThrough` at 1, so bitcoin and
-  hybrid on the preset keep the previous pass-through. A full fiat pass-through overstates how well fiat savers are
-  protected from inflation. Sensitivity at 0.3 and 0.6 is in
+  that fiat slider to 0.45 (empirical deposit beta ≈0.46) and leaves `bank.depositPassThrough` at 1. Fiat deposits use
+  the fiat slider in the fiat regime and under hybrid. The bitcoin regime keeps the previous pass-through. Hybrid coin
+  deposits earn no interest. A full fiat pass-through overstates how well fiat savers are protected from inflation.
+  Sensitivity at 0.3 and 0.6 is in
   [docs/methods/deposit-rate-calibration.md](methods/deposit-rate-calibration.md).
 - **Injection channels.** First-recipient claims use `centralBank.spendNewMoney` 0. Do not treat a collapse of
   `newLoans` under the monetary preset as a failed gift.

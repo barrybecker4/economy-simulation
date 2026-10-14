@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { loadScenario } from '../config/load.js';
+import { totalDeposits } from './banking.js';
 import { adjustBankEquity } from './capital-identity.js';
 import { payHouseholdDepositInterest } from './deposit-interest.js';
 import { createEconomy } from './init.js';
@@ -41,6 +42,37 @@ describe('deposit-interest funding', () => {
     expect(economy.reserveInterestPaid).toBe(0);
   });
 
+  it('pays a hybrid fiat deposit at the fiat pass-through and posts that rate', () => {
+    const economy = economyWith({
+      'regime.type': 'hybrid',
+      'bank.depositPassThrough': 1,
+      'bank.fiatDepositPassThrough': 0.45,
+    });
+    const household = economy.households[0];
+    const bank = household ? economy.banks[household.bank] : undefined;
+    if (!household || !bank) {
+      throw new Error('Missing household or bank');
+    }
+    for (const other of economy.households) {
+      other.deposit = 0;
+    }
+    household.deposit = 120_000;
+    household.bitcoin = 2.5;
+    bank.failed = false;
+    const coins = coinStock(economy);
+    adjustBankEquity(bank, economy, 1_000_000);
+    economy.policyRate = 0.04;
+    const stockBefore = totalDeposits(economy);
+    payHouseholdDepositInterest(economy, new Map([[bank.id, 1_000_000]]));
+    // 120_000 cents × 0.45 × 0.04 / 12 = 180. The shared slider of 1 would pay 400.
+    expect(economy.depositRate).toBeCloseTo(0.018, 10);
+    expect(household.deposit).toBe(120_180);
+    expect(economy.depositInterestPaid).toBe(180);
+    expect(household.bitcoin).toBe(2.5);
+    expect(coinStock(economy)).toEqual(coins);
+    expect(economy.paidDepositRate).toBeCloseTo((180 * 12) / stockBefore, 8);
+  });
+
   it('records reserve creations so money growth can net them out', () => {
     const economy = economyWith({
       'regime.type': 'fiat',
@@ -77,6 +109,15 @@ function economyWith(sliders: Record<string, number | string> = {}) {
     1,
     null,
   );
+}
+
+function coinStock(economy: ReturnType<typeof economyWith>): number[] {
+  return [
+    economy.govBitcoin,
+    ...economy.households.map((household) => household.bitcoin),
+    ...economy.firms.map((firm) => firm.bitcoin),
+    ...economy.agents.map((agent) => agent.bitcoin),
+  ];
 }
 
 function requireBank(economy: ReturnType<typeof economyWith>) {
