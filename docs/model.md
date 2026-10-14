@@ -239,11 +239,12 @@ previous value plus 10 percent of this tick's income. That uncut budget is split
 discretionary remainder. The floor share is the sum of the food and housing CPI weights, about 0.585. When
 `household.realReturnSensitivity` is positive and the real return on money is positive, only the remainder is multiplied
 by `max(0, 1 − sensitivity × real return)`. The real return is the deposit rate minus year-over-year inflation. Deposits
-pay at the effective pass-through times the policy rate. `bank.depositPassThrough` defaults to 0.45 and is what
-bitcoin and hybrid always use. Fiat uses that slider when `bank.fiatDepositPassThrough` is −1. The monetary preset
-sets the fiat slider to 0.45 and leaves the shared slider at 1, so only fiat on that preset takes the deposit beta.
-At sensitivity 0
-the uncut budget is unchanged.
+pay at the effective pass-through times the policy rate. `bank.depositPassThrough` defaults to 0.45. The bitcoin
+regime always uses it. Fiat, and fiat deposits under hybrid, use it when `bank.fiatDepositPassThrough` is −1, and use
+the fiat slider when that slider is at least 0. Hybrid coin deposits earn no interest. The monetary preset sets the
+fiat slider to 0.45 and leaves the shared slider at 1, so fiat deposits on that preset, including hybrid, take the
+deposit beta and the bitcoin regime keeps the previous pass-through. At sensitivity 0 the uncut budget is
+unchanged.
 Households shop in a seeded random order each month so early ids do not always claim scarce inventory first. Desired
 spendable budgets are scaled by `min(1, stock value / desired)` before the walk, so scarce output is shared in
 proportion to what households want to spend rather than first-come emptying the shelves. Each household then visits up
@@ -440,12 +441,15 @@ and publishes `centralBank.rateSmoothing` times last month's rate plus the rest 
 loan rate is smoothed the same way. The default weight is 0.5, high enough that the opening months do not swing from
 0 to the mid-teens. A sustained gap still moves the published rate, because the weight is below 1.
 
-The posted deposit rate is the effective pass-through times the policy rate. Bitcoin and hybrid use
-`bank.depositPassThrough`. Fiat uses `bank.fiatDepositPassThrough` when that slider is at least 0, and
-`bank.depositPassThrough` when it is −1. The shared default is 0.45. The monetary preset keeps the shared slider at 1,
-matching the pass-through bitcoin and hybrid had before the fiat calibration, and sets the fiat slider to 0.45 so only
-fiat on that preset sits in the empirical deposit-beta band of 0.3–0.6. The same helper posts the rate when deposit
-interest is paid, when the policy rate is published, and when the goods market reads the deposit yield. Household interest is paid after firm loan interest and before bank dividends. Funding is this tick's
+The posted deposit rate is the effective pass-through times the policy rate. The bitcoin regime uses
+`bank.depositPassThrough`. Fiat, and fiat deposits under hybrid, use `bank.fiatDepositPassThrough` when that slider is
+at least 0, and `bank.depositPassThrough` when it is −1. Hybrid coin deposits are not paid interest, so under hybrid
+the posted rate is the fiat deposit coupon. The shared default is 0.45. The monetary preset keeps the shared slider at
+1, matching the pass-through the bitcoin regime had before the fiat calibration, and sets the fiat slider to 0.45 so
+fiat deposits, including under hybrid, sit in the empirical deposit-beta band of 0.3–0.6. The same helper posts the
+rate when deposit interest is paid, when the policy rate is published, and when the goods market reads the deposit
+yield, so the rate a hybrid household sees is the rate used to pay its fiat deposit. Household interest is paid
+after firm loan interest and before bank dividends. Funding is this tick's
 borrower interest, plus, under fiat, interest on reserves at
 the policy rate and an optional deposit-interest subsidy, and only up to the gap in the coupon and the steady-state
 money-growth budget. Reserve interest and the subsidy are new base money and are subtracted from the same tick's

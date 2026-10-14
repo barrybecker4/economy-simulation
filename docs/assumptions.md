@@ -419,14 +419,14 @@ Registry version: 17.
 - Status: calibrated
 - Source: Average bank deposit-rate beta ≈0.46 (Drechsler, Savov & Schnabl NBER w22152). NY Fed Liberty Street cycle
   betas about 0.6 (2004–07), ≤0.4 (2015–19), about 0.4 (2022Q4). The registry default is 0.45. The monetary preset keeps
-  this slider at 1 so bitcoin and hybrid match the pre-calibration pass-through.
-- Description: Share of the policy rate paid on household deposits. Bitcoin and hybrid always use this slider. Fiat uses
-  it when bank.fiatDepositPassThrough is -1. The deposit rate is this fraction times the policy rate. It enters the real
-  return on money that can cut discretionary spending. Banks pay that monthly interest from loan interest this tick and,
-  under fiat, from interest on reserves. They do not spend the capital buffer. The default of 0.45 pays just under half
-  the policy rate. The monetary preset keeps this slider at 1 so bitcoin and hybrid on that preset match the
-  pass-through from before the fiat deposit-beta calibration. At 0 deposits pay nothing. It cannot cut the food and
-  housing spending floor.
+  this slider at 1 so the bitcoin regime matches the pre-calibration pass-through.
+- Description: Share of the policy rate paid on household deposits. The bitcoin regime always uses this slider. Fiat,
+  and fiat deposits under hybrid, use it when bank.fiatDepositPassThrough is -1. The deposit rate is this fraction times
+  the policy rate. It enters the real return on money that can cut discretionary spending. Banks pay that monthly
+  interest from loan interest this tick and, under fiat, from interest on reserves. They do not spend the capital
+  buffer. The default of 0.45 pays just under half the policy rate. The monetary preset keeps this slider at 1 so the
+  bitcoin regime on that preset matches the pass-through from before the fiat deposit-beta calibration. Hybrid coin
+  deposits earn no interest. At 0 deposits pay nothing. It cannot cut the food and housing spending floor.
 
 ## bank.fiatDepositPassThrough
 
@@ -436,13 +436,12 @@ Registry version: 17.
 - Default: -1
 - Range: -1 to 1
 - Status: calibrated
-- Source: Same deposit beta as bank.depositPassThrough. The monetary preset sets 0.45 for fiat only. The default of -1
-  means fiat uses bank.depositPassThrough.
-- Description: Fiat-only deposit pass-through. At -1, fiat uses bank.depositPassThrough, so bitcoin, hybrid, and fiat
-  share one slider. A value from 0 to 1 replaces that slider for the fiat regime only. The monetary preset sets 0.45,
-  the fiat-era deposit beta, and leaves bank.depositPassThrough at 1 so bitcoin and hybrid on that preset stay on the
-  previous pass-through. Bitcoin and hybrid ignore this slider. Hybrid coin deposits earn no interest; the fiat deposit
-  leg under hybrid follows bank.depositPassThrough.
+- Source: Same deposit beta as bank.depositPassThrough. The monetary preset sets 0.45 for fiat deposits, including
+  hybrid. The default of -1 means those deposits use bank.depositPassThrough.
+- Description: Pass-through for fiat deposits. At -1, fiat and hybrid fiat deposits use bank.depositPassThrough. A value
+  from 0 to 1 replaces that slider for the fiat regime and for fiat deposits under hybrid. The monetary preset sets
+  0.45, the fiat-era deposit beta, and leaves bank.depositPassThrough at 1 so the bitcoin regime on that preset stays on
+  the previous pass-through. The bitcoin regime ignores this slider. Hybrid coin deposits earn no interest.
 
 ## bank.reserveRequirement
 

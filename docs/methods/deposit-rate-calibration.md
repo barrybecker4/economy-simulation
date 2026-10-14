@@ -5,13 +5,16 @@ is 0.45 there, so the paid deposit rate over the policy rate sits in the 0.3–0
 pass-through of 1.0 on that preset paid about 0.69 of the policy rate and overstated how well fiat
 savers are protected from inflation.
 
-`bank.depositPassThrough` stays the slider bitcoin and hybrid read, and the slider fiat reads when
-`bank.fiatDepositPassThrough` is −1 (the registry default). The monetary preset leaves the shared
-slider at 1, which is the value it had before this calibration, so bitcoin and hybrid on that preset
-match the previous behavior. Every other preset leaves the fiat slider at −1, so those runs also match
-the previous pass-through, including bitcoin at the registry default of 0.45.
+`bank.depositPassThrough` is the slider the bitcoin regime reads, and the slider fiat deposits read when
+`bank.fiatDepositPassThrough` is −1 (the registry default). Fiat deposits under hybrid use that same rule.
+The monetary preset leaves the shared slider at 1, which is the value it had before this calibration, so the
+bitcoin regime on that preset matches the previous behavior. Every other preset leaves the fiat slider at −1,
+so those runs also match the previous pass-through, including bitcoin at the registry default of 0.45 and
+hybrid fiat deposits at the shared slider.
 
-Hybrid coin deposits are not paid interest. Hybrid's fiat deposit leg follows `bank.depositPassThrough`.
+Hybrid coin deposits are not paid interest. Hybrid's fiat deposit leg follows `bank.fiatDepositPassThrough`
+when that slider is at least 0, and `bank.depositPassThrough` otherwise. On the monetary preset that leg is
+0.45, the same beta as the fiat regime.
 
 Sources:
 
