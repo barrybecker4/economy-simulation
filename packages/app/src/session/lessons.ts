@@ -1,3 +1,4 @@
+import { getSlider } from '../../../core/src/config/registry.js';
 import type { MetricId } from '../../../core/src/metrics/metrics.js';
 import {
   applyCategoryOption,
@@ -17,13 +18,18 @@ const SHARED_LIMITS = [
   'The result depends on the lever you change. A different assumption can reverse the picture.',
 ] as const;
 
-export type LessonControlKind = 'none' | 'category' | 'regime';
+export type LessonControlKind = 'none' | 'category' | 'regime' | 'patch';
 
 export interface LessonControlOption {
   id: string;
   label: string;
   /** Plain sentence when this option comes from a scenario world. */
   plain?: string;
+  /**
+   * For patch controls: slider values applied on top of the lesson baseline.
+   * Only these keys change; other baseline overrides stay.
+   */
+  patch?: Readonly<Record<string, number | string>>;
 }
 
 export interface LessonControl {
@@ -151,49 +157,60 @@ export const LESSONS: readonly Lesson[] = [
   },
   {
     id: 'interest',
-    question: 'Who sets the interest rate, and what happens to jobs?',
-    cannotShow: [...SHARED_LIMITS],
+    question: 'What does a stronger inflation response do when inflation is already low?',
+    cannotShow: [
+      ...SHARED_LIMITS,
+      'Each month the bank sets the policy interest rate with a formula that adds a few pieces. One piece is: multiplier × (inflation − 2%). Add that number (positive or negative) into the rate. Under 2% → negative piece → lower rate. Over 2% → positive piece → higher rate. A larger multiplier makes that push bigger.',
+      'Jobs barely move in this lab, so this lesson is only about the interest rate.',
+    ],
     baseline: categoryBaseline('centralBank', 'balanced'),
     control: {
-      kind: 'category',
-      categoryId: 'centralBank',
+      kind: 'patch',
       baselineId: 'balanced',
       options: [
         {
           id: 'balanced',
-          label: optionLabel('centralBank', 'balanced'),
-          plain: 'The central bank weighs inflation and jobs about evenly.',
+          label: 'Baseline',
+          plain:
+            'Baseline multiplier is 1.5. Example: inflation 0%, goal 2% → add 1.5 × (−2%) = −3 percentage points into the policy rate.',
+          patch: {},
         },
         {
           id: 'hawkish',
-          label: optionLabel('centralBank', 'hawkish'),
-          plain: 'The central bank fights inflation harder and leaves jobs second.',
-        },
-        {
-          id: 'employment-leaning',
-          label: optionLabel('centralBank', 'employment-leaning'),
-          plain: 'The central bank puts more weight on jobs.',
+          label: 'Use a larger inflation multiplier (1.5 → 2.5)',
+          plain:
+            'Only the multiplier changes, 1.5 → 2.5. Same example: add 2.5 × (−2%) = −5 percentage points — a bigger cut than baseline. Not “always raise rates.”',
+          patch: { 'centralBank.inflationWeight': 2.5 },
         },
       ],
     },
     charts: [
       {
+        key: 'turnover',
+        title: 'Inflation',
+        description:
+          'Solid line is the baseline. The bank’s goal is 2% (0.02 on the axis). Here inflation stays under that goal, so (inflation − 2%) is negative.',
+        lineIds: ['inflation'],
+      },
+      {
         key: 'labor',
-        title: 'Jobs and the policy rate',
-        description: 'Unemployment is the share of people without a job. The policy rate is the annual interest rate.',
-        lineIds: ['unemployment', 'interestRate'],
+        title: 'Policy rate',
+        description:
+          'Solid line is the baseline. Dashed line is the larger-multiplier run. This chart is the annual policy interest rate the formula sets.',
+        lineIds: ['interestRate'],
       },
     ],
     snapshotMetrics: [
-      { id: 'unemployment', label: 'Unemployment' },
+      { id: 'inflation', label: 'Inflation' },
       { id: 'interestRate', label: 'Policy rate' },
     ],
     prediction: {
-      prompt: 'If the central bank fights inflation harder, what happens to jobs at the end?',
+      prompt:
+        'Each month the bank sets the policy interest rate with a formula. One add-in is: multiplier × (inflation − 2%). Inflation stays under 2%, so that add-in is negative (it lowers the rate). If we raise the multiplier from 1.5 to 2.5, does the policy rate end higher or lower than the baseline?',
       choices: [
-        { id: 'jobs-better', label: 'Unemployment ends lower' },
-        { id: 'jobs-worse', label: 'Unemployment ends higher' },
-        { id: 'jobs-same', label: 'Unemployment stays about the same' },
+        { id: 'rate-up', label: 'Higher than the baseline' },
+        { id: 'rate-down', label: 'Lower than the baseline' },
+        { id: 'rate-same', label: 'About the same as the baseline' },
       ],
     },
     typicalHousehold: false,
@@ -401,6 +418,16 @@ export function applyLessonLever(
       overrides: { ...lesson.baseline.overrides },
     };
   }
+  if (lesson.control.kind === 'patch') {
+    const option = lesson.control.options.find((item) => item.id === choiceId);
+    if (option === undefined) {
+      throw new Error(`Unknown option ${choiceId} for lesson ${lesson.id}`);
+    }
+    return {
+      regime: lesson.baseline.regime,
+      overrides: applyPatch(lesson.baseline.overrides, option.patch ?? {}),
+    };
+  }
   const categoryId = lesson.control.categoryId;
   if (categoryId === undefined) {
     throw new Error(`Lesson ${lesson.id} is missing a category id`);
@@ -412,6 +439,27 @@ export function applyLessonLever(
     regime: lesson.baseline.regime,
     overrides: applyCategoryOption(categoryId, choiceId, lesson.baseline.overrides),
   };
+}
+
+/** Merge a patch onto baseline overrides; values equal to the registry default are omitted. */
+export function applyPatch(
+  baseline: Readonly<Record<string, number | string>>,
+  patch: Readonly<Record<string, number | string>>,
+): Record<string, number | string> {
+  const next: Record<string, number | string> = { ...baseline };
+  for (const id of Object.keys(patch)) {
+    const value = patch[id];
+    if (value === undefined) {
+      continue;
+    }
+    const slider = getSlider(id);
+    if (String(value) === String(slider.default)) {
+      delete next[id];
+    } else {
+      next[id] = value;
+    }
+  }
+  return next;
 }
 
 /** Opening page state for a lesson link (baseline lever, one seed, classroom length). */
@@ -444,6 +492,15 @@ export function matchingLessonChoice(
   }
   if (lesson.control.kind === 'regime') {
     return lesson.control.options.some((option) => option.id === regime) ? regime : null;
+  }
+  if (lesson.control.kind === 'patch') {
+    for (const option of lesson.control.options) {
+      const applied = applyPatch(lesson.baseline.overrides, option.patch ?? {});
+      if (sameOverrides(applied, overrides) && regime === lesson.baseline.regime) {
+        return option.id;
+      }
+    }
+    return null;
   }
   const categoryId = lesson.control.categoryId;
   if (categoryId === undefined) {

@@ -6,7 +6,7 @@ below. The research app stays at `?` with no `lesson` parameter.
 | Lab | Link | Question |
 | --- | --- | --- |
 | Prices | `?lesson=prices` | Which prices rise while others fall? |
-| Interest | `?lesson=interest` | Who sets the interest rate, and what happens to jobs? |
+| Interest | `?lesson=interest` | What does a stronger inflation response do when inflation is already low? |
 | Deficit | `?lesson=deficit` | What if the government spends more than it taxes? |
 | Bitcoin | `?lesson=bitcoin` | What if nobody can print money? |
 | Gains | `?lesson=gains` | Who gets the gains when machines do the work? |

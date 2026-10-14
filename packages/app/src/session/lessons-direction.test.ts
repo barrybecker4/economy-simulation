@@ -74,11 +74,8 @@ describe('lesson seed-1 directions', () => {
     const interest = requireLesson('interest');
     const interestBase = runSide(interest.baseline);
     const hawkish = runSide(applyLessonLever(interest, 'hawkish'));
-    const employment = runSide(applyLessonLever(interest, 'employment-leaning'));
-    expect(ending(interestBase, hawkish, 'unemployment')).toBe('same');
     expect(ending(interestBase, hawkish, 'interestRate')).toBe('lower');
-    expect(ending(interestBase, employment, 'unemployment')).toBe('higher');
-    expect(ending(interestBase, employment, 'interestRate')).toBe('higher');
+    expect(ending(interestBase, hawkish, 'unemployment')).toBe('higher');
 
     const deficit = requireLesson('deficit');
     const deficitBase = runSide(deficit.baseline);

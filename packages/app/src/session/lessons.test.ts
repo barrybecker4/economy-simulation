@@ -41,11 +41,13 @@ describe('lessons', () => {
     }
   });
 
-  it('applies the interest hawkish lever without clearing other defaults', () => {
+  it('applies the interest hawkish lever as an inflation-weight patch only', () => {
     const lesson = requireLesson('interest');
     const side = applyLessonLever(lesson, 'hawkish');
     expect(side.regime).toBe('fiat');
-    expect(matchingCategoryOption('centralBank', side.overrides)).toBe('hawkish');
+    expect(side.overrides['centralBank.inflationWeight']).toBe(2.5);
+    expect(side.overrides['centralBank.outputWeight']).toBeUndefined();
+    expect(side.overrides['centralBank.bondPurchaseShare']).toBeUndefined();
     expect(matchingLessonChoice(lesson, side.regime, side.overrides)).toBe('hawkish');
   });
 

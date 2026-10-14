@@ -3,21 +3,30 @@ import type { RunSuccess } from '../worker/protocol.js';
 import type { Lesson } from './lessons.js';
 import { endingDirection } from './snapshot.js';
 
+export interface PredictionFeedback {
+  /** Whether the student's guess matched the run. Null when there is no score yet. */
+  matched: boolean | null;
+  message: string;
+}
+
 /** Map a guess id to the metric ending the student was asked about. */
 export function predictionOutcome(
   lesson: Lesson,
   guessId: string,
   baseline: RunSuccess | null,
   variant: RunSuccess,
-): string {
+): PredictionFeedback {
   if (lesson.id === 'prices') {
     return pricesOutcome(guessId, variant);
   }
   if (baseline === null) {
-    return 'Run the baseline first, then the scenario.';
+    return {
+      matched: null,
+      message: 'Try a change below the guess. It runs as soon as you pick one.',
+    };
   }
   if (lesson.id === 'interest') {
-    return jobsGuess(guessId, endingDirection(baseline, variant, 'unemployment'));
+    return rateGuess(guessId, endingDirection(baseline, variant, 'interestRate'));
   }
   if (lesson.id === 'deficit' || lesson.id === 'bitcoin') {
     return pricesGuess(guessId, endingDirection(baseline, variant, 'priceLevel'));
@@ -25,31 +34,24 @@ export function predictionOutcome(
   if (lesson.id === 'gains') {
     return grantGuess(guessId, endingDirection(baseline, variant, 'ubiOutlay'));
   }
-  return 'Compare the charts to your guess.';
+  return { matched: null, message: 'Compare the charts to your guess.' };
 }
 
-function pricesOutcome(guessId: string, result: RunSuccess): string {
+function pricesOutcome(guessId: string, result: RunSuccess): PredictionFeedback {
   const apparel = change(result, 'priceApparel');
   const electronics = change(result, 'priceElectronics');
   const housing = change(result, 'priceHousing');
   const medical = change(result, 'priceMedical');
   const cheap = apparel < 0 && electronics < 0;
   const shelterUp = housing > 0 || medical > 0;
-  const happened = cheap && shelterUp
-    ? 'Apparel and electronics got cheaper while housing or medical care rose.'
-    : cheap
-      ? 'Apparel and electronics got cheaper.'
-      : 'The category paths did not split the way this lab usually shows.';
-  if (guessId === 'apparel-electronics' && cheap) {
-    return `Your guess matched. ${happened}`;
-  }
-  if (guessId === 'housing-medical' && !cheap) {
-    return `Your guess did not match. ${happened}`;
-  }
-  if (guessId === 'all-rise') {
-    return `Your guess did not match. ${happened}`;
-  }
-  return `Your guess did not match. ${happened}`;
+  const happened =
+    cheap && shelterUp
+      ? 'Apparel and electronics got cheaper while housing or medical care rose.'
+      : cheap
+        ? 'Apparel and electronics got cheaper.'
+        : 'The category paths did not split the way this lab usually shows.';
+  const matched = guessId === 'apparel-electronics' && cheap;
+  return scored(matched, happened);
 }
 
 function change(result: RunSuccess, id: MetricId): number {
@@ -62,27 +64,27 @@ function change(result: RunSuccess, id: MetricId): number {
   return end - open;
 }
 
-function jobsGuess(
+function rateGuess(
   guessId: string,
   direction: 'higher' | 'lower' | 'same',
-): string {
+): PredictionFeedback {
   const happened =
     direction === 'higher'
-      ? 'Unemployment ended higher.'
+      ? 'The policy rate ended higher.'
       : direction === 'lower'
-        ? 'Unemployment ended lower.'
-        : 'Unemployment ended about the same.';
+        ? 'The policy rate ended lower.'
+        : 'The policy rate ended about the same.';
   const matched =
-    (guessId === 'jobs-worse' && direction === 'higher') ||
-    (guessId === 'jobs-better' && direction === 'lower') ||
-    (guessId === 'jobs-same' && direction === 'same');
-  return matched ? `Your guess matched. ${happened}` : `Your guess did not match. ${happened}`;
+    (guessId === 'rate-up' && direction === 'higher') ||
+    (guessId === 'rate-down' && direction === 'lower') ||
+    (guessId === 'rate-same' && direction === 'same');
+  return scored(matched, happened);
 }
 
 function pricesGuess(
   guessId: string,
   direction: 'higher' | 'lower' | 'same',
-): string {
+): PredictionFeedback {
   const happened =
     direction === 'higher'
       ? 'Prices ended higher.'
@@ -93,13 +95,13 @@ function pricesGuess(
     (guessId === 'prices-up' && direction === 'higher') ||
     (guessId === 'prices-down' && direction === 'lower') ||
     (guessId === 'prices-same' && direction === 'same');
-  return matched ? `Your guess matched. ${happened}` : `Your guess did not match. ${happened}`;
+  return scored(matched, happened);
 }
 
 function grantGuess(
   guessId: string,
   direction: 'higher' | 'lower' | 'same',
-): string {
+): PredictionFeedback {
   const happened =
     direction === 'higher'
       ? 'The household grant rose.'
@@ -110,5 +112,12 @@ function grantGuess(
     (guessId === 'grant-rises' && direction === 'higher') ||
     (guessId === 'grant-falls' && direction === 'lower') ||
     (guessId === 'grant-zero' && direction === 'same');
-  return matched ? `Your guess matched. ${happened}` : `Your guess did not match. ${happened}`;
+  return scored(matched, happened);
+}
+
+function scored(matched: boolean, happened: string): PredictionFeedback {
+  return {
+    matched,
+    message: matched ? `Your guess matched. ${happened}` : `Your guess did not match. ${happened}`,
+  };
 }

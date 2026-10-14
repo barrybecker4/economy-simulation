@@ -20,19 +20,19 @@ describe('predictionOutcome', () => {
       priceHousing: [100, 140],
       priceMedical: [100, 90],
     });
-    expect(predictionOutcome(requireLesson('prices'), 'apparel-electronics', null, result)).toMatch(
-      /matched/,
-    );
-    expect(predictionOutcome(requireLesson('prices'), 'all-rise', null, result)).toMatch(
-      /did not match/,
-    );
+    const hit = predictionOutcome(requireLesson('prices'), 'apparel-electronics', null, result);
+    expect(hit.matched).toBe(true);
+    expect(hit.message).toMatch(/matched/);
+    const miss = predictionOutcome(requireLesson('prices'), 'all-rise', null, result);
+    expect(miss.matched).toBe(false);
+    expect(miss.message).toMatch(/did not match/);
   });
 
   it('scores a grant guess against the baseline', () => {
     const baseline = runWith({ ubiOutlay: [0, 0], unemployment: [0.5, 1] });
     const variant = runWith({ ubiOutlay: [0, 100], unemployment: [0.5, 1] });
-    expect(
-      predictionOutcome(requireLesson('gains'), 'grant-rises', baseline, variant),
-    ).toMatch(/matched/);
+    const hit = predictionOutcome(requireLesson('gains'), 'grant-rises', baseline, variant);
+    expect(hit.matched).toBe(true);
+    expect(hit.message).toMatch(/matched/);
   });
 });

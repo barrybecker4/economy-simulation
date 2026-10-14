@@ -186,28 +186,19 @@
       settingsDifferFromShown(session) &&
       guessId === null,
   );
+  const lessonAwaitingScenario = $derived(
+    activeLesson !== null &&
+      activeLesson.control.kind !== 'none' &&
+      pinned &&
+      result !== null &&
+      session.pin !== null &&
+      session.pin.result === result,
+  );
   const snapshot = $derived(
     activeLesson === null || result === null ? null : lessonSnapshot(result, activeLesson),
   );
-  const feedback = $derived(
-    activeLesson === null || result === null || guessId === null
-      ? null
-      : predictionOutcome(
-          activeLesson,
-          guessId,
-          session.pin === null || session.pin.result === result ? null : session.pin.result,
-          result,
-        ),
-  );
-  const hint = $derived(
-    activeLesson === null
-      ? nextStep(session)
-      : lessonNeedsGuess
-        ? 'Pick a guess before you run the scenario.'
-        : pinned
-          ? 'Change the lever, pick a guess, and press Run to compare.'
-          : 'The baseline is running. Charts appear when it finishes.',
-  );
+  const feedback = $derived(lessonFeedback());
+  const hint = $derived(lessonHint());
   const primaryRun = $derived(activeLesson === null ? runIsPrimary(session) : true);
 
   const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
@@ -329,15 +320,78 @@
   }
 
   function onLessonChoice(id: string): void {
-    if (activeLesson === null) {
+    if (activeLesson === null || guessId === null) {
       return;
     }
-    session = replaceSide(session, applyLessonLever(activeLesson, id));
+    const side = applyLessonLever(activeLesson, id);
+    session = replaceSide(session, side);
     syncUrl();
+    if (id === activeLesson.control.baselineId && session.pin !== null) {
+      session = {
+        ...session,
+        result: session.pin.result,
+        shownSeed: session.pin.seed,
+        shownTicks: session.pin.ticks,
+        shownSeeds: 1,
+        shownRegime: session.pin.regime,
+        shownOverrides: { ...session.pin.overrides },
+      };
+      return;
+    }
+    run();
   }
 
   function onLessonGuess(id: string): void {
     guessId = id;
+  }
+
+  function lessonFeedback(): ReturnType<typeof predictionOutcome> | null {
+    if (activeLesson === null || result === null || guessId === null) {
+      return null;
+    }
+    if (activeLesson.control.kind === 'none') {
+      return predictionOutcome(activeLesson, guessId, null, result);
+    }
+    if (session.pin === null) {
+      return null;
+    }
+    if (session.pin.result === result) {
+      if (busy) {
+        return { matched: null, message: 'Running your scenario…' };
+      }
+      if (!settingsDifferFromShown(session)) {
+        return {
+          matched: null,
+          message: 'Try a change below the guess. It runs as soon as you pick one.',
+        };
+      }
+      return { matched: null, message: 'Running your scenario…' };
+    }
+    return predictionOutcome(activeLesson, guessId, session.pin.result, result);
+  }
+
+  function lessonHint(): string {
+    if (activeLesson === null) {
+      return nextStep(session);
+    }
+    if (!pinned) {
+      return 'The baseline is running. Charts appear when it finishes.';
+    }
+    if (activeLesson.control.kind === 'none') {
+      return guessId === null
+        ? 'Pick a guess, then read the snapshot and charts.'
+        : 'Read the snapshot and charts to see if your guess matched.';
+    }
+    if (guessId === null) {
+      return 'Read the charts, then pick a guess. After that you can try a change.';
+    }
+    if (lessonAwaitingScenario && !settingsDifferFromShown(session)) {
+      return 'Try a change. The scenario runs automatically.';
+    }
+    if (busy || lessonAwaitingScenario) {
+      return 'Running your scenario…';
+    }
+    return 'Try another change, or go back to the baseline.';
   }
 
   function commitPin(): void {
@@ -468,6 +522,7 @@
           lesson={activeLesson}
           choiceId={lessonChoice}
           {guessId}
+          {busy}
           onChoice={onLessonChoice}
           onGuess={onLessonGuess}
         />

@@ -106,22 +106,22 @@
         </label>
       </NameTip>
     {/if}
-    <NameTip
-      id="run"
-      intro={classroom
-        ? 'Runs this lab with the current lever. Pick a guess before you change the lever and run again.'
-        : 'Runs the simulation with the current seed, month count, seed count, regime, and sliders. One seed draws that path. More than one seed runs Seed through Seed plus the count minus one; charts show the median, the shocks chart shows the mean absolute impulse, and CPI also shows the 5th and 95th percentiles when no baseline is pinned. Press Control or Command and Enter to run from anywhere.'}
-    >
-      <button
-        type="button"
-        class:primary={runPrimary}
-        aria-describedby="help-run"
-        onclick={() => onRun()}
-        disabled={busy || runDisabled}
+    {#if !classroom}
+      <NameTip
+        id="run"
+        intro="Runs the simulation with the current seed, month count, seed count, regime, and sliders. One seed draws that path. More than one seed runs Seed through Seed plus the count minus one; charts show the median, the shocks chart shows the mean absolute impulse, and CPI also shows the 5th and 95th percentiles when no baseline is pinned. Press Control or Command and Enter to run from anywhere."
       >
-        Run
-      </button>
-    </NameTip>
+        <button
+          type="button"
+          class:primary={runPrimary}
+          aria-describedby="help-run"
+          onclick={() => onRun()}
+          disabled={busy || runDisabled}
+        >
+          Run
+        </button>
+      </NameTip>
+    {/if}
   </div>
   {#if !classroom}
     <div class="secondary">
