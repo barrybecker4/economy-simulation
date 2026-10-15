@@ -46,6 +46,7 @@
   import Ledger from './ui/Ledger.svelte';
   import Month from './ui/Month.svelte';
   import Parameters from './ui/Parameters.svelte';
+  import Lesson from './lesson/Lesson.svelte';
   import { tickBudget } from './worker/budget.js';
   import {
     formatWorkerError,
@@ -55,6 +56,7 @@
   } from './worker/protocol.js';
 
   const FIRST_CHART_GROUP = 'Welfare';
+  const lessonMode = new URLSearchParams(location.search).get('lesson') === 'deficit';
   const SOURCE_REPO_URL = 'https://github.com/barrybecker4/economy-simulation/';
   const sliders = listSliders();
   const parameters = parameterSliders(sliders);
@@ -150,14 +152,18 @@
   const hint = $derived(nextStep(session));
   const primaryRun = $derived(runIsPrimary(session));
 
-  const worker = new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
-  worker.onmessage = onWorkerMessage;
-  worker.onerror = (event) => {
-    fail(presentable(event.message));
-  };
-  worker.onmessageerror = () => {
-    fail('could not read the worker reply.');
-  };
+  const worker = lessonMode
+    ? undefined
+    : new Worker(new URL('./worker/worker.ts', import.meta.url), { type: 'module' });
+  if (worker !== undefined) {
+    worker.onmessage = onWorkerMessage;
+    worker.onerror = (event) => {
+      fail(presentable(event.message));
+    };
+    worker.onmessageerror = () => {
+      fail('could not read the worker reply.');
+    };
+  }
 
   function onWorkerMessage(event: MessageEvent<WorkerMessage>): void {
     const message = event.data;
@@ -236,6 +242,9 @@
       );
     } catch (err) {
       fail(formatWorkerError(err));
+      return;
+    }
+    if (worker === undefined) {
       return;
     }
     session = notePosted(session);
@@ -332,11 +341,15 @@
 
 <svelte:window onkeydown={onKeydown} />
 
+{#if lessonMode}
+  <Lesson />
+{:else}
 <main aria-busy={busy}>
   <header class="bar">
     <div class="title-row">
       <h1>Economy simulation</h1>
       <Guide />
+      <a class="source-link" href="?lesson=deficit">Deficit lesson</a>
       <a class="source-link" href={SOURCE_REPO_URL} target="_blank" rel="noopener noreferrer">
         Source code
       </a>
@@ -468,6 +481,7 @@
     </section>
   </div>
 </main>
+{/if}
 
 <style>
   :global(html),

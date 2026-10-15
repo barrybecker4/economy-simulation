@@ -14,6 +14,7 @@ export interface Parameters {
   sampleSize: number;
   taxRate: number;
   spendShare: number;
+  spendingAddsDemand: boolean;
   inflationTarget: number;
   inflationWeight: number;
   outputWeight: number;
@@ -134,6 +135,7 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     sampleSize: Math.round(slider(config, 'goods.sampleSize')),
     taxRate: slider(config, 'tax.incomeRate'),
     spendShare: slider(config, 'government.spendingShareOfGDP'),
+    spendingAddsDemand: spendingAddsDemandOf(config),
     inflationTarget: slider(config, 'centralBank.inflationTarget'),
     inflationWeight: slider(config, 'centralBank.inflationWeight'),
     outputWeight: slider(config, 'centralBank.outputWeight'),
@@ -254,6 +256,17 @@ export function loadParameters(config: ResolvedConfig): Parameters {
     fiatLegalTender: slider(config, 'money.fiatLegalTender'),
     bitcoinTrust: slider(config, 'money.bitcoinTrust'),
   };
+}
+
+export function spendingAddsDemandOf(config: ResolvedConfig): boolean {
+  const value = config.sliders['government.spendingAddsDemand'];
+  if (value === 'off') {
+    return false;
+  }
+  if (value === 'on') {
+    return true;
+  }
+  throw new Error('government.spendingAddsDemand must be off or on');
 }
 
 export function equityMarketOf(config: ResolvedConfig): 'off' | 'on' {

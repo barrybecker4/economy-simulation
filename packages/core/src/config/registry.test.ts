@@ -24,6 +24,7 @@ const EXPECTED_IDS = [
   'shock.size',
   'tax.incomeRate',
   'government.spendingShareOfGDP',
+  'government.spendingAddsDemand',
   'government.ubiShare',
   'government.treasuryBufferMonths',
   'centralBank.inflationTarget',

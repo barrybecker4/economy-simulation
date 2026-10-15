@@ -30,6 +30,8 @@
     caption?: string;
     /** When true, show a log-scale checkbox for the y-axis. */
     logToggle?: boolean;
+    /** Minimum y span as a fraction of the level, so a tiny gap does not fill the axis. */
+    yMinFraction?: number;
   }
 
   let {
@@ -43,6 +45,7 @@
     origin = new Date(),
     caption = '',
     logToggle = false,
+    yMinFraction = 0,
   }: Props = $props();
   let host: HTMLDivElement | undefined = $state();
   let plot: uPlot | undefined;
@@ -143,7 +146,7 @@
       return;
     }
     const width = host.clientWidth;
-    const built = buildPlot(width, ticks, lines, origin, marks, logScale);
+    const built = buildPlot(width, ticks, lines, origin, marks, logScale, yMinFraction);
     if (plot !== undefined && built.key === drawnKey) {
       return;
     }
@@ -181,6 +184,7 @@
     marks;
     origin;
     logScale;
+    yMinFraction;
     draw();
   });
 

@@ -55,10 +55,11 @@ export function buildPlot(
   origin: Date,
   marks: ChartMarks = emptyMarks(),
   logScale = false,
+  yMinFraction = 0,
 ): { key: string; options: ReturnType<typeof plotOptions>; data: uPlot.AlignedData } {
   return {
-    key: chartKey(width, ticks, lines, marks, logScale),
-    options: plotOptions(width, lines, marks, ticks, logScale),
+    key: chartKey(width, ticks, lines, marks, logScale, yMinFraction),
+    options: plotOptions(width, lines, marks, ticks, logScale, yMinFraction),
     data: plotData(ticks, lines, origin),
   };
 }
@@ -69,6 +70,7 @@ function chartKey(
   lines: readonly PlottableLine[],
   marks: ChartMarks,
   logScale: boolean,
+  yMinFraction: number,
 ): string {
   return JSON.stringify([
     width,
@@ -85,6 +87,7 @@ function chartKey(
     ]),
     marks,
     logScale,
+    yMinFraction,
   ]);
 }
 
@@ -94,6 +97,7 @@ export function plotOptions(
   marks: ChartMarks = emptyMarks(),
   ticks: readonly number[] = [],
   logScale = false,
+  yMinFraction = 0,
 ) {
   const paired = lines.some((line) => line.pair !== undefined);
   const rightScale = lines.find(
@@ -104,8 +108,8 @@ export function plotOptions(
     height: CHART_HEIGHT,
     scales: {
       x: { time: true },
-      ...yScaleOpts(lines, LEFT_SCALE, logScale),
-      ...(rightScale !== undefined ? yScaleOpts(lines, rightScale, logScale) : {}),
+      ...yScaleOpts(lines, LEFT_SCALE, logScale, yMinFraction),
+      ...(rightScale !== undefined ? yScaleOpts(lines, rightScale, logScale, yMinFraction) : {}),
     },
     series: [
       { label: 'Month', value: monthLegendValue(marks, ticks) },
@@ -130,11 +134,31 @@ function yScaleOpts(
   lines: readonly PlotLine[],
   scale: string,
   logScale: boolean,
-): Record<string, { distr: typeof LOG_DISTR; log: 10 } | Record<string, never>> {
+  yMinFraction: number,
+): Record<string, { distr?: typeof LOG_DISTR; log?: 10; range?: YRange } | Record<string, never>> {
+  const span = yMinFraction > 0 ? { range: minSpanRange(yMinFraction) } : {};
   if (!logScale || !hasPositiveSample(lines, scale)) {
-    return scale === LEFT_SCALE ? {} : { [scale]: {} };
+    if (scale === LEFT_SCALE && yMinFraction <= 0) {
+      return {};
+    }
+    return { [scale]: span };
   }
-  return { [scale]: { distr: LOG_DISTR, log: 10 } };
+  return { [scale]: { distr: LOG_DISTR, log: 10, ...span } };
+}
+
+type YRange = (self: uPlot, min: number, max: number) => [number, number];
+
+/** Keep a flat pair of lines from filling the axis. */
+export function minSpanRange(fraction: number): YRange {
+  return (_self, min, max) => {
+    const span = max - min;
+    const floor = Math.max(Math.abs(min), Math.abs(max), 1) * fraction;
+    if (span >= floor) {
+      return [min, max];
+    }
+    const mid = (min + max) / 2;
+    return [mid - floor / 2, mid + floor / 2];
+  };
 }
 
 function hasPositiveSample(lines: readonly PlotLine[], scale: string): boolean {
