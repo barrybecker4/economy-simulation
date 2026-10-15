@@ -9,22 +9,34 @@
 - This lab is one closed economy. There is no trade with other countries.
 - A category price that rises does not mean people switched stores; it is an accounting split of one basket.
 - The result depends on the lever you change. A different assumption can reverse the picture.
+- Grant, stabilizer, and shocks are off so fiscal levers stay visible. The run is 48 months on a smaller economy.
 
 ## 15-minute script
 
-1. Open the link. Moderate public finance is the pinned baseline.
-2. Ask for a guess about prices if the government spends more than it taxes.
-3. Switch to Deficit spending, keep the guess, and press Run.
-4. On seed 1 both Small and Deficit spending end with a slightly lower CPI than Moderate, and unemployment matches.
-5. Use that surprise: the model’s other assumptions (money rule, AI path, credit) can swamp a fiscal change over ten years. Ask what students would try next.
+1. Open the link. The balanced budget (20 percent tax and purchases) is the pinned baseline.
+2. Ask for a guess about prices if purchases rise to 35 percent while tax stays at 20 percent.
+3. Try **Deficit spending**, then read the four charts: prices, jobs, household goods, and the money stock.
+4. With both assumption switches off, prices often stay near the baseline while household goods fall and money
+   rises. Turn **Extra spending adds demand** on, then **Prices follow goods demand** on, and run deficit
+   spending again. Prices can jump only when both links are on.
+5. Tie back to the guess: the model does not assume “deficit ⇒ inflation” unless you turn those links on.
 
 ## Student prompts
 
-- Did the price gap look large on the chart or only in the numbers?
-- Which other lever would you change to make deficit spending show up more clearly?
+- Which chart moved first when you only turned on extra demand?
+- Did the money stock rise even when CPI stayed flat?
+- What would you expect in a classroom story about inflation versus what this model needs?
 
-## Seed-1 answer key (120 months, registry population)
+## Seed-1 answer key (48 months, deficit lesson world)
 
-- Small versus Moderate: CPI ends lower; unemployment ends the same.
-- Deficit spending versus Moderate: CPI ends lower; unemployment ends the same.
-- Matching guess for Deficit spending on this build: “Prices end lower” (the gap is small).
+Deficit spending versus the matched balanced baseline. A gap under 2 percent counts as “about the same” in the
+snapshot and charts.
+
+| Extra spending adds demand | Prices follow goods demand | CPI versus baseline | Matching price guess |
+| --- | --- | --- | --- |
+| Off | Off | About the same | Prices stay about the same |
+| On | Off | About the same | Prices stay about the same |
+| Off | On | Lower | Prices end lower |
+| On | On | Much higher | Prices end higher |
+
+Unemployment ends the same for every row on seed 1.

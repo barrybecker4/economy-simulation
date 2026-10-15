@@ -32,6 +32,9 @@ function presentOne(views: readonly ChartView[], spec: LessonChartSpec): ChartVi
   if (caption !== undefined) {
     next.caption = caption;
   }
+  if (spec.yMinFraction !== undefined) {
+    next.yMinFraction = spec.yMinFraction;
+  }
   return next;
 }
 

@@ -1,20 +1,24 @@
 <script lang="ts">
-  import type { Lesson, LessonControlOption } from '../session/lessons.js';
+  import type { Lesson, LessonControlOption, LessonLeverContext } from '../session/lessons.js';
 
   let {
     lesson,
     choiceId,
     guessId,
     busy = false,
+    deficitAssumptions = null,
     onChoice,
     onGuess,
+    onDeficitAssumption,
   }: {
     lesson: Lesson;
     choiceId: string | null;
     guessId: string | null;
     busy?: boolean;
+    deficitAssumptions?: LessonLeverContext | null;
     onChoice: (id: string) => void;
     onGuess: (id: string) => void;
+    onDeficitAssumption?: (kind: 'demand' | 'prices', on: boolean) => void;
   } = $props();
 
   const leverLocked = $derived(guessId === null || busy);
@@ -27,6 +31,8 @@
   const selected = $derived(
     lesson.control.options.find((option) => option.id === choiceId) ?? null,
   );
+  const demandChoice = $derived(deficitAssumptions?.addsDemand === true ? 'on' : 'off');
+  const priceChoice = $derived(deficitAssumptions?.pricesFollowDemand === true ? 'on' : 'off');
 
   function selectChoice(event: Event): void {
     onChoice((event.target as HTMLSelectElement).value);
@@ -39,6 +45,14 @@
   function optionPlain(option: LessonControlOption): string {
     return option.plain ?? option.label;
   }
+
+  function selectDemand(event: Event): void {
+    onDeficitAssumption?.('demand', (event.target as HTMLInputElement).value === 'on');
+  }
+
+  function selectPrices(event: Event): void {
+    onDeficitAssumption?.('prices', (event.target as HTMLInputElement).value === 'on');
+  }
 </script>
 
 <section class="lesson" aria-label="Classroom lesson">
@@ -50,6 +64,15 @@
       <li>The baseline already ran. Charts are on the right.</li>
       <li>Pick a guess below.</li>
       <li>Read the snapshot to see if you were right.</li>
+    {:else if lesson.id === 'deficit'}
+      <li>
+        The balanced budget already ran (solid lines). Dashed lines appear when you try deficit
+        spending.
+      </li>
+      <li>Pick a guess, then try deficit spending.</li>
+      <li>
+        Use the two switches to change assumptions. Each switch re-runs the comparison.
+      </li>
     {:else}
       <li>The baseline already ran (solid lines). Read the charts first.</li>
       <li>Pick a guess below.</li>
@@ -65,6 +88,60 @@
       {/each}
     </ul>
   </div>
+
+  {#if lesson.id === 'deficit' && deficitAssumptions !== null}
+    <fieldset class="assumption">
+      <legend>Extra spending adds demand</legend>
+      <label>
+        <input
+          type="radio"
+          name="deficit-demand"
+          value="off"
+          checked={demandChoice === 'off'}
+          disabled={busy}
+          onchange={selectDemand}
+        />
+        Off. The purchase share is taken from households.
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="deficit-demand"
+          value="on"
+          checked={demandChoice === 'on'}
+          disabled={busy}
+          onchange={selectDemand}
+        />
+        On. Spending above the tax is spent as well.
+      </label>
+    </fieldset>
+
+    <fieldset class="assumption">
+      <legend>Prices follow goods demand</legend>
+      <label>
+        <input
+          type="radio"
+          name="deficit-prices"
+          value="off"
+          checked={priceChoice === 'off'}
+          disabled={busy}
+          onchange={selectPrices}
+        />
+        Off. Posted prices follow the 2 percent target.
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="deficit-prices"
+          value="on"
+          checked={priceChoice === 'on'}
+          disabled={busy}
+          onchange={selectPrices}
+        />
+        On. Posted prices follow how much buyers want relative to capacity.
+      </label>
+    </fieldset>
+  {/if}
 
   <fieldset class="guess">
     <legend>{lesson.prediction.prompt}</legend>
@@ -183,6 +260,24 @@
   }
   .cannot li + li {
     margin-top: 0.25rem;
+  }
+  .assumption {
+    border: 1px solid #d6d3d1;
+    border-radius: 0.5rem;
+    display: grid;
+    gap: 0.4rem;
+    margin: 0 0 0.85rem;
+    padding: 0.75rem 0.9rem 0.85rem;
+  }
+  .assumption legend {
+    font-weight: 600;
+    padding: 0 0.25rem;
+  }
+  .assumption label {
+    align-items: flex-start;
+    display: flex;
+    gap: 0.5rem;
+    line-height: 1.4;
   }
   .guess {
     border: 0;

@@ -6,10 +6,17 @@ import {
   optionById,
   SCENARIO_WORLDS,
 } from '../../../core/src/config/presets.js';
+import {
+  DEFICIT_LESSON_SEED,
+  DEFICIT_LESSON_TICKS,
+  deficitLessonSliders,
+} from '../../../core/src/lesson/deficit.js';
 import { defaultRegime } from './sliders.js';
 
 /** Classroom runs match the opening page length. */
 export const LESSON_TICKS = 120;
+
+const DEFICIT_SPEND = 0.35;
 
 /** Shared cannot-show lines for every lab. */
 const SHARED_LIMITS = [
@@ -47,6 +54,8 @@ export interface LessonChartSpec {
   description: string;
   /** When set, only these metric lines appear on the chart. */
   lineIds?: readonly MetricId[];
+  /** Pad a flat comparison so a small CPI gap stays visible. */
+  yMinFraction?: number;
 }
 
 export interface LessonSnapshotMetric {
@@ -218,27 +227,25 @@ export const LESSONS: readonly Lesson[] = [
   {
     id: 'deficit',
     question: 'What if the government spends more than it taxes?',
-    cannotShow: [...SHARED_LIMITS],
-    baseline: categoryBaseline('publicFinance', 'moderate'),
+    cannotShow: [
+      ...SHARED_LIMITS,
+      'Grant, stabilizer, and shocks are off so fiscal levers stay visible. The run is 48 months on a smaller economy.',
+    ],
+    baseline: deficitLessonSide('balanced', false, false),
     control: {
-      kind: 'category',
-      categoryId: 'publicFinance',
-      baselineId: 'moderate',
+      kind: 'patch',
+      baselineId: 'balanced',
       options: [
         {
-          id: 'moderate',
-          label: optionLabel('publicFinance', 'moderate'),
-          plain: 'Tax and spending at 20 percent of GDP.',
-        },
-        {
-          id: 'small',
-          label: optionLabel('publicFinance', 'small'),
-          plain: 'Tax and spending at 10 percent of GDP.',
+          id: 'balanced',
+          label: 'Balanced budget',
+          plain: 'Tax and spending at 20 percent of income.',
         },
         {
           id: 'deficit-spending',
-          label: optionLabel('publicFinance', 'deficit-spending'),
-          plain: 'Spending sits above taxes, so the government borrows more.',
+          label: 'Deficit spending',
+          plain: 'Tax at 20 percent, purchases at 35 percent, so the treasury borrows for the gap.',
+          patch: { 'government.spendingShareOfGDP': DEFICIT_SPEND },
         },
       ],
     },
@@ -246,14 +253,30 @@ export const LESSONS: readonly Lesson[] = [
       {
         key: 'prices',
         title: 'Prices',
-        description: 'The CPI is the average price of the basket.',
+        description:
+          'CPI, the basket of posted firm prices. Solid is the balanced budget. Dashed is the deficit.',
         lineIds: ['priceLevel'],
+        yMinFraction: 0.08,
       },
       {
         key: 'labor',
         title: 'Jobs',
         description: 'Unemployment is the share of people without a job.',
         lineIds: ['unemployment'],
+      },
+      {
+        key: 'flows',
+        title: 'Household goods',
+        description:
+          'What households spend on goods each month. The treasury still buys only leftover inventory.',
+        lineIds: ['householdGoodsSpend'],
+      },
+      {
+        key: 'money',
+        title: 'Money stock',
+        description:
+          'Broad money. Bonds issued when taxes do not cover purchases create deposits, including cash the treasury later rebates.',
+        lineIds: ['moneySupply'],
       },
     ],
     snapshotMetrics: [
@@ -398,11 +421,54 @@ export function requireLesson(id: string): Lesson {
   return lesson;
 }
 
+export interface LessonLeverContext {
+  addsDemand: boolean;
+  pricesFollowDemand: boolean;
+}
+
+/** Resolved sliders for one deficit lesson side (balanced or deficit purchases). */
+export function deficitLessonSide(
+  choiceId: string,
+  addsDemand: boolean,
+  pricesFollowDemand: boolean,
+): { regime: string; overrides: Record<string, number | string> } {
+  const deficit = choiceId !== 'balanced';
+  return {
+    regime: 'fiat',
+    overrides: deficitLessonSliders({ addsDemand, pricesFollowDemand, deficit }),
+  };
+}
+
+export function readDeficitAssumptions(
+  overrides: Readonly<Record<string, number | string>>,
+): LessonLeverContext {
+  return {
+    addsDemand: overrides['government.spendingAddsDemand'] === 'on',
+    pricesFollowDemand: Number(overrides['prices.trendWeight'] ?? 1) === 0,
+  };
+}
+
+export function lessonRunTicks(lesson: Lesson): number {
+  return lesson.id === 'deficit' ? DEFICIT_LESSON_TICKS : LESSON_TICKS;
+}
+
+export function lessonRunSeed(lesson: Lesson): number {
+  return lesson.id === 'deficit' ? DEFICIT_LESSON_SEED : 1;
+}
+
 /** Apply a lever choice on top of the lesson baseline. */
 export function applyLessonLever(
   lesson: Lesson,
   choiceId: string,
+  context?: LessonLeverContext,
 ): { regime: string; overrides: Record<string, number | string> } {
+  if (lesson.id === 'deficit') {
+    if (!lesson.control.options.some((option) => option.id === choiceId)) {
+      throw new Error(`Unknown option ${choiceId} for lesson ${lesson.id}`);
+    }
+    const assumptions = context ?? readDeficitAssumptions(lesson.baseline.overrides);
+    return deficitLessonSide(choiceId, assumptions.addsDemand, assumptions.pricesFollowDemand);
+  }
   if (lesson.control.kind === 'none') {
     return {
       regime: lesson.baseline.regime,
@@ -472,8 +538,8 @@ export function lessonPageState(lesson: Lesson): {
   lesson: string;
 } {
   return {
-    seed: 1,
-    ticks: LESSON_TICKS,
+    seed: lessonRunSeed(lesson),
+    ticks: lessonRunTicks(lesson),
     seeds: 1,
     regime: lesson.baseline.regime,
     overrides: { ...lesson.baseline.overrides },
@@ -494,6 +560,16 @@ export function matchingLessonChoice(
     return lesson.control.options.some((option) => option.id === regime) ? regime : null;
   }
   if (lesson.control.kind === 'patch') {
+    if (lesson.id === 'deficit') {
+      const assumptions = readDeficitAssumptions(overrides);
+      for (const option of lesson.control.options) {
+        const side = deficitLessonSide(option.id, assumptions.addsDemand, assumptions.pricesFollowDemand);
+        if (sameOverrides(side.overrides, overrides) && regime === side.regime) {
+          return option.id;
+        }
+      }
+      return null;
+    }
     for (const option of lesson.control.options) {
       const applied = applyPatch(lesson.baseline.overrides, option.patch ?? {});
       if (sameOverrides(applied, overrides) && regime === lesson.baseline.regime) {

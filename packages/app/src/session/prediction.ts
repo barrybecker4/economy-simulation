@@ -1,5 +1,6 @@
 import type { MetricId } from '../../../core/src/metrics/metrics.js';
 import type { RunSuccess } from '../worker/protocol.js';
+import { LESSON_RELATIVE_BAND } from '../lesson/readout.js';
 import type { Lesson } from './lessons.js';
 import { endingDirection } from './snapshot.js';
 
@@ -28,7 +29,13 @@ export function predictionOutcome(
   if (lesson.id === 'interest') {
     return rateGuess(guessId, endingDirection(baseline, variant, 'interestRate'));
   }
-  if (lesson.id === 'deficit' || lesson.id === 'bitcoin') {
+  if (lesson.id === 'deficit') {
+    return pricesGuess(
+      guessId,
+      endingDirection(baseline, variant, 'priceLevel', LESSON_RELATIVE_BAND),
+    );
+  }
+  if (lesson.id === 'bitcoin') {
     return pricesGuess(guessId, endingDirection(baseline, variant, 'priceLevel'));
   }
   if (lesson.id === 'gains') {

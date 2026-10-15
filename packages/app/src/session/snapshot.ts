@@ -85,16 +85,25 @@ function nearlyZero(value: number): boolean {
   return Math.abs(value) <= 1e-9;
 }
 
-/** Ending direction of one metric versus a baseline run, for prediction feedback. */
+/**
+ * Ending direction of one metric versus a baseline run, for prediction feedback.
+ * When relativeBand is set (e.g. 0.02), a gap within that fraction of the baseline counts as same.
+ */
 export function endingDirection(
   baseline: RunSuccess,
   variant: RunSuccess,
   id: MetricId,
+  relativeBand = 0,
 ): 'higher' | 'lower' | 'same' {
   const from = lastOf(readSeries(baseline, id));
   const to = lastOf(readSeries(variant, id));
   if (!Number.isFinite(from) || !Number.isFinite(to)) {
     return 'same';
+  }
+  if (relativeBand > 0 && from > 0) {
+    if (Math.abs(to / from - 1) <= relativeBand) {
+      return 'same';
+    }
   }
   const gap = Math.abs(to - from);
   if (gap <= Math.max(1e-9, 1e-6 * Math.max(Math.abs(from), Math.abs(to)))) {

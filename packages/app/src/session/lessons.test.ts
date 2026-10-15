@@ -6,6 +6,7 @@ import {
   LESSONS,
   lessonById,
   lessonPageState,
+  lessonRunTicks,
   matchingLessonChoice,
   requireLesson,
   worldPlainSentences,
@@ -32,7 +33,7 @@ describe('lessons', () => {
     for (const lesson of LESSONS) {
       const page = lessonPageState(lesson);
       expect(page.lesson).toBe(lesson.id);
-      expect(page.ticks).toBe(120);
+      expect(page.ticks).toBe(lessonRunTicks(lesson));
       expect(page.seeds).toBe(1);
       expect(page.regime).toBe(lesson.baseline.regime);
       expect(matchingLessonChoice(lesson, page.regime, page.overrides)).toBe(
@@ -51,10 +52,12 @@ describe('lessons', () => {
     expect(matchingLessonChoice(lesson, side.regime, side.overrides)).toBe('hawkish');
   });
 
-  it('applies the deficit lever as a public-finance option', () => {
+  it('applies the deficit lever as higher purchases on the lesson world', () => {
     const lesson = requireLesson('deficit');
     const side = applyLessonLever(lesson, 'deficit-spending');
-    expect(matchingCategoryOption('publicFinance', side.overrides)).toBe('deficit-spending');
+    expect(side.overrides['government.spendingShareOfGDP']).toBe(0.35);
+    expect(side.overrides['tax.incomeRate']).toBe(0.2);
+    expect(matchingLessonChoice(lesson, side.regime, side.overrides)).toBe('deficit-spending');
   });
 
   it('switches the bitcoin lesson by regime only', () => {

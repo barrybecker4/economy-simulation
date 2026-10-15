@@ -1701,10 +1701,10 @@ Goal: a student can see that a deficit raises prices only under two assumptions 
 1. `government.spendingAddsDemand` defaults to off. Off keeps the purchase share as a split of one income. On,
    households give up only the tax, and the gap between purchases and tax is extra household demand. The treasury still
    buys leftover inventory and still issues bonds for a shortfall.
-2. The deficit lesson compares purchases at 35 percent of income with a balanced 20 percent budget, grant and
-   stabilizer off, shocks off, anchor weight 0. One lever turns spending-adds-demand on. The other sets
-   `prices.trendWeight` to 0 so posted prices follow excess demand. The page scores prices, goods bought, and the money
-   stock against that matched baseline.
+2. The classroom deficit lab (`?lesson=deficit`) compares purchases at 35 percent of income with a balanced 20 percent
+   budget, grant and stabilizer off, shocks off, anchor weight 0. Two on-page switches turn spending-adds-demand on and
+   set `prices.trendWeight` to 0 so posted prices follow excess demand. Charts cover CPI, unemployment, household goods,
+   and the money stock against the matched baseline.
 
 Acceptance:
 

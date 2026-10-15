@@ -63,6 +63,8 @@ export interface ChartView {
   caption?: string;
   /** When true, the chart offers a log-scale checkbox for the y-axis. */
   logToggle?: boolean;
+  /** Minimum y span as a fraction of the level. */
+  yMinFraction?: number;
 }
 
 /** Dash pattern, in CSS pixels, for the scenario line when a baseline is overlaid. */

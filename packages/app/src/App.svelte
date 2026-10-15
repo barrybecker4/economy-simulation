@@ -36,9 +36,12 @@
   import { presentLessonCharts } from './session/lesson-views.js';
   import {
     applyLessonLever,
+    deficitLessonSide,
     lessonById,
     matchingLessonChoice,
+    readDeficitAssumptions,
     type Lesson,
+    type LessonLeverContext,
   } from './session/lessons.js';
   import { predictionOutcome } from './session/prediction.js';
   import { matchingCategories, matchingWorld } from './session/presets.js';
@@ -85,6 +88,8 @@
   let showHistory = $state(false);
   let dollarBasis = $state<DollarBasis>(activeLesson === null ? 'nominal' : 'real');
   let guessId = $state<string | null>(null);
+  /** After refreshing the deficit baseline, run this scenario choice again. */
+  let deficitScenarioAfterBaseline = $state<string | null>(null);
   let resultsEl: HTMLElement | undefined = $state();
   let openChartGroups = $state<Record<string, boolean>>(
     activeLesson === null ? { [FIRST_CHART_GROUP]: true } : { Lesson: true },
@@ -237,6 +242,15 @@
     if (activeLesson !== null && session.pin === null && canPinBaseline(session)) {
       applyUpdate(pinBaseline(session, sliders));
     }
+    if (deficitScenarioAfterBaseline !== null && activeLesson?.id === 'deficit') {
+      const choice = deficitScenarioAfterBaseline;
+      deficitScenarioAfterBaseline = null;
+      applyUpdate(pinBaseline(session, sliders));
+      const assumptions = readDeficitAssumptions(session.overrides);
+      session = replaceSide(session, applyLessonLever(activeLesson, choice, assumptions));
+      run();
+      return;
+    }
     status = readyLabel();
     syncUrl();
     queueMicrotask(() => {
@@ -319,11 +333,50 @@
     run();
   }
 
+  function deficitAssumptions(): LessonLeverContext | undefined {
+    if (activeLesson?.id !== 'deficit') {
+      return undefined;
+    }
+    return readDeficitAssumptions(session.overrides);
+  }
+
+  function onDeficitAssumption(kind: 'demand' | 'prices', on: boolean): void {
+    if (activeLesson?.id !== 'deficit' || busy) {
+      return;
+    }
+    const current = readDeficitAssumptions(session.overrides);
+    const assumptions: LessonLeverContext = {
+      addsDemand: kind === 'demand' ? on : current.addsDemand,
+      pricesFollowDemand: kind === 'prices' ? on : current.pricesFollowDemand,
+    };
+    const choice =
+      matchingLessonChoice(activeLesson, session.regime, session.overrides) ??
+      activeLesson.control.baselineId;
+    const scenarioActive = choice !== activeLesson.control.baselineId;
+    const baselineSide = deficitLessonSide('balanced', assumptions.addsDemand, assumptions.pricesFollowDemand);
+    if (session.pin !== null) {
+      session = {
+        ...session,
+        pin: {
+          ...session.pin,
+          regime: baselineSide.regime,
+          overrides: { ...baselineSide.overrides },
+        },
+      };
+      deficitScenarioAfterBaseline = scenarioActive ? choice : null;
+      session = replaceSide(session, baselineSide);
+      run();
+      return;
+    }
+    session = replaceSide(session, applyLessonLever(activeLesson, choice, assumptions));
+    run();
+  }
+
   function onLessonChoice(id: string): void {
     if (activeLesson === null || guessId === null) {
       return;
     }
-    const side = applyLessonLever(activeLesson, id);
+    const side = applyLessonLever(activeLesson, id, deficitAssumptions());
     session = replaceSide(session, side);
     syncUrl();
     if (id === activeLesson.control.baselineId && session.pin !== null) {
@@ -523,8 +576,12 @@
           choiceId={lessonChoice}
           {guessId}
           {busy}
+          deficitAssumptions={activeLesson.id === 'deficit'
+            ? readDeficitAssumptions(session.overrides)
+            : null}
           onChoice={onLessonChoice}
           onGuess={onLessonGuess}
+          onDeficitAssumption={onDeficitAssumption}
         />
       {:else}
         <Parameters
@@ -582,6 +639,7 @@
                   origin={chartOrigin}
                   caption={chart.caption ?? ''}
                   logToggle={chart.logToggle === true && activeLesson === null}
+                  yMinFraction={chart.yMinFraction ?? 0}
                 />
               {/each}
             {/if}

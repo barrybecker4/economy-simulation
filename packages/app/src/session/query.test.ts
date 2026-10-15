@@ -35,7 +35,7 @@ describe('parsePageState', () => {
     const deficit = requireLesson('deficit');
     const state = parsePageState('?lesson=deficit');
     expect(state.lesson).toBe('deficit');
-    expect(state.ticks).toBe(120);
+    expect(state.ticks).toBe(48);
     expect(state.regime).toBe(deficit.baseline.regime);
     expect(state.overrides).toEqual(deficit.baseline.overrides);
   });

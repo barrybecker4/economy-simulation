@@ -1,7 +1,8 @@
 /** Plain-language comparison words for classroom captions and snapshots. */
 
-const REL_EPS = 1e-6;
 const ABS_EPS = 1e-9;
+/** Ending gaps within this fraction of the level read as the same path (matches deficit lesson scoring). */
+const REL_BAND = 0.02;
 
 /** Same, half, double, or a coarse multiple. */
 export function plainRatioWords(from: number, to: number): string {
@@ -77,8 +78,11 @@ export function plainComparisonCaption(
 }
 
 function nearlyEqual(a: number, b: number): boolean {
+  if (a > 0 && b > 0) {
+    return Math.abs(b / a - 1) <= REL_BAND;
+  }
   const gap = Math.abs(a - b);
-  return gap <= Math.max(ABS_EPS, REL_EPS * Math.max(Math.abs(a), Math.abs(b)));
+  return gap <= ABS_EPS;
 }
 
 function last(values: readonly number[]): number {

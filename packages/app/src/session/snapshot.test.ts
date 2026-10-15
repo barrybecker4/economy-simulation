@@ -36,4 +36,11 @@ describe('endingDirection', () => {
     expect(endingDirection(baseline, variant, 'priceLevel')).toBe('higher');
     expect(endingDirection(baseline, variant, 'unemployment')).toBe('same');
   });
+
+  it('treats a gap inside the lesson band as the same ending', () => {
+    const baseline = runWith({ priceLevel: [100, 100] });
+    const variant = runWith({ priceLevel: [100, 101] });
+    expect(endingDirection(baseline, variant, 'priceLevel')).toBe('higher');
+    expect(endingDirection(baseline, variant, 'priceLevel', 0.02)).toBe('same');
+  });
 });

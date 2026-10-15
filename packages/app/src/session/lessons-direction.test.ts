@@ -3,7 +3,13 @@ import { loadScenario } from '../../../core/src/config/load.js';
 import { listSliders } from '../../../core/src/config/registry.js';
 import type { MetricId } from '../../../core/src/metrics/metrics.js';
 import { simulate } from '../../../core/src/sim/simulate.js';
-import { applyLessonLever, LESSON_TICKS, requireLesson } from './lessons.js';
+import { LESSON_RELATIVE_BAND } from '../lesson/readout.js';
+import {
+  applyLessonLever,
+  lessonRunSeed,
+  lessonRunTicks,
+  requireLesson,
+} from './lessons.js';
 import { resolvedSliders } from './sliders.js';
 
 const sliders = listSliders();
@@ -38,29 +44,42 @@ function direction(from: number, to: number): Direction {
   return to > from ? 'higher' : 'lower';
 }
 
-function runSide(side: {
-  regime: string;
-  overrides: Record<string, number | string>;
-}): SeriesMap {
+function runSide(
+  side: {
+    regime: string;
+    overrides: Record<string, number | string>;
+  },
+  lesson = requireLesson('prices'),
+): SeriesMap {
   const resolved = resolvedSliders(sliders, side.regime, side.overrides);
   return simulate(
     loadScenario({
       name: 'lesson-direction',
-      seed: 1,
-      ticks: LESSON_TICKS,
+      seed: lessonRunSeed(lesson),
+      ticks: lessonRunTicks(lesson),
       sliders: resolved,
     }),
   ).metrics.series;
 }
 
-function ending(base: SeriesMap, variant: SeriesMap, id: MetricId): Direction {
-  return direction(lastFinite(base[id]), lastFinite(variant[id]));
+function ending(
+  base: SeriesMap,
+  variant: SeriesMap,
+  id: MetricId,
+  relativeBand = 0,
+): Direction {
+  const from = lastFinite(base[id]);
+  const to = lastFinite(variant[id]);
+  if (relativeBand > 0 && from > 0 && Math.abs(to / from - 1) <= relativeBand) {
+    return 'same';
+  }
+  return direction(from, to);
 }
 
 describe('lesson seed-1 directions', () => {
   it('locks the classroom answer-key directions for seed 1', () => {
     const prices = requireLesson('prices');
-    const pricesSeries = runSide(prices.baseline);
+    const pricesSeries = runSide(prices.baseline, prices);
     expect(direction(firstFinite(pricesSeries.priceApparel), lastFinite(pricesSeries.priceApparel))).toBe(
       'lower',
     );
@@ -72,28 +91,26 @@ describe('lesson seed-1 directions', () => {
     );
 
     const interest = requireLesson('interest');
-    const interestBase = runSide(interest.baseline);
-    const hawkish = runSide(applyLessonLever(interest, 'hawkish'));
+    const interestBase = runSide(interest.baseline, interest);
+    const hawkish = runSide(applyLessonLever(interest, 'hawkish'), interest);
     expect(ending(interestBase, hawkish, 'interestRate')).toBe('lower');
     expect(ending(interestBase, hawkish, 'unemployment')).toBe('higher');
 
     const deficit = requireLesson('deficit');
-    const deficitBase = runSide(deficit.baseline);
-    const small = runSide(applyLessonLever(deficit, 'small'));
-    const deficitSpend = runSide(applyLessonLever(deficit, 'deficit-spending'));
-    expect(ending(deficitBase, small, 'priceLevel')).toBe('lower');
-    expect(ending(deficitBase, deficitSpend, 'priceLevel')).toBe('lower');
+    const deficitBase = runSide(deficit.baseline, deficit);
+    const deficitSpend = runSide(applyLessonLever(deficit, 'deficit-spending'), deficit);
+    expect(ending(deficitBase, deficitSpend, 'priceLevel', LESSON_RELATIVE_BAND)).toBe('same');
     expect(ending(deficitBase, deficitSpend, 'unemployment')).toBe('same');
 
     const bitcoin = requireLesson('bitcoin');
-    const bitcoinBase = runSide(bitcoin.baseline);
-    const bitcoinSide = runSide(applyLessonLever(bitcoin, 'bitcoin'));
+    const bitcoinBase = runSide(bitcoin.baseline, bitcoin);
+    const bitcoinSide = runSide(applyLessonLever(bitcoin, 'bitcoin'), bitcoin);
     expect(ending(bitcoinBase, bitcoinSide, 'priceLevel')).toBe('lower');
     expect(ending(bitcoinBase, bitcoinSide, 'unemployment')).toBe('higher');
 
     const gains = requireLesson('gains');
-    const gainsBase = runSide(gains.baseline);
-    const dividend = runSide(applyLessonLever(gains, 'ai-dividend'));
+    const gainsBase = runSide(gains.baseline, gains);
+    const dividend = runSide(applyLessonLever(gains, 'ai-dividend'), gains);
     expect(ending(gainsBase, dividend, 'ubiOutlay')).toBe('higher');
     expect(ending(gainsBase, dividend, 'unemployment')).toBe('same');
   }, 600_000);
