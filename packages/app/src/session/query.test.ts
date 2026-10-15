@@ -31,8 +31,13 @@ describe('parsePageState', () => {
     expect(state.lesson).toBeNull();
   });
 
-  it('ignores the deficit lesson flag', () => {
-    expect(parsePageState('?lesson=deficit')).toEqual(defaultPage());
+  it('opens the deficit lesson link on the lesson baseline', () => {
+    const deficit = requireLesson('deficit');
+    const state = parsePageState('?lesson=deficit');
+    expect(state.lesson).toBe('deficit');
+    expect(state.ticks).toBe(120);
+    expect(state.regime).toBe(deficit.baseline.regime);
+    expect(state.overrides).toEqual(deficit.baseline.overrides);
   });
 
   it('ignores a query parameter whose name starts with an underscore', () => {
