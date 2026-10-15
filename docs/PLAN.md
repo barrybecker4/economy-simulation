@@ -1748,7 +1748,8 @@ The research app stays the default. A `lesson` query parameter opens a locked la
 and charts. Five labs live in `packages/app/src/session/lessons.ts` with teacher notes in [docs/lessons/](lessons/README.md).
 Each lab auto-runs and pins a 120-month baseline, exposes one lever, filters charts, and shows a snapshot card. Seed-1
 directions are locked by `packages/app/src/session/lessons-direction.test.ts`. Scenario worlds also carry a `plain`
-sentence for student-facing copy. Core simulation behavior does not change for classroom mode.
+sentence for student-facing copy. The gains lab (`?lesson=gains`) pins no AI with the AI dividend fiscal stance; the
+lever is AI bullishness from Modest through Extreme. Core simulation behavior does not change for classroom mode.
 
 ## Still deferred
 

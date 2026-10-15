@@ -108,6 +108,8 @@ export interface ComparisonSession {
   pendingOverrides: Record<string, number | string>;
   result: RunSuccess | null;
   pin: PinnedBaseline | null;
+  /** Chart overlay baseline; defaults to pin. Advanced when a lesson chains scenario levers. */
+  comparePin: PinnedBaseline | null;
 }
 
 interface PinnedBaseline {
@@ -174,6 +176,7 @@ export function openComparisonSession(input: {
     pendingOverrides: { ...overrides },
     result: null,
     pin: null,
+    comparePin: null,
   };
 }
 
@@ -249,7 +252,7 @@ export function pinBaseline(session: ComparisonSession, sliders: readonly Slider
 
 export function clearBaseline(session: ComparisonSession): SessionUpdate {
   const status = session.result === null ? IDLE_STATUS : readyLabel();
-  return { session: { ...session, pin: null }, status };
+  return { session: { ...session, pin: null, comparePin: null }, status };
 }
 
 export function resetToDefaults(): SessionUpdate {
@@ -369,7 +372,14 @@ function retarget(
   ) {
     return session;
   }
-  return { ...session, seed, ticks, seeds, pin };
+  return {
+    ...session,
+    seed,
+    ticks,
+    seeds,
+    pin,
+    comparePin: pin === null ? null : session.comparePin,
+  };
 }
 
 function capture(session: ComparisonSession): PinnedBaseline | null {
@@ -385,13 +395,36 @@ function capture(session: ComparisonSession): PinnedBaseline | null {
   };
 }
 
+/** Snapshot of the run currently on the charts, for chaining lesson comparisons. */
+export function captureShownRun(session: ComparisonSession): PinnedBaseline | null {
+  if (session.result === null) {
+    return null;
+  }
+  return {
+    result: session.result,
+    regime: session.shownRegime,
+    overrides: { ...session.shownOverrides },
+    seed: session.shownSeed,
+    ticks: session.shownTicks,
+  };
+}
+
+/** Use the last scenario run as the chart baseline for the next lever change. */
+export function advanceComparePinFromShown(session: ComparisonSession): ComparisonSession {
+  const captured = captureShownRun(session);
+  if (captured === null) {
+    return session;
+  }
+  return { ...session, comparePin: captured };
+}
+
 function snap(
   session: ComparisonSession,
   sliders: readonly Slider[],
   pin: PinnedBaseline,
 ): ComparisonSession {
   const aligned = alignComparisonFrame(sliders, liveSide(session), pinSide(pin));
-  return { ...writeSide(session, aligned), pin };
+  return { ...writeSide(session, aligned), pin, comparePin: pin };
 }
 
 function writeSide(
@@ -409,16 +442,25 @@ function pinSide(pin: PinnedBaseline): CompareSide {
   return { regime: pin.regime, overrides: pin.overrides };
 }
 
+function chartOverlayPin(session: ComparisonSession): PinnedBaseline | null {
+  return session.comparePin ?? session.pin;
+}
+
+/** Run used for chart overlay and classroom scoring (matches dashed vs solid). */
+export function comparisonBaselineResult(session: ComparisonSession): RunSuccess | null {
+  return chartOverlayPin(session)?.result ?? null;
+}
+
 function baselineView(session: ComparisonSession): ComparisonSide | null {
-  const pin = session.pin;
+  const ref = chartOverlayPin(session);
   const result = session.result;
-  if (pin === null || result === null || result === pin.result) {
+  if (ref === null || result === null || result === ref.result) {
     return null;
   }
   return {
-    result: pin.result,
-    regime: pin.regime,
-    ...censusCounts(pin.regime, pin.overrides),
+    result: ref.result,
+    regime: ref.regime,
+    ...censusCounts(ref.regime, ref.overrides),
   };
 }
 

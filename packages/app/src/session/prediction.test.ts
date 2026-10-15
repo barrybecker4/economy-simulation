@@ -35,4 +35,13 @@ describe('predictionOutcome', () => {
     expect(hit.matched).toBe(true);
     expect(hit.message).toMatch(/matched/);
   });
+
+  it('scores a grant fall against a chained comparison baseline', () => {
+    const high = runWith({ ubiOutlay: [0, 200] });
+    const substantial = runWith({ ubiOutlay: [0, 100] });
+    const hit = predictionOutcome(requireLesson('gains'), 'grant-falls', high, substantial);
+    expect(hit.matched).toBe(true);
+    expect(hit.message).toMatch(/matched/);
+    expect(hit.message).toMatch(/grant fell/);
+  });
 });

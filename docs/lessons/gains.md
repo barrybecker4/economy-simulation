@@ -14,18 +14,19 @@
 
 ## 15-minute script
 
-1. Open the link. Private surplus with Extreme AI is the pinned baseline (machines arrive fast; no household grant).
-2. Ask for a guess about the grant line if households get a share of AI output.
-3. Switch the lever to AI dividend, keep the guess, and press Run.
+1. Open the link. No AI with the household grant rule already on is the pinned baseline (solid lines; grant stays at zero).
+2. Ask for a guess about the grant line once machines arrive.
+3. Pick an AI bullishness level from Modest through Extreme, keep the guess, and press Run.
 4. Point at the household-grant chart and the labor-share chart.
-5. Note that on seed 1 unemployment ends at the same high level under both levers; the grant is what changes.
+5. Note how far unemployment moves depends on the AI level you chose; the grant rises whenever the AI share of output does.
 
 ## Student prompts
 
 - Who receives the grant?
-- If unemployment is already high under Extreme AI, what does the grant change?
+- At modest AI, does the grant move much by month 120?
+- What changes if you jump from modest to extreme?
 
 ## Seed-1 answer key (120 months, registry population)
 
-- AI dividend versus Private surplus: the household grant ends higher; unemployment ends the same (both paths reach full measured unemployment under Extreme AI).
+- No AI versus Extreme AI (AI dividend fiscal stance throughout): the household grant ends higher; unemployment ends higher.
 - Matching guess: “The grant rises as machines arrive.”

@@ -5,6 +5,8 @@
   import { moneyUnit, type DollarBasis } from './chart/money-display.js';
   import { chartViews } from './chart/view.js';
   import {
+    advanceComparePinFromShown,
+    comparisonBaselineResult,
     canPinBaseline,
     canPromoteBaseline,
     clearBaseline,
@@ -38,6 +40,7 @@
     applyLessonLever,
     deficitLessonSide,
     lessonById,
+    lessonRunMatchesBaseline,
     matchingLessonChoice,
     readDeficitAssumptions,
     type Lesson,
@@ -239,7 +242,12 @@
     busy = false;
     session = noteResult(session, message);
     monthIndex = Math.max(0, message.ticks.length - 1);
-    if (activeLesson !== null && session.pin === null && canPinBaseline(session)) {
+    if (
+      activeLesson !== null &&
+      session.pin === null &&
+      canPinBaseline(session) &&
+      lessonRunMatchesBaseline(activeLesson, session.shownRegime, session.shownOverrides)
+    ) {
       applyUpdate(pinBaseline(session, sliders));
     }
     if (deficitScenarioAfterBaseline !== null && activeLesson?.id === 'deficit') {
@@ -379,17 +387,34 @@
     const side = applyLessonLever(activeLesson, id, deficitAssumptions());
     session = replaceSide(session, side);
     syncUrl();
-    if (id === activeLesson.control.baselineId && session.pin !== null) {
-      session = {
-        ...session,
-        result: session.pin.result,
-        shownSeed: session.pin.seed,
-        shownTicks: session.pin.ticks,
-        shownSeeds: 1,
-        shownRegime: session.pin.regime,
-        shownOverrides: { ...session.pin.overrides },
-      };
+    if (id === activeLesson.control.baselineId) {
+      if (
+        session.pin !== null &&
+        lessonRunMatchesBaseline(activeLesson, session.pin.regime, session.pin.overrides)
+      ) {
+        session = {
+          ...session,
+          comparePin: session.pin,
+          result: session.pin.result,
+          shownSeed: session.pin.seed,
+          shownTicks: session.pin.ticks,
+          shownSeeds: 1,
+          shownRegime: session.pin.regime,
+          shownOverrides: { ...session.pin.overrides },
+        };
+        return;
+      }
+      session = { ...session, pin: null, comparePin: null };
+      run();
       return;
+    }
+    if (
+      activeLesson.control.kind === 'category' &&
+      session.pin !== null &&
+      session.result !== null &&
+      !lessonRunMatchesBaseline(activeLesson, session.shownRegime, session.shownOverrides)
+    ) {
+      session = advanceComparePinFromShown(session);
     }
     run();
   }
@@ -408,7 +433,8 @@
     if (session.pin === null) {
       return null;
     }
-    if (session.pin.result === result) {
+    const comparisonBaseline = comparisonBaselineResult(session);
+    if (comparisonBaseline === null || comparisonBaseline === result) {
       if (busy) {
         return { matched: null, message: 'Running your scenario…' };
       }
@@ -420,7 +446,7 @@
       }
       return { matched: null, message: 'Running your scenario…' };
     }
-    return predictionOutcome(activeLesson, guessId, session.pin.result, result);
+    return predictionOutcome(activeLesson, guessId, comparisonBaseline, result);
   }
 
   function lessonHint(): string {

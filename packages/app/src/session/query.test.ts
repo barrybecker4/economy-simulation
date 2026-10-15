@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { requireLesson } from './lessons.js';
+import { applyLessonLever, requireLesson } from './lessons.js';
 import { defaultPage, pageSearch, parsePageState } from './query.js';
 
 describe('parsePageState', () => {
@@ -56,7 +56,7 @@ describe('parsePageState', () => {
     expect(state.overrides).toEqual(gains.baseline.overrides);
   });
 
-  it('keeps the lesson id and lever when the query carries overrides', () => {
+  it('opens a lesson on its baseline even when the query carries slider overrides', () => {
     const interest = requireLesson('interest');
     const hawkish = {
       seed: 1,
@@ -66,9 +66,23 @@ describe('parsePageState', () => {
       overrides: { ...interest.baseline.overrides, 'centralBank.inflationWeight': 2.5 },
       lesson: 'interest' as string | null,
     };
-    const roundTrip = parsePageState(`?${pageSearch(hawkish)}`);
-    expect(roundTrip.lesson).toBe('interest');
-    expect(roundTrip.overrides['centralBank.inflationWeight']).toBe(2.5);
+    const state = parsePageState(`?${pageSearch(hawkish)}`);
+    expect(state.lesson).toBe('interest');
+    expect(state.overrides).toEqual(interest.baseline.overrides);
+  });
+
+  it('opens the gains lesson on no AI when the query carries AI slider overrides', () => {
+    const gains = requireLesson('gains');
+    const polluted = pageSearch({
+      seed: 1,
+      ticks: 120,
+      seeds: 1,
+      regime: 'fiat',
+      lesson: 'gains',
+      overrides: applyLessonLever(gains, 'modest').overrides,
+    });
+    const state = parsePageState(`?${polluted}`);
+    expect(state.overrides).toEqual(gains.baseline.overrides);
   });
 
   it('rejects a bad seed, tick count, seed count, regime, lesson, number, option, duplicate, or unknown key', () => {

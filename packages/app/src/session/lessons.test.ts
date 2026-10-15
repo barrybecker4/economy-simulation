@@ -67,11 +67,25 @@ describe('lessons', () => {
     expect(side.overrides).toEqual(lesson.baseline.overrides);
   });
 
-  it('keeps extreme AI locked when the gains lever moves', () => {
+  it('restores the gains baseline when the baseline lever id is chosen', () => {
     const lesson = requireLesson('gains');
-    const side = applyLessonLever(lesson, 'ai-dividend');
+    expect(applyLessonLever(lesson, lesson.control.baselineId)).toEqual(lesson.baseline);
+  });
+
+  it('resolves modest AI differently from the no-AI gains baseline', () => {
+    const lesson = requireLesson('gains');
+    const modest = applyLessonLever(lesson, 'modest');
+    expect(modest.overrides).not.toEqual(lesson.baseline.overrides);
+    expect(matchingCategoryOption('aiBullishness', modest.overrides)).toBe('modest');
+    expect(matchingCategoryOption('aiBullishness', lesson.baseline.overrides)).toBe('none');
+  });
+
+  it('applies the gains lever as AI bullishness on the no-AI baseline', () => {
+    const lesson = requireLesson('gains');
+    const side = applyLessonLever(lesson, 'extreme');
     expect(matchingCategoryOption('aiBullishness', side.overrides)).toBe('extreme');
     expect(matchingCategoryOption('publicFinance', side.overrides)).toBe('ai-dividend');
+    expect(matchingLessonChoice(lesson, side.regime, side.overrides)).toBe('extreme');
     expect(gainsBaselineMatchesWorld()).toBe(true);
   });
 

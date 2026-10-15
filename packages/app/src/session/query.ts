@@ -50,9 +50,6 @@ export function parsePageState(search: string, defaults: PageState = defaultPage
           ...lessonPageState(requireKnownLesson(lesson)),
           lesson,
         };
-  const hasSliderParams = [...params.keys()].some(
-    (key) => !RESERVED.has(key) && !key.startsWith('_'),
-  );
   return {
     seed: readInteger(
       params.get('seed'),
@@ -68,10 +65,7 @@ export function parsePageState(search: string, defaults: PageState = defaultPage
     ),
     seeds: readSeeds(params.get('seeds'), base.seeds),
     regime: readRegime(params.get('regime'), base.regime),
-    overrides:
-      lesson !== null && !hasSliderParams
-        ? { ...base.overrides }
-        : readOverrides(params),
+    overrides: lesson !== null ? { ...base.overrides } : readOverrides(params),
     lesson,
   };
 }

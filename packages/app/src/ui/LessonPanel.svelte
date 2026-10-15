@@ -33,6 +33,7 @@
   );
   const demandChoice = $derived(deficitAssumptions?.addsDemand === true ? 'on' : 'off');
   const priceChoice = $derived(deficitAssumptions?.pricesFollowDemand === true ? 'on' : 'off');
+  const leverPrompt = $derived(lesson.control.leverPrompt ?? 'Try a change');
 
   function selectChoice(event: Event): void {
     onChoice((event.target as HTMLSelectElement).value);
@@ -187,7 +188,7 @@
         {/if}
       {:else}
         <label>
-          Try a change
+          {leverPrompt}
           <select value={onBaseline ? '' : (choiceId ?? '')} disabled={leverLocked} onchange={selectChoice}>
             <option value="" disabled>Choose…</option>
             {#each scenarioOptions as option (option.id)}

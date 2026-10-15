@@ -2,7 +2,7 @@ import { getSlider } from '../../../core/src/config/registry.js';
 import type { MetricId } from '../../../core/src/metrics/metrics.js';
 import {
   applyCategoryOption,
-  applyScenarioWorld,
+  matchingCategoryOption,
   optionById,
   SCENARIO_WORLDS,
 } from '../../../core/src/config/presets.js';
@@ -45,6 +45,8 @@ export interface LessonControl {
   categoryId?: string;
   /** Option or regime id that matches the baseline. */
   baselineId: string;
+  /** Label on the multi-option lever select; defaults to “Try a change”. */
+  leverPrompt?: string;
   options: readonly LessonControlOption[];
 }
 
@@ -110,14 +112,30 @@ function categoryBaseline(
   };
 }
 
-function lockedGainsBaseline(
-  publicFinanceId: string,
-): { regime: string; overrides: Record<string, number | string> } {
-  let overrides = applyCategoryOption('aiBullishness', 'extreme', {});
-  overrides = applyCategoryOption('publicFinance', publicFinanceId, overrides);
+const GAINS_AI_OPTIONS = ['modest', 'substantial', 'high', 'extreme'] as const;
+
+function gainsBaseline(): { regime: string; overrides: Record<string, number | string> } {
+  let overrides = applyCategoryOption('aiBullishness', 'none', {});
+  overrides = applyCategoryOption('publicFinance', 'ai-dividend', overrides);
   overrides = applyCategoryOption('centralBank', 'hawkish', overrides);
   overrides = applyCategoryOption('credit', 'moderate', overrides);
   return { regime: 'fiat', overrides };
+}
+
+function gainsAiPlain(optionId: string): string {
+  if (optionId === 'modest') {
+    return 'Machines spread slowly; the household grant stays near zero at first.';
+  }
+  if (optionId === 'substantial') {
+    return 'Machines take a large share of tasks; the grant grows as adoption rises.';
+  }
+  if (optionId === 'high') {
+    return 'Machines arrive quickly; unemployment and the grant both move up.';
+  }
+  if (optionId === 'extreme') {
+    return 'Machines arrive fast; the grant rises sharply and jobs fall toward full measured unemployment.';
+  }
+  return optionLabel('aiBullishness', optionId);
 }
 
 export const LESSONS: readonly Lesson[] = [
@@ -353,23 +371,17 @@ export const LESSONS: readonly Lesson[] = [
       'Extreme AI is a scenario assumption, not a forecast.',
       'Unemployment is pulled toward a natural rate that rises as machines take tasks, so a shock can move jobs less than a textbook story.',
     ],
-    baseline: lockedGainsBaseline('private-surplus'),
+    baseline: gainsBaseline(),
     control: {
       kind: 'category',
-      categoryId: 'publicFinance',
-      baselineId: 'private-surplus',
-      options: [
-        {
-          id: 'private-surplus',
-          label: optionLabel('publicFinance', 'private-surplus'),
-          plain: worldPlain('private-surplus'),
-        },
-        {
-          id: 'ai-dividend',
-          label: optionLabel('publicFinance', 'ai-dividend'),
-          plain: 'Machines arrive fast, and households get a grant from the AI share of output.',
-        },
-      ],
+      categoryId: 'aiBullishness',
+      baselineId: 'none',
+      leverPrompt: 'Select how much impact there will be from AI',
+      options: GAINS_AI_OPTIONS.map((id) => ({
+        id,
+        label: optionLabel('aiBullishness', id),
+        plain: gainsAiPlain(id),
+      })),
     },
     charts: [
       {
@@ -498,6 +510,12 @@ export function applyLessonLever(
   if (categoryId === undefined) {
     throw new Error(`Lesson ${lesson.id} is missing a category id`);
   }
+  if (choiceId === lesson.control.baselineId) {
+    return {
+      regime: lesson.baseline.regime,
+      overrides: { ...lesson.baseline.overrides },
+    };
+  }
   if (!lesson.control.options.some((option) => option.id === choiceId)) {
     throw new Error(`Unknown option ${choiceId} for lesson ${lesson.id}`);
   }
@@ -526,6 +544,15 @@ export function applyPatch(
     }
   }
   return next;
+}
+
+/** True when the run settings match the lesson's pinned baseline lever. */
+export function lessonRunMatchesBaseline(
+  lesson: Lesson,
+  regime: string,
+  overrides: Readonly<Record<string, number | string>>,
+): boolean {
+  return regime === lesson.baseline.regime && sameOverrides(overrides, lesson.baseline.overrides);
 }
 
 /** Opening page state for a lesson link (baseline lever, one seed, classroom length). */
@@ -582,6 +609,12 @@ export function matchingLessonChoice(
   if (categoryId === undefined) {
     return null;
   }
+  if (
+    sameOverrides(lesson.baseline.overrides, overrides) &&
+    regime === lesson.baseline.regime
+  ) {
+    return lesson.control.baselineId;
+  }
   for (const option of lesson.control.options) {
     const applied = applyCategoryOption(categoryId, option.id, lesson.baseline.overrides);
     if (sameOverrides(applied, overrides) && regime === lesson.baseline.regime) {
@@ -617,15 +650,11 @@ export function worldPlainSentences(): readonly { id: string; plain: string }[] 
   return SCENARIO_WORLDS.map((world) => ({ id: world.id, plain: world.plain }));
 }
 
-/** Smoke-check that gains baseline matches the private-surplus world composition for AI and fiscal. */
+/** Smoke-check that the gains lab opens with no AI and the AI dividend fiscal stance. */
 export function gainsBaselineMatchesWorld(): boolean {
-  const world = applyScenarioWorld('private-surplus', {});
   const lesson = requireLesson('gains');
   return (
-    world.regime === lesson.baseline.regime &&
-    String(world.overrides['government.ubiShare'] ?? 0) ===
-      String(lesson.baseline.overrides['government.ubiShare'] ?? 0) &&
-    String(world.overrides['ai.laborReplacement'] ?? 0) ===
-      String(lesson.baseline.overrides['ai.laborReplacement'] ?? 0)
+    matchingCategoryOption('aiBullishness', lesson.baseline.overrides) === 'none' &&
+    matchingCategoryOption('publicFinance', lesson.baseline.overrides) === 'ai-dividend'
   );
 }

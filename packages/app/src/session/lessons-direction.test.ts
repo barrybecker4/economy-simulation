@@ -110,8 +110,11 @@ describe('lesson seed-1 directions', () => {
 
     const gains = requireLesson('gains');
     const gainsBase = runSide(gains.baseline, gains);
-    const dividend = runSide(applyLessonLever(gains, 'ai-dividend'), gains);
-    expect(ending(gainsBase, dividend, 'ubiOutlay')).toBe('higher');
-    expect(ending(gainsBase, dividend, 'unemployment')).toBe('same');
+    expect(gainsBase.ubiOutlay.every((value) => value === 0 || value === null)).toBe(true);
+    const modestAi = runSide(applyLessonLever(gains, 'modest'), gains);
+    expect(ending(gainsBase, modestAi, 'ubiOutlay')).toBe('higher');
+    const extremeAi = runSide(applyLessonLever(gains, 'extreme'), gains);
+    expect(ending(gainsBase, extremeAi, 'ubiOutlay')).toBe('higher');
+    expect(ending(gainsBase, extremeAi, 'unemployment')).toBe('higher');
   }, 600_000);
 });

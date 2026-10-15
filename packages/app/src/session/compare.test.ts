@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getSlider, listSliders } from '../../../core/src/config/registry.js';
 import {
+  advanceComparePinFromShown,
   alignComparisonFrame,
   canPinBaseline,
   canPromoteBaseline,
@@ -353,6 +354,29 @@ describe('comparison session', () => {
     expect(bundle.baseline?.ownerShareCeiling).toBe(0.4);
     expect(bundle.baseline?.transitionLength).toBe(0);
     expect(canPromoteBaseline(session)).toBe(true);
+  });
+
+  it('overlays comparePin instead of pin when a lesson chains scenario levers', () => {
+    const lessonBaseline = finishedRun();
+    const modest = finishedRun();
+    const high = finishedRun();
+    let session = posted(
+      openComparisonSession({
+        seed: 1,
+        ticks: 24,
+        regime: 'fiat',
+        overrides: { 'ai.bullishness': 1 },
+      }),
+      lessonBaseline,
+    );
+    session = pinBaseline(session, sliders).session;
+    session = noteResult(notePosted(session), modest);
+    session = advanceComparePinFromShown(session);
+    session = noteResult(notePosted(session), high);
+
+    const bundle = comparisonBundle(session);
+    expect(bundle.baseline?.result).toBe(modest);
+    expect(bundle.variant?.result).toBe(high);
   });
 
   it('records the seed, months, and seed count that the charts belong to', () => {
