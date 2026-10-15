@@ -8,6 +8,24 @@ export function subsistenceShare(): number {
 }
 
 /**
+ * Share of income households give up to the government before they budget.
+ * Off: the purchase share, so a larger government takes that slice from households.
+ * On: only the tax, minus the deficit, so spending above taxes is extra demand.
+ * A surplus (purchases below tax) still crowds out only the tax.
+ */
+export function householdGovernmentShare(input: {
+  spendShare: number;
+  taxRate: number;
+  addsDemand: boolean;
+}): number {
+  if (!input.addsDemand) {
+    return input.spendShare;
+  }
+  const deficit = Math.max(0, input.spendShare - input.taxRate);
+  return Math.max(0, input.taxRate - deficit);
+}
+
+/**
  * Household goods spending share of smoothed income. Structural impatience is
  * time preference relative to the mean. Inflation above the regime's normal
  * path adds sensitivity times that gap; sensitivity 0 is the prior rule.

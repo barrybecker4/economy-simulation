@@ -10,6 +10,7 @@ import {
   focusedSeries,
   formatAxisNumber,
   hiddenLegendSeries,
+  minSpanRange,
   plotData,
   plotOptions,
 } from './options.js';
@@ -341,6 +342,13 @@ describe('plotOptions', () => {
     const yAxis = options.axes[1];
     expect(yAxis?.size).toBeGreaterThan(48);
     expect(yAxis?.values?.(null as never, [0, 250_000, 1_200_000])).toEqual(['0', '250k', '1.2M']);
+  });
+
+  it('pads a y span that is a sliver of the level', () => {
+    const [low, high] = minSpanRange(0.08)(null as never, 100, 100.5);
+    expect(high - low).toBeCloseTo(100.5 * 0.08, 6);
+    expect((low + high) / 2).toBeCloseTo(100.25, 6);
+    expect(minSpanRange(0.08)(null as never, 80, 120)).toEqual([80, 120]);
   });
 
   it('uses a log left scale when logScale is on and values are positive', () => {

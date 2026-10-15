@@ -7,7 +7,7 @@ import { collectBankFee, creditDeposit, debitDeposit } from './money.js';
 import { agentTakeup, quotedServicePrice, realUnitCost } from './agent-cost.js';
 import { INITIAL_WAGE } from './rules.js';
 import { buyFromFirms } from './shop.js';
-import { goodsBudget, goodsSpendingShare } from './spending.js';
+import { goodsBudget, goodsSpendingShare, householdGovernmentShare } from './spending.js';
 import type { Agent, Bank, Firm, PayCurrency } from './types.js';
 
 export interface GoodsMarket {
@@ -224,7 +224,11 @@ function firmCanPay(economy: Economy, firm: Firm, bill: number): boolean {
 
 function spendingShare(economy: Economy, timePref: number, inflationGap: number): number {
   return goodsSpendingShare({
-    governmentShare: economy.params.spendShare,
+    governmentShare: householdGovernmentShare({
+      spendShare: economy.params.spendShare,
+      taxRate: economy.params.taxRate,
+      addsDemand: economy.params.spendingAddsDemand,
+    }),
     timePref,
     timePrefMean: economy.params.timePrefMean,
     inflationGap,

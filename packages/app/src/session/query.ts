@@ -81,7 +81,13 @@ function singleParams(search: string): Map<string, string> {
 function readOverrides(params: Map<string, string>): Record<string, number | string> {
   const overrides: Record<string, number | string> = {};
   for (const [key, raw] of params) {
-    if (key === 'seed' || key === 'ticks' || key === 'seeds' || key === 'regime') {
+    if (
+      key === 'seed' ||
+      key === 'ticks' ||
+      key === 'seeds' ||
+      key === 'regime' ||
+      key === 'lesson'
+    ) {
       continue;
     }
     // Hosts add private parameters, such as the editor's _ijt cache buster.

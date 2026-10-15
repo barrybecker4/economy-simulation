@@ -1694,6 +1694,27 @@ Acceptance:
 - Changing one category after a world is chosen makes the Scenario select read Custom.
 - The opening page stays Custom (Balanced, Moderate, Modest).
 
+### Phase 77: Deficit lesson levers
+
+Goal: a student can see that a deficit raises prices only under two assumptions the defaults leave off.
+
+1. `government.spendingAddsDemand` defaults to off. Off keeps the purchase share as a split of one income. On,
+   households give up only the tax, and the gap between purchases and tax is extra household demand. The treasury still
+   buys leftover inventory and still issues bonds for a shortfall.
+2. The deficit lesson compares purchases at 35 percent of income with a balanced 20 percent budget, grant and
+   stabilizer off, shocks off, anchor weight 0. One lever turns spending-adds-demand on. The other sets
+   `prices.trendWeight` to 0 so posted prices follow excess demand. The page scores prices, goods bought, and the money
+   stock against that matched baseline.
+
+Acceptance:
+
+- Off matches the previous household spending share for the same purchase share.
+- With the lever on, a 35 percent purchase share and a 20 percent tax leave households a 5 percent government share
+  before the impatience tilt, so the deficit is spent.
+- In the lesson world, the money stock ends higher whenever purchases sit above taxes.
+- Prices stay within 1 percent of the matched baseline while trend weight is 1, and end at least 2 percent higher when
+  the deficit adds demand and trend weight is 0.
+
 ## Validation
 
 Before testing a new idea in a regime, the model should reproduce facts economists broadly accept. These are automated

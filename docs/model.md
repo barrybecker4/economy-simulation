@@ -230,7 +230,8 @@ Opening household deposits are `household.openingDepositMonths` (default 6.5) ti
 squared.
 
 There is one consumption good. A household's budget is a smoothed income, times a marginal propensity of
-`1 − government.spendingShareOfGDP` tilted by how impatient the household is relative to the mean, plus
+`1 − government.spendingShareOfGDP` (or `1 − tax.incomeRate` plus the deficit, when
+`government.spendingAddsDemand` is on) tilted by how impatient the household is relative to the mean, plus
 `household.inflationTimePreference` times the gap between year-over-year inflation and the regime's normal inflation,
 times one plus the demand impulse, plus a spend out of deposits above 11 months of income at 8 percent per month. Normal inflation is the
 inflation target under fiat and hybrid, and minus `productivity.baseGrowth` under bitcoin. At sensitivity 0 the gap does
@@ -255,13 +256,18 @@ raise posted prices instead of leaving deposits idle against empty shelves.
 
 The government buys the remaining `government.spendingShareOfGDP` share of the same income base, starting with the firms
 that hold the most inventory. If tax revenue does not cover that purchase, the treasury issues bonds and the first bank
-holds them.
+holds them. With `government.spendingAddsDemand` off, that purchase share is also what households do not spend, so
+raising it moves purchases from households to the government and intended goods demand stays one income. With it on,
+households give up only the tax rate, and the gap between the purchase share and the tax is spent as well, so a deficit
+is extra household demand. The treasury still buys only leftover inventory. See
+[ADR 0032](adr/0032-spending-adds-demand.md).
 
 Wages and profits are paid from firm receipts after those sales. Profit shares use weights `skill^1.5`, so capital
 income is more concentrated than wages. Five percent of earned income is then moved to unemployed households. The sum of
 income does not change.
 
-A firm's posted price grows at a mix of the regime price trend and excess demand. Excess demand is desired goods
+A firm's posted price grows at a mix of the regime price trend and excess demand. The money stock does not enter that
+rule. Excess demand is desired goods
 spending this month relative to nominal capacity, minus one (negative when stock would pile up), or the unmet-demand
 share of cleared-plus-unmet spend when that lift is larger and capacity demand is non-negative, clamped to ±0.2.
 Monthly growth is `prices.trendWeight`

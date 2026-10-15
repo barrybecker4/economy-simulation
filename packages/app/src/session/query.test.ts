@@ -28,6 +28,10 @@ describe('parsePageState', () => {
     expect(state.overrides).toEqual({});
   });
 
+  it('ignores the deficit lesson flag', () => {
+    expect(parsePageState('?lesson=deficit')).toEqual(defaultPage());
+  });
+
   it('ignores a query parameter whose name starts with an underscore', () => {
     expect(parsePageState('?_ijt=abc&firm.markup=0.4')).toEqual({
       ...defaultPage(),

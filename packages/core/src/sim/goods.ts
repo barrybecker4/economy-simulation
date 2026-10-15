@@ -8,7 +8,12 @@ import { inventoryPressure, monthlyPriceMove } from './pricing.js';
 import { rationScale } from './rationing.js';
 import { CONSUMER_LOAN_REPAY, EXCESS_DEMAND_CAP } from './rules.js';
 import { buyFromFirms, shopCurrency } from './shop.js';
-import { goodsBudget, goodsSpendingShare, subsistenceShare } from './spending.js';
+import {
+  goodsBudget,
+  goodsSpendingShare,
+  householdGovernmentShare,
+  subsistenceShare,
+} from './spending.js';
 import { clamp, shuffleInPlace } from './stats.js';
 import type { Firm, Household } from './types.js';
 
@@ -125,7 +130,11 @@ function coinSpendable(economy: Economy, units: number): number {
 
 function spendingShare(economy: Economy, timePref: number, inflationGap: number): number {
   return goodsSpendingShare({
-    governmentShare: economy.params.spendShare,
+    governmentShare: householdGovernmentShare({
+      spendShare: economy.params.spendShare,
+      taxRate: economy.params.taxRate,
+      addsDemand: economy.params.spendingAddsDemand,
+    }),
     timePref,
     timePrefMean: economy.params.timePrefMean,
     inflationGap,

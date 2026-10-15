@@ -1033,6 +1033,21 @@ Registry version: 17.
   it, the shortfall is financed like any other deficit. The default of 0.04 is a 4 percent coupon. At 0 bonds pay no
   coupon.
 
+## government.spendingAddsDemand
+
+- Label: Spending adds demand
+- Group: publicFinance
+- Unit: switch
+- Default: off
+- Options: off, on
+- Status: guess
+- Source: Modeling guess. No external series was fitted. See docs/limits.md.
+- Description: Whether spending above taxes is extra goods demand. Off: households spend one minus the purchase share,
+  so a larger government takes that slice from them and total intended demand stays one income. On: households give up
+  only the tax, and the gap between purchases and tax is spent as well, so a deficit adds demand on top of household
+  budgets. The treasury still only buys leftover inventory and still issues bonds for an order taxes do not cover.
+  Prices move with that extra demand only when the price trend weight is below 1. Off is the prior rule.
+
 ## government.spendingShareOfGDP
 
 - Label: Government spending share
@@ -1045,8 +1060,9 @@ Registry version: 17.
 - Description: Share of household smoothed income that the government buys from firms. It shops first at the firms
   holding the most inventory. Households spend what remains: their spending share of income starts at one minus this
   value, then tilts with how impatient they are relative to the mean. Raising this share shifts purchases from
-  households to the government. If tax revenue does not cover the bill, the treasury issues bonds. It is a
-  closed-economy purchase share, set so the goods market can clear, not an estimate for a particular country.
+  households to the government, unless government.spendingAddsDemand is on. If tax revenue does not cover the bill, the
+  treasury issues bonds. It is a closed-economy purchase share, set so the goods market can clear, not an estimate for a
+  particular country.
 
 ## government.stabilizer
 
